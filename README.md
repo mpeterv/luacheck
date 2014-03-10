@@ -33,7 +33,11 @@ Options:
 You will need metalua-parser rock. It is marked as not compatible with Lua 5.2, though it looks like it actaully is. So, if you use Lua 5.2, before installing luacheck, run
 
 ```bash
-$ curl http://luarocks.org/repositories/rocks/metalua-parser-0.7.2-2.rockspec -s | sed 's/~>/>=/g' - > metalua-parser-0.7.2-2.rockspec
-$ [sudo] luarocks make metalua-parser-0.7.2-2.rockspec
-$ rm metalua-parser-0.7.2-2.rockspec
+$ curl http://luarocks.org/repositories/rocks/metalua-parser-0.7.2-2.src.rock > metalua-parser-0.7.2-2.src.rock
+$ unzip -o metalua-parser-0.7.2-2.src.rock
+$ cd metalua-parser-0.7.2-2/org.eclipse.koneki.metalua
+$ sed -i 's/~>/>=/g' metalua-parser-0.7.2-2.rockspec
+$ sudo luarocks make metalua-parser-0.7.2-2.rockspec
+$ cd ../..
+$ rm metalua-parser-0.7.2-2 -r
 ```
