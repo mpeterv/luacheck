@@ -84,7 +84,7 @@ function tags.Fornum(node, callbacks)
 end
 
 function tags.Forin(node, callbacks)
-   scan(node[2], callbacks)
+   scan_inner(node[2], callbacks)
    callbacks.on_start(node)
    scan_names(node[1], callbacks)
    scan_inner(node[3], callbacks)
@@ -94,16 +94,16 @@ end
 tags.Return = scan_inner
 
 function tags.Set(node, callbacks)
-   scan_inner(node[1], callbacks)
    scan_inner(node[2], callbacks)
+   return scan_inner(node[1], callbacks)
 end
 
 function tags.Local(node, callbacks)
-   scan_names(node[1], callbacks)
-
    if node[2] then
-      return scan_inner(node[2], callbacks)
+      scan_inner(node[2], callbacks)
    end
+
+   return scan_names(node[1], callbacks)
 end
 
 function tags.Localrec(node, callbacks)
