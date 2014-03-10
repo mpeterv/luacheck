@@ -1,5 +1,7 @@
 # luacheck
 
+[![Build Status](https://travis-ci.org/mpeterv/luacheck.png?branch=master)](https://travis-ci.org/mpeterv/luacheck)
+
 Simple static analyzer for Lua. 
 
 ```bash
@@ -26,4 +28,12 @@ Options:
    -r, --no-redefined    Do not check for redefined variables. 
    -u, --no-unused       Do not check for unused variables. 
    -h, --help            Show this help message and exit. 
+```
+
+You will need metalua-parser rock. It is marked as not compatible with Lua 5.2, though it looks like it actaully is. So, if you use Lua 5.2, before installing luacheck, run
+
+```bash
+$ curl http://luarocks.org/repositories/rocks/metalua-parser-0.7.2-2.rockspec -s | sed 's/~>/>=/g' - > metalua-parser-0.7.2-2.rockspec
+$ [sudo] luarocks make metalua-parser-0.7.2-2.rockspec
+$ rm metalua-parser-0.7.2-2.rockspec
 ```

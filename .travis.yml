@@ -1,0 +1,17 @@
+language: c
+
+env:
+  - LUA="Lua 5.1"
+  - LUA="Lua 5.2"
+  - LUA="LuaJIT 2.0"
+
+before_install:
+  - bash .travis_setup.sh
+
+install:
+  - curl http://luarocks.org/repositories/rocks/metalua-parser-0.7.2-2.rockspec -s | sed 's/~>/>=/g' - > metalua-parser-0.7.2-2.rockspec
+  - sudo luarocks make metalua-parser-0.7.2-2.rockspec
+  - sudo luarocks make rockspecs/luacheck-git-1.rockspec
+  - sudo luarocks install busted
+
+script: busted spec
