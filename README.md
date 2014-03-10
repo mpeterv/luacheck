@@ -5,7 +5,7 @@ Simple static analyzer for Lua.
 ```bash
 $ git clone https://github.com/mpeterv/luacheck
 $ cd luacheck
-$ [sudo] luarocks make luarocks make rockspecs/luacheck-git-1.rockspec
+$ [sudo] luarocks make rockspecs/luacheck-git-1.rockspec
 $ luacheck --help
 ```
 
@@ -27,4 +27,3 @@ Options:
    -u, --no-unused       Do not check for unused variables. 
    -h, --help            Show this help message and exit. 
 ```
-
