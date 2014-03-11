@@ -1,5 +1,6 @@
 #!/bin/env lua
 local luacheck = require "luacheck"
+local format = require "luacheck.format"
 local argparse = require "argparse"
 
 local parser = argparse "luacheck"
@@ -39,10 +40,10 @@ local options = {
    check_unused = not args["no-unused"]
 }
 
-local n, report = luacheck.check(args.files, options)
+local report = luacheck(args.files, options)
 
 if not args.quiet then
-   print(luacheck.format_report(report, true))
+   print(format(report))
 end
 
-os.exit(n == 0 and 0 or 1)
+os.exit(report.n == 0 and 0 or 1)

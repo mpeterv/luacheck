@@ -15,11 +15,12 @@ build = {
    modules = {
       luacheck = "src/luacheck.lua",
       ["luacheck.scan"] = "src/luacheck/scan.lua",
-      ["luacheck.check"] = "src/luacheck/check.lua"
+      ["luacheck.check"] = "src/luacheck/check.lua",
+      ["luacheck.format"] = "src/luacheck/format.lua"
    },
    install = {
       bin = {
-         luacheck = "bin/luacheck"
+         luacheck = "bin/luacheck.lua"
       }
    }
 }

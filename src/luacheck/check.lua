@@ -2,7 +2,7 @@ local scan = require "luacheck.scan"
 
 local function add_event(report, node, type_)
    report.n = report.n + 1
-   report[type_] = (report[type_] or 0) + 1
+   report[type_] = report[type_] + 1
    report[report.n] = {
       type = type_,
       name = node[1],
@@ -45,9 +45,7 @@ local function check(ast, options)
    end
 
    local callbacks = {}
-   local report = {
-      n = 0
-   }
+   local report = {n = 0, global = 0, redefined = 0, unused = 0}
 
    -- Array of scopes. 
    -- Each scope is a table mapping names to array {node, used}

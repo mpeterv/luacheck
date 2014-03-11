@@ -1,9 +1,6 @@
-local luacheck = {}
-
 local check = require "luacheck.check"
 local luacompiler = require "metalua.compiler"
 local luaparser = luacompiler.new()
-local color = require "ansicolors"
 
 local function get_report(file, options)
    local ast = assert(luaparser:srcfile_to_ast(file))
@@ -20,81 +17,37 @@ end
 -- `options.check_unused` - should luacheck check for unused locals? Default: true. 
 -- `options.globals` - set of standard globals. Default: _G. 
 -- 
--- Returns number of warnings and report. 
--- Report is an array of `luacheck.check` reports with additional `file` field in each report. 
-
-function luacheck.check(files, options)
+-- Returns report. 
+-- Report is an array of file reports. 
+-- A file report is an array of warnings. Its `n` field contains total number of warnings. 
+-- `global`, `redefined` and `unused` fields contain number of warnings of corresponding types. 
+-- `file` field contains file name. 
+-- Event is a table with several fields. 
+-- `type` field may contain "global", "redefined" or "unused". 
+-- "global" is for accessing non-standard globals. 
+-- "redefined" is for redefinition of a local in the same scope, e.g. `local a; local a`. 
+-- "unused" is for unused locals.
+-- `name` field contains the name of problematic variable. 
+-- `line` field contains line number where the problem occured. 
+-- `column` field contains offest of the name in that line. 
+-- The global report contains global counter of warnings per type in its `global`, `redefined` and `unused` fields. 
+-- And `n` field contains total number of warnings in all files. 
+local function luacheck(files, options)
    if type(files) == "string" then
       files = {files}
    end
 
-   local report = {n = 0}
+   local report = {n = 0, global = 0, redefined = 0, unused = 0}
 
    for i=1, #files do
       report[i] = get_report(files[i], options)
-      report.n = report.n + report[i].n
-   end
 
-   return report.n, report
-end
-
-local function bright(use_ansicolors, text)
-   return use_ansicolors and color("%{bright}"..text) or text
-end
-
-local function ok(use_ansicolors)
-   return use_ansicolors and color "%{bright}%{green}OK" or "OK"
-end
-
-local function failure(use_ansicolors)
-   return use_ansicolors and color "%{bright}%{red}Failure" or "Failure"
-end
-
-local warnings = {
-   global = "accessing undefined variable %s",
-   redefined = "variable %s was previously defined in the same scope",
-   unused = "unused variable %s"
-}
-
-local function format_file_report(report, use_ansicolors)
-   local label = "Checking "..report.file
-   local status = (report.n == 0 and ok or failure)(use_ansicolors)
-   local buf = {label..(" "):rep(math.max(50 - #label, 1))..status}
-
-   if report.n > 0 then
-      table.insert(buf, "")
-
-      for i=1, report.n do
-         local event = report[i]
-         local location = ("%s:%d:%d"):format(report.file, event.line, event.column)
-         local warning = warnings[event.type]:format(bright(use_ansicolors, event.name))
-         table.insert(buf, ("    %s: %s"):format(location, warning))
+      for _, field in ipairs{"n", "global", "redefined", "unused"} do
+         report[field] = report[field] + report[i][field]
       end
-
-      table.insert(buf, "")
    end
 
-   return table.concat(buf, "\r\n")
-end
-
---- Creates a formatted message from a report. 
--- If use_ansicolors is true, the message will be more beautiful. 
-function luacheck.format_report(report, use_ansicolors)
-   local buf = {[0] = "\r\n"}
-
-   for i=1, #report do
-      table.insert(buf, format_file_report(report[i], use_ansicolors))
-   end
-
-   local total = ("Total: %s warnings"):format(bright(use_ansicolors, tostring(report.n)))
-
-   if buf[#buf]:sub(-2) ~= "\r\n" then
-      table.insert(buf, "")
-   end
-
-   table.insert(buf, total)
-
-   return table.concat(buf, "\r\n")
+   return report
 end
 
 return luacheck

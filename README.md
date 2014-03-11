@@ -45,6 +45,5 @@ $ rm org.eclipse.koneki.metalua -r
 Things to do before release: 
 
 * Write comprehensive test suite
-* Write comprehensive documentation(LDoc)
+* Write comprehensive documentation
 * Ensure that metalua-parser is indeed Lua 5.2 compatible and ask to make a new release
-* Add proper wildcards support to the CLI. There is no globbing library which works on nested wildcards(e.g. `src/*.lua`), write one?
