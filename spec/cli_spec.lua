@@ -1,5 +1,3 @@
-local color = require "ansicolors"
-
 local function get_output(command)
    local handler = io.popen("luacheck "..command)
    local output = handler:read("*a"):gsub("\27.-\109", "")
@@ -9,7 +7,7 @@ end
 
 local function get_exitcode(command)
    local code51, _, code52 = os.execute("luacheck "..command)
-   return code52 or code51
+   return _VERSION:find "5.1" and code51 or code52
 end
 
 describe("test luacheck cli", function()
