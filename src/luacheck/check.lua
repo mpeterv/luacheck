@@ -110,6 +110,15 @@ local function check(ast, options)
 
    scan(ast, callbacks)
    assert(level == 0)
+   table.sort(report, function(event1, event2)
+      if event1.line < event2.line then
+         return true
+      elseif event1.line == event2.line then
+         return event1.column <= event2.column
+      else
+         return false
+      end
+   end)
    return report
 end
 
