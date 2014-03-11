@@ -41,9 +41,3 @@ $ [sudo] luarocks make metalua-parser-0.7.2-2.rockspec
 $ cd ..
 $ rm org.eclipse.koneki.metalua -r
 ```
-
-Things to do before release: 
-
-* Write comprehensive test suite
-* Write comprehensive documentation
-* Ensure that metalua-parser is indeed Lua 5.2 compatible and ask to make a new release
