@@ -10,7 +10,7 @@ local scan = require "luacheck.scan"
 -- `options.only` - set of variables to report. Default: report all. 
 --
 -- Returns a report. 
--- A report is an array of warnings. `n` field contains total number of warnings. 
+-- A report is an array of warnings. `total` field contains total number of warnings. 
 -- `global`, `redefined` and `unused` fields contain number of warnings of corresponding types. 
 -- Event is a table with several fields. 
 -- `type` field may contain "global", "redefined" "unused"
@@ -38,7 +38,7 @@ local function check(ast, options)
    end
 
    local callbacks = {}
-   local report = {n = 0, global = 0, redefined = 0, unused = 0}
+   local report = {total = 0, global = 0, redefined = 0, unused = 0}
 
    -- Array of scopes. 
    -- Each scope is a table mapping names to array {node, used}
@@ -52,9 +52,9 @@ local function check(ast, options)
 
       if not opts.ignore[name] then
          if not opts.only or opts.only[name] then
-            report.n = report.n + 1
+            report.total = report.total + 1
             report[type_] = report[type_] + 1
-            report[report.n] = {
+            report[report.total] = {
                type = type_,
                name = name,
                line = node.lineinfo.first.line,
@@ -119,11 +119,11 @@ local function check(ast, options)
 
    scan(ast, callbacks)
    assert(level == 0)
-   table.sort(report, function(event1, event2)
-      if event1.line < event2.line then
+   table.sort(report, function(warning1, warning2)
+      if warning1.line < warning2.line then
          return true
-      elseif event1.line == event2.line then
-         return event1.column < event2.column
+      elseif warning1.line == warning2.line then
+         return warning1.column < warning2.column
       else
          return false
       end
