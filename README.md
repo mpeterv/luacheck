@@ -12,8 +12,10 @@ $ luacheck --help
 ```
 
 ```
-Usage: luacheck [--globals <global> [<global>] ...] [-q] [-g] [-r]
-       [-u] [-h] <file> [<file>] ...
+Usage: luacheck
+       ([--ignore <var> [<var>] ...] | [--only <var> [<var>] ...])
+       [--globals <global> [<global>] ...] [-q] [-g] [-r] [-u] [-h]
+       <file> [<file>] ...
 
 Simple static analyzer. 
 
@@ -23,6 +25,10 @@ Arguments:
 Options: 
    --globals <global> [<global>] ...
                          Defined globals. 
+   --ignore <var> [<var>] ...
+                         Do not report warnings related to these variables. 
+   --only <var> [<var>] ...
+                         Only report warnings related to this variables. 
    -q, --quiet           Suppress output. 
    -g, --no-global       Do not check for accessing global variables. 
    -r, --no-redefined    Do not check for redefined variables. 

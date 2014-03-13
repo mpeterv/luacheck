@@ -3,6 +3,18 @@ local luacheck = require "luacheck"
 local format = require "luacheck.format"
 local argparse = require "argparse"
 
+local function toset(array)
+   if array then
+      local set = {}
+
+      for _, item in ipairs(array) do
+         set[item] = true
+      end
+
+      return set
+   end
+end
+
 local parser = argparse "luacheck"
    :description "Simple static analyzer. "
 parser:argument "files"
@@ -13,6 +25,16 @@ parser:option "--globals"
    :description "Defined globals. "
    :args "+"
    :argname "<global>"
+parser:mutex(
+   parser:option "--ignore"
+      :description "Do not report warnings related to these variables. "
+      :args "+"
+      :argname "<var>",
+   parser:option "--only"
+      :description "Only report warnings related to this variables. "
+      :args "+"
+      :argname "<var>"
+)
 parser:flag "-q" "--quiet"
    :description "Suppress output. "
 parser:flag "-g" "--no-global"
@@ -21,20 +43,13 @@ parser:flag "-r" "--no-redefined"
    :description "Do not check for redefined variables. "
 parser:flag "-u" "--no-unused"
    :description "Do not check for unused variables. "
+
 local args = parser:parse()
 
-local globals
-
-if args.globals then
-   globals = {}
-
-   for _, global in ipairs(args.globals) do
-      globals[global] = true
-   end
-end
-
 local options = {
-   globals = globals,
+   globals = toset(args.globals),
+   ignore = toset(args.ignore),
+   only = toset(args.only),
    check_global = not args["no-global"],
    check_redefined = not args["no-redefined"],
    check_unused = not args["no-unused"]

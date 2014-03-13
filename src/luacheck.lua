@@ -16,6 +16,8 @@ end
 -- `options.check_redefined` - should luacheck check for redefined locals? Default: true. 
 -- `options.check_unused` - should luacheck check for unused locals? Default: true. 
 -- `options.globals` - set of standard globals. Default: _G. 
+-- `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
+-- `options.only` - set of variables to report. Default: report all. 
 -- 
 -- Returns report. 
 -- Report is an array of file reports. 

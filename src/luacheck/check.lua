@@ -1,26 +1,17 @@
 local scan = require "luacheck.scan"
 
-local function add_event(report, node, type_)
-   report.n = report.n + 1
-   report[type_] = report[type_] + 1
-   report[report.n] = {
-      type = type_,
-      name = node[1],
-      line = node.lineinfo.first.line,
-      column = node.lineinfo.first.column
-   }
-end
-
 --- Checks a Metalua AST. 
 -- Recognized options:
 -- `options.check_global` - should luacheck check for global access? Default: true. 
 -- `options.check_redefined` - should luacheck check for redefined locals? Default: true. 
 -- `options.check_unused` - should luacheck check for unused locals? Default: true. 
 -- `options.globals` - set of standard globals. Default: _G. 
+-- `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
+-- `options.only` - set of variables to report. Default: report all. 
 --
 -- Returns a report. 
--- A report is an array of events. `n` field contains total number of events. 
--- `global`, `redefined` and `unused` fields contain number of events of corresponding types. 
+-- A report is an array of warnings. `n` field contains total number of warnings. 
+-- `global`, `redefined` and `unused` fields contain number of warnings of corresponding types. 
 -- Event is a table with several fields. 
 -- `type` field may contain "global", "redefined" "unused"
 -- "global" is for accessing non-standard globals. 
@@ -35,7 +26,9 @@ local function check(ast, options)
       check_global = true,
       check_redefined = true,
       check_unused = true,
-      globals = _G
+      globals = _G,
+      ignore = {},
+      only = false
    }
 
    for option in pairs(opts) do
@@ -53,6 +46,24 @@ local function check(ast, options)
    -- Current scope nesting level. 
    local level = 0
 
+   -- adds a warning, if necessary. 
+   local function add_warning(node, type_)
+      local name = node[1]
+
+      if not opts.ignore[name] then
+         if not opts.only or opts.only[name] then
+            report.n = report.n + 1
+            report[type_] = report[type_] + 1
+            report[report.n] = {
+               type = type_,
+               name = name,
+               line = node.lineinfo.first.line,
+               column = node.lineinfo.first.column
+            }
+         end
+      end
+   end
+
    function callbacks.on_start(_)
       level = level + 1
 
@@ -65,7 +76,7 @@ local function check(ast, options)
          -- Check if some local variables in this scope were left unused. 
          for name, vardata in pairs(scopes[level]) do
             if name ~= "_" and not vardata[2] then
-               add_event(report, vardata[1], "unused")
+               add_warning(vardata[1], "unused")
             end
          end
       end
@@ -79,7 +90,7 @@ local function check(ast, options)
       if opts.check_redefined then
          -- Check if this variable was declared already in this scope. 
          if scopes[level][node[1]] then
-            add_event(report, node, "redefined")
+            add_warning(node, "redefined")
          end
       end
 
@@ -101,7 +112,7 @@ local function check(ast, options)
          -- If we are here, the variable is not local. 
          -- Report if it is not standard. 
          if not opts.globals[name] then
-            add_event(report, node, "global")
+            add_warning(node, "global")
          end
       end
    end
@@ -112,7 +123,7 @@ local function check(ast, options)
       if event1.line < event2.line then
          return true
       elseif event1.line == event2.line then
-         return event1.column <= event2.column
+         return event1.column < event2.column
       else
          return false
       end

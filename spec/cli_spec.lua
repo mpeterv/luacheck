@@ -30,8 +30,8 @@ Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
     spec/samples/bad_code.lua:7:10: accessing undefined variable embrace
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
     spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 4 warnings
 ]], get_output "spec/samples/bad_code.lua")
@@ -83,5 +83,26 @@ Checking spec/samples/bad_code.lua                Failure
 
 Total: 5 warnings
 ]], get_output "--globals embrace -- spec/samples/bad_code.lua")
+   end)
+
+   it("allows to ignore some variables", function()
+      assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Total: 2 warnings
+]], get_output "spec/samples/bad_code.lua --ignore embrace opt")
+   end)
+
+   it("allows to only watch some variables", function()
+      assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+
+Total: 1 warnings
+]], get_output "spec/samples/bad_code.lua --only helper")
    end)
 end)

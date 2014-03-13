@@ -7,7 +7,7 @@ description = {}
 dependencies = {
    "lua >= 5.1, < 5.3",
    "metalua-parser >= 0.7.2",
-   "argparse >= 0.1.0",
+   "argparse >= 0.2.0",
    "ansicolors >= 1.0-1"
 }
 build = {
