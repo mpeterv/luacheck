@@ -31,7 +31,7 @@ parser:mutex(
       :args "+"
       :argname "<var>",
    parser:option "--only"
-      :description "Only report warnings related to this variables. "
+      :description "Only report warnings related to these variables. "
       :args "+"
       :argname "<var>"
 )
