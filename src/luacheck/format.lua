@@ -36,6 +36,14 @@ local function format_file_report(report)
    return table.concat(buf, "\n")
 end
 
+local function plural(n)
+   if n == 1 then
+      return ""
+   end
+
+   return "s"
+end
+
 --- Creates a formatted message from a report. 
 local function format_report(report)
    local buf = {[0] = "\n"}
@@ -44,8 +52,9 @@ local function format_report(report)
       table.insert(buf, format_file_report(report[i]))
    end
 
-   local total = ("Total: %s warnings / %s errors"):format(
-      color("%{bright}"..tostring(report.total)), color("%{bright}"..tostring(report.errors))
+   local total = ("Total: %s warning%s / %s error%s"):format(
+      color("%{bright}"..tostring(report.total)), plural(report.total),
+      color("%{bright}"..tostring(report.errors)), plural(report.errors)
    )
 
    if buf[#buf]:sub(-1, -1) ~= "\n" then

@@ -102,7 +102,7 @@ Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
 
-Total: 1 warnings / 0 errors
+Total: 1 warning / 0 errors
 ]], get_output "spec/samples/bad_code.lua --only helper")
    end)
 

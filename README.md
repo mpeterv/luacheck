@@ -74,7 +74,7 @@ Checking bad_code.lua                             Failure
 Checking good_code.lua                            OK
 Checking python_code.lua                          Error
 
-Total: 4 warnings / 1 errors
+Total: 4 warnings / 1 error
 ```
 
 ## luacheck module
@@ -176,5 +176,4 @@ prettyprint(report)
   unused = 1
 }
 ```
-
 
