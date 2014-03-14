@@ -8,10 +8,19 @@ local warnings = {
 
 local function format_file_report(report)
    local label = "Checking "..report.file
-   local status = report.total == 0 and color "%{bright}%{green}OK" or color "%{bright}%{red}Failure"
+   local status
+
+   if report.error then
+      status = color "%{bright}Error"
+   elseif report.total == 0 then
+      status = color "%{bright}%{green}OK"
+   else
+      status = color "%{bright}%{red}Failure"
+   end
+
    local buf = {label..(" "):rep(math.max(50 - #label, 1))..status}
 
-   if report.total > 0 then
+   if not report.error and report.total > 0 then
       table.insert(buf, "")
 
       for i=1, report.total do
@@ -35,7 +44,9 @@ local function format_report(report)
       table.insert(buf, format_file_report(report[i]))
    end
 
-   local total = ("Total: %s warnings"):format(color("%{bright}"..tostring(report.total)))
+   local total = ("Total: %s warnings / %s errors"):format(
+      color("%{bright}"..tostring(report.total)), color("%{bright}"..tostring(report.errors))
+   )
 
    if buf[#buf]:sub(-1, -1) ~= "\n" then
       table.insert(buf, "")

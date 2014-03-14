@@ -19,7 +19,7 @@ describe("test luacheck cli", function()
       assert.equal([[
 Checking spec/samples/good_code.lua               OK
 
-Total: 0 warnings
+Total: 0 warnings / 0 errors
 ]], get_output "spec/samples/good_code.lua")
       assert.equal(0, get_exitcode "spec/samples/good_code.lua")
    end)
@@ -33,13 +33,13 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 4 warnings
+Total: 4 warnings / 0 errors
 ]], get_output "spec/samples/bad_code.lua")
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua")
    end)
 
    it("suppresses output with -q", function()
-      assert.equal("", get_output "-q spec/samples/*_code.lua")
+      assert.equal("", get_output "-q spec/samples/*d_code.lua")
    end)
 
    it("allows to ignore some types of warnings", function()
@@ -50,7 +50,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 3 warnings
+Total: 3 warnings / 0 errors
 ]], get_output "-u spec/samples/bad_code.lua")
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
@@ -58,7 +58,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:3:16: unused variable helper
     spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
 
-Total: 2 warnings
+Total: 2 warnings / 0 errors
 ]], get_output "-g spec/samples/bad_code.lua")
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
@@ -67,7 +67,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:7:10: accessing undefined variable embrace
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 3 warnings
+Total: 3 warnings / 0 errors
 ]], get_output "-r spec/samples/bad_code.lua")
    end)
 
@@ -81,7 +81,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 5 warnings
+Total: 5 warnings / 0 errors
 ]], get_output "--globals embrace -- spec/samples/bad_code.lua")
    end)
 
@@ -92,7 +92,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:3:16: unused variable helper
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 2 warnings
+Total: 2 warnings / 0 errors
 ]], get_output "spec/samples/bad_code.lua --ignore embrace opt")
    end)
 
@@ -102,7 +102,16 @@ Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
 
-Total: 1 warnings
+Total: 1 warnings / 0 errors
 ]], get_output "spec/samples/bad_code.lua --only helper")
+   end)
+
+   it("handles errors gracefully", function()
+      assert.equal([[
+Checking spec/samples/python_code.lua             Error
+Checking spec/samples/absent_code.lua             Error
+
+Total: 0 warnings / 2 errors
+]], get_output "spec/samples/python_code.lua spec/samples/absent_code.lua")
    end)
 end)
