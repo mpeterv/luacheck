@@ -30,6 +30,14 @@ end
 
 function tags.Function(node, callbacks)
    callbacks.on_start(node)
+
+   -- patch implicit `self` argument
+   local self = node[1][1]
+
+   if self and not self.lineinfo then
+      self.lineinfo = node.lineinfo
+   end
+
    scan_names(node[1], callbacks)
    scan_inner(node[2], callbacks)
    return callbacks.on_end(node)

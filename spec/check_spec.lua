@@ -75,6 +75,17 @@ end
       ]])
    end)
 
+   it("detects unused implicit self", function()
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+         {type = "unused", name = "self", line = 2, column = 13}
+      }, get_report[[
+local a = {}
+function a:b()
+   
+end
+      ]])
+   end)
+
    it("detects unused locals from loops", function()
       assert.same({total = 2, global = 0, redefined = 0, unused = 2, 
          {type = "unused", name = "i", line = 1, column = 5},
