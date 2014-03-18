@@ -110,6 +110,19 @@ local foo
       ]], {check_unused = false}))
    end)
 
+   it("doesn't detect unused arguments when not asked to", function()
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+         {type = "unused", name = "c", line = 4, column = 13}
+      }, get_report([[
+local a = {}
+function a:b()
+   for i=1, 5 do
+      local c
+   end
+end
+      ]], {check_unused_args = false}))
+   end)
+
    it("detects redefinition in the same scope", function()
       assert.same({total = 1, global = 0, redefined = 1, unused = 0,
          {type = "redefined", name = "foo", line = 2, column = 7}

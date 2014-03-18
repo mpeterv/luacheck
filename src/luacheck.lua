@@ -20,6 +20,7 @@ end
 -- `options.check_global` - should luacheck check for global access? Default: true. 
 -- `options.check_redefined` - should luacheck check for redefined locals? Default: true. 
 -- `options.check_unused` - should luacheck check for unused locals? Default: true. 
+-- `options.check_unused_args` - should luacheck check for unused arguments and iterator variables? Default: true. 
 -- `options.globals` - set of standard globals. Default: _G. 
 -- `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
 -- `options.only` - set of variables to report. Default: report all. 

@@ -106,6 +106,16 @@ Total: 1 warning / 0 errors
 ]], get_output "spec/samples/bad_code.lua --only helper")
    end)
 
+   it("allows to ignore unused arguments", function()
+      assert.equal([[
+Checking spec/samples/unused_code.lua             Failure
+
+    spec/samples/unused_code.lua:5:13: unused variable q
+
+Total: 1 warning / 0 errors
+]], get_output "spec/samples/unused_code.lua --no-unused-args")
+   end)
+
    it("handles errors gracefully", function()
       assert.equal([[
 Checking spec/samples/python_code.lua             Error

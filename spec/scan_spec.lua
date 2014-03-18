@@ -14,8 +14,8 @@ local function get_calls(source)
       on_end = function(_)
          table.insert(result, "END")
       end,
-      on_local = function(node)
-         table.insert(result, "LOCAL "..node[1])
+      on_local = function(node, is_arg)
+         table.insert(result, (is_arg and "ARG " or "LOCAL ")..node[1])
       end,
       on_access = function(node)
          table.insert(result, "ACCESS "..node[1])
@@ -81,8 +81,8 @@ describe("test luacheck.scan", function()
          "START";
          --
          "START";
-         "LOCAL x";
-         "LOCAL y";
+         "ARG x";
+         "ARG y";
          "ACCESS y";
          "END";
          "ACCESS a";
@@ -96,7 +96,7 @@ describe("test luacheck.scan", function()
          "ACCESS c";
          --
          "START";
-         "LOCAL x";
+         "ARG x";
          "ACCESS x";
          "END";
          "ACCESS d";
@@ -115,18 +115,18 @@ describe("test luacheck.scan", function()
          "START";
          --
          "START";
-         "LOCAL x";
+         "ARG x";
          "END";
          "ACCESS a";
          --
          "START";
-         "LOCAL x";
+         "ARG x";
          "END";
          "ACCESS b";
          --
          "START";
-         "LOCAL self";
-         "LOCAL x";
+         "ARG self";
+         "ARG x";
          "END";
          "ACCESS d";
          --
@@ -144,7 +144,7 @@ describe("test luacheck.scan", function()
          --
          "LOCAL a";
          "START";
-         "LOCAL x";
+         "ARG x";
          "ACCESS a";
          "END";
          --
@@ -289,8 +289,8 @@ describe("test luacheck.scan", function()
          "ACCESS x";
          "ACCESS y";
          "START";
-         "LOCAL a";
-         "LOCAL b";
+         "ARG a";
+         "ARG b";
          "LOCAL c";
          "END";
          --
@@ -309,7 +309,7 @@ describe("test luacheck.scan", function()
          "ACCESS a";
          "ACCESS b";
          "START";
-         "LOCAL i";
+         "ARG i";
          "LOCAL c";
          "END";
          --
@@ -317,7 +317,7 @@ describe("test luacheck.scan", function()
          "ACCESS b";
          "ACCESS c";
          "START";
-         "LOCAL i";
+         "ARG i";
          "LOCAL d";
          "END";
          --

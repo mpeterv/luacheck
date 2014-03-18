@@ -4,7 +4,7 @@ local tags = {}
 -- Triggers callbacks:
 -- callbacks.on_start(node) - when a new scope starts
 -- callbacks.on_end(node) - when a scope ends
--- callbacks.on_local(node) - when a local variable is created
+-- callbacks.on_local(node, is_arg) - when a local variable is created
 -- callbacks.on_access(node) - when a variable is accessed
 local function scan(node, callbacks)
    local tag = node.tag or "Block"
@@ -20,10 +20,10 @@ local function scan_inner(node, callbacks)
    end
 end
 
-local function scan_names(node, callbacks)
+local function scan_names(node, callbacks, is_arg)
    for i=1, #node do
       if node[i].tag == "Id" then
-         callbacks.on_local(node[i])
+         callbacks.on_local(node[i], is_arg)
       end
    end
 end
@@ -38,7 +38,7 @@ function tags.Function(node, callbacks)
       self.lineinfo = node.lineinfo
    end
 
-   scan_names(node[1], callbacks)
+   scan_names(node[1], callbacks, true)
    scan_inner(node[2], callbacks)
    return callbacks.on_end(node)
 end
@@ -86,7 +86,7 @@ function tags.Fornum(node, callbacks)
    end
 
    callbacks.on_start(node)
-   callbacks.on_local(node[1])
+   callbacks.on_local(node[1], true)
    scan_inner(node[5] or node[4], callbacks)
    return callbacks.on_end(node)
 end
@@ -94,7 +94,7 @@ end
 function tags.Forin(node, callbacks)
    scan_inner(node[2], callbacks)
    callbacks.on_start(node)
-   scan_names(node[1], callbacks)
+   scan_names(node[1], callbacks, true)
    scan_inner(node[3], callbacks)
    return callbacks.on_end(node)
 end

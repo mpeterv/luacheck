@@ -5,6 +5,7 @@ local scan = require "luacheck.scan"
 -- `options.check_global` - should luacheck check for global access? Default: true. 
 -- `options.check_redefined` - should luacheck check for redefined locals? Default: true. 
 -- `options.check_unused` - should luacheck check for unused locals? Default: true. 
+-- `options.check_unused_args` - should luacheck check for unused arguments and iterator variables? Default: true. 
 -- `options.globals` - set of standard globals. Default: _G. 
 -- `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
 -- `options.only` - set of variables to report. Default: report all. 
@@ -26,6 +27,7 @@ local function check(ast, options)
       check_global = true,
       check_redefined = true,
       check_unused = true,
+      check_unused_args = true,
       globals = _G,
       ignore = {},
       only = false
@@ -41,7 +43,7 @@ local function check(ast, options)
    local report = {total = 0, global = 0, redefined = 0, unused = 0}
 
    -- Array of scopes. 
-   -- Each scope is a table mapping names to array {node, used}
+   -- Each scope is a table mapping names to array {node, used, is_arg}
    local scopes = {}
    -- Current scope nesting level. 
    local level = 0
@@ -76,7 +78,9 @@ local function check(ast, options)
          -- Check if some local variables in this scope were left unused. 
          for name, vardata in pairs(scopes[level]) do
             if name ~= "_" and not vardata[2] then
-               add_warning(vardata[1], "unused")
+               if not vardata[3] or opts.check_unused_args then
+                  add_warning(vardata[1], "unused")
+               end
             end
          end
       end
@@ -86,7 +90,7 @@ local function check(ast, options)
       level = level - 1
    end
 
-   function callbacks.on_local(node)
+   function callbacks.on_local(node, is_arg)
       if opts.check_redefined then
          -- Check if this variable was declared already in this scope. 
          if scopes[level][node[1]] then
@@ -95,7 +99,7 @@ local function check(ast, options)
       end
 
       -- Mark this variable declared. 
-      scopes[level][node[1]] = {node, false}
+      scopes[level][node[1]] = {node, false, is_arg}
    end
 
    function callbacks.on_access(node)

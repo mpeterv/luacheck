@@ -26,8 +26,8 @@ local function format_file_report(report)
       for i=1, report.total do
          local warning = report[i]
          local location = ("%s:%d:%d"):format(report.file, warning.line, warning.column)
-         local warning = warnings[warning.type]:format(color("%{bright}"..warning.name))
-         table.insert(buf, ("    %s: %s"):format(location, warning))
+         local message = warnings[warning.type]:format(color("%{bright}"..warning.name))
+         table.insert(buf, ("    %s: %s"):format(location, message))
       end
 
       table.insert(buf, "")

@@ -43,6 +43,8 @@ parser:flag "-r" "--no-redefined"
    :description "Do not check for redefined variables. "
 parser:flag "-u" "--no-unused"
    :description "Do not check for unused variables. "
+parser:flag "--no-unused-args"
+   :description "Do not check for unused arguments and loop variables. "
 
 local args = parser:parse()
 
@@ -52,7 +54,8 @@ local options = {
    only = toset(args.only),
    check_global = not args["no-global"],
    check_redefined = not args["no-redefined"],
-   check_unused = not args["no-unused"]
+   check_unused = not args["no-unused"],
+   check_unused_args = not args["no-unused-args"]
 }
 
 local report = luacheck(args.files, options)

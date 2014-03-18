@@ -37,8 +37,8 @@ $ luacheck --help
 ```
 Usage: luacheck
        ([--ignore <var> [<var>] ...] | [--only <var> [<var>] ...])
-       [--globals <global> [<global>] ...] [-q] [-g] [-r] [-u] [-h]
-       <file> [<file>] ...
+       [--globals <global> [<global>] ...] [-q] [-g] [-r] [-u]
+       [--no-unused-args] [-h] <file> [<file>] ...
 
 Simple static analyzer. 
 
@@ -56,6 +56,7 @@ Options:
    -g, --no-global       Do not check for accessing global variables. 
    -r, --no-redefined    Do not check for redefined variables. 
    -u, --no-unused       Do not check for unused variables. 
+   --no-unused-args      Do not check for unused arguments and loop variables. 
    -h, --help            Show this help message and exit. 
 ```
 
@@ -90,6 +91,7 @@ If the second argument is provided, it should be a table of options. Recognized 
 * `options.check_global` - should luacheck check for global access? Default: `true`. 
 * `options.check_redefined` - should luacheck check for redefined locals? Default: `true`. 
 * `options.check_unused` - should luacheck check for unused locals? Default: `true`. 
+* `options.check_unused_args` - should luacheck check for unused arguments and loop variables? Default: true. 
 * `options.globals` - set of standard globals. Default: `_G`. 
 * `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
 * `options.only` - set of variables to report. Default: report all variables. 
