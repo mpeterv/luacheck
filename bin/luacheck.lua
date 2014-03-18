@@ -61,4 +61,4 @@ if not args.quiet then
    print(format(report))
 end
 
-os.exit(report.total == 0 and 0 or 1)
+os.exit((report.total + report.errors) == 0 and 0 or 1)

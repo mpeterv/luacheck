@@ -6,7 +6,7 @@ local function get_output(command)
 end
 
 local function get_exitcode(command)
-   local code51, _, code52 = os.execute("luacheck "..command)
+   local code51, _, code52 = os.execute("luacheck "..command.." > /dev/null 2>&1")
    return _VERSION:find "5.1" and code51/256 or code52
 end
 
@@ -113,5 +113,6 @@ Checking spec/samples/absent_code.lua             Error
 
 Total: 0 warnings / 2 errors
 ]], get_output "spec/samples/python_code.lua spec/samples/absent_code.lua")
+      assert.equal(1, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua")
    end)
 end)

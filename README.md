@@ -77,6 +77,8 @@ Checking python_code.lua                          Error
 Total: 4 warnings / 1 error
 ```
 
+CLI exits with `0` if no warnings or errors occured and with `1` otherwise. 
+
 ## luacheck module
 
 `luacheck` module is a single function. 
