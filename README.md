@@ -26,16 +26,6 @@ $ cd luacheck
 $ [sudo] luarocks make rockspecs/luacheck-git-1.rockspec
 ```
 
-You will need metalua-parser rock. It is marked as not compatible with Lua 5.2, though it looks like it actaully is. So, if you use Lua 5.2, before installing luacheck, run
-
-```bash
-$ curl http://luarocks.org/repositories/rocks/metalua-parser-0.7.2-2.src.rock > metalua-parser-0.7.2-2.src.rock
-$ unzip -o metalua-parser-0.7.2-2.src.rock
-$ cd org.eclipse.koneki.metalua
-$ sed -i 's/~>/>=/g' metalua-parser-0.7.2-2.rockspec
-$ [sudo] luarocks make metalua-parser-0.7.2-2.rockspec
-```
-
 ## Command-line interface
 
 ```bash

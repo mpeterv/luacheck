@@ -3,10 +3,19 @@ version = "git-1"
 source = {
    url = "git://github.com/mpeterv/luacheck.git"
 }
-description = {}
+description = {
+   summary = "A simple static analyzer",
+   detailed = [[
+luacheck only looks for three things: non-standard global variables, unused local variables and redefinitions of existing local variables in the same scope. 
+
+luacheck provides a command-line interface as well as a small library which can be used from another Lua program. 
+]],
+   homepage = "https://github.com/mpeterv/luacheck",
+   license = "MIT/X11"
+}
 dependencies = {
    "lua >= 5.1, < 5.3",
-   "metalua-parser >= 0.7.2",
+   "metalua-parser >= 0.7.3-2",
    "argparse >= 0.2.0",
    "ansicolors >= 1.0-1"
 }
@@ -22,5 +31,6 @@ build = {
       bin = {
          luacheck = "bin/luacheck.lua"
       }
-   }
+   },
+   copy_directories = {"spec"}
 }
