@@ -9,6 +9,7 @@ before_install:
   - bash .travis_setup.sh
 
 install:
+  - sudo luarocks install checks
   - sudo luarocks make rockspecs/luacheck-git-1.rockspec
   - sudo luarocks install busted
 

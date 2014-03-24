@@ -32,5 +32,5 @@ build = {
          luacheck = "bin/luacheck.lua"
       }
    },
-   copy_directories = {"spec"}
+   copy_directories = {"spec", "doc"}
 }

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Luacheck : Simple static analyzer for Lua" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Luacheck</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/mpeterv/luacheck">View on GitHub</a>
+
+          <h1 id="project_title">Luacheck</h1>
+          <h2 id="project_tagline">Simple static analyzer for Lua</h2>
+
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="luacheck" class="anchor" href="#luacheck"><span class="octicon octicon-link"></span></a>luacheck</h1>
+
+<p>luacheck is a simple static analyzer for Lua. It only looks for three things: </p>
+
+<ul>
+<li>non-standard global variables; </li>
+<li>unused local variables(except variable named <code>_</code>, which should be used as placeholder when avoiding an unused variable is impossible); </li>
+<li>redefinitions of existing local variables in the same scope(e.g. <code>local a = 5; ... local a = 6</code>). </li>
+</ul><p>luacheck provides a command-line interface as well as a small library which can be used from another Lua program. </p>
+
+<h2>
+<a name="contents" class="anchor" href="#contents"><span class="octicon octicon-link"></span></a>Contents</h2>
+
+<ul>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#command-line-interface">Command-line interface</a></li>
+<li><a href="#luacheck-module">luacheck module</a></li>
+<li><a href="#testing">Testing</a></li>
+<li><a href="#license">License</a></li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>git clone https://github.com/mpeterv/luacheck
+<span class="nv">$ </span><span class="nb">cd </span>luacheck
+<span class="nv">$ </span><span class="o">[</span>sudo<span class="o">]</span> luarocks install checks
+<span class="nv">$ </span><span class="o">[</span>sudo<span class="o">]</span> luarocks make rockspecs/luacheck-git-1.rockspec
+</pre></div>
+
+<h2>
+<a name="command-line-interface" class="anchor" href="#command-line-interface"><span class="octicon octicon-link"></span></a>Command-line interface</h2>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>luacheck --help
+</pre></div>
+
+<pre><code>Usage: luacheck
+       ([--ignore &lt;var&gt; [&lt;var&gt;] ...] | [--only &lt;var&gt; [&lt;var&gt;] ...])
+       [--globals &lt;global&gt; [&lt;global&gt;] ...] [-q] [-g] [-r] [-u]
+       [--no-unused-args] [-h] &lt;file&gt; [&lt;file&gt;] ...
+
+Simple static analyzer. 
+
+Arguments: 
+   files                 Files to check. 
+
+Options: 
+   --globals &lt;global&gt; [&lt;global&gt;] ...
+                         Defined globals. 
+   --ignore &lt;var&gt; [&lt;var&gt;] ...
+                         Do not report warnings related to these variables. 
+   --only &lt;var&gt; [&lt;var&gt;] ...
+                         Only report warnings related to these variables. 
+   -q, --quiet           Suppress output. 
+   -g, --no-global       Do not check for accessing global variables. 
+   -r, --no-redefined    Do not check for redefined variables. 
+   -u, --no-unused       Do not check for unused variables. 
+   --no-unused-args      Do not check for unused arguments and loop variables. 
+   -h, --help            Show this help message and exit. 
+</code></pre>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>luacheck *.lua
+</pre></div>
+
+<pre><code>Checking bad_code.lua                             Failure
+
+    bad_code.lua:3:16: unused variable helper
+    bad_code.lua:7:10: accessing undefined variable embrace
+    bad_code.lua:8:10: variable opt was previously defined in the same scope
+    bad_code.lua:9:11: accessing undefined variable hepler
+
+Checking good_code.lua                            OK
+Checking python_code.lua                          Error
+
+Total: 4 warnings / 1 error
+</code></pre>
+
+<p>CLI exits with <code>0</code> if no warnings or errors occured and with <code>1</code> otherwise. </p>
+
+<h2>
+<a name="luacheck-module" class="anchor" href="#luacheck-module"><span class="octicon octicon-link"></span></a>luacheck module</h2>
+
+<p><code>luacheck</code> module is a single function. </p>
+
+<p>The first argument is either a path to a file or an array of paths. </p>
+
+<p>If the second argument is provided, it should be a table of options. Recognized options are: </p>
+
+<ul>
+<li>
+<code>options.check_global</code> - should luacheck check for global access? Default: <code>true</code>. </li>
+<li>
+<code>options.check_redefined</code> - should luacheck check for redefined locals? Default: <code>true</code>. </li>
+<li>
+<code>options.check_unused</code> - should luacheck check for unused locals? Default: <code>true</code>. </li>
+<li>
+<code>options.check_unused_args</code> - should luacheck check for unused arguments and loop variables? Default: <code>true</code>. </li>
+<li>
+<code>options.globals</code> - set of standard globals. Default: <code>_G</code>. </li>
+<li>
+<code>options.ignore</code> - set of variables to ignore. Default: empty. Takes precedense over <code>options.only</code>. </li>
+<li>
+<code>options.only</code> - set of variables to report. Default: report all variables. </li>
+</ul><p>The function returns a report. A report is an array of per-file reports plus some meta information. Each per-file report is an array of warnings plus some meta information. </p>
+
+<pre><code>report: {
+   total = &lt;total number of warnings&gt;,
+   errors = &lt;total number of errors&gt;,
+   global = &lt;total number of warnings related to global variables&gt;,
+   redefined = &lt;total number of warnings related to redefined variables&gt;,
+   unused = &lt;total number of warnings related to unused variables&gt;,
+   &lt;file_report&gt;, &lt;file_report&gt;, ...
+}
+
+file_report: {
+   file = &lt;path to this file&gt;,
+   total = &lt;number of warnings in this file&gt;,
+   global = &lt;number of warnings related to global variables in this file&gt;,
+   redefined = &lt;number of warnings related to redefined variables in this file&gt;,
+   unused = &lt;number of warnings related to unused variables in this file&gt;,
+   &lt;warning&gt;, &lt;warning&gt;, ...
+} | {
+   file = &lt;path to this file&gt;,
+   error = true
+}
+
+warning: {
+   type = "global" | "redefined" | "unused",
+   name = &lt;name of the related variable&gt;,
+   line = &lt;number of the line where the problem occured&gt;,
+   column = &lt;offset of the variable name in that line&gt;
+}
+</code></pre>
+
+<p>Example: </p>
+
+<div class="highlight highlight-lua"><pre><span class="kd">local</span> <span class="n">luacheck</span> <span class="o">=</span> <span class="nb">require</span> <span class="s2">"</span><span class="s">luacheck"</span>
+<span class="kd">local</span> <span class="n">report</span> <span class="o">=</span> <span class="n">luacheck</span><span class="p">{</span><span class="s2">"</span><span class="s">bad_code.lua"</span><span class="p">,</span> <span class="s2">"</span><span class="s">good_code.lua"</span><span class="p">,</span> <span class="s2">"</span><span class="s">python_code.lua"</span><span class="p">}</span>
+<span class="n">prettyprint</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+</pre></div>
+
+<pre><code>{ { {
+      column = 16,
+      line = 3,
+      name = "helper",
+      type = "unused"
+    }, {
+      column = 10,
+      line = 7,
+      name = "embrace",
+      type = "global"
+    }, {
+      column = 10,
+      line = 8,
+      name = "opt",
+      type = "redefined"
+    }, {
+      column = 11,
+      line = 9,
+      name = "hepler",
+      type = "global"
+    },
+    file = "bad_code.lua",
+    global = 2,
+    redefined = 1,
+    total = 4,
+    unused = 1
+  }, {
+    file = "good_code.lua",
+    global = 0,
+    redefined = 0,
+    total = 0,
+    unused = 0
+  }, {
+    error = true,
+    file = "python_code.lua"
+  },
+  errors = 1,
+  global = 2,
+  redefined = 1,
+  total = 4,
+  unused = 1
+}
+</code></pre>
+
+<h2>
+<a name="testing" class="anchor" href="#testing"><span class="octicon octicon-link"></span></a>Testing</h2>
+
+<p>You can run the tests using <a href="http://olivinelabs.com/busted/">busted</a> with the following command from the root folder: </p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>busted spec
+</pre></div>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<pre><code>The MIT License (MIT)
+
+Copyright (c) 2014 Peter Melnichenko
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Luacheck is maintained by <a href="https://github.com/mpeterv">mpeterv</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>

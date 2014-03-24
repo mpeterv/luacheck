@@ -5,7 +5,7 @@
 luacheck is a simple static analyzer for Lua. It only looks for three things: 
 
 * non-standard global variables; 
-* unused local variables; 
+* unused local variables(except variable named `_`, which should be used as placeholder when avoiding an unused variable is impossible); 
 * redefinitions of existing local variables in the same scope(e.g. `local a = 5; ... local a = 6`). 
 
 luacheck provides a command-line interface as well as a small library which can be used from another Lua program. 
@@ -23,6 +23,7 @@ luacheck provides a command-line interface as well as a small library which can 
 ```bash
 $ git clone https://github.com/mpeterv/luacheck
 $ cd luacheck
+$ [sudo] luarocks install checks
 $ [sudo] luarocks make rockspecs/luacheck-git-1.rockspec
 ```
 
