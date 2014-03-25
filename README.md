@@ -23,7 +23,6 @@ luacheck provides a command-line interface as well as a small library which can 
 ```bash
 $ git clone https://github.com/mpeterv/luacheck
 $ cd luacheck
-$ [sudo] luarocks install checks
 $ [sudo] luarocks make rockspecs/luacheck-git-1.rockspec
 ```
 
