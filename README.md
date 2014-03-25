@@ -20,10 +20,10 @@ luacheck provides a command-line interface as well as a small library which can 
 
 ## Installation
 
+Install luacheck using [luarocks](http://luarocks.org/): 
+
 ```bash
-$ git clone https://github.com/mpeterv/luacheck
-$ cd luacheck
-$ [sudo] luarocks make rockspecs/luacheck-git-1.rockspec
+$ [sudo] luarocks install luacheck
 ```
 
 ## Command-line interface
