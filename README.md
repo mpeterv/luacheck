@@ -50,7 +50,7 @@ Options:
                          Do not report warnings related to these variables. 
    --only <var> [<var>] ...
                          Only report warnings related to these variables. 
-   -q, --quiet           Suppress output. 
+   -q, --quiet           Only print total number of warnings and errors. 
    -g, --no-global       Do not check for accessing global variables. 
    -r, --no-redefined    Do not check for redefined variables. 
    -u, --no-unused       Do not check for unused variables. 
@@ -66,12 +66,12 @@ $ luacheck *.lua
 Checking bad_code.lua                             Failure
 
     bad_code.lua:3:16: unused variable helper
-    bad_code.lua:7:10: accessing undefined variable embrace
-    bad_code.lua:8:10: variable opt was previously defined in the same scope
+    bad_code.lua:7:10: setting non-standard global variable embrace
+    bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
     bad_code.lua:9:11: accessing undefined variable hepler
 
 Checking good_code.lua                            OK
-Checking python_code.lua                          Error
+Checking python_code.lua                          Syntax error
 
 Total: 4 warnings / 1 error
 ```
@@ -115,11 +115,12 @@ file_report: {
    <warning>, <warning>, ...
 } | {
    file = <path to this file>,
-   error = true
+   error = "I/O" | "syntax"
 }
 
 warning: {
    type = "global" | "redefined" | "unused",
+   subtype = "read" | "write" | "var" | "arg" | "loop",
    name = <name of the related variable>,
    line = <number of the line where the problem occured>,
    column = <offset of the variable name in that line>
@@ -139,21 +140,25 @@ prettyprint(report)
       column = 16,
       line = 3,
       name = "helper",
+      subtype = "var",
       type = "unused"
     }, {
       column = 10,
       line = 7,
       name = "embrace",
+      subtype = "write",
       type = "global"
     }, {
       column = 10,
       line = 8,
       name = "opt",
+      subtype = "arg",
       type = "redefined"
     }, {
       column = 11,
       line = 9,
       name = "hepler",
+      subtype = "read",
       type = "global"
     },
     file = "bad_code.lua",
@@ -168,7 +173,7 @@ prettyprint(report)
     total = 0,
     unused = 0
   }, {
-    error = true,
+    error = "syntax",
     file = "python_code.lua"
   },
   errors = 1,

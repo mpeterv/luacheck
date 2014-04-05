@@ -17,7 +17,8 @@ local function get_report(file, options)
       return {error = "I/O", file = file}
    end
 
-   local ok, ast = pcall(function() return luaparser:src_to_ast(source) end)
+   local ast
+   ok, ast = pcall(function() return luaparser:src_to_ast(source) end)
 
    if not ok then
       return {error = "syntax", file = file}
