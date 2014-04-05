@@ -14,8 +14,8 @@ local function get_calls(source)
       on_end = function(_)
          table.insert(result, "END")
       end,
-      on_local = function(node, is_arg)
-         table.insert(result, (is_arg and "ARG " or "LOCAL ")..node[1])
+      on_local = function(node, is_arg, is_loop)
+         table.insert(result, (is_arg and (is_loop and "LOOP " or "ARG ") or "LOCAL ")..node[1])
       end,
       on_access = function(node)
          table.insert(result, "ACCESS "..node[1])
@@ -289,8 +289,8 @@ describe("test luacheck.scan", function()
          "ACCESS x";
          "ACCESS y";
          "START";
-         "ARG a";
-         "ARG b";
+         "LOOP a";
+         "LOOP b";
          "LOCAL c";
          "END";
          --
@@ -309,7 +309,7 @@ describe("test luacheck.scan", function()
          "ACCESS a";
          "ACCESS b";
          "START";
-         "ARG i";
+         "LOOP i";
          "LOCAL c";
          "END";
          --
@@ -317,7 +317,7 @@ describe("test luacheck.scan", function()
          "ACCESS b";
          "ACCESS c";
          "START";
-         "ARG i";
+         "LOOP i";
          "LOCAL d";
          "END";
          --

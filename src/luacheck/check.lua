@@ -124,13 +124,8 @@ local function check(ast, options)
    scan(ast, callbacks)
    assert(level == 0)
    table.sort(report, function(warning1, warning2)
-      if warning1.line < warning2.line then
-         return true
-      elseif warning1.line == warning2.line then
-         return warning1.column < warning2.column
-      else
-         return false
-      end
+      return warning1.line < warning2.line or
+         warning1.line == warning2.line and warning1.column < warning2.column
    end)
    return report
 end
