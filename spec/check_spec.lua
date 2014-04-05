@@ -25,7 +25,7 @@ end
 
    it("detects global access", function()
       assert.same({total = 1, global = 1, redefined = 0, unused = 0, 
-         {type = "global", name = "foo", line = 1, column = 1}
+         {type = "global", subtype = "write", name = "foo", line = 1, column = 1}
       }, get_report[[
 foo = {}
       ]])
@@ -39,7 +39,7 @@ foo()
 
    it("detects global access in self swap", function()
       assert.same({total = 1, global = 1, redefined = 0, unused = 0, 
-         {type = "global", name = "a", line = 1, column = 11}
+         {type = "global", subtype = "read", name = "a", line = 1, column = 11}
       }, get_report[[
 local a = a
 print(a)
@@ -54,7 +54,7 @@ foo()
 
    it("detects unused locals", function()
       assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
-         {type = "unused", name = "a", line = 1, column = 7}
+         {type = "unused", subtype = "var", name = "a", line = 1, column = 7}
       }, get_report[[
 local a = 4
 
@@ -67,7 +67,7 @@ end
 
    it("detects unused locals from function arguments", function()
       assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
-         {type = "unused", name = "foo", line = 1, column = 17}
+         {type = "unused", subtype = "arg", name = "foo", line = 1, column = 17}
       }, get_report[[
 return function(foo, ...)
    return ...
@@ -77,7 +77,7 @@ end
 
    it("detects unused implicit self", function()
       assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
-         {type = "unused", name = "self", line = 2, column = 13}
+         {type = "unused", subtype = "arg", name = "self", line = 2, column = 13}
       }, get_report[[
 local a = {}
 function a:b()
@@ -88,8 +88,8 @@ end
 
    it("detects unused locals from loops", function()
       assert.same({total = 2, global = 0, redefined = 0, unused = 2, 
-         {type = "unused", name = "i", line = 1, column = 5},
-         {type = "unused", name = "i", line = 2, column = 5}
+         {type = "unused", subtype = "loop", name = "i", line = 1, column = 5},
+         {type = "unused", subtype = "loop", name = "i", line = 2, column = 5}
       }, get_report[[
 for i=1, 2 do end
 for i in pairs{} do end
@@ -112,7 +112,7 @@ local foo
 
    it("doesn't detect unused arguments when not asked to", function()
       assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
-         {type = "unused", name = "c", line = 4, column = 13}
+         {type = "unused", subtype = "var", name = "c", line = 4, column = 13}
       }, get_report([[
 local a = {}
 function a:b()
@@ -125,7 +125,7 @@ end
 
    it("detects redefinition in the same scope", function()
       assert.same({total = 1, global = 0, redefined = 1, unused = 0,
-         {type = "redefined", name = "foo", line = 2, column = 7}
+         {type = "redefined", subtype = "var", name = "foo", line = 2, column = 7}
       }, get_report[[
 local foo
 local foo = "bar"
@@ -135,7 +135,7 @@ print(foo)
 
    it("detects redefinition of function arguments", function()
       assert.same({total = 1, global = 0, redefined = 1, unused = 0,
-         {type = "redefined", name = "foo", line = 2, column = 10}
+         {type = "redefined", subtype = "arg", name = "foo", line = 2, column = 10}
       }, get_report[[
 return function(foo, ...)
    local foo
@@ -152,10 +152,10 @@ local foo; local foo; print(foo)
 
    it("handles argparse sample", function()
       assert.same({total = 4, global = 0, redefined = 0, unused = 4,
-         {type = "unused", name = "setter", line = 34, column = 27},
-         {type = "unused", name = "self", line = 117, column = 27},
-         {type = "unused", name = "self", line = 125, column = 27},
-         {type = "unused", name = "parser", line = 957, column = 41}
+         {type = "unused", subtype = "loop", name = "setter", line = 34, column = 27},
+         {type = "unused", subtype = "arg", name = "self", line = 117, column = 27},
+         {type = "unused", subtype = "arg", name = "self", line = 125, column = 27},
+         {type = "unused", subtype = "arg", name = "parser", line = 957, column = 41}
       }, get_report(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)
 end)
