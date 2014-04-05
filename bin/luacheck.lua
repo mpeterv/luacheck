@@ -1,7 +1,8 @@
 #!/bin/env lua
-local luacheck = require "luacheck"
+local get_report = require "luacheck.get_report"
 local format = require "luacheck.format"
 local argparse = require "argparse"
+local color = require "ansicolors"
 
 local function toset(array)
    if array then
@@ -36,7 +37,7 @@ parser:mutex(
       :argname "<var>"
 )
 parser:flag "-q" "--quiet"
-   :description "Suppress output. "
+   :description "Only print total number of warnings and errors. "
 parser:flag "-g" "--no-global"
    :description "Do not check for accessing global variables. "
 parser:flag "-r" "--no-redefined"
@@ -58,10 +59,30 @@ local options = {
    check_unused_args = not args["no-unused-args"]
 }
 
-local report = luacheck(args.files, options)
+local warnings, errors = 0, 0
+local report
 
-if not args.quiet then
-   print(format(report))
+for _, file in ipairs(args.files) do
+   report = get_report(file, options)
+
+   if report.error then
+      errors = errors + 1
+   else
+      warnings = warnings + report.total
+   end
+
+   if not args.quiet then
+      print(format(report))
+   end
 end
 
-os.exit((report.total + report.errors) == 0 and 0 or 1)
+if not args.quiet and report and (report.error or report.total == 0) then
+   print()
+end
+
+print(("Total: %s warning%s / %s error%s"):format(
+   color("%{bright}"..tostring(warnings)), warnings == 1 and "" or "s",
+   color("%{bright}"..tostring(errors)), errors == 1 and "" or "s"
+))
+
+os.exit((warnings + errors) == 0 and 0 or 1)

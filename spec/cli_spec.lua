@@ -38,8 +38,10 @@ Total: 4 warnings / 0 errors
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua")
    end)
 
-   it("suppresses output with -q", function()
-      assert.equal("", get_output "-q spec/samples/*d_code.lua")
+   it("suppresses warnings output with -q", function()
+      assert.equal([[
+Total: 10 warnings / 0 errors
+]], get_output "-q spec/samples/*d_code.lua")
    end)
 
    it("allows to ignore some types of warnings", function()

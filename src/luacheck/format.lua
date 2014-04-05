@@ -17,7 +17,8 @@ local warnings = {
    }
 }
 
-local function format_file_report(report)
+--- Formats a file report. 
+local function format(report)
    local label = "Checking "..report.file
    local status
 
@@ -47,34 +48,4 @@ local function format_file_report(report)
    return table.concat(buf, "\n")
 end
 
-local function plural(n)
-   if n == 1 then
-      return ""
-   end
-
-   return "s"
-end
-
---- Creates a formatted message from a report. 
-local function format_report(report)
-   local buf = {[0] = "\n"}
-
-   for i=1, #report do
-      table.insert(buf, format_file_report(report[i]))
-   end
-
-   local total = ("Total: %s warning%s / %s error%s"):format(
-      color("%{bright}"..tostring(report.total)), plural(report.total),
-      color("%{bright}"..tostring(report.errors)), plural(report.errors)
-   )
-
-   if buf[#buf]:sub(-1, -1) ~= "\n" then
-      table.insert(buf, "")
-   end
-
-   table.insert(buf, total)
-
-   return table.concat(buf, "\n")
-end
-
-return format_report
+return format

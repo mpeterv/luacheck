@@ -1,27 +1,8 @@
 local scan = require "luacheck.scan"
 
 --- Checks a Metalua AST. 
--- Recognized options:
--- `options.check_global` - should luacheck check for global access? Default: true. 
--- `options.check_redefined` - should luacheck check for redefined locals? Default: true. 
--- `options.check_unused` - should luacheck check for unused locals? Default: true. 
--- `options.check_unused_args` - should luacheck check for unused arguments and iterator variables? Default: true. 
--- `options.globals` - set of standard globals. Default: _G. 
--- `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
--- `options.only` - set of variables to report. Default: report all. 
---
--- Returns a report. 
--- A report is an array of warnings. `total` field contains total number of warnings. 
--- `global`, `redefined` and `unused` fields contain number of warnings of corresponding types. 
--- Event is a table with several fields. 
--- `type` field may contain "global", "redefined" or "unused". 
--- "global" is for accessing non-standard globals. 
--- "redefined" is for redefinition of a local in the same scope, e.g. `local a; local a`. 
--- "unused" is for unused locals. 
--- `subtype` field may contain "read" or "write" for `global` type and "loop" or "arg" or "var" for other types. 
--- `name` field contains the name of problematic variable. 
--- `line` field contains line number where the problem occured. 
--- `column` field contains offest of the name in that line. 
+-- Returns a file report. 
+-- See luacheck function. 
 local function check(ast, options)
    options = options or {}
    local opts = {
