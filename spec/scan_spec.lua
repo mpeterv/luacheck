@@ -17,8 +17,8 @@ local function get_calls(source)
       on_local = function(node, is_arg, is_loop)
          table.insert(result, (is_arg and (is_loop and "LOOP " or "ARG ") or "LOCAL ")..node[1])
       end,
-      on_access = function(node)
-         table.insert(result, "ACCESS "..node[1])
+      on_access = function(node, is_set)
+         table.insert(result, (is_set and "SET " or "ACCESS ")..node[1])
       end
    }
 
@@ -59,14 +59,14 @@ describe("test luacheck.scan", function()
          "START";
          --
          "ACCESS b";
-         "ACCESS a";
+         "SET a";
          --
          "ACCESS c";
          "LOCAL c";
          --
          "ACCESS a";
          "ACCESS d";
-         "ACCESS d";
+         "SET d";
          --
          "END";
       }, get_calls[[
@@ -85,21 +85,21 @@ describe("test luacheck.scan", function()
          "ARG y";
          "ACCESS y";
          "END";
-         "ACCESS a";
+         "SET a";
          --
          "START";
          "END";
-         "ACCESS b";
+         "SET b";
          --
          "START";
          "END";
-         "ACCESS c";
+         "SET c";
          --
          "START";
          "ARG x";
          "ACCESS x";
          "END";
-         "ACCESS d";
+         "SET d";
          --
          "END";
       }, get_calls[[
@@ -117,7 +117,7 @@ describe("test luacheck.scan", function()
          "START";
          "ARG x";
          "END";
-         "ACCESS a";
+         "SET a";
          --
          "START";
          "ARG x";
@@ -161,7 +161,7 @@ describe("test luacheck.scan", function()
          "LOCAL a";
          --
          "START";
-         "ACCESS a";
+         "SET a";
          "END";
          --
          "END";
@@ -183,7 +183,7 @@ describe("test luacheck.scan", function()
          "START";
          "ACCESS a";
          "ACCESS z";
-         "ACCESS a";
+         "SET a";
          "END";
          --
          "END";
@@ -206,7 +206,7 @@ describe("test luacheck.scan", function()
          "LOCAL b";
          "ACCESS a";
          "ACCESS z";
-         "ACCESS a";
+         "SET a";
          "ACCESS b";
          "END";
          --
