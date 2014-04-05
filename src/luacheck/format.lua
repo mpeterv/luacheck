@@ -1,9 +1,20 @@
 local color = require "ansicolors"
 
 local warnings = {
-   global = "accessing undefined variable %s",
-   redefined = "variable %s was previously defined in the same scope",
-   unused = "unused variable %s"
+   global = {
+      read = "accessing undefined variable %s",
+      write = "setting non-standard global variable %s"
+   },
+   redefined = {
+      var = "variable %s was previously defined in the same scope",
+      arg = "variable %s was previously defined as an argument in the same scope",
+      loop = "variable %s was previously defined as a loop variable in the same scope"
+   },
+   unused = {
+      var = "unused variable %s",
+      arg = "unused argument %s",
+      loop = "unused loop variable %s"
+   }
 }
 
 local function format_file_report(report)
@@ -26,7 +37,7 @@ local function format_file_report(report)
       for i=1, report.total do
          local warning = report[i]
          local location = ("%s:%d:%d"):format(report.file, warning.line, warning.column)
-         local message = warnings[warning.type]:format(color("%{bright}"..warning.name))
+         local message = warnings[warning.type][warning.subtype]:format(color("%{bright}"..warning.name))
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 

@@ -14,10 +14,10 @@ local scan = require "luacheck.scan"
 -- A report is an array of warnings. `total` field contains total number of warnings. 
 -- `global`, `redefined` and `unused` fields contain number of warnings of corresponding types. 
 -- Event is a table with several fields. 
--- `type` field may contain "global", "redefined" "unused"
+-- `type` field may contain "global", "redefined" or "unused". 
 -- "global" is for accessing non-standard globals. 
 -- "redefined" is for redefinition of a local in the same scope, e.g. `local a; local a`. 
--- "unused" is for unused locals.
+-- "unused" is for unused locals. 
 -- `subtype` field may contain "read" or "write" for `global` type and "loop" or "arg" or "var" for other types. 
 -- `name` field contains the name of problematic variable. 
 -- `line` field contains line number where the problem occured. 

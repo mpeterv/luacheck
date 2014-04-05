@@ -29,8 +29,8 @@ Total: 0 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:7:10: accessing undefined variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 4 warnings / 0 errors
@@ -46,8 +46,8 @@ Total: 4 warnings / 0 errors
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
 
-    spec/samples/bad_code.lua:7:10: accessing undefined variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 3 warnings / 0 errors
@@ -56,7 +56,7 @@ Total: 3 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
 
 Total: 2 warnings / 0 errors
 ]], get_output "-g spec/samples/bad_code.lua")
@@ -64,7 +64,7 @@ Total: 2 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:7:10: accessing undefined variable embrace
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 3 warnings / 0 errors
@@ -78,7 +78,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:1:1: accessing undefined variable module
     spec/samples/bad_code.lua:1:13: accessing undefined variable package
     spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined in the same scope
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 5 warnings / 0 errors
@@ -104,6 +104,21 @@ Checking spec/samples/bad_code.lua                Failure
 
 Total: 1 warning / 0 errors
 ]], get_output "spec/samples/bad_code.lua --only helper")
+   end)
+
+   it("recognizes different types of variables", function()
+      assert.equal([[
+Checking spec/samples/unused_code.lua             Failure
+
+    spec/samples/unused_code.lua:3:18: unused argument baz
+    spec/samples/unused_code.lua:4:8: unused loop variable i
+    spec/samples/unused_code.lua:5:13: unused variable q
+    spec/samples/unused_code.lua:7:11: unused loop variable a
+    spec/samples/unused_code.lua:7:14: unused loop variable b
+    spec/samples/unused_code.lua:7:17: unused loop variable c
+
+Total: 6 warnings / 0 errors
+]], get_output "spec/samples/unused_code.lua")
    end)
 
    it("allows to ignore unused arguments", function()
