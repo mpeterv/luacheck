@@ -3,14 +3,25 @@ local luacompiler = require "metalua.compiler"
 local luaparser = luacompiler.new()
 
 local function get_report(file, options)
-   local ok, ast = pcall(function() return luaparser:srcfile_to_ast(file) end)
+   local ok, source = pcall(function()
+      local handler = io.open(file, "rb")
+      local source = handler:read("*a")
+      handler:close()
+      return source
+   end)
 
-   if ok then
+   if not ok then
+      return {error = "I/O", file = file}
+   end
+
+   local ok, ast = pcall(function() return luaparser:src_to_ast(source) end)
+
+   if not ok then
+      return {error = "syntax", file = file}
+   else
       local report = check(ast, options)
       report.file = file
       return report
-   else
-      return {error = true, file = file}
    end
 end
 
@@ -31,7 +42,7 @@ end
 -- A file report is an array of warnings. Its `total` field contains total number of warnings. 
 -- `global`, `redefined` and `unused` fields contain number of warnings of corresponding types. 
 -- `file` field contains file name. 
--- If there was an error during checking the file, field `error` will contain true. 
+-- If there was an error during checking the file, field `error` will contain "I/O" or "syntax". 
 -- And other fields except `file` will be absent. 
 --
 -- Warning is a table with several fields. 

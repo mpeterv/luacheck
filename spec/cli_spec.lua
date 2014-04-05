@@ -133,8 +133,8 @@ Total: 1 warning / 0 errors
 
    it("handles errors gracefully", function()
       assert.equal([[
-Checking spec/samples/python_code.lua             Error
-Checking spec/samples/absent_code.lua             Error
+Checking spec/samples/python_code.lua             Syntax error
+Checking spec/samples/absent_code.lua             I/O error
 
 Total: 0 warnings / 2 errors
 ]], get_output "spec/samples/python_code.lua spec/samples/absent_code.lua")

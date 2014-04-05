@@ -22,7 +22,7 @@ local function format_file_report(report)
    local status
 
    if report.error then
-      status = color "%{bright}Error"
+      status = color ("%{bright}"..report.error:sub(1, 1):upper()..report.error:sub(2).." error")
    elseif report.total == 0 then
       status = color "%{bright}%{green}OK"
    else
