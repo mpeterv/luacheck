@@ -31,7 +31,7 @@ local function check(ast, options)
    local level = 0
 
    -- adds a warning, if necessary. 
-   local function add_warning(node, type_, subtype)
+   local function add_warning(node, type_, subtype, prev_node)
       local name = node[1]
 
       if not opts.ignore[name] then
@@ -43,7 +43,9 @@ local function check(ast, options)
                subtype = subtype,
                name = name,
                line = node.lineinfo.first.line,
-               column = node.lineinfo.first.column
+               column = node.lineinfo.first.column,
+               prev_line = prev_node and prev_node.lineinfo.first.line,
+               prev_column = prev_node and prev_node.lineinfo.first.column
             }
          end
       end
@@ -80,8 +82,10 @@ local function check(ast, options)
    function callbacks.on_local(node, is_arg, is_loop)
       if opts.check_redefined then
          -- Check if this variable was declared already in this scope. 
-         if scopes[level][node[1]] then
-            add_warning(node, "redefined", get_subtype(scopes[level][node[1]]))
+         local prev_vardata = scopes[level][node[1]]
+
+         if prev_vardata then
+            add_warning(node, "redefined", get_subtype(prev_vardata), prev_vardata[1])
          end
       end
 

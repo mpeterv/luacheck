@@ -29,6 +29,9 @@ local get_report = require "luacheck.get_report"
 -- `name` field contains the name of problematic variable. 
 -- `line` field contains line number where the problem occured. 
 -- `column` field contains offest of the name in that line. 
+-- For warnings of type `redefined`, there are two additional fields: 
+-- `prev_line` field contains line number where the variable was previously defined. 
+-- `prev_column` field contains offest of the variable name in that line. 
 --
 -- The global report contains global counter of warnings per type in its `global`, `redefined` and `unused` fields. 
 -- `total` field contains total number of warnings in all files. 

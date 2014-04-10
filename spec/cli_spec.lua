@@ -30,7 +30,7 @@ Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
     spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 4 warnings / 0 errors
@@ -49,7 +49,7 @@ Total: 10 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 3 warnings / 0 errors
@@ -58,7 +58,7 @@ Total: 3 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
 
 Total: 2 warnings / 0 errors
 ]], get_output "-g spec/samples/bad_code.lua")
@@ -80,7 +80,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:1:1: accessing undefined variable module
     spec/samples/bad_code.lua:1:13: accessing undefined variable package
     spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 5 warnings / 0 errors
