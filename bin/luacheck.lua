@@ -17,9 +17,9 @@ local function toset(array)
 end
 
 local parser = argparse "luacheck"
-   :description "Simple static analyzer. "
+   :description "luacheck 0.3, a simple static analyzer for Lua. "
 parser:argument "files"
-   :description "Files to check. "
+   :description "List of files to check. "
    :args "+"
    :argname "<file>"
 parser:option "--globals"
@@ -42,9 +42,9 @@ parser:flag "-r" "--no-redefined"
    :description "Do not check for redefined variables. "
 parser:flag "-u" "--no-unused"
    :description "Do not check for unused variables. "
-parser:flag "--no-unused-args"
+parser:flag "-a" "--no-unused-args"
    :description "Do not check for unused arguments and loop variables. "
-parser:flag "--compat"
+parser:flag "-c" "--compat"
    :description "Complete globals for Lua 5.1/5.2 compatibility. "
 
 local args = parser:parse()
