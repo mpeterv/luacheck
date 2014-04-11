@@ -107,7 +107,7 @@ local function check(ast, options)
       if opts.check_global then
          -- If we are here, the variable is not local. 
          -- Report if it is not standard. 
-         if not opts.globals[name] then
+         if opts.globals[name] == nil then
             add_warning(node, "global", is_set and "write" or "read")
          end
       end

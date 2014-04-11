@@ -87,6 +87,18 @@ Total: 5 warnings / 0 errors
 ]], get_output "--globals embrace -- spec/samples/bad_code.lua")
    end)
 
+   it("allows to define additional globals", function()
+      assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Total: 3 warnings / 0 errors
+]], get_output "--globals - embrace -- spec/samples/bad_code.lua")
+   end)
+
    it("allows to ignore some variables", function()
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure

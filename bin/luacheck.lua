@@ -23,19 +23,17 @@ parser:argument "files"
    :args "+"
    :argname "<file>"
 parser:option "--globals"
-   :description "Defined globals. "
-   :args "+"
+   :description "Defined globals. Hyphen expands to standard globals. "
+   :args "*"
    :argname "<global>"
-parser:mutex(
-   parser:option "--ignore"
-      :description "Do not report warnings related to these variables. "
-      :args "+"
-      :argname "<var>",
-   parser:option "--only"
-      :description "Only report warnings related to these variables. "
-      :args "+"
-      :argname "<var>"
-)
+parser:option "--ignore"
+   :description "Do not report warnings related to these variables. "
+   :args "+"
+   :argname "<var>"
+parser:option "--only"
+   :description "Only report warnings related to these variables. "
+   :args "+"
+   :argname "<var>"
 parser:flag "-q" "--quiet"
    :description "Only print total number of warnings and errors. "
 parser:flag "-g" "--no-global"
@@ -49,8 +47,14 @@ parser:flag "--no-unused-args"
 
 local args = parser:parse()
 
+local globals = toset(args.globals)
+
+if globals and globals["-"] then
+   setmetatable(globals, {__index = _G})
+end
+
 local options = {
-   globals = toset(args.globals),
+   globals = globals,
    ignore = toset(args.ignore),
    only = toset(args.only),
    check_global = not args["no-global"],
