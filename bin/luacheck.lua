@@ -44,17 +44,34 @@ parser:flag "-u" "--no-unused"
    :description "Do not check for unused variables. "
 parser:flag "--no-unused-args"
    :description "Do not check for unused arguments and loop variables. "
+parser:flag "--compat"
+   :description "Complete globals for Lua 5.1/5.2 compatibility. "
 
 local args = parser:parse()
+
+local default_globals = {}
+
+for var in pairs(_G) do
+   default_globals[var] = true
+end
+
+if args.compat then
+   for _, var in ipairs{
+         "getfenv", "loadstring", "module",
+         "newproxy", "rawlen", "setfenv",
+         "unpack", "bit32"} do
+      default_globals[var] = true
+   end
+end
 
 local globals = toset(args.globals)
 
 if globals and globals["-"] then
-   setmetatable(globals, {__index = _G})
+   setmetatable(globals, {__index = default_globals})
 end
 
 local options = {
-   globals = globals,
+   globals = globals or default_globals,
    ignore = toset(args.ignore),
    only = toset(args.only),
    check_global = not args["no-global"],
