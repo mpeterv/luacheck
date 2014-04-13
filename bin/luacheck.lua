@@ -40,7 +40,7 @@ parser:option "--globals"
 parser:flag "-c" "--compat"
    :description "Complete globals for Lua 5.1/5.2 compatibility. "
 parser:flag "-e" "--ignore-env"
-   :description "Ignore globals in chunks with custom _ENV. "
+   :description "Do not be _ENV-aware. "
 
 parser:option "--ignore"
    :description "Do not report warnings related to these variables. "
@@ -79,7 +79,7 @@ end
 
 local options = {
    globals = globals or default_globals,
-   ignore_env = args["ignore-env"],
+   env_aware = not args["ignore-env"],
    ignore = toset(args.ignore),
    only = toset(args.only),
    check_global = not args["no-global"],

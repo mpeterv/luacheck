@@ -11,7 +11,7 @@ local function check(ast, options)
       check_unused = true,
       check_unused_args = true,
       globals = _G,
-      ignore_env = false,
+      env_aware = true,
       ignore = {},
       only = false
    }
@@ -109,7 +109,7 @@ local function check(ast, options)
       local name = node[1]
 
       if not find_and_access(name) then
-         if not opts.ignore_env or name ~= "_ENV" and not find_and_access("_ENV") then
+         if not opts.env_aware or name ~= "_ENV" and not find_and_access("_ENV") then
             if opts.check_global and opts.globals[name] == nil then
                add_warning(node, "global", is_set and "write" or "read")
             end
