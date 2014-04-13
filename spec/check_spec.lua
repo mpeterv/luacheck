@@ -52,6 +52,41 @@ foo()
       ]], {globals = {foo = true}}))
    end)
 
+   it("can be _ENV-aware", function()
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report([[
+print(_ENV)
+
+local _ENV = {}
+do
+   x = 4
+end
+      ]], {ignore_env = true}))
+   end)
+
+   it("can detect unused _ENV", function()
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+         {type = "unused", subtype = "var", name = "_ENV", line = 3, column = 7}
+      }, get_report([[
+print(_ENV)
+
+local _ENV = {}
+do
+   -- something
+end
+      ]], {ignore_env = true}))
+   end)
+
+   it("correctly checks if _ENV is unused with check_global == false", function()
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report([[
+print(_ENV)
+
+local _ENV = {}
+do
+   x = 4
+end
+      ]], {ignore_env = true, check_global = false}))
+   end)
+
    it("detects unused locals", function()
       assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
          {type = "unused", subtype = "var", name = "a", line = 1, column = 7}

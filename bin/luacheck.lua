@@ -18,24 +18,12 @@ end
 
 local parser = argparse "luacheck"
    :description "luacheck 0.3, a simple static analyzer for Lua. "
+
 parser:argument "files"
    :description "List of files to check. "
    :args "+"
    :argname "<file>"
-parser:option "--globals"
-   :description "Defined globals. Hyphen expands to standard globals. "
-   :args "*"
-   :argname "<global>"
-parser:option "--ignore"
-   :description "Do not report warnings related to these variables. "
-   :args "+"
-   :argname "<var>"
-parser:option "--only"
-   :description "Only report warnings related to these variables. "
-   :args "+"
-   :argname "<var>"
-parser:flag "-q" "--quiet"
-   :description "Only print total number of warnings and errors. "
+
 parser:flag "-g" "--no-global"
    :description "Do not check for accessing global variables. "
 parser:flag "-r" "--no-redefined"
@@ -44,8 +32,27 @@ parser:flag "-u" "--no-unused"
    :description "Do not check for unused variables. "
 parser:flag "-a" "--no-unused-args"
    :description "Do not check for unused arguments and loop variables. "
+
+parser:option "--globals"
+   :description "Defined globals. Hyphen expands to standard globals. "
+   :args "*"
+   :argname "<global>"
 parser:flag "-c" "--compat"
    :description "Complete globals for Lua 5.1/5.2 compatibility. "
+parser:flag "-e" "--ignore-env"
+   :description "Ignore globals in chunks with custom _ENV. "
+
+parser:option "--ignore"
+   :description "Do not report warnings related to these variables. "
+   :args "+"
+   :argname "<var>"
+parser:option "--only"
+   :description "Only report warnings related to these variables. "
+   :args "+"
+   :argname "<var>"
+
+parser:flag "-q" "--quiet"
+   :description "Only print total number of warnings and errors. "
 
 local args = parser:parse()
 
@@ -72,6 +79,7 @@ end
 
 local options = {
    globals = globals or default_globals,
+   ignore_env = args["ignore-env"],
    ignore = toset(args.ignore),
    only = toset(args.only),
    check_global = not args["no-global"],

@@ -11,6 +11,7 @@ local function check(ast, options)
       check_unused = true,
       check_unused_args = true,
       globals = _G,
+      ignore_env = false,
       ignore = {},
       only = false
    }
@@ -47,6 +48,17 @@ local function check(ast, options)
                prev_line = prev_node and prev_node.lineinfo.first.line,
                prev_column = prev_node and prev_node.lineinfo.first.column
             }
+         end
+      end
+   end
+
+   -- resolve name in current scope. 
+   -- If variable is found, mark it as accessed and return true. 
+   local function find_and_access(name)
+      for i=level, 1, -1 do
+         if scopes[i][name] then
+            scopes[i][name][2] = true
+            return true
          end
       end
    end
@@ -96,19 +108,11 @@ local function check(ast, options)
    function callbacks.on_access(node, is_set)
       local name = node[1]
 
-      -- Check if there is a local with this name. 
-      for i=level, 1, -1 do
-         if scopes[i][name] then
-            scopes[i][name][2] = true
-            return
-         end
-      end
-
-      if opts.check_global then
-         -- If we are here, the variable is not local. 
-         -- Report if it is not standard. 
-         if opts.globals[name] == nil then
-            add_warning(node, "global", is_set and "write" or "read")
+      if not find_and_access(name) then
+         if not opts.ignore_env or name ~= "_ENV" and not find_and_access("_ENV") then
+            if opts.check_global and opts.globals[name] == nil then
+               add_warning(node, "global", is_set and "write" or "read")
+            end
          end
       end
    end
