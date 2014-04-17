@@ -174,7 +174,8 @@ end
    end)
 
    it("detects redefinition in the same scope", function()
-      assert.same({total = 1, global = 0, redefined = 1, unused = 0,
+      assert.same({total = 2, global = 0, redefined = 1, unused = 1,
+         {type = "unused", subtype = "var", name = "foo", line = 1, column = 7},
          {type = "redefined", subtype = "var", name = "foo", line = 2, column = 7, prev_line = 1, prev_column = 7}
       }, get_report[[
 local foo
@@ -184,7 +185,8 @@ print(foo)
    end)
 
    it("detects redefinition of function arguments", function()
-      assert.same({total = 1, global = 0, redefined = 1, unused = 0,
+      assert.same({total = 2, global = 0, redefined = 1, unused = 1,
+         {type = "unused", subtype = "arg", name = "foo", line = 1, column = 17},
          {type = "redefined", subtype = "arg", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
       }, get_report[[
 return function(foo, ...)

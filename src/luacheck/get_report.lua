@@ -8,7 +8,7 @@ local luaparser = luacompiler.new()
 local function get_report(file, options)
    local ok, source = pcall(function()
       local handler = io.open(file, "rb")
-      local source = handler:read("*a")
+      local source = assert(handler:read("*a"))
       handler:close()
       return source
    end)

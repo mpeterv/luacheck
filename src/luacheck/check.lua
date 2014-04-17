@@ -31,7 +31,7 @@ local function check(ast, options)
    -- Current scope nesting level. 
    local level = 0
 
-   -- adds a warning, if necessary. 
+   -- Adds a warning, if necessary. 
    local function add_warning(node, type_, subtype, prev_node)
       local name = node[1]
 
@@ -67,6 +67,15 @@ local function check(ast, options)
       return vardata[3] and (vardata[4] and "loop" or "arg") or "var"
    end
 
+   -- If the variable was unused, adds a warning. 
+   local function check_usage(vardata)
+      if vardata[1][1] ~= "_" and not vardata[2] then
+         if not vardata[3] or opts.check_unused_args then
+            add_warning(vardata[1], "unused", get_subtype(vardata))
+         end
+      end
+   end
+
    function callbacks.on_start(_)
       level = level + 1
 
@@ -77,12 +86,8 @@ local function check(ast, options)
    function callbacks.on_end(_)
       if opts.check_unused then
          -- Check if some local variables in this scope were left unused. 
-         for name, vardata in pairs(scopes[level]) do
-            if name ~= "_" and not vardata[2] then
-               if not vardata[3] or opts.check_unused_args then
-                  add_warning(vardata[1], "unused", get_subtype(vardata))
-               end
-            end
+         for _, vardata in pairs(scopes[level]) do
+            check_usage(vardata)
          end
       end
 
@@ -97,6 +102,7 @@ local function check(ast, options)
          local prev_vardata = scopes[level][node[1]]
 
          if prev_vardata then
+            check_usage(prev_vardata)
             add_warning(node, "redefined", get_subtype(prev_vardata), prev_vardata[1])
          end
       end
