@@ -51,6 +51,10 @@ parser:option "--only"
    :args "+"
    :argname "<var>"
 
+parser:option "-l" "--limit"
+   :description "Exit with 0 if there are <limit> or less warnings. "
+   :convert(tonumber)
+
 parser:flag "-q" "--quiet"
    :description "Only print total number of warnings and errors. "
 
@@ -109,9 +113,15 @@ if not args.quiet and report and (report.error or report.total == 0) then
    print()
 end
 
+local limit = args.limit or 0
+
+local function format_number(number, limit)
+   return color("%{bright}"..(number > limit and "%{red}" or "")..number)
+end
+
 print(("Total: %s warning%s / %s error%s"):format(
-   color("%{bright}"..tostring(warnings)), warnings == 1 and "" or "s",
-   color("%{bright}"..tostring(errors)), errors == 1 and "" or "s"
+   format_number(warnings, limit), warnings == 1 and "" or "s",
+   format_number(errors, 0), errors == 1 and "" or "s"
 ))
 
-os.exit((warnings + errors) == 0 and 0 or 1)
+os.exit(warnings <= limit and errors == 0 and 0 or 1)
