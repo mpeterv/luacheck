@@ -38,10 +38,39 @@ Total: 4 warnings / 0 errors
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua")
    end)
 
-   it("suppresses warnings output with -q", function()
+   it("suppresses OK output with -q", function()
       assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Checking spec/samples/unused_code.lua             Failure
+
+    spec/samples/unused_code.lua:3:18: unused argument baz
+    spec/samples/unused_code.lua:4:8: unused loop variable i
+    spec/samples/unused_code.lua:5:13: unused variable q
+    spec/samples/unused_code.lua:7:11: unused loop variable a
+    spec/samples/unused_code.lua:7:14: unused loop variable b
+    spec/samples/unused_code.lua:7:17: unused loop variable c
+
 Total: 10 warnings / 0 errors
 ]], get_output "-q spec/samples/*d_code.lua")
+      assert.equal([[
+Total: 0 warnings / 0 errors
+]], get_output "-q spec/samples/good_code.lua")
+   end)
+
+   it("suppresses warnings output with -qq", function()
+      assert.equal([[
+Total: 10 warnings / 0 errors
+]], get_output "-qq spec/samples/*d_code.lua")
+   end)
+
+   it("suppresses output with -qqq", function()
+      assert.equal("", get_output "-qqq spec/samples/*d_code.lua")
    end)
 
    it("allows to set warnings limit with -l", function()

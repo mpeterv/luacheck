@@ -56,7 +56,10 @@ parser:option "-l" "--limit"
    :convert(tonumber)
 
 parser:flag "-q" "--quiet"
-   :description "Only print total number of warnings and errors. "
+   :count "0-3"
+   :description [[Suppress output for files without warnings. 
+-qq: Only print total number of warnings and errors. 
+-qqq: Suppress output completely. ]]
 
 local args = parser:parse()
 
@@ -93,10 +96,11 @@ local options = {
 }
 
 local warnings, errors = 0, 0
-local report
+local printed
+local limit = args.limit or 0
 
 for _, file in ipairs(args.files) do
-   report = get_report(file, options)
+   local report = get_report(file, options)
 
    if report.error then
       errors = errors + 1
@@ -104,24 +108,25 @@ for _, file in ipairs(args.files) do
       warnings = warnings + report.total
    end
 
-   if not args.quiet then
+   if args.quiet == 0 or args.quiet == 1 and (report.error or report.total > 0) then
       print(format(report))
+      printed = report
    end
 end
 
-if not args.quiet and report and (report.error or report.total == 0) then
+if printed and (printed.error or printed.total == 0) then
    print()
 end
 
-local limit = args.limit or 0
+if args.quiet <= 2 then
+   local function format_number(number, limit)
+      return color("%{bright}"..(number > limit and "%{red}" or "")..number)
+   end
 
-local function format_number(number, limit)
-   return color("%{bright}"..(number > limit and "%{red}" or "")..number)
+   print(("Total: %s warning%s / %s error%s"):format(
+      format_number(warnings, limit), warnings == 1 and "" or "s",
+      format_number(errors, 0), errors == 1 and "" or "s"
+   ))
 end
-
-print(("Total: %s warning%s / %s error%s"):format(
-   format_number(warnings, limit), warnings == 1 and "" or "s",
-   format_number(errors, 0), errors == 1 and "" or "s"
-))
 
 os.exit(warnings <= limit and errors == 0 and 0 or 1)
