@@ -61,28 +61,33 @@
 <div class="highlight highlight-bash"><pre><span class="nv">$ </span>luacheck --help
 </pre></div>
 
-<pre><code>Usage: luacheck
-       ([--ignore &lt;var&gt; [&lt;var&gt;] ...] | [--only &lt;var&gt; [&lt;var&gt;] ...])
-       [--globals &lt;global&gt; [&lt;global&gt;] ...] [-q] [-g] [-r] [-u]
-       [--no-unused-args] [-h] &lt;file&gt; [&lt;file&gt;] ...
+<pre><code>Usage: luacheck [-g] [-r] [-u] [-a] [--globals [&lt;global&gt;] ...] [-c]
+       [-e] [--ignore &lt;var&gt; [&lt;var&gt;] ...] [--only &lt;var&gt; [&lt;var&gt;] ...]
+       [-l &lt;limit&gt;] [-q] [-h] &lt;file&gt; [&lt;file&gt;] ...
 
-Simple static analyzer. 
+luacheck 0.3, a simple static analyzer for Lua. 
 
 Arguments: 
-   files                 Files to check. 
+   files                 List of files to check. 
 
 Options: 
-   --globals &lt;global&gt; [&lt;global&gt;] ...
-                         Defined globals. 
+   -g, --no-global       Do not check for accessing global variables. 
+   -r, --no-redefined    Do not check for redefined variables. 
+   -u, --no-unused       Do not check for unused variables. 
+   -a, --no-unused-args  Do not check for unused arguments and loop variables. 
+   --globals [&lt;global&gt;] ...
+                         Defined globals. Hyphen expands to standard globals. 
+   -c, --compat          Adjust globals for Lua 5.1/5.2 compatibility. 
+   -e, --ignore-env      Do not be _ENV-aware. 
    --ignore &lt;var&gt; [&lt;var&gt;] ...
                          Do not report warnings related to these variables. 
    --only &lt;var&gt; [&lt;var&gt;] ...
                          Only report warnings related to these variables. 
-   -q, --quiet           Only print total number of warnings and errors. 
-   -g, --no-global       Do not check for accessing global variables. 
-   -r, --no-redefined    Do not check for redefined variables. 
-   -u, --no-unused       Do not check for unused variables. 
-   --no-unused-args      Do not check for unused arguments and loop variables. 
+   -l &lt;limit&gt;, --limit &lt;limit&gt;
+                         Exit with 0 if there are &lt;limit&gt; or less warnings. 
+   -q, --quiet           Suppress output for files without warnings. 
+                         -qq: Only print total number of warnings and errors. 
+                         -qqq: Suppress output completely. 
    -h, --help            Show this help message and exit. 
 </code></pre>
 
@@ -93,7 +98,7 @@ Options:
 
     bad_code.lua:3:16: unused variable helper
     bad_code.lua:7:10: setting non-standard global variable embrace
-    bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
+    bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     bad_code.lua:9:11: accessing undefined variable hepler
 
 Checking good_code.lua                            OK
@@ -124,6 +129,8 @@ Total: 4 warnings / 1 error
 <code>options.check_unused_args</code> - should luacheck check for unused arguments and loop variables? Default: <code>true</code>. </li>
 <li>
 <code>options.globals</code> - set of standard globals. Default: <code>_G</code>. </li>
+<li>
+<code>options.env_aware</code> - ignore globals is chunks with custom <code>_ENV</code>. Default: <code>true</code>. </li>
 <li>
 <code>options.ignore</code> - set of variables to ignore. Default: empty. Takes precedense over <code>options.only</code>. </li>
 <li>
@@ -156,7 +163,9 @@ warning: {
    subtype = "read" | "write" | "var" | "arg" | "loop",
    name = &lt;name of the related variable&gt;,
    line = &lt;number of the line where the problem occured&gt;,
-   column = &lt;offset of the variable name in that line&gt;
+   column = &lt;offset of the variable name in that line&gt;,
+   [prev_line = &lt;number of the line of the previous definition for "redefined" warnings&gt;,]
+   [prev_column = &lt;offset of the previous definition in that line&gt;]
 }
 </code></pre>
 
@@ -183,6 +192,8 @@ warning: {
       column = 10,
       line = 8,
       name = "opt",
+      prev_column = 18,
+      prev_line = 7,
       subtype = "arg",
       type = "redefined"
     }, {

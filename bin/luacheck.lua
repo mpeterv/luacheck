@@ -38,7 +38,7 @@ parser:option "--globals"
    :args "*"
    :argname "<global>"
 parser:flag "-c" "--compat"
-   :description "Complete globals for Lua 5.1/5.2 compatibility. "
+   :description "Adjust globals for Lua 5.1/5.2 compatibility. "
 parser:flag "-e" "--ignore-env"
    :description "Do not be _ENV-aware. "
 

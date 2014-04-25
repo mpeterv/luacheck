@@ -33,28 +33,33 @@ $ luacheck --help
 ```
 
 ```
-Usage: luacheck
-       ([--ignore <var> [<var>] ...] | [--only <var> [<var>] ...])
-       [--globals <global> [<global>] ...] [-q] [-g] [-r] [-u]
-       [--no-unused-args] [-h] <file> [<file>] ...
+Usage: luacheck [-g] [-r] [-u] [-a] [--globals [<global>] ...] [-c]
+       [-e] [--ignore <var> [<var>] ...] [--only <var> [<var>] ...]
+       [-l <limit>] [-q] [-h] <file> [<file>] ...
 
-Simple static analyzer. 
+luacheck 0.3, a simple static analyzer for Lua. 
 
 Arguments: 
-   files                 Files to check. 
+   files                 List of files to check. 
 
 Options: 
-   --globals <global> [<global>] ...
-                         Defined globals. 
+   -g, --no-global       Do not check for accessing global variables. 
+   -r, --no-redefined    Do not check for redefined variables. 
+   -u, --no-unused       Do not check for unused variables. 
+   -a, --no-unused-args  Do not check for unused arguments and loop variables. 
+   --globals [<global>] ...
+                         Defined globals. Hyphen expands to standard globals. 
+   -c, --compat          Adjust globals for Lua 5.1/5.2 compatibility. 
+   -e, --ignore-env      Do not be _ENV-aware. 
    --ignore <var> [<var>] ...
                          Do not report warnings related to these variables. 
    --only <var> [<var>] ...
                          Only report warnings related to these variables. 
-   -q, --quiet           Only print total number of warnings and errors. 
-   -g, --no-global       Do not check for accessing global variables. 
-   -r, --no-redefined    Do not check for redefined variables. 
-   -u, --no-unused       Do not check for unused variables. 
-   --no-unused-args      Do not check for unused arguments and loop variables. 
+   -l <limit>, --limit <limit>
+                         Exit with 0 if there are <limit> or less warnings. 
+   -q, --quiet           Suppress output for files without warnings. 
+                         -qq: Only print total number of warnings and errors. 
+                         -qqq: Suppress output completely. 
    -h, --help            Show this help message and exit. 
 ```
 
@@ -67,7 +72,7 @@ Checking bad_code.lua                             Failure
 
     bad_code.lua:3:16: unused variable helper
     bad_code.lua:7:10: setting non-standard global variable embrace
-    bad_code.lua:8:10: variable opt was previously defined as an argument in the same scope
+    bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     bad_code.lua:9:11: accessing undefined variable hepler
 
 Checking good_code.lua                            OK
@@ -91,6 +96,7 @@ If the second argument is provided, it should be a table of options. Recognized 
 * `options.check_unused` - should luacheck check for unused locals? Default: `true`. 
 * `options.check_unused_args` - should luacheck check for unused arguments and loop variables? Default: `true`. 
 * `options.globals` - set of standard globals. Default: `_G`. 
+* `options.env_aware` - ignore globals is chunks with custom `_ENV`. Default: `true`. 
 * `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
 * `options.only` - set of variables to report. Default: report all variables. 
 
@@ -123,7 +129,9 @@ warning: {
    subtype = "read" | "write" | "var" | "arg" | "loop",
    name = <name of the related variable>,
    line = <number of the line where the problem occured>,
-   column = <offset of the variable name in that line>
+   column = <offset of the variable name in that line>,
+   [prev_line = <number of the line of the previous definition for "redefined" warnings>,]
+   [prev_column = <offset of the previous definition in that line>]
 }
 ```
 
@@ -152,6 +160,8 @@ prettyprint(report)
       column = 10,
       line = 8,
       name = "opt",
+      prev_column = 18,
+      prev_line = 7,
       subtype = "arg",
       type = "redefined"
     }, {
