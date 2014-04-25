@@ -37,7 +37,7 @@ Usage: luacheck [-g] [-r] [-u] [-a] [--globals [<global>] ...] [-c]
        [-e] [--ignore <var> [<var>] ...] [--only <var> [<var>] ...]
        [-l <limit>] [-q] [-h] <file> [<file>] ...
 
-luacheck 0.3, a simple static analyzer for Lua. 
+luacheck 0.3.0, a simple static analyzer for Lua. 
 
 Arguments: 
    files                 List of files to check. 

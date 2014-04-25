@@ -17,7 +17,7 @@ local function toset(array)
 end
 
 local parser = argparse "luacheck"
-   :description "luacheck 0.3, a simple static analyzer for Lua. "
+   :description "luacheck 0.3.0, a simple static analyzer for Lua. "
 
 parser:argument "files"
    :description "List of files to check. "
