@@ -2,8 +2,8 @@ local color = require "ansicolors"
 
 local warnings = {
    global = {
-      read = "accessing undefined variable %s",
-      write = "setting non-standard global variable %s"
+      access = "accessing undefined variable %s",
+      set = "setting non-standard global variable %s"
    },
    redefined = {
       var = "variable %s was previously defined on line %s",

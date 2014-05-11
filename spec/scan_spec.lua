@@ -14,11 +14,11 @@ local function get_calls(source)
       on_end = function(_)
          table.insert(result, "END")
       end,
-      on_local = function(node, is_arg, is_loop)
-         table.insert(result, (is_arg and (is_loop and "LOOP " or "ARG ") or "LOCAL ")..node[1])
+      on_local = function(node, type_)
+         table.insert(result, type_:upper().." "..node[1])
       end,
-      on_access = function(node, is_set)
-         table.insert(result, (is_set and "SET " or "ACCESS ")..node[1])
+      on_access = function(node, action)
+         table.insert(result, action:upper().." "..node[1])
       end
    }
 
@@ -39,13 +39,13 @@ describe("test luacheck.scan", function()
       assert.same({
          "START";
          --
-         "LOCAL a";
+         "VAR a";
          --
-         "LOCAL b";
-         "LOCAL c";
+         "VAR b";
+         "VAR c";
          --
-         "LOCAL z";
-         "LOCAL c";
+         "VAR z";
+         "VAR c";
          "END";
       }, get_calls[[
          local a = 5
@@ -62,7 +62,7 @@ describe("test luacheck.scan", function()
          "SET a";
          --
          "ACCESS c";
-         "LOCAL c";
+         "VAR c";
          --
          "ACCESS a";
          "ACCESS d";
@@ -142,7 +142,7 @@ describe("test luacheck.scan", function()
       assert.same({
          "START";
          --
-         "LOCAL a";
+         "VAR a";
          "START";
          "ARG x";
          "ACCESS a";
@@ -158,7 +158,7 @@ describe("test luacheck.scan", function()
       assert.same({
          "START";
          --
-         "LOCAL a";
+         "VAR a";
          --
          "START";
          "SET a";
@@ -177,7 +177,7 @@ describe("test luacheck.scan", function()
       assert.same({
          "START";
          --
-         "LOCAL a";
+         "VAR a";
          --
          "ACCESS a";
          "START";
@@ -199,11 +199,11 @@ describe("test luacheck.scan", function()
       assert.same({
          "START";
          --
-         "LOCAL a";
+         "VAR a";
          --
          "START";
          "ACCESS a";
-         "LOCAL b";
+         "VAR b";
          "ACCESS a";
          "ACCESS z";
          "SET a";
@@ -226,7 +226,7 @@ describe("test luacheck.scan", function()
          --
          "ACCESS a";
          "START";
-         "LOCAL b";
+         "VAR b";
          "END";
          --
          "END";
@@ -243,10 +243,10 @@ describe("test luacheck.scan", function()
          --
          "ACCESS a";
          "START";
-         "LOCAL b";
+         "VAR b";
          "END";
          "START";
-         "LOCAL c";
+         "VAR c";
          "END";
          --
          "END";
@@ -265,11 +265,11 @@ describe("test luacheck.scan", function()
          --
          "ACCESS a";
          "START";
-         "LOCAL b";
+         "VAR b";
          "END";
          "ACCESS c";
          "START";
-         "LOCAL d";
+         "VAR d";
          "END";
          --
          "END";
@@ -291,7 +291,7 @@ describe("test luacheck.scan", function()
          "START";
          "LOOP a";
          "LOOP b";
-         "LOCAL c";
+         "VAR c";
          "END";
          --
          "END";
@@ -310,7 +310,7 @@ describe("test luacheck.scan", function()
          "ACCESS b";
          "START";
          "LOOP i";
-         "LOCAL c";
+         "VAR c";
          "END";
          --
          "ACCESS a";
@@ -318,7 +318,7 @@ describe("test luacheck.scan", function()
          "ACCESS c";
          "START";
          "LOOP i";
-         "LOCAL d";
+         "VAR d";
          "END";
          --
          "END";

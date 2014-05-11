@@ -26,7 +26,7 @@ local function check(ast, options)
    local report = {total = 0, global = 0, redefined = 0, unused = 0}
 
    -- Array of scopes. 
-   -- Each scope is a table mapping names to array {node, used, is_arg, is_loop}
+   -- Each scope is a table mapping names to array {node, used, type}
    local scopes = {}
    -- Current scope nesting level. 
    local level = 0
@@ -63,15 +63,11 @@ local function check(ast, options)
       end
    end
 
-   local function get_subtype(vardata)
-      return vardata[3] and (vardata[4] and "loop" or "arg") or "var"
-   end
-
    -- If the variable was unused, adds a warning. 
    local function check_usage(vardata)
       if vardata[1][1] ~= "_" and not vardata[2] then
-         if not vardata[3] or opts.check_unused_args then
-            add_warning(vardata[1], "unused", get_subtype(vardata))
+         if opts.check_unused_args or vardata[3] == "var" then
+            add_warning(vardata[1], "unused", vardata[3])
          end
       end
    end
@@ -96,28 +92,28 @@ local function check(ast, options)
       level = level - 1
    end
 
-   function callbacks.on_local(node, is_arg, is_loop)
+   function callbacks.on_local(node, type_)
       if opts.check_redefined then
          -- Check if this variable was declared already in this scope. 
          local prev_vardata = scopes[level][node[1]]
 
          if prev_vardata then
             check_usage(prev_vardata)
-            add_warning(node, "redefined", get_subtype(prev_vardata), prev_vardata[1])
+            add_warning(node, "redefined", prev_vardata[3], prev_vardata[1])
          end
       end
 
       -- Mark this variable declared. 
-      scopes[level][node[1]] = {node, false, is_arg, is_loop}
+      scopes[level][node[1]] = {node, false, type_}
    end
 
-   function callbacks.on_access(node, is_set)
+   function callbacks.on_access(node, action)
       local name = node[1]
 
       if not find_and_access(name) then
          if not opts.env_aware or name ~= "_ENV" and not find_and_access("_ENV") then
             if opts.check_global and opts.globals[name] == nil then
-               add_warning(node, "global", is_set and "write" or "read")
+               add_warning(node, "global", action)
             end
          end
       end

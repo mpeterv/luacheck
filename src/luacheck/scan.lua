@@ -4,8 +4,8 @@ local tags = {}
 -- Triggers callbacks:
 -- callbacks.on_start(node) - when a new scope starts
 -- callbacks.on_end(node) - when a scope ends
--- callbacks.on_local(node, is_arg, is_loop) - when a local variable is created
--- callbacks.on_access(node, is_set) - when a variable is accessed
+-- callbacks.on_local(node, type) - when a local variable is created
+-- callbacks.on_access(node, action) - when a variable is accessed
 local function scan(node, callbacks)
    local tag = node.tag or "Block"
 
@@ -20,10 +20,10 @@ local function scan_inner(node, callbacks)
    end
 end
 
-local function scan_names(node, callbacks, is_arg, is_loop)
+local function scan_names(node, callbacks, type_)
    for i=1, #node do
       if node[i].tag == "Id" then
-         callbacks.on_local(node[i], is_arg, is_loop)
+         callbacks.on_local(node[i], type_)
       end
    end
 end
@@ -31,7 +31,7 @@ end
 local function scan_lhs(node, callbacks)
    for i=1, #node do
       if node[i].tag == "Id" then
-         callbacks.on_access(node[i], true)
+         callbacks.on_access(node[i], "set")
       else
          scan(node[i], callbacks)
       end
@@ -48,7 +48,7 @@ function tags.Function(node, callbacks)
       self.lineinfo = node.lineinfo
    end
 
-   scan_names(node[1], callbacks, true)
+   scan_names(node[1], callbacks, "arg")
    scan_inner(node[2], callbacks)
    return callbacks.on_end(node)
 end
@@ -61,7 +61,7 @@ tags.Invoke = scan_inner
 tags.Index = scan_inner
 
 function tags.Id(node, callbacks)
-   return callbacks.on_access(node)
+   return callbacks.on_access(node, "access")
 end
 
 function tags.Op(node, callbacks)
@@ -96,7 +96,7 @@ function tags.Fornum(node, callbacks)
    end
 
    callbacks.on_start(node)
-   callbacks.on_local(node[1], true, true)
+   callbacks.on_local(node[1], "loop")
    scan_inner(node[5] or node[4], callbacks)
    return callbacks.on_end(node)
 end
@@ -104,7 +104,7 @@ end
 function tags.Forin(node, callbacks)
    scan_inner(node[2], callbacks)
    callbacks.on_start(node)
-   scan_names(node[1], callbacks, true, true)
+   scan_names(node[1], callbacks, "loop")
    scan_inner(node[3], callbacks)
    return callbacks.on_end(node)
 end
@@ -121,11 +121,11 @@ function tags.Local(node, callbacks)
       scan_inner(node[2], callbacks)
    end
 
-   return scan_names(node[1], callbacks)
+   return scan_names(node[1], callbacks, "var")
 end
 
 function tags.Localrec(node, callbacks)
-   callbacks.on_local(node[1][1])
+   callbacks.on_local(node[1][1], "var")
    return scan(node[2][1], callbacks)
 end
 

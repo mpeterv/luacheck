@@ -25,7 +25,7 @@ end
 
    it("detects global access", function()
       assert.same({total = 1, global = 1, redefined = 0, unused = 0, 
-         {type = "global", subtype = "write", name = "foo", line = 1, column = 1}
+         {type = "global", subtype = "set", name = "foo", line = 1, column = 1}
       }, get_report[[
 foo = {}
       ]])
@@ -39,7 +39,7 @@ foo()
 
    it("detects global access in self swap", function()
       assert.same({total = 1, global = 1, redefined = 0, unused = 0, 
-         {type = "global", subtype = "read", name = "a", line = 1, column = 11}
+         {type = "global", subtype = "access", name = "a", line = 1, column = 11}
       }, get_report[[
 local a = a
 print(a)
@@ -89,9 +89,9 @@ end
 
    it("can be not _ENV-aware", function()
       assert.same({total = 3, global = 2, redefined = 0, unused = 1, 
-         {type = "global", subtype = "read", name = "_ENV", line = 1, column = 7},
+         {type = "global", subtype = "access", name = "_ENV", line = 1, column = 7},
          {type = "unused", subtype = "var", name = "_ENV", line = 3, column = 7},
-         {type = "global", subtype = "write", name = "x", line = 5, column = 4}
+         {type = "global", subtype = "set", name = "x", line = 5, column = 4}
       }, get_report([[
 print(_ENV)
 
