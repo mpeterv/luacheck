@@ -185,8 +185,9 @@ print(foo)
    end)
 
    it("detects redefinition of function arguments", function()
-      assert.same({total = 2, global = 0, redefined = 1, unused = 1,
+      assert.same({total = 3, global = 0, redefined = 1, unused = 2,
          {type = "unused", subtype = "arg", name = "foo", line = 1, column = 17},
+         {type = "unused", subtype = "vararg", name = "...", line = 1, column = 22},
          {type = "redefined", subtype = "arg", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
       }, get_report[[
 return function(foo, ...)

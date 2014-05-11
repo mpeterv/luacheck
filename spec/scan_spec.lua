@@ -83,6 +83,7 @@ describe("test luacheck.scan", function()
          "START";
          "ARG x";
          "ARG y";
+         "VARARG ...";
          "ACCESS y";
          "END";
          "SET a";
@@ -92,6 +93,8 @@ describe("test luacheck.scan", function()
          "SET b";
          --
          "START";
+         "VARARG ...";
+         "ACCESS ...";
          "END";
          "SET c";
          --

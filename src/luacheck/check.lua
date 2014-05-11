@@ -111,9 +111,11 @@ local function check(ast, options)
       local name = node[1]
 
       if not find_and_access(name) then
-         if not opts.env_aware or name ~= "_ENV" and not find_and_access("_ENV") then
-            if opts.check_global and opts.globals[name] == nil then
-               add_warning(node, "global", action)
+         if name ~= "..." then
+            if not opts.env_aware or name ~= "_ENV" and not find_and_access("_ENV") then
+               if opts.check_global and opts.globals[name] == nil then
+                  add_warning(node, "global", action)
+               end
             end
          end
       end

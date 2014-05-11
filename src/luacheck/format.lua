@@ -13,7 +13,8 @@ local warnings = {
    unused = {
       var = "unused variable %s",
       arg = "unused argument %s",
-      loop = "unused loop variable %s"
+      loop = "unused loop variable %s",
+      vararg = "unused variable length argument"
    }
 }
 

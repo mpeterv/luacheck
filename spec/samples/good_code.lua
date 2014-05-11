@@ -1,6 +1,6 @@
 local embracer = {}
 
-local function helper(...)
+local function helper()
    -- NYI wontfix
 end
 

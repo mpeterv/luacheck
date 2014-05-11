@@ -29,11 +29,12 @@ Total: 0 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
     spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 4 warnings / 0 errors
+Total: 5 warnings / 0 errors
 ]], get_output "spec/samples/bad_code.lua")
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua")
    end)
@@ -43,6 +44,7 @@ Total: 4 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
     spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
@@ -56,7 +58,7 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:7:14: unused loop variable b
     spec/samples/unused_code.lua:7:17: unused loop variable c
 
-Total: 10 warnings / 0 errors
+Total: 11 warnings / 0 errors
 ]], get_output "-q spec/samples/*d_code.lua")
       assert.equal([[
 Total: 0 warnings / 0 errors
@@ -65,7 +67,7 @@ Total: 0 warnings / 0 errors
 
    it("suppresses warnings output with -qq", function()
       assert.equal([[
-Total: 10 warnings / 0 errors
+Total: 11 warnings / 0 errors
 ]], get_output "-qq spec/samples/*d_code.lua")
    end)
 
@@ -78,13 +80,14 @@ Total: 10 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
     spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 4 warnings / 0 errors
-]], get_output "spec/samples/bad_code.lua -l4")
-      assert.equal(0, get_exitcode "spec/samples/bad_code.lua -l4")
+Total: 5 warnings / 0 errors
+]], get_output "spec/samples/bad_code.lua -l5")
+      assert.equal(0, get_exitcode "spec/samples/bad_code.lua -l5")
       assert.equal(0, get_exitcode "spec/samples/bad_code.lua --limit=10")
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua --limit=1")
       assert.equal(1, get_exitcode "spec/samples/python_code.lua --limit=10")
@@ -104,18 +107,20 @@ Total: 3 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
 
-Total: 2 warnings / 0 errors
+Total: 3 warnings / 0 errors
 ]], get_output "-g spec/samples/bad_code.lua")
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 3 warnings / 0 errors
+Total: 4 warnings / 0 errors
 ]], get_output "-r spec/samples/bad_code.lua")
    end)
 
@@ -126,10 +131,11 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:1:1: accessing undefined variable module
     spec/samples/bad_code.lua:1:13: accessing undefined variable package
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 5 warnings / 0 errors
+Total: 6 warnings / 0 errors
 ]], get_output "--globals embrace -- spec/samples/bad_code.lua")
    end)
 
@@ -138,10 +144,11 @@ Total: 5 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 3 warnings / 0 errors
+Total: 4 warnings / 0 errors
 ]], get_output "--globals - embrace -- spec/samples/bad_code.lua")
    end)
 
@@ -150,9 +157,10 @@ Total: 3 warnings / 0 errors
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
-Total: 2 warnings / 0 errors
+Total: 3 warnings / 0 errors
 ]], get_output "spec/samples/bad_code.lua --ignore embrace opt")
    end)
 

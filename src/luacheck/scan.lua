@@ -24,6 +24,9 @@ local function scan_names(node, callbacks, type_)
    for i=1, #node do
       if node[i].tag == "Id" then
          callbacks.on_local(node[i], type_)
+      elseif node[i].tag == "Dots" then
+         node[i][1] = "..."
+         callbacks.on_local(node[i], "vararg")
       end
    end
 end
@@ -61,6 +64,11 @@ tags.Invoke = scan_inner
 tags.Index = scan_inner
 
 function tags.Id(node, callbacks)
+   return callbacks.on_access(node, "access")
+end
+
+function tags.Dots(node, callbacks)
+   node[1] = "..."
    return callbacks.on_access(node, "access")
 end
 
