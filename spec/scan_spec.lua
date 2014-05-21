@@ -17,8 +17,11 @@ local function get_calls(source)
       on_local = function(node, type_)
          table.insert(result, type_:upper().." "..node[1])
       end,
-      on_access = function(node, action)
-         table.insert(result, action:upper().." "..node[1])
+      on_access = function(node)
+         table.insert(result, "ACCESS "..node[1])
+      end,
+      on_assignment = function(node, is_init)
+         table.insert(result, (is_init and "INIT " or "SET ")..node[1])
       end
    }
 
@@ -40,12 +43,14 @@ describe("test luacheck.scan", function()
          "START";
          --
          "VAR a";
+         "INIT a";
          --
          "VAR b";
          "VAR c";
          --
          "VAR z";
          "VAR c";
+         "INIT z";
          "END";
       }, get_calls[[
          local a = 5
@@ -63,6 +68,7 @@ describe("test luacheck.scan", function()
          --
          "ACCESS c";
          "VAR c";
+         "INIT c";
          --
          "ACCESS a";
          "ACCESS d";
@@ -104,12 +110,17 @@ describe("test luacheck.scan", function()
          "END";
          "SET d";
          --
+         "START";
+         "ACCESS x";
+         "END";
+         --
          "END";
       }, get_calls[[
          a = function(x, y, ...) y() end
          b = function() return end
          c = function(...) return ... end
-         d = function(x) return x end
+         d = function(x) return x end;
+         (function() x() end)()
       ]])
    end)
 
@@ -150,6 +161,7 @@ describe("test luacheck.scan", function()
          "ARG x";
          "ACCESS a";
          "END";
+         "INIT a";
          --
          "END";
       }, get_calls[[
@@ -181,6 +193,7 @@ describe("test luacheck.scan", function()
          "START";
          --
          "VAR a";
+         "INIT a";
          --
          "ACCESS a";
          "START";
@@ -203,10 +216,12 @@ describe("test luacheck.scan", function()
          "START";
          --
          "VAR a";
+         "INIT a";
          --
          "START";
          "ACCESS a";
          "VAR b";
+         "INIT b";
          "ACCESS a";
          "ACCESS z";
          "SET a";
@@ -293,7 +308,9 @@ describe("test luacheck.scan", function()
          "ACCESS y";
          "START";
          "LOOP a";
+         "INIT a";
          "LOOP b";
+         "INIT b";
          "VAR c";
          "END";
          --
@@ -313,6 +330,7 @@ describe("test luacheck.scan", function()
          "ACCESS b";
          "START";
          "LOOP i";
+         "INIT i";
          "VAR c";
          "END";
          --
@@ -321,6 +339,7 @@ describe("test luacheck.scan", function()
          "ACCESS c";
          "START";
          "LOOP i";
+         "INIT i";
          "VAR d";
          "END";
          --

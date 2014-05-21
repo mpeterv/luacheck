@@ -15,6 +15,11 @@ local warnings = {
       arg = "unused argument %s",
       loop = "unused loop variable %s",
       vararg = "unused variable length argument"
+   },
+   unused_value = {
+      var = "value assigned to variable %s is unused",
+      arg = "value of argument %s is unused",
+      loop = "value of loop variable %s is unused"
    }
 }
 

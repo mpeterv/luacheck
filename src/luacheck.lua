@@ -7,6 +7,7 @@ local get_report = require "luacheck.get_report"
 -- `options.check_redefined` - should luacheck check for redefined locals? Default: true. 
 -- `options.check_unused` - should luacheck check for unused locals? Default: true. 
 -- `options.check_unused_args` - should luacheck check for unused arguments and iterator variables? Default: true. 
+-- `options.check_unused_value` - should luacheck check for unused values? Default: true. 
 -- `options.globals` - set of standard globals. Default: _G. 
 -- `options.env_aware` - ignore globals is chunks with custom _ENV. Default: true. 
 -- `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
@@ -42,7 +43,7 @@ local function luacheck(files, options)
       files = {files}
    end
 
-   local report = {total = 0, errors = 0, global = 0, redefined = 0, unused = 0}
+   local report = {total = 0, errors = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}
 
    for i=1, #files do
       report[i] = get_report(files[i], options)
@@ -50,7 +51,7 @@ local function luacheck(files, options)
       if report[i].error then
          report.errors = report.errors + 1
       else
-         for _, field in ipairs{"total", "global", "redefined", "unused"} do
+         for _, field in ipairs{"total", "global", "redefined", "unused", "unused_value"} do
             report[field] = report[field] + report[i][field]
          end
       end

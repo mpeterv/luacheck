@@ -10,11 +10,11 @@ end
 
 describe("test luacheck.check", function()
    it("does not find anything wrong in an empty block", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report(""))
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report(""))
    end)
 
    it("does not find anything wrong in used locals", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report[[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report[[
 local a
 local b = 5
 do
@@ -24,7 +24,7 @@ end
    end)
 
    it("detects global access", function()
-      assert.same({total = 1, global = 1, redefined = 0, unused = 0, 
+      assert.same({total = 1, global = 1, redefined = 0, unused = 0, unused_value = 0, 
          {type = "global", subtype = "set", name = "foo", line = 1, column = 1}
       }, get_report[[
 foo = {}
@@ -32,13 +32,13 @@ foo = {}
    end)
 
    it("doesn't detect global access when not asked to", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report([[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report([[
 foo()
       ]], {check_global = false}))
    end)
 
    it("detects global access in self swap", function()
-      assert.same({total = 1, global = 1, redefined = 0, unused = 0, 
+      assert.same({total = 1, global = 1, redefined = 0, unused = 0, unused_value = 0, 
          {type = "global", subtype = "access", name = "a", line = 1, column = 11}
       }, get_report[[
 local a = a
@@ -47,13 +47,13 @@ print(a)
    end)
 
    it("uses custom globals", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report([[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report([[
 foo()
       ]], {globals = {foo = true}}))
    end)
 
    it("is _ENV-aware", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report[[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report[[
 print(_ENV)
 
 local _ENV = {}
@@ -64,7 +64,7 @@ end
    end)
 
    it("can detect unused _ENV", function()
-      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, unused_value = 0, 
          {type = "unused", subtype = "var", name = "_ENV", line = 3, column = 7}
       }, get_report[[
 print(_ENV)
@@ -77,7 +77,7 @@ end
    end)
 
    it("correctly checks if _ENV is unused with check_global == false", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report([[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report([[
 print(_ENV)
 
 local _ENV = {}
@@ -88,7 +88,7 @@ end
    end)
 
    it("can be not _ENV-aware", function()
-      assert.same({total = 3, global = 2, redefined = 0, unused = 1, 
+      assert.same({total = 3, global = 2, redefined = 0, unused = 1, unused_value = 0, 
          {type = "global", subtype = "access", name = "_ENV", line = 1, column = 7},
          {type = "unused", subtype = "var", name = "_ENV", line = 3, column = 7},
          {type = "global", subtype = "set", name = "x", line = 5, column = 4}
@@ -103,7 +103,7 @@ end
    end)
 
    it("detects unused locals", function()
-      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, unused_value = 0, 
          {type = "unused", subtype = "var", name = "a", line = 1, column = 7}
       }, get_report[[
 local a = 4
@@ -116,7 +116,7 @@ end
    end)
 
    it("detects unused locals from function arguments", function()
-      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, unused_value = 0, 
          {type = "unused", subtype = "arg", name = "foo", line = 1, column = 17}
       }, get_report[[
 return function(foo, ...)
@@ -126,7 +126,7 @@ end
    end)
 
    it("detects unused implicit self", function()
-      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, unused_value = 0, 
          {type = "unused", subtype = "arg", name = "self", line = 2, column = 13}
       }, get_report[[
 local a = {}
@@ -137,7 +137,7 @@ end
    end)
 
    it("detects unused locals from loops", function()
-      assert.same({total = 2, global = 0, redefined = 0, unused = 2, 
+      assert.same({total = 2, global = 0, redefined = 0, unused = 2, unused_value = 0, 
          {type = "unused", subtype = "loop", name = "i", line = 1, column = 5},
          {type = "unused", subtype = "loop", name = "i", line = 2, column = 5}
       }, get_report[[
@@ -147,7 +147,7 @@ for i in pairs{} do end
    end)
 
    it("allows `_` to be unused", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report[[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report[[
 for _, foo in pairs{} do
    print(foo)
 end
@@ -155,13 +155,13 @@ end
    end)
 
    it("doesn't detect unused variables when not asked to", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report([[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report([[
 local foo
       ]], {check_unused = false}))
    end)
 
    it("doesn't detect unused arguments when not asked to", function()
-      assert.same({total = 1, global = 0, redefined = 0, unused = 1, 
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, unused_value = 0, 
          {type = "unused", subtype = "var", name = "c", line = 4, column = 13}
       }, get_report([[
 local a = {}
@@ -174,7 +174,7 @@ end
    end)
 
    it("detects redefinition in the same scope", function()
-      assert.same({total = 2, global = 0, redefined = 1, unused = 1,
+      assert.same({total = 2, global = 0, redefined = 1, unused = 1, unused_value = 0,
          {type = "unused", subtype = "var", name = "foo", line = 1, column = 7},
          {type = "redefined", subtype = "var", name = "foo", line = 2, column = 7, prev_line = 1, prev_column = 7}
       }, get_report[[
@@ -185,7 +185,7 @@ print(foo)
    end)
 
    it("detects redefinition of function arguments", function()
-      assert.same({total = 3, global = 0, redefined = 1, unused = 2,
+      assert.same({total = 3, global = 0, redefined = 1, unused = 2, unused_value = 0,
          {type = "unused", subtype = "arg", name = "foo", line = 1, column = 17},
          {type = "unused", subtype = "vararg", name = "...", line = 1, column = 22},
          {type = "redefined", subtype = "arg", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
@@ -198,13 +198,13 @@ end
    end)
 
    it("doesn't detect redefenition when not asked to", function()
-      assert.same({total = 0, global = 0, redefined = 0, unused = 0}, get_report([[
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report([[
 local foo; local foo; print(foo)
       ]], {check_redefined = false}))
    end)
 
    it("handles argparse sample", function()
-      assert.same({total = 4, global = 0, redefined = 0, unused = 4,
+      assert.same({total = 4, global = 0, redefined = 0, unused = 4, unused_value = 0,
          {type = "unused", subtype = "loop", name = "setter", line = 34, column = 27},
          {type = "unused", subtype = "arg", name = "self", line = 117, column = 27},
          {type = "unused", subtype = "arg", name = "self", line = 125, column = 27},

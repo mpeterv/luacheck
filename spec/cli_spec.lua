@@ -40,8 +40,7 @@ Total: 5 warnings / 0 errors
    end)
 
    it("suppresses OK output with -q", function()
-      assert.equal([[
-Checking spec/samples/bad_code.lua                Failure
+      assert.equal([[Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
     spec/samples/bad_code.lua:3:23: unused variable length argument
@@ -57,8 +56,11 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:7:11: unused loop variable a
     spec/samples/unused_code.lua:7:14: unused loop variable b
     spec/samples/unused_code.lua:7:17: unused loop variable c
+    spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
+    spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
+    spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
 
-Total: 11 warnings / 0 errors
+Total: 14 warnings / 0 errors
 ]], get_output "-q spec/samples/*d_code.lua")
       assert.equal([[
 Total: 0 warnings / 0 errors
@@ -67,7 +69,7 @@ Total: 0 warnings / 0 errors
 
    it("suppresses warnings output with -qq", function()
       assert.equal([[
-Total: 11 warnings / 0 errors
+Total: 14 warnings / 0 errors
 ]], get_output "-qq spec/samples/*d_code.lua")
    end)
 
@@ -184,8 +186,11 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:7:11: unused loop variable a
     spec/samples/unused_code.lua:7:14: unused loop variable b
     spec/samples/unused_code.lua:7:17: unused loop variable c
+    spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
+    spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
+    spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
 
-Total: 6 warnings / 0 errors
+Total: 9 warnings / 0 errors
 ]], get_output "spec/samples/unused_code.lua")
    end)
 
@@ -194,9 +199,27 @@ Total: 6 warnings / 0 errors
 Checking spec/samples/unused_code.lua             Failure
 
     spec/samples/unused_code.lua:5:13: unused variable q
+    spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
+    spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
+    spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
 
-Total: 1 warning / 0 errors
+Total: 4 warnings / 0 errors
 ]], get_output "spec/samples/unused_code.lua --no-unused-args")
+   end)
+
+   it("allows to ignore unused values", function()
+      assert.equal([[
+Checking spec/samples/unused_code.lua             Failure
+
+    spec/samples/unused_code.lua:3:18: unused argument baz
+    spec/samples/unused_code.lua:4:8: unused loop variable i
+    spec/samples/unused_code.lua:5:13: unused variable q
+    spec/samples/unused_code.lua:7:11: unused loop variable a
+    spec/samples/unused_code.lua:7:14: unused loop variable b
+    spec/samples/unused_code.lua:7:17: unused loop variable c
+
+Total: 6 warnings / 0 errors
+]], get_output "spec/samples/unused_code.lua --no-unused-values")
    end)
 
    it("handles errors gracefully", function()

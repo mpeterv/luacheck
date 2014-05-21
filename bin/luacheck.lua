@@ -32,6 +32,8 @@ parser:flag "-u" "--no-unused"
    :description "Do not check for unused variables. "
 parser:flag "-a" "--no-unused-args"
    :description "Do not check for unused arguments and loop variables. "
+parser:flag "-v" "--no-unused-values"
+   :description "Do not check for unused values. "
 
 parser:option "--globals"
    :description "Defined globals. Hyphen expands to standard globals. "
@@ -92,7 +94,8 @@ local options = {
    check_global = not args["no-global"],
    check_redefined = not args["no-redefined"],
    check_unused = not args["no-unused"],
-   check_unused_args = not args["no-unused-args"]
+   check_unused_args = not args["no-unused-args"],
+   check_unused_values = not args["no-unused-values"]
 }
 
 local warnings, errors = 0, 0

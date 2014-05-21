@@ -9,3 +9,14 @@ function foo.bar(baz)
       end
    end
 end
+
+local x = 5
+x = 6
+
+local y = 5;
+(function() print(y) end)()
+y = 6
+
+local z = 5;
+(function() z = 4 end)()
+z = 6
