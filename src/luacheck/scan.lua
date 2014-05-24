@@ -92,7 +92,14 @@ function tags.Block(node, callbacks)
 end
 
 tags.Do = tags.Block
-tags.While = scan_inner
+
+function tags.While(node, callbacks)
+   scan(node[1], callbacks)
+   callbacks.on_start(node)
+   scan_inner(node[2], callbacks)
+   return callbacks.on_end(node)
+end
+
 tags.If = scan_inner
 
 function tags.Repeat(node, callbacks)

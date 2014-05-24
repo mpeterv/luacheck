@@ -146,6 +146,32 @@ for i in pairs{} do end
       ]])
    end)
 
+   it("detects unused values", function()
+      assert.same({total = 1, global = 0, redefined = 0, unused = 0, unused_value = 1, 
+         {type = "unused_value", subtype = "var", name = "a", line = 5, column = 4}
+      }, get_report[[
+local a
+if true then
+   a = 2
+else
+   a = 3
+end
+
+a = 5
+print(a)
+      ]])
+   end)
+
+   it("does not detect unused values in loops", function()
+      assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report[[
+local a = 10
+while a > 0 do
+   print(a)
+   a = math.floor(a/2)
+end
+      ]])
+   end)
+
    it("allows `_` to be unused", function()
       assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report[[
 for _, foo in pairs{} do

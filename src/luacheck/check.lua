@@ -27,8 +27,8 @@ local function check(ast, options)
    local report = {total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}
 
    -- Current outer scope. 
-   -- Each scope is a table mapping names to table {node, mentioned, used, type, is_upvalue, outer_closure[, value]}
-   -- Array part contains outer scope and outer closure. 
+   -- Each scope is a table mapping names to table {node, mentioned, used, type, is_upvalue, outer[, value]}
+   -- Array part contains outer scope, outer closure and outer cycle. 
    local outer = {}
 
    -- Adds a warning, if necessary. 
@@ -89,10 +89,17 @@ local function check(ast, options)
    local function check_value_usage(variable)
       if should_check_usage(variable) then
          if not variable.is_upvalue and variable.value and not variable.value.used then
-            if variable.value.outer == outer then
-               --TODO: check that old value is in subtree of current value. 
-               --TODO: check that outer cycle scopes of values are same. 
-               add_warning(variable.value.node, "unused_value", variable.type)
+            if variable.value.outer[3] == outer[3] then
+               local scope = variable.value.outer
+
+               while scope do
+                  if scope == outer then
+                     add_warning(variable.value.node, "unused_value", variable.type)
+                     return
+                  end
+
+                  scope = scope[1]
+               end
             end
          end
       end
@@ -120,7 +127,7 @@ local function check(ast, options)
          mentioned = false,
          used = false,
          is_upvalue = false,
-         outer_closure = outer[2]
+         outer = outer
       }
    end
 
@@ -151,7 +158,7 @@ local function check(ast, options)
             access(variable)
          end
 
-         if variable.outer_closure ~= outer[2] then
+         if variable.outer[2] ~= outer[2] then
             variable.is_upvalue = true
          end
 
@@ -165,9 +172,16 @@ local function check(ast, options)
       outer = {outer}
 
       if node.tag == "Function" then
-         outer[2] = node
+         outer[2] = outer
       else
          outer[2] = outer[1][2]
+      end
+
+      if node.tag == "While" or node.tag == "Repeat" or
+            node.tag == "Forin" or node.tag == "Fornum" then
+         outer[3] = outer
+      else
+         outer[3] = outer[1][3]
       end
    end
 
