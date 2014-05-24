@@ -26,12 +26,10 @@ local function check(ast, options)
    local callbacks = {}
    local report = {total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}
 
-   -- Array of scopes. 
-   -- Each scope is a table mapping names to table {node, used, type, value, value_used, value_scope}
+   -- Current outer scope. 
+   -- Each scope is a table mapping names to table {node, mentioned, used, type, is_upvalue, outer_closure[, value]}
    -- Array part contains outer scope and outer closure. 
-   local scopes = {[0] = {nil, {}}}
-   -- Current scope nesting level. 
-   local level = 0
+   local outer = {}
 
    -- Adds a warning, if necessary. 
    local function add_warning(node, type_, subtype, prev_node)
@@ -55,10 +53,13 @@ local function check(ast, options)
    end
 
    local function resolve(name)
-      for i=level, 1, -1 do
-         if scopes[i][name] then
-            return scopes[i][name]
+      local scope = outer
+      while scope do
+         if scope[name] then
+            return scope[name]
          end
+
+         scope = scope[1]
       end
    end
 
@@ -88,23 +89,9 @@ local function check(ast, options)
    local function check_value_usage(variable)
       if should_check_usage(variable) then
          if not variable.is_upvalue and variable.value and not variable.value.used then
-            if variable.value.outer == scopes[level][1] --[[or variable.value.level > level]] then
-               -- The detection idea was to check if the new value is more outer then the old one. 
-               -- However, it produces false positives for loops: 
-               --[[
-               while x > 0 do
-                  x = x/2
-               end
-               ]] -- as well as for some if-else structures: 
-               --[[
-               if expr1 then
-                  if expr2 then
-                     x = val1
-                  end
-               else
-                  x = val2
-               end
-               ]] -- Better machinery should be put in place. 
+            if variable.value.outer == outer then
+               --TODO: check that old value is in subtree of current value. 
+               --TODO: check that outer cycle scopes of values are same. 
                add_warning(variable.value.node, "unused_value", variable.type)
             end
          end
@@ -127,13 +114,13 @@ local function check(ast, options)
    end
 
    local function register_variable(node, type_)
-      scopes[level][node[1]] = {
+      outer[node[1]] = {
          node = node,
          type = type_,
          mentioned = false,
          used = false,
          is_upvalue = false,
-         outer_closure = scopes[level][2]
+         outer_closure = outer[2]
       }
    end
 
@@ -141,8 +128,7 @@ local function check(ast, options)
       variable.value = {
          node = value_node,
          used = false,
-         outer = scopes[level][1],
-         level = level
+         outer = outer
       }
    end
 
@@ -165,7 +151,7 @@ local function check(ast, options)
             access(variable)
          end
 
-         if variable.outer_closure ~= scopes[level][2] then
+         if variable.outer_closure ~= outer[2] then
             variable.is_upvalue = true
          end
 
@@ -175,22 +161,20 @@ local function check(ast, options)
 
 
    function callbacks.on_start(node)
-      level = level + 1
-
       -- Create new scope. 
-      scopes[level] = {node}
+      outer = {outer}
 
       if node.tag == "Function" then
-         scopes[level][2] = node
+         outer[2] = node
       else
-         scopes[level][2] = scopes[level-1][2]
+         outer[2] = outer[1][2]
       end
    end
 
    function callbacks.on_end(_)
       if opts.check_unused then
          -- Check if some local variables in this scope were left unused. 
-         for i, variable in pairs(scopes[level]) do
+         for i, variable in pairs(outer) do
             if type(i) == "string" then
                check_variable_usage(variable)
             end
@@ -198,14 +182,13 @@ local function check(ast, options)
       end
 
       -- Delete scope. 
-      scopes[level] = nil
-      level = level - 1
+      outer = outer[1]
    end
 
    function callbacks.on_local(node, type_)
       if opts.check_redefined then
          -- Check if this variable was declared already in this scope. 
-         local prev_variable = scopes[level][node[1]]
+         local prev_variable = outer[node[1]]
 
          if prev_variable then
             if opts.check_unused then
@@ -244,7 +227,6 @@ local function check(ast, options)
    end
 
    scan(ast, callbacks)
-   assert(level == 0)
    table.sort(report, function(warning1, warning2)
       return warning1.line < warning2.line or
          warning1.line == warning2.line and warning1.column < warning2.column
