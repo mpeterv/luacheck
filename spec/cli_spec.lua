@@ -231,4 +231,40 @@ Total: 0 warnings / 2 errors
 ]], get_output "spec/samples/python_code.lua spec/samples/absent_code.lua")
       assert.equal(1, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua")
    end)
+
+   it("expands rockspecs", function()
+      local output = get_output "spec/samples/sample.rockspec"
+      assert.is_true([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Checking spec/samples/good_code.lua               OK
+
+Total: 5 warnings / 0 errors
+]] == output or output == [[
+Checking spec/samples/good_code.lua               OK
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Total: 5 warnings / 0 errors
+]])
+   end)
+
+   it("handles bad rockspecs", function()
+      assert.equal([[
+Checking spec/samples/bad.rockspec                Syntax error
+
+Total: 0 warnings / 1 error
+]], get_output "spec/samples/bad.rockspec")
+   end)
 end)

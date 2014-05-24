@@ -1,6 +1,7 @@
 #!/bin/env lua
 local get_report = require "luacheck.get_report"
 local format = require "luacheck.format"
+local expand_rockspec = require "luacheck.expand_rockspec"
 local argparse = require "argparse"
 local color = require "ansicolors"
 
@@ -102,9 +103,7 @@ local warnings, errors = 0, 0
 local printed
 local limit = args.limit or 0
 
-for _, file in ipairs(args.files) do
-   local report = get_report(file, options)
-
+local function handle_report(report)
    if report.error then
       errors = errors + 1
    else
@@ -114,6 +113,22 @@ for _, file in ipairs(args.files) do
    if args.quiet == 0 or args.quiet == 1 and (report.error or report.total > 0) then
       print(format(report))
       printed = report
+   end
+end
+
+for _, file in ipairs(args.files) do
+   if file:sub(-#".rockspec") == ".rockspec" then
+      local related_files = expand_rockspec(file)
+
+      if type(related_files) == "table" then
+         for _, file in ipairs(related_files) do
+            handle_report(get_report(file, options))
+         end
+      else
+         handle_report({file = file, error = related_files})
+      end
+   else
+      handle_report(get_report(file, options))
    end
 end
 

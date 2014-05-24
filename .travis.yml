@@ -14,4 +14,4 @@ install:
 
 script:
   - busted spec
-  - luacheck bin/*.lua src/*.lua src/*/*.lua
+  - luacheck rockspecs/luacheck-scm-1.rockspec -c

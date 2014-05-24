@@ -27,6 +27,7 @@ build = {
       ["luacheck.scan"] = "src/luacheck/scan.lua",
       ["luacheck.check"] = "src/luacheck/check.lua",
       ["luacheck.get_report"] = "src/luacheck/get_report.lua",
+      ["luacheck.expand_rockspec"] = "src/luacheck/expand_rockspec.lua",
       ["luacheck.format"] = "src/luacheck/format.lua"
    },
    install = {
