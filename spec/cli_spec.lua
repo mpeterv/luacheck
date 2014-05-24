@@ -234,7 +234,7 @@ Total: 0 warnings / 2 errors
 
    it("expands rockspecs", function()
       local output = get_output "spec/samples/sample.rockspec"
-      assert.is_true([[
+      assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
 
     spec/samples/bad_code.lua:3:16: unused variable helper
@@ -246,18 +246,7 @@ Checking spec/samples/bad_code.lua                Failure
 Checking spec/samples/good_code.lua               OK
 
 Total: 5 warnings / 0 errors
-]] == output or output == [[
-Checking spec/samples/good_code.lua               OK
-Checking spec/samples/bad_code.lua                Failure
-
-    spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
-
-Total: 5 warnings / 0 errors
-]])
+]], get_output "spec/samples/sample.rockspec")
    end)
 
    it("handles bad rockspecs", function()

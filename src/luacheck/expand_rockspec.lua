@@ -42,6 +42,7 @@ local function extract_lua_files(rockspec)
       end
    end
 
+   table.sort(res)
    return res
 end
 
