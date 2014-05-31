@@ -100,6 +100,7 @@ local options = {
 }
 
 local warnings, errors = 0, 0
+local files = 0
 local printed
 local limit = args.limit or 0
 
@@ -114,6 +115,8 @@ local function handle_report(report)
       print(format(report))
       printed = report
    end
+
+   files = files + 1
 end
 
 for _, file in ipairs(args.files) do
@@ -141,9 +144,14 @@ if args.quiet <= 2 then
       return color("%{bright}"..(number > limit and "%{red}" or "")..number)
    end
 
-   print(("Total: %s warning%s / %s error%s"):format(
-      format_number(warnings, limit), warnings == 1 and "" or "s",
-      format_number(errors, 0), errors == 1 and "" or "s"
+   local function plural(number)
+      return number == 1 and "" or "s"
+   end
+
+   print(("Total: %s warning%s / %s error%s in %d file%s"):format(
+      format_number(warnings, limit), plural(warnings),
+      format_number(errors, 0), plural(errors),
+      files, plural(files)
    ))
 end
 
