@@ -226,6 +226,15 @@ end
    it("doesn't detect redefenition when not asked to", function()
       assert.same({total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}, get_report([[
 local foo; local foo; print(foo)
+      ]], {check_redefined = false, check_unused = false}))
+   end)
+
+   it("detects unused redefined variables", function()
+      assert.same({total = 1, global = 0, redefined = 0, unused = 1, unused_value = 0,
+         {type = "unused", subtype = "var", name = "a", line = 1, column = 7}
+      }, get_report([[
+local a
+local a = 5; print(a)
       ]], {check_redefined = false}))
    end)
 

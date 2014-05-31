@@ -27,7 +27,8 @@ local function check(ast, options)
    local report = {total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}
 
    -- Current outer scope. 
-   -- Each scope is a table mapping names to table {node, mentioned, used, type, is_upvalue, outer[, value]}
+   -- Each scope is a table mapping names to tables
+   --    {node, mentioned, used, type, is_upvalue, outer[, value]}
    -- Array part contains outer scope, outer closure and outer cycle. 
    local outer = {}
 
@@ -140,7 +141,8 @@ local function check(ast, options)
    end
 
    -- If the variable of name does not exist, adds a warning. 
-   -- Otherwise returns the variable, marking it as accessed if action == "access" and updating the `is_upvalue` field. 
+   -- Otherwise returns the variable, marking it as accessed if action == "access"
+   -- and updating the `is_upvalue` field. 
    local function check_variable(node, action)
       local name = node[1]
       local variable = resolve(name)
@@ -200,15 +202,15 @@ local function check(ast, options)
    end
 
    function callbacks.on_local(node, type_)
-      if opts.check_redefined then
-         -- Check if this variable was declared already in this scope. 
-         local prev_variable = outer[node[1]]
+      -- Check if this variable was declared already in this scope. 
+      local prev_variable = outer[node[1]]
 
-         if prev_variable then
-            if opts.check_unused then
-               check_variable_usage(prev_variable)
-            end
+      if prev_variable then
+         if opts.check_unused then
+            check_variable_usage(prev_variable)
+         end
 
+         if opts.check_redefined then
             add_warning(node, "redefined", prev_variable.type, prev_variable.node)
          end
       end
