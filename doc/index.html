@@ -34,7 +34,7 @@
 
 <ul>
 <li>non-standard global variables; </li>
-<li>unused local variables(except variable named <code>_</code>, which should be used as placeholder when avoiding an unused variable is impossible); </li>
+<li>unused local variables(except variable named <code>_</code>, which should be used as placeholder when avoiding an unused variable is impossible) and values; </li>
 <li>redefinitions of existing local variables in the same scope(e.g. <code>local a = 5; ... local a = 6</code>). </li>
 </ul><p>luacheck provides a command-line interface as well as a small library which can be used from another Lua program. </p>
 
@@ -61,11 +61,12 @@
 <div class="highlight highlight-bash"><pre><span class="nv">$ </span>luacheck --help
 </pre></div>
 
-<pre><code>Usage: luacheck [-g] [-r] [-u] [-a] [--globals [&lt;global&gt;] ...] [-c]
-       [-e] [--ignore &lt;var&gt; [&lt;var&gt;] ...] [--only &lt;var&gt; [&lt;var&gt;] ...]
-       [-l &lt;limit&gt;] [-q] [-h] &lt;file&gt; [&lt;file&gt;] ...
+<pre><code>Usage: luacheck [-g] [-r] [-u] [-a] [-v] [--globals [&lt;global&gt;] ...]
+       [-c] [-e] [--ignore &lt;var&gt; [&lt;var&gt;] ...]
+       [--only &lt;var&gt; [&lt;var&gt;] ...] [-l &lt;limit&gt;] [-q] [-h]
+       &lt;file&gt; [&lt;file&gt;] ...
 
-luacheck 0.3.0, a simple static analyzer for Lua. 
+luacheck 0.4.0, a simple static analyzer for Lua. 
 
 Arguments: 
    files                 List of files to check. 
@@ -75,6 +76,8 @@ Options:
    -r, --no-redefined    Do not check for redefined variables. 
    -u, --no-unused       Do not check for unused variables. 
    -a, --no-unused-args  Do not check for unused arguments and loop variables. 
+   -v, --no-unused-values
+                         Do not check for unused values. 
    --globals [&lt;global&gt;] ...
                          Defined globals. Hyphen expands to standard globals. 
    -c, --compat          Adjust globals for Lua 5.1/5.2 compatibility. 
@@ -97,6 +100,7 @@ Options:
 <pre><code>Checking bad_code.lua                             Failure
 
     bad_code.lua:3:16: unused variable helper
+    bad_code.lua:3:23: unused variable length argument
     bad_code.lua:7:10: setting non-standard global variable embrace
     bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     bad_code.lua:9:11: accessing undefined variable hepler
@@ -104,8 +108,15 @@ Options:
 Checking good_code.lua                            OK
 Checking python_code.lua                          Syntax error
 
-Total: 4 warnings / 1 error
+Total: 5 warnings / 1 error in 3 files
 </code></pre>
+
+<p>In CLI, rockspecs(arguments ending with <code>.rockspec</code>) expand into <code>.lua</code> files mentioned in them, so that</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>luacheck path/to/rockspec/rockname-1.0-1.rockspec
+</pre></div>
+
+<p>is a shortcut for checking all <code>rockname</code>-related files. </p>
 
 <p>CLI exits with <code>0</code> if no warnings or errors occured and with <code>1</code> otherwise. </p>
 
@@ -124,9 +135,11 @@ Total: 4 warnings / 1 error
 <li>
 <code>options.check_redefined</code> - should luacheck check for redefined locals? Default: <code>true</code>. </li>
 <li>
-<code>options.check_unused</code> - should luacheck check for unused locals? Default: <code>true</code>. </li>
+<code>options.check_unused</code> - should luacheck check for unused locals and values? Default: <code>true</code>. </li>
 <li>
 <code>options.check_unused_args</code> - should luacheck check for unused arguments and loop variables? Default: <code>true</code>. </li>
+<li>
+<code>options.check_unused_values</code> - should luacheck check for unused values? Default: <code>true</code>. </li>
 <li>
 <code>options.globals</code> - set of standard globals. Default: <code>_G</code>. </li>
 <li>
@@ -143,6 +156,7 @@ Total: 4 warnings / 1 error
    global = &lt;total number of warnings related to global variables&gt;,
    redefined = &lt;total number of warnings related to redefined variables&gt;,
    unused = &lt;total number of warnings related to unused variables&gt;,
+   unused_value = &lt;total number of warnings related to unused values&gt;,
    &lt;file_report&gt;, &lt;file_report&gt;, ...
 }
 
@@ -152,6 +166,7 @@ file_report: {
    global = &lt;number of warnings related to global variables in this file&gt;,
    redefined = &lt;number of warnings related to redefined variables in this file&gt;,
    unused = &lt;number of warnings related to unused variables in this file&gt;,
+   unused_value = &lt;number of warnings related to unused values in this file&gt;,
    &lt;warning&gt;, &lt;warning&gt;, ...
 } | {
    file = &lt;path to this file&gt;,
@@ -159,8 +174,8 @@ file_report: {
 }
 
 warning: {
-   type = "global" | "redefined" | "unused",
-   subtype = "read" | "write" | "var" | "arg" | "loop",
+   type = "global" | "redefined" | "unused" | "unused_value",
+   subtype = "access" | "set" | "var" | "arg" | "loop" | "vararg",
    name = &lt;name of the related variable&gt;,
    line = &lt;number of the line where the problem occured&gt;,
    column = &lt;offset of the variable name in that line&gt;,
@@ -183,10 +198,16 @@ warning: {
       subtype = "var",
       type = "unused"
     }, {
+      column = 23,
+      line = 3,
+      name = "...",
+      subtype = "vararg",
+      type = "unused"
+    }, {
       column = 10,
       line = 7,
       name = "embrace",
-      subtype = "write",
+      subtype = "set",
       type = "global"
     }, {
       column = 10,
@@ -200,20 +221,22 @@ warning: {
       column = 11,
       line = 9,
       name = "hepler",
-      subtype = "read",
+      subtype = "access",
       type = "global"
     },
     file = "bad_code.lua",
     global = 2,
     redefined = 1,
-    total = 4,
-    unused = 1
+    total = 5,
+    unused = 2,
+    unused_value = 0
   }, {
     file = "good_code.lua",
     global = 0,
     redefined = 0,
     total = 0,
-    unused = 0
+    unused = 0,
+    unused_value = 0
   }, {
     error = "syntax",
     file = "python_code.lua"
@@ -221,8 +244,9 @@ warning: {
   errors = 1,
   global = 2,
   redefined = 1,
-  total = 4,
-  unused = 1
+  total = 5,
+  unused = 2,
+  unused_value = 0
 }
 </code></pre>
 

@@ -5,7 +5,7 @@
 luacheck is a simple static analyzer for Lua. It only looks for three things: 
 
 * non-standard global variables; 
-* unused local variables(except variable named `_`, which should be used as placeholder when avoiding an unused variable is impossible); 
+* unused local variables(except variable named `_`, which should be used as placeholder when avoiding an unused variable is impossible) and values; 
 * redefinitions of existing local variables in the same scope(e.g. `local a = 5; ... local a = 6`). 
 
 luacheck provides a command-line interface as well as a small library which can be used from another Lua program. 
@@ -33,11 +33,12 @@ $ luacheck --help
 ```
 
 ```
-Usage: luacheck [-g] [-r] [-u] [-a] [--globals [<global>] ...] [-c]
-       [-e] [--ignore <var> [<var>] ...] [--only <var> [<var>] ...]
-       [-l <limit>] [-q] [-h] <file> [<file>] ...
+Usage: luacheck [-g] [-r] [-u] [-a] [-v] [--globals [<global>] ...]
+       [-c] [-e] [--ignore <var> [<var>] ...]
+       [--only <var> [<var>] ...] [-l <limit>] [-q] [-h]
+       <file> [<file>] ...
 
-luacheck 0.3.0, a simple static analyzer for Lua. 
+luacheck 0.4.0, a simple static analyzer for Lua. 
 
 Arguments: 
    files                 List of files to check. 
@@ -47,6 +48,8 @@ Options:
    -r, --no-redefined    Do not check for redefined variables. 
    -u, --no-unused       Do not check for unused variables. 
    -a, --no-unused-args  Do not check for unused arguments and loop variables. 
+   -v, --no-unused-values
+                         Do not check for unused values. 
    --globals [<global>] ...
                          Defined globals. Hyphen expands to standard globals. 
    -c, --compat          Adjust globals for Lua 5.1/5.2 compatibility. 
@@ -71,6 +74,7 @@ $ luacheck *.lua
 Checking bad_code.lua                             Failure
 
     bad_code.lua:3:16: unused variable helper
+    bad_code.lua:3:23: unused variable length argument
     bad_code.lua:7:10: setting non-standard global variable embrace
     bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
     bad_code.lua:9:11: accessing undefined variable hepler
@@ -78,8 +82,16 @@ Checking bad_code.lua                             Failure
 Checking good_code.lua                            OK
 Checking python_code.lua                          Syntax error
 
-Total: 4 warnings / 1 error
+Total: 5 warnings / 1 error in 3 files
 ```
+
+In CLI, rockspecs(arguments ending with `.rockspec`) expand into `.lua` files mentioned in them, so that
+
+```bash
+$ luacheck path/to/rockspec/rockname-1.0-1.rockspec
+```
+
+is a shortcut for checking all `rockname`-related files. 
 
 CLI exits with `0` if no warnings or errors occured and with `1` otherwise. 
 
@@ -93,8 +105,9 @@ If the second argument is provided, it should be a table of options. Recognized 
 
 * `options.check_global` - should luacheck check for global access? Default: `true`. 
 * `options.check_redefined` - should luacheck check for redefined locals? Default: `true`. 
-* `options.check_unused` - should luacheck check for unused locals? Default: `true`. 
+* `options.check_unused` - should luacheck check for unused locals and values? Default: `true`. 
 * `options.check_unused_args` - should luacheck check for unused arguments and loop variables? Default: `true`. 
+* `options.check_unused_values` - should luacheck check for unused values? Default: `true`. 
 * `options.globals` - set of standard globals. Default: `_G`. 
 * `options.env_aware` - ignore globals is chunks with custom `_ENV`. Default: `true`. 
 * `options.ignore` - set of variables to ignore. Default: empty. Takes precedense over `options.only`. 
@@ -109,6 +122,7 @@ report: {
    global = <total number of warnings related to global variables>,
    redefined = <total number of warnings related to redefined variables>,
    unused = <total number of warnings related to unused variables>,
+   unused_value = <total number of warnings related to unused values>,
    <file_report>, <file_report>, ...
 }
 
@@ -118,6 +132,7 @@ file_report: {
    global = <number of warnings related to global variables in this file>,
    redefined = <number of warnings related to redefined variables in this file>,
    unused = <number of warnings related to unused variables in this file>,
+   unused_value = <number of warnings related to unused values in this file>,
    <warning>, <warning>, ...
 } | {
    file = <path to this file>,
@@ -125,8 +140,8 @@ file_report: {
 }
 
 warning: {
-   type = "global" | "redefined" | "unused",
-   subtype = "read" | "write" | "var" | "arg" | "loop",
+   type = "global" | "redefined" | "unused" | "unused_value",
+   subtype = "access" | "set" | "var" | "arg" | "loop" | "vararg",
    name = <name of the related variable>,
    line = <number of the line where the problem occured>,
    column = <offset of the variable name in that line>,
@@ -151,10 +166,16 @@ prettyprint(report)
       subtype = "var",
       type = "unused"
     }, {
+      column = 23,
+      line = 3,
+      name = "...",
+      subtype = "vararg",
+      type = "unused"
+    }, {
       column = 10,
       line = 7,
       name = "embrace",
-      subtype = "write",
+      subtype = "set",
       type = "global"
     }, {
       column = 10,
@@ -168,20 +189,22 @@ prettyprint(report)
       column = 11,
       line = 9,
       name = "hepler",
-      subtype = "read",
+      subtype = "access",
       type = "global"
     },
     file = "bad_code.lua",
     global = 2,
     redefined = 1,
-    total = 4,
-    unused = 1
+    total = 5,
+    unused = 2,
+    unused_value = 0
   }, {
     file = "good_code.lua",
     global = 0,
     redefined = 0,
     total = 0,
-    unused = 0
+    unused = 0,
+    unused_value = 0
   }, {
     error = "syntax",
     file = "python_code.lua"
@@ -189,8 +212,9 @@ prettyprint(report)
   errors = 1,
   global = 2,
   redefined = 1,
-  total = 4,
-  unused = 1
+  total = 5,
+  unused = 2,
+  unused_value = 0
 }
 ```
 

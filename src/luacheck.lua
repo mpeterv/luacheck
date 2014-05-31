@@ -8,7 +8,7 @@ local get_report = require "luacheck.get_report"
 --    `options.check_unused` - should luacheck check for unused locals? Default: true. 
 --    `options.check_unused_args` - should luacheck check for unused arguments and
 --        iterator variables? Default: true. 
---    `options.check_unused_value` - should luacheck check for unused values? Default: true. 
+--    `options.check_unused_values` - should luacheck check for unused values? Default: true. 
 --    `options.globals` - set of standard globals. Default: _G. 
 --    `options.env_aware` - ignore globals is chunks with custom _ENV. Default: true. 
 --    `options.ignore` - set of variables to ignore. Default: empty. 
