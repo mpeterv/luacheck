@@ -3,7 +3,6 @@ local get_report = require "luacheck.get_report"
 local format = require "luacheck.format"
 local expand_rockspec = require "luacheck.expand_rockspec"
 local argparse = require "argparse"
-local color = require "ansicolors"
 
 local function toset(array)
    if array then
@@ -64,7 +63,16 @@ parser:flag "-q" "--quiet"
 -qq: Only print total number of warnings and errors. 
 -qqq: Suppress output completely. ]]
 
+parser:flag "--no-color"
+   :description "Do not color output"
+
 local args = parser:parse()
+
+local function color_noop(s)
+   return s:gsub("(%%{(.-)})", "")
+end
+
+local color = args["no-color"] and color_noop or require "ansicolors"
 
 local default_globals = {}
 
@@ -112,7 +120,7 @@ local function handle_report(report)
    end
 
    if args.quiet == 0 or args.quiet == 1 and (report.error or report.total > 0) then
-      print(format(report))
+      print(format(report, color))
       printed = report
    end
 

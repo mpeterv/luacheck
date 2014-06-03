@@ -1,5 +1,3 @@
-local color = require "ansicolors"
-
 local warnings = {
    global = {
       access = "accessing undefined variable %s",
@@ -24,7 +22,7 @@ local warnings = {
 }
 
 --- Formats a file report. 
-local function format(report)
+local function format(report, color)
    local label = "Checking "..report.file
    local status
 
