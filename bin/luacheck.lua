@@ -1,20 +1,7 @@
 #!/bin/env lua
-local get_report = require "luacheck.get_report"
+local luacheck = require "luacheck"
 local format = require "luacheck.format"
-local expand_rockspec = require "luacheck.expand_rockspec"
 local argparse = require "argparse"
-
-local function toset(array)
-   if array then
-      local set = {}
-
-      for _, item in ipairs(array) do
-         set[item] = true
-      end
-
-      return set
-   end
-end
 
 local parser = argparse "luacheck"
    :description "luacheck 0.4.0, a simple static analyzer for Lua. "
@@ -68,99 +55,27 @@ parser:flag "--no-color"
 
 local args = parser:parse()
 
-local function color_noop(s)
-   return s:gsub("(%%{(.-)})", "")
-end
-
-local color = args["no-color"] and color_noop or require "ansicolors"
-
-local default_globals = {}
-
-for var in pairs(_G) do
-   default_globals[var] = true
-end
-
-if args.compat then
-   for _, var in ipairs{
-         "getfenv", "loadstring", "module",
-         "newproxy", "rawlen", "setfenv",
-         "unpack", "bit32"} do
-      default_globals[var] = true
-   end
-end
-
-local globals = toset(args.globals)
-
-if globals and globals["-"] then
-   setmetatable(globals, {__index = default_globals})
-end
-
 local options = {
-   globals = globals or default_globals,
+   globals = args.globals,
+   compat = args.compat,
    env_aware = not args["ignore-env"],
-   ignore = toset(args.ignore),
-   only = toset(args.only),
-   check_global = not args["no-global"],
-   check_redefined = not args["no-redefined"],
-   check_unused = not args["no-unused"],
-   check_unused_args = not args["no-unused-args"],
-   check_unused_values = not args["no-unused-values"]
+   ignore = args.ignore,
+   only = args.only,
+   global = not args["no-global"],
+   redefined = not args["no-redefined"],
+   unused = not args["no-unused"],
+   unused_args = not args["no-unused-args"],
+   unused_values = not args["no-unused-values"],
+   quiet = args.quiet,
+   color = not args["no-color"],
+   limit = args.limit or 0
 }
 
-local warnings, errors = 0, 0
-local files = 0
-local printed
-local limit = args.limit or 0
+local report = luacheck(args.files, options)
+local output = format(report, options)
 
-local function handle_report(report)
-   if report.error then
-      errors = errors + 1
-   else
-      warnings = warnings + report.total
-   end
-
-   if args.quiet == 0 or args.quiet == 1 and (report.error or report.total > 0) then
-      print(format(report, color))
-      printed = report
-   end
-
-   files = files + 1
+if options.quiet < 3 then
+   print(output)
 end
 
-for _, file in ipairs(args.files) do
-   if file:sub(-#".rockspec") == ".rockspec" then
-      local related_files = expand_rockspec(file)
-
-      if type(related_files) == "table" then
-         for _, file in ipairs(related_files) do
-            handle_report(get_report(file, options))
-         end
-      else
-         handle_report({file = file, error = related_files})
-      end
-   else
-      handle_report(get_report(file, options))
-   end
-end
-
-if printed and (printed.error or printed.total == 0) then
-   print()
-end
-
-if args.quiet <= 2 then
-   local function format_number(number, limit)
-      return color("%{bright}"..(number > limit and "%{red}" or "")..number)
-   end
-
-   local function plural(number)
-      return number == 1 and "" or "s"
-   end
-
-   print(("Total: %s warning%s / %s error%s in %d file%s"):format(
-      format_number(warnings, limit), plural(warnings),
-      format_number(errors, 0), plural(errors),
-      files, plural(files)
-   ))
-end
-
-os.exit(warnings <= limit and errors == 0 and 0 or 1)
+os.exit(report.warnings <= options.limit and report.errors == 0 and 0 or 1)

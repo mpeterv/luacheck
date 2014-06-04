@@ -21,14 +21,18 @@ local warnings = {
    }
 }
 
---- Formats a file report. 
-local function format(report, color)
+local function plural(number)
+   return number == 1 and "" or "s"
+end
+
+local function format_file_report(report, options)
+   local color = options.color
    local label = "Checking "..report.file
    local status
 
    if report.error then
       status = color ("%{bright}"..report.error:sub(1, 1):upper()..report.error:sub(2).." error")
-   elseif report.total == 0 then
+   elseif #report == 0 then
       status = color "%{bright}%{green}OK"
    else
       status = color "%{bright}%{red}Failure"
@@ -36,17 +40,53 @@ local function format(report, color)
 
    local buf = {label..(" "):rep(math.max(50 - #label, 1))..status}
 
-   if not report.error and report.total > 0 then
+   if not report.error and #report > 0 then
       table.insert(buf, "")
 
-      for i=1, report.total do
-         local warning = report[i]
+      for _, warning in ipairs(report) do
          local location = ("%s:%d:%d"):format(report.file, warning.line, warning.column)
          local message = warnings[warning.type][warning.subtype]:format(color("%{bright}"..warning.name), warning.prev_line)
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 
       table.insert(buf, "")
+   end
+
+   return table.concat(buf, "\n")
+end
+
+--- Formats a report. 
+-- Recognized options: 
+--    `options.quiet`: integer in range 0-3. See CLI. Default: 0. 
+--    `options.limit`: See CLI. Default: 0. 
+--    `options.color`: should use ansicolors? Default: true. 
+local function format(report, options)
+   options.color = options.color and require "ansicolors" or function(s)
+      return s:gsub("(%%{(.-)})", "")
+   end
+
+   local buf = {}
+
+   for _, file_report in ipairs(report) do
+      if options.quiet == 0 or options.quiet == 1 and (file_report.error or #file_report > 0) then
+         table.insert(buf, format_file_report(file_report, options))
+      end
+   end
+
+   if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then
+      table.insert(buf, "")
+   end
+
+   if options.quiet <= 2 then
+      local function format_number(number, limit)
+         return options.color("%{bright}"..(number > limit and "%{red}" or "")..number)
+      end
+
+      table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
+         format_number(report.warnings, options.limit), plural(report.warnings),
+         format_number(report.errors, 0), plural(report.errors),
+         #report, plural(#report)
+      ))
    end
 
    return table.concat(buf, "\n")

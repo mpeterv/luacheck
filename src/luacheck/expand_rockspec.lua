@@ -46,7 +46,7 @@ local function extract_lua_files(rockspec)
    return res
 end
 
--- Receives a name of a rockspec, returns list of related .lua files or error message. 
+-- Receives a name of a rockspec, returns list of related .lua files or nil and error message. 
 local function expand_rockspec(file)
    local src
 
@@ -54,17 +54,17 @@ local function expand_rockspec(file)
          local handler = io.open(file, "rb")
          src = assert(handler:read("*a"))
          handler:close() end) then
-      return "IO"
+      return nil, "IO"
    end
 
    local rockspec = capture_env(src)
 
    if not rockspec then
-      return "syntax"
+      return nil, "syntax"
    end
 
    local ok, files = pcall(extract_lua_files, rockspec)
-   return ok and files or "syntax"
+   return ok and files, "syntax"
 end
 
 return expand_rockspec

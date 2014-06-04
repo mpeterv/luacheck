@@ -1,30 +1,73 @@
 local scan = require "luacheck.scan"
 
---- Checks a Metalua AST. 
--- Returns a file report. 
--- See luacheck function. 
-local function check(ast, options)
-   options = options or {}
-   local opts = {
-      check_global = true,
-      check_redefined = true,
-      check_unused = true,
-      check_unused_args = true,
-      check_unused_values = true,
-      globals = _G,
+local function toset(array)
+   local set = {}
+
+   for _, item in ipairs(array) do
+      set[item] = true
+   end
+
+   return set
+end
+
+local function get_default_globals(compat)
+   local default_globals = compat and {
+      "getfenv", "loadstring", "module",
+      "newproxy", "rawlen", "setfenv",
+      "unpack", "bit32"
+   } or {}
+
+   for global in pairs(_G) do
+      table.insert(default_globals, global)
+   end
+
+   return default_globals
+end
+
+-- Converts API options to options used by luacheck.check
+local function adjust_options(options)
+   local default_globals = get_default_globals(options.compat)
+
+   local res = {
+      global = true,
+      redefined = true,
+      unused = true,
+      unused_args = true,
+      unused_values = true,
+      globals = default_globals,
       env_aware = true,
       ignore = {},
       only = false
    }
 
-   for option in pairs(opts) do
+   for option in pairs(res) do
       if options[option] ~= nil then
-         opts[option] = options[option]
+         res[option] = options[option]
       end
    end
 
+   res.globals = toset(res.globals)
+
+   if res.globals["-"] then
+      setmetatable(res.globals, {__index = toset(default_globals)})
+   end
+
+   res.ignore = toset(res.ignore)
+
+   if res.only then
+      res.only = toset(res.only)
+   end
+
+   return res
+end
+
+--- Checks a Metalua AST. 
+-- Returns a file report. 
+-- See luacheck function. 
+local function check(ast, options)
+   options = adjust_options(options or {})
    local callbacks = {}
-   local report = {total = 0, global = 0, redefined = 0, unused = 0, unused_value = 0}
+   local report = {}
 
    -- Current outer scope. 
    -- Each scope is a table mapping names to tables
@@ -36,11 +79,9 @@ local function check(ast, options)
    local function add_warning(node, type_, subtype, prev_node)
       local name = node[1]
 
-      if not opts.ignore[name] then
-         if not opts.only or opts.only[name] then
-            report.total = report.total + 1
-            report[type_] = report[type_] + 1
-            report[report.total] = {
+      if not options.ignore[name] then
+         if not options.only or options.only[name] then
+            table.insert(report, {
                type = type_,
                subtype = subtype,
                name = name,
@@ -48,7 +89,7 @@ local function check(ast, options)
                column = node.lineinfo.first.column,
                prev_line = prev_node and prev_node.lineinfo.first.line,
                prev_column = prev_node and prev_node.lineinfo.first.column
-            }
+            })
          end
       end
    end
@@ -83,7 +124,7 @@ local function check(ast, options)
    end
 
    local function should_check_usage(variable)
-      return variable.node[1] ~= "_" and (opts.check_unused_args or variable.type == "var")
+      return variable.node[1] ~= "_" and (options.unused_args or variable.type == "var")
    end
 
    -- If the previous value was unused, adds a warning. 
@@ -111,7 +152,7 @@ local function check(ast, options)
       if should_check_usage(variable) then
          if not variable.mentioned then
             add_warning(variable.node, "unused", variable.type)
-         elseif opts.check_unused_values then
+         elseif options.unused_values then
             if not variable.used then
                add_warning(variable.value.node, "unused_value", variable.type)
             else
@@ -149,8 +190,8 @@ local function check(ast, options)
 
       if not variable then
          if name ~= "..." then
-            if not opts.env_aware or name ~= "_ENV" and not resolve_and_access("_ENV") then
-               if opts.check_global and opts.globals[name] == nil then
+            if not options.env_aware or name ~= "_ENV" and not resolve_and_access("_ENV") then
+               if options.global and options.globals[name] == nil then
                   add_warning(node, "global", action)
                end
             end
@@ -188,7 +229,7 @@ local function check(ast, options)
    end
 
    function callbacks.on_end(_)
-      if opts.check_unused then
+      if options.unused then
          -- Check if some local variables in this scope were left unused. 
          for i, variable in pairs(outer) do
             if type(i) == "string" then
@@ -206,11 +247,11 @@ local function check(ast, options)
       local prev_variable = outer[node[1]]
 
       if prev_variable then
-         if opts.check_unused then
+         if options.unused then
             check_variable_usage(prev_variable)
          end
 
-         if opts.check_redefined then
+         if options.redefined then
             add_warning(node, "redefined", prev_variable.type, prev_variable.node)
          end
       end
@@ -230,7 +271,7 @@ local function check(ast, options)
       local variable = check_variable(node, "set")
 
       if variable then
-         if opts.check_unused and opts.check_unused_values then
+         if options.unused and options.unused_values then
             check_value_usage(variable)
          end
 
