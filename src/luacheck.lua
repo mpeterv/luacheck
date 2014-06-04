@@ -24,6 +24,33 @@ local function adjust_files(files)
    return res
 end
 
+local function filter_defined(report)
+   local defined = {}
+
+   for _, file_report in ipairs(report) do
+      for _, warning in ipairs(file_report) do
+         if warning.type == "global" and warning.subtype == "set" then
+            defined[warning.name] = true
+         end
+      end
+   end
+
+   local res = {errors = report.errors, warnings = 0}
+
+   for _, file_report in ipairs(report) do
+      table.insert(res, {file = file_report.file, error = file_report.error})
+
+      for _, warning in ipairs(file_report) do
+         if not (warning.type == "global" and defined[warning.name]) then
+            table.insert(res[#res], warning)
+            res.warnings = res.warnings + 1
+         end
+      end
+   end
+
+   return res
+end
+
 --- Checks files with given options. 
 -- `files` should be an array of paths. 
 -- `options`, if not nil, should be a table. 
@@ -36,6 +63,7 @@ end
 --    `options.unused_values` - should luacheck check for unused values? Default: true. 
 --    `options.globals` - array of standard globals. Default: _G. 
 --    `options.compat` - adjust standard globals for Lua 5.1/5.2 compatibility. Default: false. 
+--    `options.allow_defined` - allow accessing globals set elsewhere. Default: false. 
 --    `options.env_aware` - ignore globals is chunks with custom _ENV. Default: true. 
 --    `options.ignore` - array of variables to ignore. Default: empty. 
 --       Takes precedense over `options.only`. 
@@ -88,6 +116,10 @@ local function luacheck(files, options)
       else
          report.warnings = report.warnings + #report[i]
       end
+   end
+
+   if options and options.allow_defined then
+      report = filter_defined(report)
    end
 
    return report

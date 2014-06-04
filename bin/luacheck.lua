@@ -28,6 +28,8 @@ parser:option "--globals"
    :argname "<global>"
 parser:flag "-c" "--compat"
    :description "Adjust globals for Lua 5.1/5.2 compatibility. "
+parser:flag "-d" "--allow-defined"
+   :description "Allow accessing globals set elsewhere. "
 parser:flag "-e" "--ignore-env"
    :description "Do not be _ENV-aware. "
 
@@ -56,6 +58,7 @@ parser:flag "--no-color"
 local args = parser:parse()
 
 local options = {
+   allow_defined = args["allow-defined"],
    globals = args.globals,
    compat = args.compat,
    env_aware = not args["ignore-env"],

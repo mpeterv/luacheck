@@ -256,4 +256,25 @@ Checking spec/samples/bad.rockspec                Syntax error
 Total: 0 warnings / 1 error in 1 file
 ]], get_output "spec/samples/bad.rockspec")
    end)
+
+   it("allows ignoring defined globals", function()
+      assert.equal([[
+Checking spec/samples/defined.lua                 Failure
+
+    spec/samples/defined.lua:4:4: accessing undefined variable baz
+
+Checking spec/samples/defined2.lua                OK
+
+Total: 1 warning / 0 errors in 2 files
+]], get_output "spec/samples/defined.lua spec/samples/defined2.lua -d")
+
+   assert.equal([[
+Checking spec/samples/defined2.lua                OK
+Checking spec/samples/defined.lua                 Failure
+
+    spec/samples/defined.lua:4:4: accessing undefined variable baz
+
+Total: 1 warning / 0 errors in 2 files
+]], get_output "spec/samples/defined2.lua spec/samples/defined.lua -d")
+   end)
 end)
