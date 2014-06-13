@@ -79,17 +79,22 @@ local function check(ast, options)
    local function add_warning(node, type_, subtype, prev_node)
       local name = node[1]
 
-      if not options.ignore[name] then
-         if not options.only or options.only[name] then
-            table.insert(report, {
-               type = type_,
-               subtype = subtype,
-               name = name,
-               line = node.lineinfo.first.line,
-               column = node.lineinfo.first.column,
-               prev_line = prev_node and prev_node.lineinfo.first.line,
-               prev_column = prev_node and prev_node.lineinfo.first.column
-            })
+      if options[type_:match("[^_]*")] and
+            (type_ ~= "unused_value" or options.unused_values) and
+            (type_ == "global" or name ~= "_") and
+            (subtype == "var" or options.unused_args) then
+         if not options.ignore[name] then
+            if not options.only or options.only[name] then
+               table.insert(report, {
+                  type = type_,
+                  subtype = subtype,
+                  name = name,
+                  line = node.lineinfo.first.line,
+                  column = node.lineinfo.first.column,
+                  prev_line = prev_node and prev_node.lineinfo.first.line,
+                  prev_column = prev_node and prev_node.lineinfo.first.column
+               })
+            end
          end
       end
    end
@@ -123,25 +128,19 @@ local function check(ast, options)
       end
    end
 
-   local function should_check_usage(variable)
-      return variable.node[1] ~= "_" and (options.unused_args or variable.type == "var")
-   end
-
    -- If the previous value was unused, adds a warning. 
    local function check_value_usage(variable)
-      if should_check_usage(variable) then
-         if not variable.is_upvalue and variable.value and not variable.value.used then
-            if variable.value.outer[3] == outer[3] then
-               local scope = variable.value.outer
+      if not variable.is_upvalue and variable.value and not variable.value.used then
+         if variable.value.outer[3] == outer[3] then
+            local scope = variable.value.outer
 
-               while scope do
-                  if scope == outer then
-                     add_warning(variable.value.node, "unused_value", variable.type)
-                     return
-                  end
-
-                  scope = scope[1]
+            while scope do
+               if scope == outer then
+                  add_warning(variable.value.node, "unused_value", variable.type)
+                  return
                end
+
+               scope = scope[1]
             end
          end
       end
@@ -149,15 +148,13 @@ local function check(ast, options)
 
    -- If the variable was unused, adds a warning. 
    local function check_variable_usage(variable)
-      if should_check_usage(variable) then
-         if not variable.mentioned then
-            add_warning(variable.node, "unused", variable.type)
-         elseif options.unused_values then
-            if not variable.used then
-               add_warning(variable.value.node, "unused_value", variable.type)
-            else
-               check_value_usage(variable)
-            end
+      if not variable.mentioned then
+         add_warning(variable.node, "unused", variable.type)
+      else
+         if not variable.used then
+            add_warning(variable.value.node, "unused_value", variable.type)
+         else
+            check_value_usage(variable)
          end
       end
    end
@@ -191,7 +188,7 @@ local function check(ast, options)
       if not variable then
          if name ~= "..." then
             if not options.env_aware or name ~= "_ENV" and not resolve_and_access("_ENV") then
-               if options.global and options.globals[name] == nil then
+               if options.globals[name] == nil then
                   add_warning(node, "global", action)
                end
             end
@@ -229,12 +226,10 @@ local function check(ast, options)
    end
 
    function callbacks.on_end(_)
-      if options.unused then
-         -- Check if some local variables in this scope were left unused. 
-         for i, variable in pairs(outer) do
-            if type(i) == "string" then
-               check_variable_usage(variable)
-            end
+      -- Check if some local variables in this scope were left unused. 
+      for i, variable in pairs(outer) do
+         if type(i) == "string" then
+            check_variable_usage(variable)
          end
       end
 
@@ -247,13 +242,8 @@ local function check(ast, options)
       local prev_variable = outer[node[1]]
 
       if prev_variable then
-         if options.unused then
-            check_variable_usage(prev_variable)
-         end
-
-         if options.redefined then
-            add_warning(node, "redefined", prev_variable.type, prev_variable.node)
-         end
+         check_variable_usage(prev_variable)
+         add_warning(node, "redefined", prev_variable.type, prev_variable.node)
       end
 
       register_variable(node, type_)
@@ -271,9 +261,7 @@ local function check(ast, options)
       local variable = check_variable(node, "set")
 
       if variable then
-         if options.unused and options.unused_values then
-            check_value_usage(variable)
-         end
+         check_value_usage(variable)
 
          if not is_init then
             variable.mentioned = true

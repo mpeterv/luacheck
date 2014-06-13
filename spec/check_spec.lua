@@ -180,6 +180,14 @@ end
       ]])
    end)
 
+   it("allows `_` to be redefined", function()
+      assert.same({}, get_report[[
+for _, foo in pairs{} do
+   local _ = print(foo)
+end
+      ]])
+   end)
+
    it("doesn't detect unused variables when not asked to", function()
       assert.same({}, get_report([[
 local foo
