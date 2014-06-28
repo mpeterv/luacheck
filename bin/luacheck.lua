@@ -25,6 +25,7 @@ parser:flag "-v" "--no-unused-values"
 parser:option "--globals"
    :description "Defined globals. Hyphen expands to standard globals. "
    :args "*"
+   :count "*"
    :argname "<global>"
 parser:flag "-c" "--compat"
    :description "Adjust globals for Lua 5.1/5.2 compatibility. "
@@ -36,10 +37,12 @@ parser:flag "-e" "--ignore-env"
 parser:option "--ignore"
    :description "Do not report warnings related to these variables. "
    :args "+"
+   :count "*"
    :argname "<var>"
 parser:option "--only"
    :description "Only report warnings related to these variables. "
    :args "+"
+   :count "*"
    :argname "<var>"
 
 parser:option "-l" "--limit"
@@ -57,13 +60,27 @@ parser:flag "--no-color"
 
 local args = parser:parse()
 
+local function concat_arrays(array)
+   if #array > 0 then
+      local ret = {}
+
+      for _, subarray in ipairs(array) do
+         for _, item in ipairs(subarray) do
+            table.insert(ret, item)
+         end
+      end
+
+      return ret
+   end
+end
+
 local options = {
    allow_defined = args["allow-defined"],
-   globals = args.globals,
+   globals = concat_arrays(args.globals),
    compat = args.compat,
    env_aware = not args["ignore-env"],
-   ignore = args.ignore,
-   only = args.only,
+   ignore = concat_arrays(args.ignore),
+   only = concat_arrays(args.only),
    global = not args["no-global"],
    redefined = not args["no-redefined"],
    unused = not args["no-unused"],
