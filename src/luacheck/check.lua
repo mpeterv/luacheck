@@ -76,18 +76,19 @@ local function check(ast, options)
    local outer = {}
 
    -- Adds a warning, if necessary. 
-   local function add_warning(node, type_, subtype, prev_node)
+   local function add_warning(node, type_, subtype, vartype, prev_node)
       local name = node[1]
 
-      if options[type_:match("[^_]*")] and
-            (type_ ~= "unused_value" or options.unused_values) and
+      if options[type_] and
+            (subtype ~= "value" or options.unused_values) and
             (type_ == "global" or name ~= "_") and
-            (subtype == "var" or options.unused_args) then
+            (type_ ~= "unused" or vartype == "var" or options.unused_args) then
          if not options.ignore[name] then
             if not options.only or options.only[name] then
                table.insert(report, {
                   type = type_,
                   subtype = subtype,
+                  vartype = vartype,
                   name = name,
                   line = node.lineinfo.first.line,
                   column = node.lineinfo.first.column,
@@ -136,7 +137,7 @@ local function check(ast, options)
 
             while scope do
                if scope == outer then
-                  add_warning(variable.value.node, "unused_value", variable.type)
+                  add_warning(variable.value.node, "unused", "value", variable.type)
                   return
                end
 
@@ -149,10 +150,10 @@ local function check(ast, options)
    -- If the variable was unused, adds a warning. 
    local function check_variable_usage(variable)
       if not variable.mentioned then
-         add_warning(variable.node, "unused", variable.type)
+         add_warning(variable.node, "unused", "var", variable.type)
       else
          if not variable.used then
-            add_warning(variable.value.node, "unused_value", variable.type)
+            add_warning(variable.value.node, "unused", "value", variable.type)
          else
             check_value_usage(variable)
          end
@@ -189,7 +190,7 @@ local function check(ast, options)
          if name ~= "..." then
             if not options.env_aware or name ~= "_ENV" and not resolve_and_access("_ENV") then
                if options.globals[name] == nil then
-                  add_warning(node, "global", action)
+                  add_warning(node, "global", action, "global")
                end
             end
          end
@@ -243,7 +244,7 @@ local function check(ast, options)
 
       if prev_variable then
          check_variable_usage(prev_variable)
-         add_warning(node, "redefined", prev_variable.type, prev_variable.node)
+         add_warning(node, "redefined", "var", prev_variable.type, prev_variable.node)
       end
 
       register_variable(node, type_)

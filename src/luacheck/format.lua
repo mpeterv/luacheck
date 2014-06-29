@@ -1,23 +1,31 @@
 local warnings = {
    global = {
-      access = "accessing undefined variable %s",
-      set = "setting non-standard global variable %s"
+      access = {
+         global = "accessing undefined variable %s"
+      },
+      set = {
+         global = "setting non-standard global variable %s"
+      }
    },
    redefined = {
-      var = "variable %s was previously defined on line %s",
-      arg = "variable %s was previously defined as an argument on line %s",
-      loop = "variable %s was previously defined as a loop variable on line %s"
+      var = {
+         var = "variable %s was previously defined on line %s",
+         arg = "variable %s was previously defined as an argument on line %s",
+         loop = "variable %s was previously defined as a loop variable on line %s"
+      }
    },
    unused = {
-      var = "unused variable %s",
-      arg = "unused argument %s",
-      loop = "unused loop variable %s",
-      vararg = "unused variable length argument"
-   },
-   unused_value = {
-      var = "value assigned to variable %s is unused",
-      arg = "value of argument %s is unused",
-      loop = "value of loop variable %s is unused"
+      var = {
+         var = "unused variable %s",
+         arg = "unused argument %s",
+         loop = "unused loop variable %s",
+         vararg = "unused variable length argument"
+      },
+      value = {
+         var = "value assigned to variable %s is unused",
+         arg = "value of argument %s is unused",
+         loop = "value of loop variable %s is unused"
+      }
    }
 }
 
@@ -45,7 +53,7 @@ local function format_file_report(report, options)
 
       for _, warning in ipairs(report) do
          local location = ("%s:%d:%d"):format(report.file, warning.line, warning.column)
-         local message = warnings[warning.type][warning.subtype]:format(color("%{bright}"..warning.name), warning.prev_line)
+         local message = warnings[warning.type][warning.subtype][warning.vartype]:format(color("%{bright}"..warning.name), warning.prev_line)
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 

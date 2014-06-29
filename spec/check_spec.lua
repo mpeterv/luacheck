@@ -25,7 +25,7 @@ end
 
    it("detects global access", function()
       assert.same({
-         {type = "global", subtype = "set", name = "foo", line = 1, column = 1}
+         {type = "global", subtype = "set", vartype = "global", name = "foo", line = 1, column = 1}
       }, get_report[[
 foo = {}
       ]])
@@ -39,7 +39,7 @@ foo()
 
    it("detects global access in self swap", function()
       assert.same({
-         {type = "global", subtype = "access", name = "a", line = 1, column = 11}
+         {type = "global", subtype = "access", vartype = "global", name = "a", line = 1, column = 11}
       }, get_report[[
 local a = a
 print(a)
@@ -65,7 +65,7 @@ end
 
    it("can detect unused _ENV", function()
       assert.same({
-         {type = "unused", subtype = "var", name = "_ENV", line = 3, column = 7}
+         {type = "unused", subtype = "var", vartype = "var", name = "_ENV", line = 3, column = 7}
       }, get_report[[
 print(_ENV)
 
@@ -89,9 +89,9 @@ end
 
    it("can be not _ENV-aware", function()
       assert.same({
-         {type = "global", subtype = "access", name = "_ENV", line = 1, column = 7},
-         {type = "unused", subtype = "var", name = "_ENV", line = 3, column = 7},
-         {type = "global", subtype = "set", name = "x", line = 5, column = 4}
+         {type = "global", subtype = "access", vartype = "global", name = "_ENV", line = 1, column = 7},
+         {type = "unused", subtype = "var", vartype = "var", name = "_ENV", line = 3, column = 7},
+         {type = "global", subtype = "set", vartype = "global", name = "x", line = 5, column = 4}
       }, get_report([[
 print(_ENV)
 
@@ -104,7 +104,7 @@ end
 
    it("detects unused locals", function()
       assert.same({
-         {type = "unused", subtype = "var", name = "a", line = 1, column = 7}
+         {type = "unused", subtype = "var", vartype = "var", name = "a", line = 1, column = 7}
       }, get_report[[
 local a = 4
 
@@ -117,7 +117,7 @@ end
 
    it("detects unused locals from function arguments", function()
       assert.same({
-         {type = "unused", subtype = "arg", name = "foo", line = 1, column = 17}
+         {type = "unused", subtype = "var", vartype = "arg", name = "foo", line = 1, column = 17}
       }, get_report[[
 return function(foo, ...)
    return ...
@@ -127,7 +127,7 @@ end
 
    it("detects unused implicit self", function()
       assert.same({
-         {type = "unused", subtype = "arg", name = "self", line = 2, column = 13}
+         {type = "unused", subtype = "var", vartype = "arg", name = "self", line = 2, column = 13}
       }, get_report[[
 local a = {}
 function a:b()
@@ -138,8 +138,8 @@ end
 
    it("detects unused locals from loops", function()
       assert.same({
-         {type = "unused", subtype = "loop", name = "i", line = 1, column = 5},
-         {type = "unused", subtype = "loop", name = "i", line = 2, column = 5}
+         {type = "unused", subtype = "var", vartype = "loop", name = "i", line = 1, column = 5},
+         {type = "unused", subtype = "var", vartype = "loop", name = "i", line = 2, column = 5}
       }, get_report[[
 for i=1, 2 do end
 for i in pairs{} do end
@@ -148,7 +148,7 @@ for i in pairs{} do end
 
    it("detects unused values", function()
       assert.same({
-         {type = "unused_value", subtype = "var", name = "a", line = 5, column = 4}
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 5, column = 4}
       }, get_report[[
 local a
 if true then
@@ -196,7 +196,7 @@ local foo
 
    it("doesn't detect unused arguments when not asked to", function()
       assert.same({
-         {type = "unused", subtype = "var", name = "c", line = 4, column = 13}
+         {type = "unused", subtype = "var", vartype = "var", name = "c", line = 4, column = 13}
       }, get_report([[
 local a = {}
 function a:b()
@@ -209,8 +209,8 @@ end
 
    it("detects redefinition in the same scope", function()
       assert.same({
-         {type = "unused", subtype = "var", name = "foo", line = 1, column = 7},
-         {type = "redefined", subtype = "var", name = "foo", line = 2, column = 7, prev_line = 1, prev_column = 7}
+         {type = "unused", subtype = "var", vartype = "var", name = "foo", line = 1, column = 7},
+         {type = "redefined", subtype = "var", vartype = "var", name = "foo", line = 2, column = 7, prev_line = 1, prev_column = 7}
       }, get_report[[
 local foo
 local foo = "bar"
@@ -220,9 +220,9 @@ print(foo)
 
    it("detects redefinition of function arguments", function()
       assert.same({
-         {type = "unused", subtype = "arg", name = "foo", line = 1, column = 17},
-         {type = "unused", subtype = "vararg", name = "...", line = 1, column = 22},
-         {type = "redefined", subtype = "arg", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
+         {type = "unused", subtype = "var", vartype = "arg", name = "foo", line = 1, column = 17},
+         {type = "unused", subtype = "var", vartype = "vararg", name = "...", line = 1, column = 22},
+         {type = "redefined", subtype = "var", vartype = "arg", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
       }, get_report[[
 return function(foo, ...)
    local foo
@@ -239,7 +239,7 @@ local foo; local foo; print(foo)
 
    it("detects unused redefined variables", function()
       assert.same({
-         {type = "unused", subtype = "var", name = "a", line = 1, column = 7}
+         {type = "unused", subtype = "var", vartype = "var", name = "a", line = 1, column = 7}
       }, get_report([[
 local a
 local a = 5; print(a)
@@ -248,11 +248,11 @@ local a = 5; print(a)
 
    it("handles argparse sample", function()
       assert.same({
-         {type = "unused", subtype = "loop", name = "setter", line = 34, column = 27},
-         {type = "unused", subtype = "arg", name = "self", line = 117, column = 27},
-         {type = "unused", subtype = "arg", name = "self", line = 125, column = 27},
-         {type = "global", subtype = "access", name = "_TEST", line = 942, column = 7},
-         {type = "unused", subtype = "arg", name = "parser", line = 957, column = 41}
+         {type = "unused", subtype = "var", vartype = "loop", name = "setter", line = 34, column = 27},
+         {type = "unused", subtype = "var", vartype = "arg", name = "self", line = 117, column = 27},
+         {type = "unused", subtype = "var", vartype = "arg", name = "self", line = 125, column = 27},
+         {type = "global", subtype = "access", vartype = "global", name = "_TEST", line = 942, column = 7},
+         {type = "unused", subtype = "var", vartype = "arg", name = "parser", line = 957, column = 41}
       }, get_report(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)
 end)

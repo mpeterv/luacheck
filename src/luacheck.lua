@@ -107,13 +107,15 @@ end
 -- If there was an error during checking the file, field `error` will contain "I/O" or "syntax". 
 --
 -- Warning is a table with several fields. 
--- `type` field may contain "global", "redefined", "unused" or "unused_value". 
+-- `type` field may contain "global", "redefined" or "unused". 
 --    "global" is for accessing non-standard globals. 
 --    "redefined" is for redefinition of a local in the same scope, e.g. `local a; local a`. 
---    "unused" is for unused locals. 
---    "unused_value" is for unused values assigned to locals. 
--- `subtype` field may contain "access" or "set" for `global` type and "loop", 
---    "arg", "vararg" or "var" for other types. 
+--    "unused" is for unused variables and values. 
+-- `subtype` field may contain: 
+--    "access" or "set" for `global` type; 
+--    "var" or "value" for `unused` type; 
+--    "var" for `redefined` type. 
+-- `vartype` field may contain "loop", "arg", "vararg", "var" or "global". 
 -- `name` field contains the name of problematic variable. 
 -- `line` field contains line number where the problem occured. 
 -- `column` field contains offest of the name in that line. 
