@@ -51,7 +51,7 @@ parser:option "-l" "--limit"
 
 parser:flag "-q" "--quiet"
    :count "0-3"
-   :description [[Suppress output for files without warnings. 
+   :description [[Do not print warnings. 
 -qq: Only print total number of warnings and errors. 
 -qqq: Suppress output completely. ]]
 

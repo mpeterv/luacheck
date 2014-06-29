@@ -33,8 +33,7 @@ local function plural(number)
    return number == 1 and "" or "s"
 end
 
-local function format_file_report(report, options)
-   local color = options.color
+local function format_file_report_header(report, color)
    local label = "Checking "..report.file
    local status
 
@@ -46,7 +45,11 @@ local function format_file_report(report, options)
       status = color "%{bright}%{red}Failure"
    end
 
-   local buf = {label..(" "):rep(math.max(50 - #label, 1))..status}
+   return label..(" "):rep(math.max(50 - #label, 1))..status
+end
+
+local function format_file_report(report, color)
+   local buf = {format_file_report_header(report, color)}
 
    if not report.error and #report > 0 then
       table.insert(buf, "")
@@ -69,25 +72,26 @@ end
 --    `options.limit`: See CLI. Default: 0. 
 --    `options.color`: should use ansicolors? Default: true. 
 local function format(report, options)
-   options.color = options.color and require "ansicolors" or function(s)
+   local color = options.color and require "ansicolors" or function(s)
       return s:gsub("(%%{(.-)})", "")
    end
 
    local buf = {}
 
-   for _, file_report in ipairs(report) do
-      if options.quiet == 0 or options.quiet == 1 and (file_report.error or #file_report > 0) then
-         table.insert(buf, format_file_report(file_report, options))
+   if options.quiet <= 1 then
+      for _, file_report in ipairs(report) do
+         table.insert(buf, (options.quiet == 0 and format_file_report or format_file_report_header)
+            (file_report, color))
       end
-   end
 
-   if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then
-      table.insert(buf, "")
+      if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then
+         table.insert(buf, "")
+      end
    end
 
    if options.quiet <= 2 then
       local function format_number(number, limit)
-         return options.color("%{bright}"..(number > limit and "%{red}" or "")..number)
+         return color("%{bright}"..(number > limit and "%{red}" or "")..number)
       end
 
       table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
