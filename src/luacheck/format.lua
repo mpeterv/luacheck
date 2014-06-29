@@ -80,8 +80,8 @@ local function format(report, options)
 
    if options.quiet <= 1 then
       for _, file_report in ipairs(report) do
-         table.insert(buf, (options.quiet == 0 and format_file_report or format_file_report_header)
-            (file_report, color))
+         table.insert(buf, (options.quiet == 0 and format_file_report or format_file_report_header
+            )(file_report, color))
       end
 
       if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then
