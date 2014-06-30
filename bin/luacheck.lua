@@ -30,7 +30,9 @@ parser:option "--globals"
 parser:flag "-c" "--compat"
    :description "Adjust globals for Lua 5.1/5.2 compatibility. "
 parser:flag "-d" "--allow-defined"
-   :description "Allow accessing globals set elsewhere. "
+   :description "Allow defining globals and accessing defined globals. "
+parser:flag "--no-unused-globals"
+   :description "If defining globals is allowed, do not check for unused globals. "
 parser:flag "-e" "--ignore-env"
    :description "Do not be _ENV-aware. "
 
@@ -86,6 +88,7 @@ local options = {
    unused = not args["no-unused"],
    unused_args = not args["no-unused-args"],
    unused_values = not args["no-unused-values"],
+   unused_globals = not args["no-unused-globals"],
    quiet = args.quiet,
    color = not args["no-color"],
    limit = args.limit or 0

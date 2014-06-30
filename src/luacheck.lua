@@ -52,31 +52,55 @@ local function adjust_files(files)
    return res
 end
 
-local function filter_defined(report)
-   local defined = {}
+-- Returns sets of defined and used globals inferred from report. 
+local function get_defined_used_globals(report)
+   local defined, used = {}, {}
 
    for _, file_report in ipairs(report) do
       for _, warning in ipairs(file_report) do
-         if warning.type == "global" and warning.subtype == "set" then
-            defined[warning.name] = true
+         if warning.type == "global" then
+            if warning.subtype == "set" then
+               defined[warning.name] = true
+            else
+               used[warning.name] = true
+            end
          end
       end
    end
 
-   local res = {errors = report.errors, warnings = 0}
+   return defined, used
+end
 
+
+
+-- Deletes warnings related to defined globals. 
+-- If check_unused_globals, transforms set warnings into unused global warnings. 
+local function delete_defined_global_warnings(report, check_unused_globals, defined, used)
    for _, file_report in ipairs(report) do
-      table.insert(res, {file = file_report.file, error = file_report.error})
+      local function delete(n)
+         table.remove(file_report, n)
+         report.warnings = report.warnings - 1
+      end
 
-      for _, warning in ipairs(file_report) do
-         if not (warning.type == "global" and defined[warning.name]) then
-            table.insert(res[#res], warning)
-            res.warnings = res.warnings + 1
+      for i=#file_report, 1, -1 do
+         local warning = file_report[i]
+
+         if warning.type == "global" then
+            if warning.subtype == "set" then
+               if check_unused_globals and not used[warning.name] then
+                  warning.type = "unused"
+                  warning.subtype = "global"
+               else
+                  delete(i)
+               end
+            else
+               if defined[warning.name] then
+                  delete(i)
+               end
+            end
          end
       end
    end
-
-   return res
 end
 
 --- Checks files with given options. 
@@ -89,6 +113,7 @@ end
 --    `options.unused_args` - should luacheck check for unused arguments and
 --        iterator variables? Default: true. 
 --    `options.unused_values` - should luacheck check for unused values? Default: true. 
+--    `options.unused_globals` - if defining globals is allowed, should luarocks check for unused globals? Default: true. 
 --    `options.globals` - array of standard globals. Default: _G. 
 --    `options.compat` - adjust standard globals for Lua 5.1/5.2 compatibility. Default: false. 
 --    `options.allow_defined` - allow accessing globals set elsewhere. Default: false. 
@@ -146,10 +171,11 @@ local function luacheck(files, options)
       else
          report.warnings = report.warnings + #report[i]
       end
-   end
+   end local inspect = require "inspect"
 
    if options and options.allow_defined then
-      report = filter_defined(report)
+      delete_defined_global_warnings(report,
+         options.unused_globals ~= false, get_defined_used_globals(report))
    end
 
    return report
