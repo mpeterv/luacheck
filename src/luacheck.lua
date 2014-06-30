@@ -171,7 +171,7 @@ local function luacheck(files, options)
       else
          report.warnings = report.warnings + #report[i]
       end
-   end local inspect = require "inspect"
+   end
 
    if options and options.allow_defined then
       delete_defined_global_warnings(report,
