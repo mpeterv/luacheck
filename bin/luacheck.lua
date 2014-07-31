@@ -1,5 +1,6 @@
 #!/bin/env lua
 local luacheck = require "luacheck"
+local get_config = require "luacheck.get_config"
 local format = require "luacheck.format"
 local argparse = require "argparse"
 
@@ -49,7 +50,16 @@ parser:option "--only"
 
 parser:option "-l" "--limit"
    :description "Exit with 0 if there are <limit> or less warnings. "
+   :default("0")
    :convert(tonumber)
+
+local config_opt = parser:option "--config"
+   :description "Path to custom configuration file. "
+
+local no_config_opt = parser:flag "--no-config"
+   :description "Do not look up custom configuration file. "
+
+parser:mutex(config_opt, no_config_opt)
 
 parser:flag "-q" "--quiet"
    :count "0-3"
@@ -64,35 +74,58 @@ local args = parser:parse()
 
 local function concat_arrays(array)
    if #array > 0 then
-      local ret = {}
+      local res = {}
 
       for _, subarray in ipairs(array) do
          for _, item in ipairs(subarray) do
-            table.insert(ret, item)
+            table.insert(res, item)
          end
       end
 
-      return ret
+      return res
    end
 end
 
-local options = {
-   allow_defined = args["allow-defined"],
-   globals = concat_arrays(args.globals),
-   compat = args.compat,
-   env_aware = not args["ignore-env"],
-   ignore = concat_arrays(args.ignore),
-   only = concat_arrays(args.only),
-   global = not args["no-global"],
-   redefined = not args["no-redefined"],
-   unused = not args["no-unused"],
-   unused_args = not args["no-unused-args"],
-   unused_values = not args["no-unused-values"],
-   unused_globals = not args["no-unused-globals"],
-   quiet = args.quiet,
-   color = not args["no-color"],
-   limit = args.limit or 0
-}
+local options
+
+if not args["no-config"] then
+   local err, path
+   options, err, path = get_config(args.config)
+
+   if err then
+      io.stderr:write(("Couldn't load configuration from %s: %s error\n"):format(path, err))
+   end
+end
+
+if not options then
+   options = {}
+end
+
+for _, argname in ipairs{"allow-defined", "compat", "quiet", "limit"} do
+   if args[argname] then
+      options[argname:gsub("%-", "_")] = args[argname]
+   end
+end
+
+for optname, argname in pairs{
+      env_aware = "ignore-env",
+      global = "no-global",
+      redefined = "no-redefined",
+      unused = "no-unused",
+      unused_args = "no-unused-args",
+      unused_values = "no-unused-values",
+      unused_globals = "no-unused-globals",
+      color = "no-color"} do
+   if args[argname] then
+      options[optname] = not args[argname]
+   end
+end
+
+for _, argname in ipairs{"globals", "ignore", "only"} do
+   if #args[argname] > 0 then
+      options[argname] = concat_arrays({concat_arrays(args[argname]), options[argname] or {}})
+   end
+end
 
 local report = luacheck(args.files, options)
 local output = format(report, options)

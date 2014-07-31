@@ -1,29 +1,6 @@
 local expand_rockspec = require "luacheck.expand_rockspec"
 local get_report = require "luacheck.get_report"
-local lfs = require "lfs"
-local dirsep = package.config:sub(1,1)
-
--- Returns list of all files in folder matching pattern
-local function extract_files(folder, pattern)
-   local ret = {}
-
-   local function scan(folder)
-      for path in lfs.dir(folder) do
-         if path ~= "." and path ~= ".." then
-            local full_path = folder .. dirsep .. path
-
-            if lfs.attributes(full_path, "mode") == "directory" then
-               scan(full_path)
-            elseif path:match(pattern) then
-               table.insert(ret, full_path)
-            end
-         end
-      end
-   end
-
-   scan(folder)
-   return ret
-end
+local utils = require "luacheck.utils"
 
 -- Expands rockspecs, replacing broken ones with reports
 local function adjust_files(files)
@@ -40,8 +17,8 @@ local function adjust_files(files)
          else
             table.insert(res, {file = file, error = err})
          end
-      elseif lfs.attributes(file, "mode") == "directory" then
-         for _, file in ipairs(extract_files(file, "%.lua$")) do
+      elseif utils.is_dir(file) then
+         for _, file in ipairs(utils.extract_files(file, "%.lua$")) do
             table.insert(res, file)
          end
       else

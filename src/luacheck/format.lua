@@ -75,15 +75,17 @@ end
 --    `options.limit`: See CLI. Default: 0. 
 --    `options.color`: should use ansicolors? Default: true. 
 local function format(report, options)
-   local color = options.color and require "ansicolors" or function(s)
+   local color = options.color ~= false and require "ansicolors" or function(s)
       return s:gsub("(%%{(.-)})", "")
    end
+   local quiet = options.quiet or 0
+   local limit = options.limit or 0
 
    local buf = {}
 
-   if options.quiet <= 1 then
+   if quiet <= 1 then
       for _, file_report in ipairs(report) do
-         table.insert(buf, (options.quiet == 0 and format_file_report or format_file_report_header
+         table.insert(buf, (quiet == 0 and format_file_report or format_file_report_header
             )(file_report, color))
       end
 
@@ -92,13 +94,13 @@ local function format(report, options)
       end
    end
 
-   if options.quiet <= 2 then
+   if quiet <= 2 then
       local function format_number(number, limit)
          return color("%{bright}"..(number > limit and "%{red}" or "")..number)
       end
 
       table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
-         format_number(report.warnings, options.limit), plural(report.warnings),
+         format_number(report.warnings, limit), plural(report.warnings),
          format_number(report.errors, 0), plural(report.errors),
          #report, plural(#report)
       ))
