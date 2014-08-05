@@ -303,7 +303,22 @@ Total: 0 warnings / 0 errors in 2 files
 
    it("expands folders", function()
       assert.equal([[
-Checking spec/samples/good_code.lua               OK
+Checking spec/samples/argparse.lua                Failure
+
+    spec/samples/argparse.lua:34:27: unused loop variable setter
+    spec/samples/argparse.lua:117:27: unused argument self
+    spec/samples/argparse.lua:125:27: unused argument self
+    spec/samples/argparse.lua:942:7: accessing undefined variable _TEST
+    spec/samples/argparse.lua:957:41: unused argument parser
+
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
 Checking spec/samples/defined.lua                 Failure
 
     spec/samples/defined.lua:1:1: setting non-standard global variable foo
@@ -320,14 +335,7 @@ Checking spec/samples/defined3.lua                Failure
     spec/samples/defined3.lua:2:1: setting non-standard global variable foo
     spec/samples/defined3.lua:3:1: setting non-standard global variable bar
 
-Checking spec/samples/bad_code.lua                Failure
-
-    spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
-
+Checking spec/samples/good_code.lua               OK
 Checking spec/samples/python_code.lua             Syntax error
 Checking spec/samples/unused_code.lua             Failure
 
@@ -340,14 +348,6 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
     spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
     spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
-
-Checking spec/samples/argparse.lua                Failure
-
-    spec/samples/argparse.lua:34:27: unused loop variable setter
-    spec/samples/argparse.lua:117:27: unused argument self
-    spec/samples/argparse.lua:125:27: unused argument self
-    spec/samples/argparse.lua:942:7: accessing undefined variable _TEST
-    spec/samples/argparse.lua:957:41: unused argument parser
 
 Total: 26 warnings / 1 error in 8 files
 ]], get_output "spec/samples")

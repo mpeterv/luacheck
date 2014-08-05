@@ -35,6 +35,7 @@ function utils.extract_files(dir_path, pattern)
    end
 
    scan(dir_path)
+   table.sort(res)
    return res
 end
 
