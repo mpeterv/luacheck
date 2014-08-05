@@ -5,6 +5,9 @@ local warnings = {
       },
       set = {
          global = "setting non-standard global variable %s"
+      },
+      unused = {
+         global = "unused global variable %s"
       }
    },
    redefined = {
@@ -25,9 +28,6 @@ local warnings = {
          var = "value assigned to variable %s is unused",
          arg = "value of argument %s is unused",
          loop = "value of loop variable %s is unused"
-      },
-      global = {
-         global = "unused global variable %s"
       }
    }
 }

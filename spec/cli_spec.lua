@@ -286,6 +286,24 @@ Total: 1 warning / 0 errors in 2 files
 ]], get_output "spec/samples/defined3.lua spec/samples/defined2.lua -d")
    end)
 
+   it("treats `unused global` warnings as `global` type warnings", function()
+      assert.equal([[
+Checking spec/samples/defined3.lua                OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "spec/samples/defined3.lua -gd")
+
+      assert.equal([[
+Checking spec/samples/defined3.lua                Failure
+
+    spec/samples/defined3.lua:3:1: unused global variable bar
+
+Checking spec/samples/defined2.lua                OK
+
+Total: 1 warning / 0 errors in 2 files
+]], get_output "spec/samples/defined3.lua spec/samples/defined2.lua -ud")
+   end)
+
    it("allows ignoring unused defined globals", function()
       assert.equal([[
 Checking spec/samples/defined3.lua                OK

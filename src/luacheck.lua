@@ -65,8 +65,7 @@ local function delete_defined_global_warnings(report, check_unused_globals, defi
          if warning.type == "global" then
             if warning.subtype == "set" then
                if check_unused_globals and not used[warning.name] then
-                  warning.type = "unused"
-                  warning.subtype = "global"
+                  warning.subtype = "unused"
                else
                   delete(i)
                end
