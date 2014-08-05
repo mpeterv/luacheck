@@ -82,7 +82,7 @@ local function check(ast, options)
       if options[type_] and
             (subtype ~= "value" or options.unused_values) and
             (type_ == "global" or name ~= "_") and
-            (type_ ~= "unused" or vartype == "var" or options.unused_args) then
+            (type_ ~= "unused" or vartype == "var" or subtype ~= "var" or options.unused_args) then
          if not options.ignore[name] then
             if not options.only or options.only[name] then
                table.insert(report, {

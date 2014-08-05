@@ -88,7 +88,9 @@ describe("test luacheck.scan", function()
          --
          "START";
          "ARG x";
+         "INIT x";
          "ARG y";
+         "INIT y";
          "VARARG ...";
          "ACCESS y";
          "END";
@@ -106,6 +108,7 @@ describe("test luacheck.scan", function()
          --
          "START";
          "ARG x";
+         "INIT x";
          "ACCESS x";
          "END";
          "SET d";
@@ -130,17 +133,21 @@ describe("test luacheck.scan", function()
          --
          "START";
          "ARG x";
+         "INIT x";
          "END";
          "SET a";
          --
          "START";
          "ARG x";
+         "INIT x";
          "END";
          "ACCESS b";
          --
          "START";
          "ARG self";
+         "INIT self";
          "ARG x";
+         "INIT x";
          "END";
          "ACCESS d";
          --
@@ -159,6 +166,7 @@ describe("test luacheck.scan", function()
          "VAR a";
          "START";
          "ARG x";
+         "INIT x";
          "ACCESS a";
          "END";
          "INIT a";

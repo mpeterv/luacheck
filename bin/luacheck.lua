@@ -5,7 +5,7 @@ local format = require "luacheck.format"
 local argparse = require "argparse"
 
 local parser = argparse "luacheck"
-   :description "luacheck 0.4.0, a simple static analyzer for Lua. "
+   :description "luacheck 0.5.0, a simple static analyzer for Lua. "
 
 parser:argument "files"
    :description "List of files to check. "

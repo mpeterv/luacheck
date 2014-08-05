@@ -162,6 +162,16 @@ print(a)
       ]])
    end)
 
+   it("detects unused values of arguments even when unused_args == false", function()
+      assert.same({
+         {type = "unused", subtype = "value", vartype = "arg", name = "x", line = 1, column = 18}
+      }, get_report([[
+local function f(x)
+   x = f(); print(x)
+end
+      ]], {unused_args = false}))
+   end)
+
    it("does not detect unused values in loops", function()
       assert.same({}, get_report[[
 local a = 10
