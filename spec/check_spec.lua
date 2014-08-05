@@ -31,6 +31,16 @@ foo = {}
       ]])
    end)
 
+   it("detects global access in multi-assignments", function()
+      assert.same({
+         {type = "global", subtype = "set", vartype = "global", name = "y", line = 2, column = 4}
+      }, get_report[[
+local x
+x, y = 1
+print(x)
+      ]])
+   end)
+
    it("doesn't detect global access when not asked to", function()
       assert.same({}, get_report([[
 foo()

@@ -39,7 +39,7 @@ end
 local function scan_assignment(node, callbacks, is_init)
    for i=1, #node[1] do
       if node[1][i].tag == "Id" then
-         if node[2][i] then
+         if #node[2] > 0 then
             callbacks.on_assignment(node[1][i], is_init)
          end
       else
