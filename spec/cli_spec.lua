@@ -1,6 +1,6 @@
-local function get_output(command)
-   local handler = io.popen("luacheck "..command)
-   local output = handler:read("*a"):gsub("\27.-\109", "")
+local function get_output(command, color)
+   local handler = io.popen("luacheck " .. command .. " 2>&1")
+   local output = handler:read("*a"):gsub("\27.-\109", color and "#" or "")
    handler:close()
    return output
 end
@@ -37,6 +37,36 @@ Checking spec/samples/bad_code.lua                Failure
 Total: 5 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/bad_code.lua")
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua")
+   end)
+
+   it("colors output", function()
+      assert.equal([[
+Checking spec/samples/good_code.lua               ###OK#
+Checking spec/samples/bad_code.lua                ###Failure#
+
+    spec/samples/bad_code.lua:3:16: unused variable ##helper#
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable ##embrace#
+    spec/samples/bad_code.lua:8:10: variable ##opt# was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable ##hepler#
+
+Total: ###5# warnings / ##0# errors in 2 files
+]], get_output ("spec/samples/good_code.lua spec/samples/bad_code.lua", true))
+   end)
+
+   it("does not color output with --no-color", function()
+      assert.equal([[
+Checking spec/samples/good_code.lua               OK
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Total: 5 warnings / 0 errors in 2 files
+]], get_output ("spec/samples/good_code.lua spec/samples/bad_code.lua --no-color", true))
    end)
 
    it("suppresses warning output with -q", function()
