@@ -239,10 +239,11 @@ local a = 5; print(a)
    end)
 
    it("handles argparse sample", function()
-      assert.same({total = 4, global = 0, redefined = 0, unused = 4, unused_value = 0,
+      assert.same({total = 5, global = 1, redefined = 0, unused = 4, unused_value = 0,
          {type = "unused", subtype = "loop", name = "setter", line = 34, column = 27},
          {type = "unused", subtype = "arg", name = "self", line = 117, column = 27},
          {type = "unused", subtype = "arg", name = "self", line = 125, column = 27},
+         {type = "global", subtype = "access", name = "_TEST", line = 942, column = 7},
          {type = "unused", subtype = "arg", name = "parser", line = 957, column = 41}
       }, get_report(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)

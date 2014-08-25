@@ -18,7 +18,7 @@ local function toset(array)
 end
 
 local parser = argparse "luacheck"
-   :description "luacheck 0.4.0, a simple static analyzer for Lua. "
+   :description "luacheck 0.4.1, a simple static analyzer for Lua. "
 
 parser:argument "files"
    :description "List of files to check. "
@@ -89,14 +89,14 @@ end
 
 local options = {
    globals = globals or default_globals,
-   env_aware = not args["ignore-env"],
+   env_aware = not args.ignore_env,
    ignore = toset(args.ignore),
    only = toset(args.only),
-   check_global = not args["no-global"],
-   check_redefined = not args["no-redefined"],
-   check_unused = not args["no-unused"],
-   check_unused_args = not args["no-unused-args"],
-   check_unused_values = not args["no-unused-values"]
+   check_global = not args.no_global,
+   check_redefined = not args.no_redefined,
+   check_unused = not args.no_unused,
+   check_unused_args = not args.no_unused_args,
+   check_unused_values = not args.no_unused_values
 }
 
 local warnings, errors = 0, 0
