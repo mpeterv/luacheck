@@ -88,7 +88,7 @@ end
 
 local options
 
-if not args["no-config"] then
+if not args.no_config then
    local err, path
    options, err, path = get_config(args.config)
 
@@ -101,21 +101,21 @@ if not options then
    options = {}
 end
 
-for _, argname in ipairs{"allow-defined", "compat", "quiet", "limit"} do
+for _, argname in ipairs{"allow_defined", "compat", "quiet", "limit"} do
    if args[argname] then
-      options[argname:gsub("%-", "_")] = args[argname]
+      options[argname] = args[argname]
    end
 end
 
 for optname, argname in pairs{
-      env_aware = "ignore-env",
-      global = "no-global",
-      redefined = "no-redefined",
-      unused = "no-unused",
-      unused_args = "no-unused-args",
-      unused_values = "no-unused-values",
-      unused_globals = "no-unused-globals",
-      color = "no-color"} do
+      env_aware = "ignore_env",
+      global = "no_global",
+      redefined = "no_redefined",
+      unused = "no_unused",
+      unused_args = "no_unused_args",
+      unused_values = "no_unused_values",
+      unused_globals = "no_unused_globals",
+      color = "no_color"} do
    if args[argname] then
       options[optname] = not args[argname]
    end
