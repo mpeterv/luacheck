@@ -36,8 +36,8 @@ local function plural(number)
    return number == 1 and "" or "s"
 end
 
-local function format_file_report_header(report, color)
-   local label = "Checking "..report.file
+local function format_file_report_header(report, file_name, color)
+   local label = "Checking "..file_name
    local status
 
    if report.error then
@@ -51,14 +51,14 @@ local function format_file_report_header(report, color)
    return label..(" "):rep(math.max(50 - #label, 1))..status
 end
 
-local function format_file_report(report, color)
-   local buf = {format_file_report_header(report, color)}
+local function format_file_report(report, file_name, color)
+   local buf = {format_file_report_header(report, file_name, color)}
 
    if not report.error and #report > 0 then
       table.insert(buf, "")
 
       for _, warning in ipairs(report) do
-         local location = ("%s:%d:%d"):format(report.file, warning.line, warning.column)
+         local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
          local message = warnings[warning.type][warning.subtype][warning.vartype]:format(color("%{bright}"..warning.name), warning.prev_line)
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
@@ -74,7 +74,7 @@ end
 --    `options.quiet`: integer in range 0-3. See CLI. Default: 0. 
 --    `options.limit`: See CLI. Default: 0. 
 --    `options.color`: should use ansicolors? Default: true. 
-local function format(report, options)
+local function format(report, file_names, options)
    local color = options.color ~= false and require "ansicolors" or function(s)
       return s:gsub("(%%{(.-)})", "")
    end
@@ -84,9 +84,9 @@ local function format(report, options)
    local buf = {}
 
    if quiet <= 1 then
-      for _, file_report in ipairs(report) do
+      for i, file_report in ipairs(report) do
          table.insert(buf, (quiet == 0 and format_file_report or format_file_report_header
-            )(file_report, color))
+            )(file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color))
       end
 
       if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then

@@ -2,8 +2,6 @@ local utils = {}
 
 local lfs = require "lfs"
 
-utils.dir_sep = package.config:sub(1,1)
-
 -- Returns whether path points to a directory. 
 function utils.is_dir(path)
    return lfs.attributes(path, "mode") == "directory"
@@ -14,7 +12,7 @@ function utils.is_file(path)
    return lfs.attributes(path, "mode") == "file"
 end
 
-utils.current_dir = lfs.currentdir
+local dir_sep = package.config:sub(1,1)
 
 -- Returns list of all files in directory matching pattern. 
 function utils.extract_files(dir_path, pattern)
@@ -23,7 +21,7 @@ function utils.extract_files(dir_path, pattern)
    local function scan(dir_path)
       for path in lfs.dir(dir_path) do
          if path ~= "." and path ~= ".." then
-            local full_path = dir_path .. utils.dir_sep .. path
+            local full_path = dir_path .. dir_sep .. path
 
             if utils.is_dir(full_path) then
                scan(full_path)
@@ -39,28 +37,8 @@ function utils.extract_files(dir_path, pattern)
    return res
 end
 
--- Returns whether dir_path points to filesystem root. 
-function utils.is_root(dir_path)
-   return dir_path:match("^[^/]*/$")
-end
-
--- Returns normalized path to dir_path/..
-function utils.upper_dir(dir_path)
-   if utils.is_root(dir_path) then
-      return dir_path
-   end
-
-   local res = dir_path:match("^(.*/)[^/]*$")
-
-   if not utils.is_root(res) then
-      return res:sub(1, -2)
-   end
-
-   return res
-end
-
 -- Returns all contents of file(path or file handler) or nil. 
-function utils.readfile(file)
+function utils.read_file(file)
    local res
 
    return pcall(function()
@@ -71,8 +49,8 @@ function utils.readfile(file)
 end
 
 -- Parses rockspec-like source, returns data or nil. 
-local function capture_env(src)
-   local env = {}
+local function capture_env(src, env)
+   env = env or {}
    local func
 
    if _VERSION:find "5.2" then
@@ -90,20 +68,42 @@ end
 
 -- Loads config containing assignments to global variables from path. 
 -- Returns config table or nil and error message("I/O" or "syntax"). 
-function utils.load_config(path)
-   local src = utils.readfile(path)
+function utils.load_config(path, env)
+   local src = utils.read_file(path)
 
    if not src then
       return nil, "I/O"
    end
 
-   local cfg = capture_env(src)
+   local cfg = capture_env(src, env)
 
    if not cfg then
       return nil, "syntax"
    end
 
    return cfg
+end
+
+function utils.array_to_set(array)
+   local set = {}
+
+   for _, item in ipairs(array) do
+      set[item] = true
+   end
+
+   return set
+end
+
+function utils.concat_arrays(array)
+   local res = {}
+
+   for _, subarray in ipairs(array) do
+      for _, item in ipairs(subarray) do
+         table.insert(res, item)
+      end
+   end
+
+   return res
 end
 
 return utils

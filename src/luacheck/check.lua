@@ -1,71 +1,9 @@
 local scan = require "luacheck.scan"
 
-local function toset(array)
-   local set = {}
-
-   for _, item in ipairs(array) do
-      set[item] = true
-   end
-
-   return set
-end
-
-local function get_default_globals(compat)
-   local default_globals = compat and {
-      "getfenv", "loadstring", "module",
-      "newproxy", "rawlen", "setfenv",
-      "unpack", "bit32"
-   } or {}
-
-   for global in pairs(_G) do
-      table.insert(default_globals, global)
-   end
-
-   return default_globals
-end
-
--- Converts API options to options used by luacheck.check
-local function adjust_options(options)
-   local default_globals = get_default_globals(options.compat)
-
-   local res = {
-      global = true,
-      redefined = true,
-      unused = true,
-      unused_args = true,
-      unused_values = true,
-      globals = default_globals,
-      env_aware = true,
-      ignore = {},
-      only = false
-   }
-
-   for option in pairs(res) do
-      if options[option] ~= nil then
-         res[option] = options[option]
-      end
-   end
-
-   res.globals = toset(res.globals)
-
-   if res.globals["-"] then
-      setmetatable(res.globals, {__index = toset(default_globals)})
-   end
-
-   res.ignore = toset(res.ignore)
-
-   if res.only then
-      res.only = toset(res.only)
-   end
-
-   return res
-end
-
 --- Checks a Metalua AST. 
--- Returns a file report. 
+-- Returns an array of warnings. 
 -- See luacheck function. 
-local function check(ast, options)
-   options = adjust_options(options or {})
+local function check(ast)
    local callbacks = {}
    local report = {}
 
@@ -75,29 +13,17 @@ local function check(ast, options)
    -- Array part contains outer scope, outer closure and outer cycle. 
    local outer = {}
 
-   -- Adds a warning, if necessary. 
    local function add_warning(node, type_, subtype, vartype, prev_node)
-      local name = node[1]
-
-      if options[type_] and
-            (subtype ~= "value" or options.unused_values) and
-            (type_ == "global" or name ~= "_") and
-            (type_ ~= "unused" or vartype == "var" or subtype ~= "var" or options.unused_args) then
-         if not options.ignore[name] then
-            if not options.only or options.only[name] then
-               table.insert(report, {
-                  type = type_,
-                  subtype = subtype,
-                  vartype = vartype,
-                  name = name,
-                  line = node.lineinfo.first.line,
-                  column = node.lineinfo.first.column,
-                  prev_line = prev_node and prev_node.lineinfo.first.line,
-                  prev_column = prev_node and prev_node.lineinfo.first.column
-               })
-            end
-         end
-      end
+      table.insert(report, {
+         type = type_,
+         subtype = subtype,
+         vartype = vartype,
+         name = node[1],
+         line = node.lineinfo.first.line,
+         column = node.lineinfo.first.column,
+         prev_line = prev_node and prev_node.lineinfo.first.line,
+         prev_column = prev_node and prev_node.lineinfo.first.column
+      })
    end
 
    local function resolve(name)
@@ -116,16 +42,6 @@ local function check(ast, options)
 
       if variable.value then
          variable.value.used = true
-      end
-   end
-
-   local function resolve_and_access(name)
-      local variable = resolve(name)
-
-      if variable then
-         access(variable)
-         variable.mentioned = true
-         return variable
       end
    end
 
@@ -188,11 +104,7 @@ local function check(ast, options)
 
       if not variable then
          if name ~= "..." then
-            if not options.env_aware or name ~= "_ENV" and not resolve_and_access("_ENV") then
-               if options.globals[name] == nil then
-                  add_warning(node, "global", action, "global")
-               end
-            end
+            add_warning(node, "global", action, "global")
          end
       else
          if action == "access" then

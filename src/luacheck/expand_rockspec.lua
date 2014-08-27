@@ -30,7 +30,7 @@ local function extract_lua_files(rockspec)
    return res
 end
 
--- Receives a name of a rockspec, returns list of related .lua files or nil and error message. 
+-- Receives a name of a rockspec, returns list of related .lua files or nil and "syntax" or "error". 
 local function expand_rockspec(file)
    local rockspec, err = utils.load_config(file)
 

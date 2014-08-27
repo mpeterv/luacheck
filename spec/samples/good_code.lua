@@ -9,3 +9,4 @@ function embracer.embrace(opt)
    return helper(opt.."?")
 end
 
+return embracer

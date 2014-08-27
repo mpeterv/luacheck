@@ -1,16 +1,16 @@
 local function get_output(command, color)
-   local handler = io.popen("luacheck " .. command .. " 2>&1")
+   local handler = io.popen("luacheck --no-config " .. command .. " 2>&1")
    local output = handler:read("*a"):gsub("\27.-\109", color and "#" or "")
    handler:close()
    return output
 end
 
 local function get_exitcode(command)
-   local code51, _, code52 = os.execute("luacheck "..command.." > /dev/null 2>&1")
+   local code51, _, code52 = os.execute("luacheck --no-config "..command.." > /dev/null 2>&1")
    return _VERSION:find "5.1" and code51/256 or code52
 end
 
-describe("test luacheck cli", function()
+describe("cli", function()
    it("exists", function()
       assert.equal(0, get_exitcode "--help")
    end)
@@ -249,7 +249,6 @@ Total: 0 warnings / 2 errors in 2 files
    end)
 
    it("expands rockspecs", function()
-      local output = get_output "spec/samples/sample.rockspec"
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
 
@@ -350,54 +349,6 @@ Total: 0 warnings / 0 errors in 2 files
    end)
 
    it("expands folders", function()
-      assert.equal([[
-Checking spec/samples/argparse.lua                Failure
-
-    spec/samples/argparse.lua:34:27: unused loop variable setter
-    spec/samples/argparse.lua:117:27: unused argument self
-    spec/samples/argparse.lua:125:27: unused argument self
-    spec/samples/argparse.lua:942:7: accessing undefined variable _TEST
-    spec/samples/argparse.lua:957:41: unused argument parser
-
-Checking spec/samples/bad_code.lua                Failure
-
-    spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
-
-Checking spec/samples/defined.lua                 Failure
-
-    spec/samples/defined.lua:1:1: setting non-standard global variable foo
-    spec/samples/defined.lua:3:10: accessing undefined variable foo
-    spec/samples/defined.lua:4:4: accessing undefined variable baz
-
-Checking spec/samples/defined2.lua                Failure
-
-    spec/samples/defined2.lua:1:1: accessing undefined variable foo
-
-Checking spec/samples/defined3.lua                Failure
-
-    spec/samples/defined3.lua:1:1: setting non-standard global variable foo
-    spec/samples/defined3.lua:2:1: setting non-standard global variable foo
-    spec/samples/defined3.lua:3:1: setting non-standard global variable bar
-
-Checking spec/samples/good_code.lua               OK
-Checking spec/samples/python_code.lua             Syntax error
-Checking spec/samples/unused_code.lua             Failure
-
-    spec/samples/unused_code.lua:3:18: unused argument baz
-    spec/samples/unused_code.lua:4:8: unused loop variable i
-    spec/samples/unused_code.lua:5:13: unused variable q
-    spec/samples/unused_code.lua:7:11: unused loop variable a
-    spec/samples/unused_code.lua:7:14: unused loop variable b
-    spec/samples/unused_code.lua:7:17: unused loop variable c
-    spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
-    spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
-    spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
-
-Total: 26 warnings / 1 error in 8 files
-]], get_output "spec/samples")
+      assert.equal("Total: 29 warnings / 1 error in 11 files\n", get_output "spec/samples -qq")
    end)
 end)

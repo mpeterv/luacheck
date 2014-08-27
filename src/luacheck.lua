@@ -1,86 +1,83 @@
-local expand_rockspec = require "luacheck.expand_rockspec"
-local get_report = require "luacheck.get_report"
+local parser = require "metalua.compiler".new()
+
+local check = require "luacheck.check"
+local filter = require "luacheck.filter"
+local options = require "luacheck.options"
 local utils = require "luacheck.utils"
 
--- Expands rockspecs, replacing broken ones with reports
-local function adjust_files(files)
-   local res = {}
+--- Checks a file. 
+-- Returns a file report. 
+local function get_report(file)
+   local src = utils.read_file(file)
 
-   for _, file in ipairs(files) do
-      if file:sub(-#".rockspec") == ".rockspec" then
-         local related_files, err = expand_rockspec(file)
+   if not src then
+      return {error = "I/O"}
+   end
 
-         if related_files then
-            for _, file in ipairs(related_files) do
-               table.insert(res, file)
-            end
-         else
-            table.insert(res, {file = file, error = err})
-         end
-      elseif utils.is_dir(file) then
-         for _, file in ipairs(utils.extract_files(file, "%.lua$")) do
-            table.insert(res, file)
-         end
+   local ast
+
+   if not pcall(function()
+         ast = parser:src_to_ast(src) end) then
+      return {error = "syntax"}
+   end
+
+   return check(ast)
+end
+
+local function validate_files(files)
+   assert(type(files) == "table", (
+      "bad argument #1 to 'luacheck' (table expected, got %s)"):format(type(files))
+   )
+
+   for _, item in ipairs(files) do
+      assert(type(item) == "string" or io.type(item) == "file", (
+         "bad argument #1 to 'luacheck' (array of paths or file handles expected, got %s)"):format(type(item))
+      )
+   end
+end
+
+local function raw_validate_options(opts)
+   assert(opts == nil or type(opts) == "table",
+      ("bad argument #2 to 'luacheck' (table or nil expected, got %s)"):format(type(opts))
+   )
+
+   local ok, invalid_field = options.validate(opts)
+
+   if not ok then
+      if invalid_field then
+         error(("bad argument #2 to 'luacheck' (invalid value of option '%s')"):format(invalid_field))
       else
-         table.insert(res, file)
+         error("bad argument #2 to 'luacheck'")
       end
    end
-
-   return res
 end
 
--- Returns sets of defined and used globals inferred from report. 
-local function get_defined_used_globals(report)
-   local defined, used = {}, {}
+local function validate_options(items, opts)
+   raw_validate_options(opts)
 
-   for _, file_report in ipairs(report) do
-      for _, warning in ipairs(file_report) do
-         if warning.type == "global" then
-            if warning.subtype == "set" then
-               defined[warning.name] = true
-            else
-               used[warning.name] = true
-            end
-         end
-      end
+   for i in ipairs(items) do
+      raw_validate_options(opts[i])
    end
-
-   return defined, used
 end
 
+-- Adds .warnings and .errors fields to a report. 
+local function add_stats(report)
+   report.warnings = 0
+   report.errors = 0
 
-
--- Deletes warnings related to defined globals. 
--- If check_unused_globals, transforms set warnings into unused global warnings. 
-local function delete_defined_global_warnings(report, check_unused_globals, defined, used)
    for _, file_report in ipairs(report) do
-      local function delete(n)
-         table.remove(file_report, n)
-         report.warnings = report.warnings - 1
-      end
-
-      for i=#file_report, 1, -1 do
-         local warning = file_report[i]
-
-         if warning.type == "global" then
-            if warning.subtype == "set" then
-               if check_unused_globals and not used[warning.name] then
-                  warning.subtype = "unused"
-               else
-                  delete(i)
-               end
-            else
-               if defined[warning.name] then
-                  delete(i)
-               end
-            end
-         end
+      if file_report.error then
+         report.errors = report.errors + 1
+      else
+         report.warnings = report.warnings + #file_report
       end
    end
+
+   return report
 end
 
 --- Checks files with given options. 
--- `files` should be an array of paths. 
+-- `files` should be an array of paths or file handles. 
 -- `options`, if not nil, should be a table. 
 -- Recognized options:
 --    `options.global` - should luacheck check for global access? Default: true. 
@@ -93,18 +90,20 @@ end
 --    `options.globals` - array of standard globals. Default: _G. 
 --    `options.compat` - adjust standard globals for Lua 5.1/5.2 compatibility. Default: false. 
 --    `options.allow_defined` - allow accessing globals set elsewhere. Default: false. 
---    `options.env_aware` - ignore globals is chunks with custom _ENV. Default: true. 
+--    `options.env_aware` - Use _ENV semantics. Default: true. 
 --    `options.ignore` - array of variables to ignore. Default: empty. 
 --       Takes precedense over `options.only`. 
 --    `options.only` - array of variables to report. Default: report all. 
 -- 
+-- `options` may contain other option tables in its array part. 
+-- These option tables will only be applied when checking corresponding items from `files`. 
+--
 -- Returns report. 
 -- Report is an array of file reports. 
 -- `warnings` field contains total number of warnings. 
 -- `errors` field contains total number of errors. 
 --
 -- A file report is an array of warnings. 
--- `file` field contains file name. 
 -- If there was an error during checking the file, field `error` will contain "I/O" or "syntax". 
 --
 -- Warning is a table with several fields. 
@@ -123,38 +122,17 @@ end
 -- For warnings of type `redefined`, there are two additional fields: 
 -- `prev_line` field contains line number where the variable was previously defined. 
 -- `prev_column` field contains offest of the variable name in that line. 
-local function luacheck(files, options)
-   assert(type(files) == "table",
-      ("bad argument #1 to 'luacheck' (table expected, got %s)"):format(type(files))
-   )
+local function luacheck(files, opts)
+   validate_files(files)
+   validate_options(files, opts)
 
-   assert(options == nil or type(options) == "table",
-      ("bad argument #2 to 'luacheck' (table or nil expected, got %s)"):format(type(options))
-   )
+   local report = {}
 
-   files = adjust_files(files)
-   local report = {warnings = 0, errors = 0}
-
-   for i=1, #files do
-      if type(files[i]) == "string" then
-         report[i] = get_report(files[i], options)
-      else
-         report[i] = files[i]
-      end
-
-      if report[i].error then
-         report.errors = report.errors + 1
-      else
-         report.warnings = report.warnings + #report[i]
-      end
+   for _, file in ipairs(files) do
+      table.insert(report, get_report(file))
    end
 
-   if options and options.allow_defined then
-      delete_defined_global_warnings(report,
-         options.unused_globals ~= false, get_defined_used_globals(report))
-   end
-
-   return report
+   return add_stats(filter(report, opts))
 end
 
 return luacheck
