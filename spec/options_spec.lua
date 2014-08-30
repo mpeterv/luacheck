@@ -1,5 +1,11 @@
 local options = require "luacheck.options"
 
+local globals = {_ENV = true}
+
+for k in pairs(_G) do
+   globals[k] = true
+end
+
 describe("options", function()
    describe("validate", function()
       pending("returns true if options are valid")
@@ -33,12 +39,6 @@ describe("options", function()
 
    describe("normalize", function()
       it("applies _G+_ENV as default globals", function()
-         local globals = {_ENV = true}
-
-         for k in pairs(_G) do
-            globals[k] = true
-         end
-
          assert.same(globals, options.normalize().globals)
       end)
 
