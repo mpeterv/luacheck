@@ -1,6 +1,6 @@
 local options = require "luacheck.options"
 
-local globals = {_ENV = true}
+local globals = {_ENV = (function() local _ENV = {}; return not _G end)()}
 
 for k in pairs(_G) do
    globals[k] = true
@@ -96,12 +96,13 @@ describe("options", function()
          assert.same(globals, options.normalize().globals)
       end)
 
-      it("does not apply default globals if globals option is present", function()
-         assert.same({
-            foo = true,
-            _ENV = true
-         }, options.normalize({
-            globals = {"foo"}
+      it("considers opts.std", function()
+         assert.same({}, options.normalize({
+            std = "none"
+         }).globals)
+
+         assert.same({foo = true}, options.normalize({
+            std = {"foo"}
          }).globals)
       end)
 

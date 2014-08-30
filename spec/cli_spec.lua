@@ -164,21 +164,6 @@ Total: 4 warnings / 0 errors in 1 file
 ]], get_output "-r spec/samples/bad_code.lua")
    end)
 
-   it("allows to define globals", function()
-      assert.equal([[
-Checking spec/samples/bad_code.lua                Failure
-
-    spec/samples/bad_code.lua:1:1: accessing undefined variable module
-    spec/samples/bad_code.lua:1:13: accessing undefined variable package
-    spec/samples/bad_code.lua:3:16: unused variable helper
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
-
-Total: 6 warnings / 0 errors in 1 file
-]], get_output "--globals embrace -- spec/samples/bad_code.lua")
-   end)
-
    it("allows to define additional globals", function()
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
@@ -189,7 +174,46 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 4 warnings / 0 errors in 1 file
-]], get_output "--globals - embrace -- spec/samples/bad_code.lua")
+]], get_output "--globals embrace -- spec/samples/bad_code.lua")
+   end)
+
+   it("allows to set standard globals", function()
+      assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:1:1: accessing undefined variable module
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Total: 6 warnings / 0 errors in 1 file
+]], get_output "--std min spec/samples/bad_code.lua")
+      assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Total: 5 warnings / 0 errors in 1 file
+]], get_output "--std max spec/samples/bad_code.lua")
+      assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:1:1: accessing undefined variable module
+    spec/samples/bad_code.lua:1:13: accessing undefined variable package
+    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Total: 7 warnings / 0 errors in 1 file
+]], get_output "--std none spec/samples/bad_code.lua")
    end)
 
    it("allows to ignore some variables", function()

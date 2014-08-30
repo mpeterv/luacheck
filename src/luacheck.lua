@@ -87,10 +87,18 @@ end
 --        iterator variables? Default: true. 
 --    `options.unused_values` - should luacheck check for unused values? Default: true. 
 --    `options.unused_globals` - if defining globals is allowed, should luarocks check for unused globals? Default: true. 
---    `options.globals` - array of standard globals. Default: _G. 
---    `options.compat` - adjust standard globals for Lua 5.1/5.2 compatibility. Default: false. 
+--    `options.std` - array of base globals or string indicating the base set of globals. Default: "_G". 
+--       "_G" - all current globals
+--       "lua51" - globals of lua 5.1
+--       "lua52" - globals of lua 5.2
+--       "lua52c" - globals of lua 5.2 compiled with LUA_COMPAT_ALL
+--       "luajit" - globals of luajit 2.0
+--       "min" - intersection of "lua51", "lua52" and "luajit"
+--       "max" - union of "lua51", "lua52" and "luajit"
+--       "none" - empty. 
+--    `options.compat` - if true, sets `options.std` to "max". Default: false. 
+--    `options.globals` - array of additional globals. Default: {}. 
 --    `options.allow_defined` - allow accessing globals set elsewhere. Default: false. 
---    `options.env_aware` - Use _ENV semantics. Default: true. 
 --    `options.ignore` - array of variables to ignore. Default: empty. 
 --       Takes precedense over `options.only`. 
 --    `options.only` - array of variables to report. Default: report all. 

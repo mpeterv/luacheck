@@ -12,14 +12,6 @@ end
 
 describe("config", function()
    describe("loading", function()
-      it("uses config with compat=true in the project root", function()
-         assert.equal([[
-Checking spec/samples/compat.lua                  OK
-
-Total: 0 warnings / 0 errors in 1 file
-]], get_output "spec/samples/compat.lua")
-      end)
-
       it("does not use config with compat=true in the project root with --no-config", function()
          local output = get_output "spec/samples/compat.lua --no-config"
          assert.is_true([[

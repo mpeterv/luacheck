@@ -1,6 +1,7 @@
 local options = {}
 
 local utils = require "luacheck.utils"
+local stds = require "luacheck.stds"
 
 local function is_boolean(x)
    return type(x) == "boolean"
@@ -30,20 +31,6 @@ local boolean_opt_false = {
    validate = is_boolean
 }
 
-local default_globals = {}
-
-for global in pairs(_G) do
-   if type(global) == "string" then
-      table.insert(default_globals, global)
-   end
-end
-
-local compat_globals = {
-   "getfenv", "loadstring", "module",
-   "newproxy", "rawlen", "setfenv",
-   "unpack", "bit32"
-} 
-
 options.options = {
    global = boolean_opt_true,
    unused = boolean_opt_true,
@@ -51,12 +38,15 @@ options.options = {
    unused_args = boolean_opt_true,
    unused_values = boolean_opt_true,
    unused_globals = boolean_opt_true,
-   env_aware = boolean_opt_true,
    compat = boolean_opt_false,
    allow_defined = boolean_opt_false,
    globals = {
-      default = default_globals,
+      default = {},
       validate = is_array_of_strings
+   },
+   std = {
+      default = "_G",
+      validate = function(x) return stds[x] or is_array_of_strings(x) end
    },
    ignore = {
       default = {},
@@ -93,8 +83,8 @@ function options.validate(opts)
 end
 
 -- Takes old and new values of an option, returns final value. 
-local function overwrite(old_value, new_value)
-   if type(old_value) == "table" or type(new_value) == "table" then
+local function overwrite(opt, old_value, new_value)
+   if type(old_value) == "table" or type(new_value) == "table" and opt ~= "std" then
       return utils.concat_arrays {old_value, new_value}
    else
       return new_value
@@ -113,7 +103,7 @@ function options.combine(...)
             if res[opt] == nil then
                res[opt] = opts[opt]
             else
-               res[opt] = overwrite(res[opt], opts[opt])
+               res[opt] = overwrite(opt, res[opt], opts[opt])
             end
          end
       end
@@ -135,24 +125,11 @@ function options.normalize(opts)
       end
    end
 
-   local globals_components = {res.globals}
-
    if res.compat then
-      table.insert(globals_components, compat_globals)
+      res.std = "max"
    end
 
-   if res.env_aware then
-      table.insert(globals_components, {"_ENV"})
-   end
-
-   for _, global in ipairs(res.globals) do
-      if global == "-" then
-         table.insert(globals_components, default_globals)
-         break
-      end
-   end
-
-   res.globals = utils.concat_arrays(globals_components)
+   res.globals = utils.concat_arrays {stds[res.std] or res.std, res.globals}
 
    for opt, value in pairs(res) do
       if type(value) == "table" then

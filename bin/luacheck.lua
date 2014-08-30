@@ -2,6 +2,7 @@
 local argparse = require "argparse"
 
 local luacheck = require "luacheck"
+local stds = require "luacheck.stds"
 local options = require "luacheck.options"
 local expand_rockspec = require "luacheck.expand_rockspec"
 local utils = require "luacheck.utils"
@@ -29,19 +30,31 @@ local function get_args()
    parser:flag "-v" "--no-unused-values"
       :description "Do not check for unused values. "
 
+   parser:option "--std"
+      :description [[Set standard globals. <std> must be one of: 
+   _G - current globals(default); 
+   lua51 - globals of Lua 5.1; 
+   lua52 - globals of Lua 5.2; 
+   lua52c - globals of Lua 5.2 compiled with LUA_COMPAT_ALL; 
+   luajit - globals of LuaJIT 2.0; 
+   min - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0; 
+   max - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0; 
+   none - no standard globals. ]]
+      :default "_G"
+      :show_default(false)
+      :convert(stds)
    parser:option "--globals"
-      :description "Defined globals. Hyphen expands to standard globals. "
+      :description "Add custom globals. "
       :args "*"
       :count "*"
       :argname "<global>"
    parser:flag "-c" "--compat"
-      :description "Adjust globals for Lua 5.1/5.2 compatibility. "
+      :description [[Adjust standard globals for Lua 5.1/5.2 compatibility. 
+   Equivalent to --std=max. ]]
    parser:flag "-d" "--allow-defined"
-      :description "Allow defining globals and accessing defined globals. "
+      :description "Allow defining globals by setting them. "
    parser:flag "--no-unused-globals"
-      :description "If defining globals is allowed, do not check for unused globals. "
-   parser:flag "-e" "--ignore-env"
-      :description "Do not be _ENV-aware. "
+      :description "Do not check for set but unused globals. "
 
    parser:option "--ignore"
       :description "Do not report warnings related to these variables. "
@@ -153,14 +166,13 @@ end
 local function get_options(args)
    local res = {}
 
-   for _, argname in ipairs {"allow_defined", "compat"} do
+   for _, argname in ipairs {"allow_defined", "compat", "std"} do
       if args[argname] then
          res[argname] = args[argname]
       end
    end
 
    for optname, argname in pairs {
-         env_aware = "ignore_env",
          global = "no_global",
          redefined = "no_redefined",
          unused = "no_unused",

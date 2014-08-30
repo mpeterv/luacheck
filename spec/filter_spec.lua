@@ -32,7 +32,38 @@ describe("filter", function()
             }
          }
       }, {
+         std = {},
          globals = {"foo"}
+      }))
+   end)
+
+   it("filters standard globals", function()
+      assert.same({
+         {
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "module"
+            }
+         }
+      }, filter({
+         {
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "package"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "module"
+            }
+         }
+      }, {
+         std = "min"
       }))
    end)
 
