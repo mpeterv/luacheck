@@ -69,7 +69,7 @@ local function get_args()
 
    parser:flag "-q" "--quiet"
       :count "0-3"
-      :description [[Do not print warnings. 
+      :description [[Suppress output for files without warnings. 
    -qq: Only print total number of warnings and errors. 
    -qqq: Suppress output completely. ]]
 

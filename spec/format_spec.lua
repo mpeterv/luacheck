@@ -47,10 +47,15 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
 }, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {})))
    end)
 
-   it("does not output warnings with options.quiet >= 1", function()
+   it("does not output OK messages with options.quiet >= 1", function()
       assert.equal([[Checking stdin                                    Failure
+
+    stdin:2:7: unused global variable foo
+
 Checking foo.lua                                  Failure
-Checking bar.lua                                  OK
+
+    foo.lua:2:7: unused global variable foo
+
 Checking baz.lua                                  Syntax error
 
 Total: 2 warnings / 1 error in 4 files]], remove_color(format({

@@ -85,8 +85,10 @@ local function format(report, file_names, options)
 
    if quiet <= 1 then
       for i, file_report in ipairs(report) do
-         table.insert(buf, (quiet == 0 and format_file_report or format_file_report_header
-            )(file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color))
+         if quiet == 0 or file_report.error or #file_report > 0 then
+            table.insert(buf, format_file_report(
+               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color))
+         end
       end
 
       if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then
