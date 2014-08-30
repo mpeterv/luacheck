@@ -8,9 +8,49 @@ end
 
 describe("options", function()
    describe("validate", function()
-      pending("returns true if options are valid")
-      pending("returns false if options are invalid")
-      pending("additionally returns name of the problematic field")
+      it("returns true if options are empty", function()
+         assert.is_true(options.validate())
+      end)
+
+      it("returns true if options are valid", function()
+         assert.is_true(options.validate({
+            globals = {"foo"},
+            compat = false,
+            unrelated = function() end
+         }))
+      end)
+
+      it("returns false if options are invalid", function()
+         assert.is_false(options.validate({
+            globals = 3,
+            redefined = false
+         }))
+
+         assert.is_false(options.validate({
+            globals = {3}
+         }))
+
+         assert.is_false(options.validate(function() end))
+
+         assert.is_false(options.validate({
+            unused = 0
+         }))
+      end)
+
+      it("additionally returns name of the problematic field", function()
+         assert.equal("globals", select(2, options.validate({
+            globals = 3,
+            redefined = false
+         })))
+
+         assert.equal("globals", select(2, options.validate({
+            globals = {3}
+         })))
+
+         assert.equal("unused", select(2, options.validate({
+            unused = 0
+         })))
+      end)
    end)
 
    describe("combine", function()
@@ -38,10 +78,35 @@ describe("options", function()
    end)
 
    describe("normalize", function()
+      it("applies default values", function()
+         opts = options.normalize()
+         assert.same(opts, options.normalize({}))
+
+         assert.is_true(opts.global)
+         assert.is_true(opts.unused)
+         assert.is_true(opts.redefined)
+         assert.is_true(opts.unused_args)
+         assert.is_true(opts.unused_values)
+         assert.is_false(opts.allow_defined)
+         assert.is_false(opts.only)
+         assert.same({}, opts.ignore)
+      end)
+
       it("applies _G+_ENV as default globals", function()
          assert.same(globals, options.normalize().globals)
       end)
 
-      pending("normalizes options")
+      it("does not apply default globals if globals option is present", function()
+         assert.same({
+            foo = true,
+            _ENV = true
+         }, options.normalize({
+            globals = {"foo"}
+         }).globals)
+      end)
+
+      pending("expands - to default globals")
+      pending("adds superset of 5.1 and 5.2 globals when compat == true")
+      pending("expands - to default globals")
    end)
 end)
