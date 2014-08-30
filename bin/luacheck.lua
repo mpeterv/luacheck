@@ -83,29 +83,34 @@ end
 
 -- Expands folders, rockspecs, -
 -- Returns new array of file names and table mapping indexes of "bad" rockspecs to error messages. 
+-- Removes "./" in the beginnings of file names. 
 local function expand_files(files)
    local res, bad_rockspecs = {}, {}
+
+   local function add(file)
+      table.insert(res, (file:gsub("^./", "")))
+   end
 
    for _, file in ipairs(files) do
       if file == "-" then
          table.insert(res, io.stdin)
       elseif utils.is_dir(file) then
          for _, file in ipairs(utils.extract_files(file, "%.lua$")) do
-            table.insert(res, file)
+            add(file)
          end
       elseif file:sub(-#".rockspec") == ".rockspec" then
          local related_files, err = expand_rockspec(file)
 
          if related_files then
             for _, file in ipairs(related_files) do
-               table.insert(res, file)
+               add(file)
             end
          else
-            table.insert(res, file)
+            add(file)
             bad_rockspecs[#res] = err
          end
       else
-         table.insert(res, file)
+         add(file)
       end
    end
 
@@ -241,7 +246,7 @@ if not args.no_config then
    config = get_config(args.config)
 end
 
-local file_names, bad_rockspecs = expand_files(args.files) -- TODO: remove './' from beginning of filenames
+local file_names, bad_rockspecs = expand_files(args.files)
 local files = remove_bad_rockspecs(file_names, bad_rockspecs)
 local report = luacheck(files, combine_config_and_options(config, arg.config, opts, files))
 insert_bad_rockspecs(report, file_names, bad_rockspecs)

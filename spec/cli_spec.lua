@@ -24,6 +24,14 @@ Total: 0 warnings / 0 errors in 1 file
       assert.equal(0, get_exitcode "spec/samples/good_code.lua")
    end)
 
+   it("removes ./ in the beginnings of file names", function()
+      assert.equal([[
+Checking spec/samples/good_code.lua               OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "./spec/samples/good_code.lua")
+   end)
+
    it("works for incorrect files", function()
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
