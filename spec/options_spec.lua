@@ -1,6 +1,6 @@
 local options = require "luacheck.options"
 
-local globals = {_ENV = (function() local _ENV = {}; return not _G end)()}
+local globals = {_ENV = (function() local _ENV = {}; return not _G end)() or nil}
 
 for k in pairs(_G) do
    globals[k] = true
