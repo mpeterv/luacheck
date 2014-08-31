@@ -84,7 +84,7 @@ end
 
 -- Takes old and new values of an option, returns final value. 
 local function overwrite(opt, old_value, new_value)
-   if type(old_value) == "table" or type(new_value) == "table" and opt ~= "std" then
+   if (type(old_value) == "table" or type(new_value) == "table") and opt ~= "std" then
       return utils.concat_arrays {old_value, new_value}
    else
       return new_value

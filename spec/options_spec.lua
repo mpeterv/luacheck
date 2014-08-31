@@ -66,6 +66,18 @@ describe("options", function()
          }))
       end)
 
+      it("opts.std overwrites old value", function()
+         assert.same({
+            std = {"bar"}
+         }, options.combine({
+            std = "min"
+         }, {
+            std = {"foo"}
+         }, {
+            std = {"bar"}
+         }))
+      end)
+
       it("vector options are concatenated with old values", function()
          assert.same({
             globals = {"foo", "bar"}
@@ -106,8 +118,11 @@ describe("options", function()
          }).globals)
       end)
 
-      pending("expands - to default globals")
-      pending("adds superset of 5.1 and 5.2 globals when compat == true")
-      pending("expands - to default globals")
+      it("opts.compat == true is equivalent to opts.std == max", function()
+         assert.same(
+            options.normalize({compat = true}).globals,
+            options.normalize({std = "max"}).globals
+         )
+      end)
    end)
 end)
