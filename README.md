@@ -29,7 +29,7 @@ $ [sudo] luarocks install luacheck
 To install current(development) version, download this repo and run: 
 
 ```bash
-$ [sudo] luarocks make rockspecs/luacheck-scm-2.rockspec
+$ [sudo] luarocks make rockspecs/luacheck-scm-5.rockspec
 ```
 
 ## Command-line interface

@@ -106,13 +106,16 @@ Total: 0 warnings / 0 errors in 1 file
    end)
 
    it("suppresses warnings output with -qq", function()
-      assert.equal([[
+      assert.equal([[Checking spec/samples/bad_code.lua                Failure
+Checking spec/samples/unused_code.lua             Failure
+
 Total: 14 warnings / 0 errors in 3 files
 ]], get_output "-qq spec/samples/*d_code.lua")
    end)
 
-   it("suppresses output with -qqq", function()
-      assert.equal("", get_output "-qqq spec/samples/*d_code.lua")
+   it("suppresses file info output with -qqq", function()
+      assert.equal([[Total: 14 warnings / 0 errors in 3 files
+]], get_output "-qqq spec/samples/*d_code.lua")
    end)
 
    it("allows to set warnings limit with -l", function()
@@ -395,6 +398,6 @@ Total: 0 warnings / 0 errors in 2 files
    end)
 
    it("expands folders", function()
-      assert.equal("Total: 29 warnings / 1 error in 11 files\n", get_output "spec/samples -qq")
+      assert.equal("Total: 29 warnings / 1 error in 11 files\n", get_output "spec/samples -qqq")
    end)
 end)

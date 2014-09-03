@@ -83,10 +83,10 @@ local function format(report, file_names, options)
 
    local buf = {}
 
-   if quiet <= 1 then
+   if quiet <= 2 then
       for i, file_report in ipairs(report) do
          if quiet == 0 or file_report.error or #file_report > 0 then
-            table.insert(buf, format_file_report(
+            table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
                file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color))
          end
       end
@@ -96,17 +96,15 @@ local function format(report, file_names, options)
       end
    end
 
-   if quiet <= 2 then
-      local function format_number(number, limit)
-         return color("%{bright}"..(number > limit and "%{red}" or "")..number)
-      end
-
-      table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
-         format_number(report.warnings, limit), plural(report.warnings),
-         format_number(report.errors, 0), plural(report.errors),
-         #report, plural(#report)
-      ))
+   local function format_number(number, limit)
+      return color("%{bright}"..(number > limit and "%{red}" or "")..number)
    end
+
+   table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
+      format_number(report.warnings, limit), plural(report.warnings),
+      format_number(report.errors, 0), plural(report.errors),
+      #report, plural(#report)
+   ))
 
    return table.concat(buf, "\n")
 end

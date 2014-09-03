@@ -83,8 +83,8 @@ local function get_args()
    parser:flag "-q" "--quiet"
       :count "0-3"
       :description [[Suppress output for files without warnings. 
-   -qq: Only print total number of warnings and errors. 
-   -qqq: Suppress output completely. ]]
+   -qq: Suppress output of warnings. 
+   -qqq: Only print total number of warnings and errors. ]]
 
    parser:flag "--no-color"
       :description "Do not color output"
@@ -262,9 +262,6 @@ local file_names, bad_rockspecs = expand_files(args.files)
 local files = remove_bad_rockspecs(file_names, bad_rockspecs)
 local report = luacheck(files, combine_config_and_options(config, arg.config, opts, files))
 insert_bad_rockspecs(report, file_names, bad_rockspecs)
-
-if args.quiet < 3 then
-   print(format(report, file_names, args))
-end
+print(format(report, file_names, args))
 
 os.exit(report.warnings <= args.limit and report.errors == 0 and 0 or 1)

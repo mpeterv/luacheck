@@ -88,8 +88,12 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
 }, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {quiet = 1})))
    end)
 
-   it("does not output file info with options.quiet >= 2", function()
-      assert.equal("Total: 2 warnings / 1 error in 4 files", remove_color(format({
+   it("does not output warnings with options.quiet >= 2", function()
+      assert.equal([[Checking stdin                                    Failure
+Checking foo.lua                                  Failure
+Checking baz.lua                                  Syntax error
+
+Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    warnings = 2,
    errors = 1,
    {
@@ -119,8 +123,8 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
 }, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {quiet = 2})))
    end)
 
-   it("returns empty string when options.quiet == 3", function()
-      assert.equal("", remove_color(format({
+   it("does not output file info with options.quiet == 3", function()
+      assert.equal("Total: 2 warnings / 1 error in 4 files", remove_color(format({
    warnings = 2,
    errors = 1,
    {
