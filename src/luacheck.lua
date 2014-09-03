@@ -55,8 +55,10 @@ end
 local function validate_options(items, opts)
    raw_validate_options(opts)
 
-   for i in ipairs(items) do
-      raw_validate_options(opts[i])
+   if opts ~= nil then
+      for i in ipairs(items) do
+         raw_validate_options(opts[i])
+      end
    end
 end
 
