@@ -48,6 +48,11 @@ local function get_args()
       :args "*"
       :count "*"
       :argname "<global>"
+   parser:option "--new-globals"
+      :description "Set custom globals. "
+      :args "*"
+      :count "*"
+      :argname "<global>"
    parser:flag "-c" "--compat"
       :description [[Adjust standard globals for Lua 5.1/5.2 compatibility. 
    Equivalent to --std=max. ]]
@@ -184,7 +189,7 @@ local function get_options(args)
       end
    end
 
-   for _, argname in ipairs {"globals", "ignore", "only"} do
+   for _, argname in ipairs {"globals", "new_globals", "ignore", "only"} do
       if #args[argname] > 0 then
          res[argname] = utils.concat_arrays(args[argname])
       end

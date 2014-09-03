@@ -31,6 +31,11 @@ local boolean_opt_false = {
    validate = is_boolean
 }
 
+local array_of_strings = {
+   default = {},
+   validate = is_array_of_strings
+}
+
 options.options = {
    global = boolean_opt_true,
    unused = boolean_opt_true,
@@ -40,18 +45,13 @@ options.options = {
    unused_globals = boolean_opt_true,
    compat = boolean_opt_false,
    allow_defined = boolean_opt_false,
-   globals = {
-      default = {},
-      validate = is_array_of_strings
-   },
+   globals = array_of_strings,
+   new_globals = array_of_strings,
    std = {
       default = "_G",
       validate = function(x) return stds[x] or is_array_of_strings(x) end
    },
-   ignore = {
-      default = {},
-      validate = is_array_of_strings
-   },
+   ignore = array_of_strings,
    only = {
       default = false,
       validate = is_array_of_strings
@@ -82,15 +82,6 @@ function options.validate(opts)
    return ok and is_valid, invalid_opt
 end
 
--- Takes old and new values of an option, returns final value. 
-local function overwrite(opt, old_value, new_value)
-   if (type(old_value) == "table" or type(new_value) == "table") and opt ~= "std" then
-      return utils.concat_arrays {old_value, new_value}
-   else
-      return new_value
-   end
-end
-
 -- Takes several options tables and combines them into one. 
 function options.combine(...)
    local res = {}
@@ -103,9 +94,17 @@ function options.combine(...)
             if res[opt] == nil then
                res[opt] = opts[opt]
             else
-               res[opt] = overwrite(opt, res[opt], opts[opt])
+               if opt == "globals" or opt == "ignore" or opt == "only" then
+                  res[opt] = utils.concat_arrays {res[opt], opts[opt]}
+               else
+                  res[opt] = opts[opt]
+               end
             end
          end
+      end
+
+      if opts.new_globals ~= nil then
+         res.globals = opts.new_globals
       end
    end
 

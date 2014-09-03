@@ -78,7 +78,7 @@ describe("options", function()
          }))
       end)
 
-      it("vector options are concatenated with old values", function()
+      it("globals, ignore and only options are concatenated with old values", function()
          assert.same({
             globals = {"foo", "bar"}
          }, options.combine({
@@ -86,6 +86,14 @@ describe("options", function()
          }, {
             globals = {"bar"}
          }))
+      end)
+
+      it("new_globals overwrites globals", function()
+         assert.same({"bar"}, options.combine({
+            globals = {"foo"}
+         }, {
+            new_globals = {"bar"}
+         }).globals)
       end)
    end)
 
