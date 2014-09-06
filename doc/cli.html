@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Command line interface &mdash; luacheck 0.5.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="luacheck 0.5.0 documentation" href="index.html"/>
+        <link rel="next" title="Configuration file" href="config.html"/>
+        <link rel="prev" title="Types of warnings" href="warnings.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> luacheck</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="warnings.html">Types of warnings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables">Unused variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#redefined-variables">Redefined variables</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Command line interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-options">Command line options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#config-format">Config format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-overrides">Per-file overrides</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="module.html#options">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">luacheck</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Command line interface</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/cli.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="command-line-interface">
+<h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h1>
+<p><tt class="docutils literal"><span class="pre">luacheck</span></tt> program accepts files, directories and <a class="reference external" href="http://www.luarocks.org/en/Rockspec_format">rockspecs</a> as arguments.</p>
+<ul class="simple">
+<li>Given a file, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check it.</li>
+<li>Given <tt class="docutils literal"><span class="pre">-</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check stdin.</li>
+<li>Given a directory, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension within it.</li>
+<li>Given a rockspec (a file with <tt class="docutils literal"><span class="pre">.rockspec</span></tt> extension), <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension mentioned in the rockspec in <tt class="docutils literal"><span class="pre">build.install.lua</span></tt>, <tt class="docutils literal"><span class="pre">build.install.bin</span></tt> and <tt class="docutils literal"><span class="pre">build.modules</span></tt> tables.</li>
+</ul>
+<p>The output of <tt class="docutils literal"><span class="pre">luacheck</span></tt> consists of separate reports for each checked file and ends with a summary:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ luacheck src
+Checking src/bad_code.lua                         Failure
+
+    src/bad_code.lua:3:16: unused variable helper
+    src/bad_code.lua:3:23: unused variable length argument
+    src/bad_code.lua:7:10: setting non-standard global variable embrace
+    src/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    src/bad_code.lua:9:11: accessing undefined variable hepler
+
+Checking src/good_code.lua                        OK
+Checking src/python_code.lua                      Syntax error
+Checking src/unused_code.lua                      Failure
+
+    src/unused_code.lua:3:18: unused argument baz
+    src/unused_code.lua:4:8: unused loop variable i
+    src/unused_code.lua:5:13: unused variable q
+    src/unused_code.lua:7:11: unused loop variable a
+    src/unused_code.lua:7:14: unused loop variable b
+    src/unused_code.lua:7:17: unused loop variable c
+    src/unused_code.lua:13:7: value assigned to variable x is unused
+    src/unused_code.lua:14:1: value assigned to variable x is unused
+    src/unused_code.lua:22:1: value assigned to variable z is unused
+
+Total: 14 warnings / 1 error in 4 files
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">luacheck</span></tt> exits with 0 if no warnings or errors occured and with 1 otherwise.</p>
+<div class="section" id="command-line-options">
+<span id="cliopts"></span><h2>Command line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h2>
+<p>Short options that do not take an argument can be combined into one, so that <tt class="docutils literal"><span class="pre">-qqu</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">-q</span> <span class="pre">-q</span> <span class="pre">-u</span></tt>. For long options, both <tt class="docutils literal"><span class="pre">--option</span> <span class="pre">value</span></tt> or <tt class="docutils literal"><span class="pre">--option=value</span></tt> can be used.</p>
+<p>Options taking several arguments can be used several time; <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">--ignore</span> <span class="pre">bar</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">bar</span></tt>.</p>
+<p>Note that options that may take several arguments, such as <tt class="docutils literal"><span class="pre">--globals</span></tt>, should not be used immidiately before positional arguments; given <tt class="docutils literal"><span class="pre">--globals</span> <span class="pre">foo</span> <span class="pre">bar</span> <span class="pre">file.lua</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will consider all <tt class="docutils literal"><span class="pre">foo</span></tt>, <tt class="docutils literal"><span class="pre">bar</span></tt> and <tt class="docutils literal"><span class="pre">file.lua</span></tt> global and then panic as there are no file names left.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="68%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Option</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-g</span></tt> | <tt class="docutils literal"><span class="pre">no-global</span></tt></td>
+<td>Filter out warnings related to global variables.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-r</span></tt> | <tt class="docutils literal"><span class="pre">no-redefined</span></tt></td>
+<td>Filter out warnings related to redefined variables.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-u</span></tt> | <tt class="docutils literal"><span class="pre">no-unused</span></tt></td>
+<td>Filter out warnings related to unused variables.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-a</span></tt> | <tt class="docutils literal"><span class="pre">no-unused-args</span></tt></td>
+<td>Filter out warnings related to unused arguments and loop variables.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-v</span></tt> | <tt class="docutils literal"><span class="pre">no-unused-values</span></tt></td>
+<td>Filter out warnings related to unused values.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--std</span> <span class="pre">&lt;std&gt;</span></tt></td>
+<td><p class="first">Set standard globals. <tt class="docutils literal"><span class="pre">&lt;std&gt;</span></tt> must be one of:</p>
+<ul class="last simple">
+<li><tt class="docutils literal"><span class="pre">_G</span></tt> - globals of the Lua interpreter <tt class="docutils literal"><span class="pre">luacheck</span></tt> runs on (default);</li>
+<li><tt class="docutils literal"><span class="pre">lua51</span></tt> - globals of Lua 5.1;</li>
+<li><tt class="docutils literal"><span class="pre">lua52</span></tt> - globals of Lua 5.2;</li>
+<li><tt class="docutils literal"><span class="pre">lua52c</span></tt> - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;</li>
+<li><tt class="docutils literal"><span class="pre">luajit</span></tt> - globals of LuaJIT 2.0;</li>
+<li><tt class="docutils literal"><span class="pre">min</span></tt> - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;</li>
+<li><tt class="docutils literal"><span class="pre">max</span></tt> - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;</li>
+<li><tt class="docutils literal"><span class="pre">none</span></tt> - no standard globals.</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--globals</span> <span class="pre">[&lt;global&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Add custom globals on top of standard ones.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--new-globals</span> <span class="pre">[&lt;global&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Set custom globals. Removes custom globals added previously.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-c</span></tt> | <tt class="docutils literal"><span class="pre">--compat</span></tt></td>
+<td>Equivalent to <tt class="docutils literal"><span class="pre">--std=max</span></tt>.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-d</span></tt> | <tt class="docutils literal"><span class="pre">--allow-defined</span></tt></td>
+<td>Allow defining globals by setting them. See <a class="reference internal" href="warnings.html#allowdefined"><em>Implicit definition</em></a>.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-unused-globals</span></tt></td>
+<td>Filter out warnings related to set but unused global variables.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">&lt;var&gt;</span> <span class="pre">[&lt;var&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Filter out warnings related to variables named <tt class="docutils literal"><span class="pre">&lt;var&gt;</span></tt>.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--only</span> <span class="pre">&lt;var&gt;</span> <span class="pre">[&lt;var&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Filter out warnings not related to variables named <tt class="docutils literal"><span class="pre">&lt;var&gt;</span></tt>.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-l</span> <span class="pre">&lt;limit&gt;</span></tt> | <tt class="docutils literal"><span class="pre">--limit</span> <span class="pre">&lt;limit&gt;</span></tt></td>
+<td>Exit with 0 if there are <tt class="docutils literal"><span class="pre">&lt;limit&gt;</span></tt> or less warnings (default: <tt class="docutils literal"><span class="pre">0</span></tt>).</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--config</span> <span class="pre">&lt;config&gt;</span></tt></td>
+<td>Path to custom configuration file (default: <tt class="docutils literal"><span class="pre">.luacheckrc</span></tt>).</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-config</span></tt></td>
+<td>Do not look up custom configuration file.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-q</span></tt> | <tt class="docutils literal"><span class="pre">--quiet</span></tt></td>
+<td><p class="first">Suppress report output for files without warnings.</p>
+<ul class="last simple">
+<li><tt class="docutils literal"><span class="pre">-qq</span></tt> - Suppress output of warnings.</li>
+<li><tt class="docutils literal"><span class="pre">-qqq</span></tt> - Only output summary.</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-color</span></tt></td>
+<td>Do not colorize output.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-h</span></tt> | <tt class="docutils literal"><span class="pre">--help</span></tt></td>
+<td>Show help and exit.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="config.html" class="btn btn-neutral float-right" title="Configuration file"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="warnings.html" class="btn btn-neutral" title="Types of warnings"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Peter Melnichenko.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

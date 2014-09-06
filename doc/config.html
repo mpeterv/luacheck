@@ -1,0 +1,223 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Configuration file &mdash; luacheck 0.5.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="luacheck 0.5.0 documentation" href="index.html"/>
+        <link rel="next" title="Luacheck module" href="module.html"/>
+        <link rel="prev" title="Command line interface" href="cli.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> luacheck</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="warnings.html">Types of warnings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables">Unused variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#redefined-variables">Redefined variables</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Configuration file</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#config-format">Config format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#per-file-overrides">Per-file overrides</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="module.html#options">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">luacheck</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Configuration file</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/config.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="configuration-file">
+<h1>Configuration file<a class="headerlink" href="#configuration-file" title="Permalink to this headline">¶</a></h1>
+<p>By default, <tt class="docutils literal"><span class="pre">luacheck</span></tt> tries to load configuration from <tt class="docutils literal"><span class="pre">.luacheckrc</span></tt> file in the current directory. Path to config can be set using <tt class="docutils literal"><span class="pre">--config</span></tt> option. Config loading can be disabled using <tt class="docutils literal"><span class="pre">--no-config</span></tt> flag.</p>
+<div class="section" id="config-format">
+<h2>Config format<a class="headerlink" href="#config-format" title="Permalink to this headline">¶</a></h2>
+<p>Config is simply a Lua script executed by <tt class="docutils literal"><span class="pre">luacheck</span></tt>. It may set various options by assigning to globals. See <a class="reference internal" href="module.html#opts"><em>Options</em></a>.</p>
+<p>An example of a config which makes <tt class="docutils literal"><span class="pre">luacheck</span></tt> ensure that only globals from the portable instersection of Lua 5.1, Lua 5.2 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
+<span class="n">unused_args</span> <span class="o">=</span> <span class="kc">false</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="per-file-overrides">
+<h2>Per-file overrides<a class="headerlink" href="#per-file-overrides" title="Permalink to this headline">¶</a></h2>
+<p>The envirment in which <tt class="docutils literal"><span class="pre">luacheck</span></tt> loads the config contains a special global <tt class="docutils literal"><span class="pre">files</span></tt>. When checking a file <tt class="docutils literal"><span class="pre">&lt;path&gt;</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will override options from the main config with entries from <tt class="docutils literal"><span class="pre">files[&lt;path&gt;]</span></tt>. For example, the following config re-enables detection of unused arguments only for <tt class="docutils literal"><span class="pre">myfile.lua</span></tt>:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
+<span class="n">unused_args</span> <span class="o">=</span> <span class="kc">false</span>
+
+<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="n">unused_args</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Note that <tt class="docutils literal"><span class="pre">files</span></tt> table supports autovivification, so that</p>
+<div class="highlight-lua"><div class="highlight"><pre><span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">].</span><span class="n">unused_args</span> <span class="o">=</span> <span class="kc">true</span>
+</pre></div>
+</div>
+<p>and</p>
+<div class="highlight-lua"><div class="highlight"><pre><span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="n">unused_args</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>are equivalent.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="module.html" class="btn btn-neutral float-right" title="Luacheck module"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cli.html" class="btn btn-neutral" title="Command line interface"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Peter Melnichenko.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

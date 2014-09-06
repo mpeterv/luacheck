@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Types of warnings &mdash; luacheck 0.5.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="luacheck 0.5.0 documentation" href="index.html"/>
+        <link rel="next" title="Command line interface" href="cli.html"/>
+        <link rel="prev" title="Luacheck documentation" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> luacheck</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Types of warnings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#global-variables">Global variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unused-variables">Unused variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#redefined-variables">Redefined variables</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#config-format">Config format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-overrides">Per-file overrides</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="module.html#options">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">luacheck</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Types of warnings</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/warnings.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="types-of-warnings">
+<h1>Types of warnings<a class="headerlink" href="#types-of-warnings" title="Permalink to this headline">¶</a></h1>
+<p>Luacheck generates warnings of three types:</p>
+<ul class="simple">
+<li>warnings related to global variables;</li>
+<li>warnings related to unused local variables and variables;</li>
+<li>warnings related to redefined local variables.</li>
+</ul>
+<div class="section" id="global-variables">
+<h2>Global variables<a class="headerlink" href="#global-variables" title="Permalink to this headline">¶</a></h2>
+<p>A global variable is defined if it is one of the standard globals (set using <tt class="docutils literal"><span class="pre">--std</span></tt> option in the command line and <tt class="docutils literal"><span class="pre">std</span></tt> option in the config) or custom globals (set using <tt class="docutils literal"><span class="pre">--globals</span></tt> option in the command line and <tt class="docutils literal"><span class="pre">globals</span></tt> option in the config).</p>
+<p>When an undefined global variable is accessed or set, a warning of corresponding subtype is generated.</p>
+<div class="section" id="implicit-definition">
+<span id="allowdefined"></span><h3>Implicit definition<a class="headerlink" href="#implicit-definition" title="Permalink to this headline">¶</a></h3>
+<p>If <tt class="docutils literal"><span class="pre">--allow_defined</span></tt> option is used, or <tt class="docutils literal"><span class="pre">allow_defined</span> <span class="pre">=</span> <span class="pre">true</span></tt> is in the config, global variables are automatically defined if they are set in one of the checked files. Luacheck will generate a warning if an implicitly defined global variable is never accessed.</p>
+</div>
+</div>
+<div class="section" id="unused-variables">
+<h2>Unused variables<a class="headerlink" href="#unused-variables" title="Permalink to this headline">¶</a></h2>
+<p>Luacheck generates warnings for all unused local variables except one named <tt class="docutils literal"><span class="pre">_</span></tt>. Detection of unused arguments and loop variables can be disabled using <tt class="docutils literal"><span class="pre">-a</span></tt> flag in the command line or <tt class="docutils literal"><span class="pre">unused_args</span> <span class="pre">=</span> <span class="pre">false</span></tt> in the config.</p>
+<div class="section" id="unused-values">
+<h3>Unused values<a class="headerlink" href="#unused-values" title="Permalink to this headline">¶</a></h3>
+<p>Luacheck also detects unused values: redundant assignments to variables which are then not used before another assignment. As an example, in the following snippet value assigned to <tt class="docutils literal"><span class="pre">foo</span></tt> on line 4 is unused, as it is always overwritten on line 7:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="kd">local</span> <span class="n">foo</span>
+
+<span class="k">if</span> <span class="n">condition</span><span class="p">()</span> <span class="k">then</span>
+   <span class="n">foo</span> <span class="o">=</span> <span class="n">expr1</span><span class="p">()</span>
+<span class="k">end</span>
+
+<span class="n">foo</span> <span class="o">=</span> <span class="n">expr2</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">foo</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+<div class="section" id="redefined-variables">
+<h2>Redefined variables<a class="headerlink" href="#redefined-variables" title="Permalink to this headline">¶</a></h2>
+<p>Luacheck detects declarations of local variables shadowing previous declarations in the same scope, unless the variable is named <tt class="docutils literal"><span class="pre">_</span></tt>.</p>
+<p>Note that it is <strong>not</strong> necessary to define a new local variable when overwritting an argument:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="kd">local</span> <span class="k">function</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+   <span class="kd">local</span> <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="ow">or</span> <span class="s2">&quot;</span><span class="s">default&quot;</span> <span class="c1">-- bad</span>
+<span class="k">end</span>
+
+<span class="kd">local</span> <span class="k">function</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+   <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="ow">or</span> <span class="s2">&quot;</span><span class="s">default&quot;</span> <span class="c1">-- good</span>
+<span class="k">end</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cli.html" class="btn btn-neutral float-right" title="Command line interface"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Luacheck documentation"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Peter Melnichenko.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

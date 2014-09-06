@@ -20,19 +20,19 @@ local function get_args()
       :argname "<file>"
 
    parser:flag "-g" "--no-global"
-      :description "Do not check for accessing global variables. "
+      :description "Filter out warnings related to global variables. "
    parser:flag "-r" "--no-redefined"
-      :description "Do not check for redefined variables. "
+      :description "Filter out warnings related to redefined variables. "
    parser:flag "-u" "--no-unused"
-      :description "Do not check for unused variables. "
+      :description "Filter out warnings related to unused variables. "
    parser:flag "-a" "--no-unused-args"
-      :description "Do not check for unused arguments and loop variables. "
+      :description "ilter out warnings related to unused arguments and loop variables. "
    parser:flag "-v" "--no-unused-values"
-      :description "Do not check for unused values. "
+      :description "Filter out warnings related to unused values. "
 
    parser:option "--std"
-      :description [[Set standard globals. <std> must be one of: 
-   _G - current globals(default); 
+      :description [[Set standard globals. <std> must be one of:
+   _G - globals of the current Lua interpreter(default); 
    lua51 - globals of Lua 5.1; 
    lua52 - globals of Lua 5.2; 
    lua52c - globals of Lua 5.2 compiled with LUA_COMPAT_ALL; 
@@ -44,44 +44,43 @@ local function get_args()
       :show_default(false)
       :convert(stds)
    parser:option "--globals"
-      :description "Add custom globals. "
+      :description "Add custom globals on top of standard ones. "
       :args "*"
       :count "*"
       :argname "<global>"
    parser:option "--new-globals"
-      :description "Set custom globals. "
+      :description "Set custom globals. Removes custom globals added previously. "
       :args "*"
       :count "*"
       :argname "<global>"
    parser:flag "-c" "--compat"
-      :description [[Adjust standard globals for Lua 5.1/5.2 compatibility. 
-   Equivalent to --std=max. ]]
+      :description "Equivalent to --std=max. "
    parser:flag "-d" "--allow-defined"
       :description "Allow defining globals by setting them. "
    parser:flag "--no-unused-globals"
-      :description "Do not check for set but unused globals. "
+      :description "Filter out warnings related to set but unused global variables. "
 
    parser:option "--ignore"
-      :description "Do not report warnings related to these variables. "
+      :description "Filter out warnings related to these variables. "
       :args "+"
       :count "*"
       :argname "<var>"
    parser:option "--only"
-      :description "Only report warnings related to these variables. "
+      :description "Filter out warnings not related to these variables. "
       :args "+"
       :count "*"
       :argname "<var>"
 
    parser:option "-l" "--limit"
-      :description "Exit with 0 if there are <limit> or less warnings. "
+      :description "Exit with 0 if there are <limit> or less warnings."
       :default("0")
       :convert(tonumber)
 
    local config_opt = parser:option "--config"
-      :description ("Path to custom configuration file. (default: "..default_config..")")
+      :description ("Path to configuration file. (default: "..default_config..")")
 
    local no_config_opt = parser:flag "--no-config"
-      :description "Do not look up custom configuration file. "
+      :description "Do not look up configuration file. "
 
    parser:mutex(config_opt, no_config_opt)
 
