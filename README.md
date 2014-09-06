@@ -28,7 +28,7 @@ Total: 2 warnings / 0 errors in 1 file
 
 ## Documentation
 
-Documentation is available [online](http://luacheck.rtfd.org). If Luacheck has been installed using LuaRocks, it can be browsed offline using `luarocks doc luacheck` command.
+Documentation is available [online](http://luacheck.readthedocs.org). If Luacheck has been installed using LuaRocks, it can be browsed offline using `luarocks doc luacheck` command.
 
 ## Development
 
