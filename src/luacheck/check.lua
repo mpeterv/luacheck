@@ -53,7 +53,13 @@ local function check(ast)
 
             while scope do
                if scope == outer then
-                  add_warning(variable.value.node, "unused", "value", variable.type)
+                  local vartype = variable.type
+
+                  if variable.node ~= variable.value.node then
+                     vartype = "var"
+                  end
+
+                  add_warning(variable.value.node, "unused", "value", vartype)
                   return
                end
 

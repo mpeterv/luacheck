@@ -115,6 +115,22 @@ print(a)
       ]])
    end)
 
+   it("reports vartype == var when the unused value is not the initial", function()
+      assert.same({
+         {type = "unused", subtype = "value", vartype = "arg", name = "b", line = 1, column = 23},
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 2, column = 4},
+      }, get_report[[
+local function foo(a, b)
+   a = a or "default"
+   a = 42
+   b = 7
+   return a, b
+end
+
+return foo
+      ]])
+   end)
+
    it("does not detect unused values in loops", function()
       assert.same({
          {type = "global", subtype = "access", vartype = "global", name = "print", line = 3, column = 4},
