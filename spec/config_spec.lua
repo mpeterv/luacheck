@@ -56,22 +56,18 @@ Total: 4 warnings / 0 errors in 2 files
    end)
 
    describe("error handling", function()
-      it("handles config with syntax errors", function()
+      it("raises fatal error on config with syntax errors", function()
          assert.equal([[
-Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error
-Checking spec/samples/empty.lua                   OK
-
-Total: 0 warnings / 0 errors in 1 file
+Fatal error: Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error
 ]], get_output "spec/samples/empty.lua --config=spec/configs/bad_config.luacheckrc")
+         assert.equal(3, get_exitcode "spec/samples/empty.lua --config=spec/configs/bad_config.luacheckrc")
       end)
 
-      it("handles non-existent config", function()
+      it("raises fatal error on non-existent config", function()
          assert.equal([[
-Couldn't load configuration from spec/configs/config_404.luacheckrc: I/O error
-Checking spec/samples/empty.lua                   OK
-
-Total: 0 warnings / 0 errors in 1 file
+Fatal error: Couldn't load configuration from spec/configs/config_404.luacheckrc: I/O error
 ]], get_output "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
+         assert.equal(3, get_exitcode "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
       end)
    end)
 

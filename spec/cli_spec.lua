@@ -133,7 +133,7 @@ Total: 5 warnings / 0 errors in 1 file
       assert.equal(0, get_exitcode "spec/samples/bad_code.lua -l5")
       assert.equal(0, get_exitcode "spec/samples/bad_code.lua --limit=10")
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua --limit=1")
-      assert.equal(1, get_exitcode "spec/samples/python_code.lua --limit=10")
+      assert.equal(2, get_exitcode "spec/samples/python_code.lua --limit=10")
    end)
 
    it("allows to ignore some types of warnings", function()
@@ -294,7 +294,7 @@ Checking spec/samples/absent_code.lua             I/O error
 
 Total: 0 warnings / 2 errors in 2 files
 ]], get_output "spec/samples/python_code.lua spec/samples/absent_code.lua")
-      assert.equal(1, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua")
+      assert.equal(2, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua")
    end)
 
    it("expands rockspecs", function()
