@@ -101,7 +101,7 @@ for i in pairs{} do end
    it("detects unused values", function()
       assert.same({
          {type = "unused", subtype = "value", vartype = "var", name = "a", line = 5, column = 4},
-         {type = "global", subtype = "access", vartype = "global", name = "print", line = 9, column = 1},
+         {type = "global", subtype = "access", vartype = "global", name = "print", line = 9, column = 1}
       }, get_report[[
 local a
 if true then
@@ -115,10 +115,41 @@ print(a)
       ]])
    end)
 
+   it("does not consider a variable initialized if it can't get a value due to short rhs", function()
+      assert.same({}, get_report[[
+local a, b = "foo"
+b = "bar"
+return a, b
+      ]])
+   end)
+
+   it("considers a variable initialized if short rhs ends with potential multivalue", function()
+      assert.same({
+         {type = "unused", subtype = "value", vartype = "var", name = "b", line = 2, column = 13}
+      }, get_report[[
+return function(...)
+   local a, b = ...
+   b = "bar"
+   return a, b
+end
+      ]])
+   end)
+
+   it("considers a variable assigned even if it can't get a value due to short rhs (it still gets nil)", function()
+      assert.same({
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 1, column = 7},
+         {type = "unused", subtype = "value", vartype = "var", name = "b", line = 1, column = 10}
+      }, get_report[[
+local a, b = "foo", "bar"
+a, b = "bar"
+return a, b
+      ]])
+   end)
+
    it("reports vartype == var when the unused value is not the initial", function()
       assert.same({
          {type = "unused", subtype = "value", vartype = "arg", name = "b", line = 1, column = 23},
-         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 2, column = 4},
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 2, column = 4}
       }, get_report[[
 local function foo(a, b)
    a = a or "default"

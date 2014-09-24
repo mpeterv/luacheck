@@ -49,12 +49,19 @@ describe("test luacheck.scan", function()
          "VAR z";
          "VAR c";
          "INIT z";
-         "INIT c";
+         --
+         "ACCESS f";
+         "VAR d";
+         "VAR b";
+         "INIT d";
+         "INIT b";
+         --
          "END";
       }, get_calls[[
          local a = 5
          local b, c
          local z, c = true
+         local d, b = f()
       ]])
    end)
 

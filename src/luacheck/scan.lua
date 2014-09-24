@@ -37,9 +37,13 @@ local function scan_names(node, callbacks, type_, is_init)
 end
 
 local function scan_assignment(node, callbacks, is_init)
+   local rhs_last_tag = node[2][#node[2]].tag
+   local rhs_unpacks = (rhs_last_tag == "Dots") or (rhs_last_tag == "Call") or (
+      rhs_last_tag == "Invoke")
+
    for i=1, #node[1] do
       if node[1][i].tag == "Id" then
-         if #node[2] > 0 then
+         if not is_init or rhs_unpacks or (i <= #node[2]) then
             callbacks.on_assignment(node[1][i], is_init)
          end
       else
@@ -140,13 +144,13 @@ function tags.Set(node, callbacks)
 end
 
 function tags.Local(node, callbacks)
-   if node[2] then
+   if #node[2] > 0 then
       scan_inner(node[2], callbacks)
    end
 
    scan_names(node[1], callbacks, "var")
 
-   if node[2] then
+   if #node[2] > 0 then
       scan_assignment(node, callbacks, true)
    end
 end
