@@ -72,7 +72,7 @@ local function build_graph(closure, intel)
             elseif tag == "If" then
                local after_if_node = new_node()
 
-               for i=1, #stmt, 2 do
+               for i=1, #stmt-1, 2 do
                   head = append_node(head, stmt[i])
                   add_edge(build_line(stmt[i+1], head), after_if_node)
                end
@@ -138,7 +138,9 @@ end
 -- graph := {nexts = {graph, ...}, prevs = {graph, ...}, ast_node = ast_node | nil}
 -- Each expression in the ast is mentioned exactly once in the graphs.
 -- 
--- Example usage: https://gist.github.com/mpeterv/d1741738876e9923e77c
+-- Example usage:
+--    pfg printer: https://gist.github.com/mpeterv/d1741738876e9923e77c
+--    unreachable code detector: https://gist.github.com/mpeterv/65eb04e36f68a866dc58
 -- Will be used to resolve local variables and find unreachable code.
 -- TODO: implement intel.closures, intel.gotos
 -- TODO: tests
