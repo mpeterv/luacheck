@@ -1,6 +1,5 @@
-local parser = require "metalua.compiler".new()
-
 local check = require "luacheck.check"
+local parse = require "luacheck.parser"
 local filter = require "luacheck.filter"
 local options = require "luacheck.options"
 local utils = require "luacheck.utils"
@@ -14,10 +13,9 @@ local function get_report(file)
       return {error = "I/O"}
    end
 
-   local ast
+   local ast, _ = parse(src)
 
-   if not pcall(function()
-         ast = parser:src_to_ast(src) end) then
+   if not ast then
       return {error = "syntax"}
    end
 

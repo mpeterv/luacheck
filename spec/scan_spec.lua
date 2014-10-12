@@ -1,8 +1,8 @@
 local scan = require "luacheck.scan"
-local parser = require "metalua.compiler".new()
+local parse = require "luacheck.parser"
 
 local function get_calls(source)
-   local ast = assert(parser:src_to_ast(source))
+   local ast = assert(parse(source))
 
    local result = {}
    local callbacks = {

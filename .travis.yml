@@ -9,9 +9,9 @@ before_install:
   - bash .travis_setup.sh
 
 install:
-  - sudo luarocks make rockspecs/luacheck-scm-5.rockspec
+  - sudo luarocks make rockspecs/luacheck-scm-6.rockspec
   - sudo luarocks install busted
 
 script:
   - busted spec
-  - luacheck rockspecs/luacheck-scm-5.rockspec
+  - luacheck rockspecs/luacheck-scm-6.rockspec

@@ -19,10 +19,10 @@ local function check(ast)
          subtype = subtype,
          vartype = vartype,
          name = node[1],
-         line = node.lineinfo.first.line,
-         column = node.lineinfo.first.column,
-         prev_line = prev_node and prev_node.lineinfo.first.line,
-         prev_column = prev_node and prev_node.lineinfo.first.column
+         line = node.line,
+         column = node.column,
+         prev_line = prev_node and prev_node.line,
+         prev_column = prev_node and prev_node.column
       })
    end
 
