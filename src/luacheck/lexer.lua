@@ -62,9 +62,6 @@ local simple_escapes = {
 
 -- Returns function which when called returns next token, its payload and location.
 local function lexer(src)
-   -- TODO: put all bytes in array in several sbyte calls.
-   -- {sbyte(src, 1, #src)} may overflow stack, but a few sbyte(src, i*bufsize, (i+1)*bufsize) calls with
-   --    buffsize at about 100 should be safe and may speed up everything.
    local line
    local line_offset  -- Offset of the last line start.
    local offset
@@ -621,7 +618,6 @@ local function lexer(src)
    local lex_alpha = load_ident
 
    local function lex_any(b)
-      -- TODO: precompute?
       token = schar(b)
    end
 

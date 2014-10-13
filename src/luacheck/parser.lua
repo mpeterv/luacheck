@@ -134,14 +134,13 @@ local function parse_table(state)
    skip_token(state)  -- Skip "{"
 
    repeat
-      local token = state.token
-      if token == "}" then
+      if state.token == "}" then
          break
       else
          local lhs, rhs
          local item_location = location(state)
 
-         if token == "TK_NAME" then
+         if state.token == "TK_NAME" then
             local name = state.payload
             skip_token(state)  -- Skip name.
 
@@ -230,10 +229,9 @@ local function parse_function_expression(state)
 end
 
 local function parse_prefix_expression(state)
-   local token = state.token
-   if token == "TK_NAME" then
+   if state.token == "TK_NAME" then
       return parse_var(state)
-   elseif token == "(" then
+   elseif state.token == "(" then
       skip_token(state)  -- Skip "("
       local expression = parse_expression(state)
       check_and_skip_token(state, ")")
@@ -244,8 +242,7 @@ local function parse_prefix_expression(state)
 end
 
 local function parse_call_arguments(state)
-   local token = state.token
-   if token == "(" then
+   if state.token == "(" then
       skip_token(state)  -- Skip "(".
 
       if state.token == ")" then
@@ -256,7 +253,7 @@ local function parse_call_arguments(state)
          check_and_skip_token(state, ")")
          return args
       end
-   elseif token == "{" then
+   elseif state.token == "{" then
       return {parse_table(state)}
    else
       -- token == TK_STRING.
@@ -400,10 +397,9 @@ local function parse_subexpression(state, limit)
       expression, is_prefix = parse_simple_expression(state)
    end
 
-   local binary_operator
    -- Expand while operators have priorities higher than `limit`.
    while true do
-      binary_operator = binary_operators[state.token]
+      local binary_operator = binary_operators[state.token]
 
       if not binary_operator or left_priorities[binary_operator] <= limit then
          break
@@ -421,9 +417,9 @@ end
 
 -- Additionally returns whether expression is inside parentheses.
 function parse_expression(state)
-   local token = state.token
+   local first_token = state.token
    local expression, is_prefix = parse_subexpression(state, 0)
-   return expression, is_prefix and token == "("
+   return expression, is_prefix and first_token == "("
 end
 
 local function parse_if(state)
@@ -467,8 +463,7 @@ local function parse_for(state)
    skip_token(state)  -- Skip "for".
    local first_var = parse_var(state)
 
-   local token = state.token
-   if token == "=" then
+   if state.token == "=" then
       -- Numeric "for" loop.
       ast_node.tag = "Fornum"
       skip_token(state)
@@ -483,7 +478,7 @@ local function parse_for(state)
 
       check_and_skip_token(state, "TK_DO")
       ast_node[#ast_node+1] = parse_block(state)
-   elseif token == "," or token == "TK_IN" then
+   elseif state.token == "," or state.token == "TK_IN" then
       -- Generic "for" loop.
       ast_node.tag = "Forin"
 
@@ -593,9 +588,8 @@ local closing_tokens = {
 local function parse_return(state)
    local return_location = location(state)
    skip_token(state)  -- Skip "return".
-   
-   local token = state.token
-   if closing_tokens[token] or token == ";" then
+
+   if closing_tokens[state.token] or state.token == ";" then
       -- No return values.
       return init_ast_node({}, return_location, "Return")
    else
@@ -618,7 +612,7 @@ local function parse_goto(state)
 end
 
 local function parse_expression_statement(state)
-   local token = state.token
+   local first_token = state.token
    local primary_expression, is_prefix = parse_primary_expression(state)
 
    local tag = primary_expression.tag
@@ -627,7 +621,7 @@ local function parse_expression_statement(state)
       return primary_expression
    else
       -- An assignment.
-      if is_prefix and token == "(" then
+      if is_prefix and first_token == "(" then
          -- (lhs) = rhs is invalid.
          error({})
       end
@@ -635,10 +629,10 @@ local function parse_expression_statement(state)
       local lhs = {primary_expression}
 
       while test_and_skip_token(state, ",") do
-         token = state.token
+         first_token = state.token
          lhs[#lhs+1], is_prefix = parse_primary_expression(state)
 
-         if is_prefix and token == "(" then
+         if is_prefix and first_token == "(" then
             error({})
          end
       end
@@ -671,14 +665,14 @@ function parse_block(state)
    local block = {}
 
    while not closing_tokens[state.token] do
-      local token = state.token
+      local first_token = state.token
 
-      if token == ";" then
+      if first_token == ";" then
          skip_token(state)
       else
          block[#block+1] = parse_statement(state)
 
-         if token == "TK_RETURN" then
+         if first_token == "TK_RETURN" then
             -- "return" must be the last statement.
             -- However, one ";" after it is allowed.
             test_and_skip_token(state, ";")
