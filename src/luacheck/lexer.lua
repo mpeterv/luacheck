@@ -22,6 +22,26 @@ local BYTE_LT, BYTE_GT = sbyte("<"), sbyte(">")
 local BYTE_LF, BYTE_CR = sbyte("\n"), sbyte("\r")
 local BYTE_SPACE, BYTE_FF, BYTE_TAB, BYTE_VTAB = sbyte(" "), sbyte("\f"), sbyte("\t"), sbyte("\v")
 
+local function hex_char(b)
+   if BYTE_0 <= b and b <= BYTE_9 then
+      return b-BYTE_0
+   elseif BYTE_a <= b and b <= BYTE_f then
+      return 10+b-BYTE_a
+   elseif BYTE_A <= b and b <= BYTE_F then
+      return 10+b-BYTE_A
+   else
+      return nil
+   end
+end
+
+local function dec_char(b)
+   if BYTE_0 <= b and b <= BYTE_9 then
+      return b-BYTE_0
+   end
+
+   return nil
+end
+
 local keywords = {
    ["and"] = "TK_AND",
    ["break"] = "TK_BREAK",
@@ -48,16 +68,16 @@ local keywords = {
 }
 
 local simple_escapes = {
-   [sbyte("a")] = "\a",
-   [sbyte("b")] = "\b",
-   [sbyte("f")] = "\f",
-   [sbyte("n")] = "\n",
-   [sbyte("r")] = "\r",
-   [sbyte("t")] = "\t",
-   [sbyte("v")] = "\v",
-   [BYTE_BSLASH] = "\\",
-   [BYTE_QUOTE] = "'",
-   [BYTE_DQUOTE] = '"'
+   [sbyte("a")] = sbyte("\a"),
+   [sbyte("b")] = sbyte("\b"),
+   [sbyte("f")] = sbyte("\f"),
+   [sbyte("n")] = sbyte("\n"),
+   [sbyte("r")] = sbyte("\r"),
+   [sbyte("t")] = sbyte("\t"),
+   [sbyte("v")] = sbyte("\v"),
+   [BYTE_BSLASH] = BYTE_BSLASH,
+   [BYTE_QUOTE] = BYTE_QUOTE,
+   [BYTE_DQUOTE] = BYTE_DQUOTE
 }
 
 -- Returns function which when called returns next token, its payload and location.
@@ -67,96 +87,58 @@ local function lexer(src)
    local offset
    local token
    local payload
+   local byte
 
-   -- Called _after_ the first character of newline(b) has been skipped.
-   local function skip_newline(b)
-      local b2 = sbyte(src, offset)
+   local function next_byte(inc)
+      inc = inc or 1
+      offset = offset+inc
+      return sbyte(src, offset)
+   end
 
-      if b2 ~= b and (b2 == BYTE_LF or b2 == BYTE_CR) then
-         offset = offset+1
+   -- All lexing subroutines but load_long_string take the current character as an argument.
+   -- All lexing subroutines return next character after what they have lexed.
+
+   -- Returns the first character after the newline.
+   local function skip_newline(newline)
+      local b = next_byte()
+
+      if b ~= newline and (b == BYTE_LF or b == BYTE_CR) then
+         b = next_byte()
       end
 
       line = line+1
       line_offset = offset
+      return b
    end
 
-   -- Returns offset of last character before newline.
-   local function skip_line()
-      local b
-
-      repeat
-         b = sbyte(src, offset)
-         offset = offset+1
-      until b == BYTE_LF or b == BYTE_CR or b == nil
-
-      local last = offset-2
-
-      if b ~= nil then
-         skip_newline(b)
+   -- Returns the first newline character or nil.
+   local function skip_till_newline(b)
+      while b ~= BYTE_LF and b ~= BYTE_CR and b ~= nil do 
+         b = next_byte()
       end
 
-      return last
+      return b
    end
 
-   -- Forward declaration.
-   local skip_space
-
-   local function hex_char(b)
-      if BYTE_0 <= b and b <= BYTE_9 then
-         return b-BYTE_0
-      elseif BYTE_a <= b and b <= BYTE_f then
-         return 10+b-BYTE_a
-      elseif BYTE_A <= b and b <= BYTE_F then
-         return 10+b-BYTE_A
-      else
-         return nil
-      end
-   end
-
-   local function dec_char(b)
-      if BYTE_0 <= b and b <= BYTE_9 then
-         return b-BYTE_0
-      end
-
-      return nil
-   end
-
-   -- Skips "[=*[" or "]=*]" and returns number of "="s.
-   -- If the char after last "=" is not bracket, result is -(number of "="s)-1,
-   --    and the char is _not_ skipped.
-   -- Called _after_ first bracket has been skipped.
-   local function skip_long_bracket(bracket)
+   -- Skips "[=*" or "]=*". Returns next character and number of "="s.
+   local function skip_long_bracket()
       local start = offset
-      local b
+      local b = next_byte()
 
-      while true do
-         b = sbyte(src, offset)
-         
-         if b == BYTE_EQ then
-            offset = offset+1
-         else
-            break
-         end
+      while b == BYTE_EQ do
+         b = next_byte()
       end
 
-      if b == bracket then
-         local res = offset-start
-         offset = offset+1
-         return res
-      else
-         return start-offset-1
-      end
+      return b, offset-start-1
    end
 
-   -- Called after opening long bracket has been skipped.
+   -- Called after the opening "[=*" has been skipped.
    local function load_long_string(opening_long_bracket)
-      -- If it starts with a newline, skip it.
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
+      -- If it is a newline, skip it.
       if b == BYTE_LF or b == BYTE_CR then
-         offset = offset+1
-         skip_newline(b)
-         b = sbyte(src, offset)
+         b = skip_newline(b)
       end
 
       local lines = {}
@@ -168,32 +150,34 @@ local function lexer(src)
             -- Add the finished line.
             lines[#lines+1] = ssub(src, line_start, offset-1)
 
-            offset = offset+1
-            skip_newline(b)
+            b = skip_newline(b)
             line_start = offset
          elseif b == BYTE_CBRACK then
-            offset = offset+1
+            local long_bracket
+            b, long_bracket = skip_long_bracket()
 
-            if skip_long_bracket(BYTE_CBRACK) == opening_long_bracket then
+            if b == BYTE_CBRACK and long_bracket == opening_long_bracket then
                break
             end
          elseif b == nil then
             -- Unfinished long string.
             error({})
          else
-            offset = offset+1
+            b = next_byte()
          end
-
-         b = sbyte(src, offset)
       end
 
       -- Add last line.
-      lines[#lines+1] = ssub(src, line_start, offset-opening_long_bracket-3)
+      lines[#lines+1] = ssub(src, line_start, offset-opening_long_bracket-2)
       payload = tconcat(lines, "\n")
+      return next_byte()
    end
 
+   -- Forward declaration.
+   local skip_space
+
    local function load_short_string(quote)
-      local b = sbyte(src, offset)
+      local b = next_byte()
       local chunks  -- Buffer is only required when there are escape sequences.
       local chunk_start = offset
 
@@ -212,37 +196,33 @@ local function lexer(src)
                chunks[#chunks+1] = ssub(src, chunk_start, offset-1)
             end
 
-            offset = offset+1
-            b = sbyte(src, offset)
+            b = next_byte()
 
             -- The final character to be put.
-            local c = simple_escapes[b]
+            local c
+
+            local escape_byte = simple_escapes[b]
 
             -- TODO: in \', \", \\ one char chunk can be avoided (added to the next one).
-            if c then  -- Is it a simple escape sequence?
-               offset = offset+1
-               b = sbyte(src, offset)
+            if escape_byte then  -- Is it a simple escape sequence?
+               b = next_byte()
+               c = schar(escape_byte)
             elseif b == BYTE_LF or b == BYTE_CR then
-               offset = offset+1
-               skip_newline(b)
                c = "\n"
-               b = sbyte(src, offset)
+               b = skip_newline(b)
             elseif b == BYTE_x then
                -- Hexadecimal escape.
-               offset = offset+1
-               b = sbyte(src, offset)
+               b = next_byte()
                -- Exactly two hexadecimal digits.
                local c1, c2
 
                if b then
                   c1 = hex_char(b)
-                  offset = offset+1
-                  b = sbyte(src, offset)
+                  b = next_byte()
 
                   if b then
                      c2 = hex_char(b)
-                     offset = offset+1
-                     b = sbyte(src, offset)
+                     b = next_byte()
                   end
                end
 
@@ -255,31 +235,27 @@ local function lexer(src)
                -- TODO: here be utf magic.
             elseif b == BYTE_z then
                -- Zap following span of spaces.
-               offset = offset+1
                b = skip_space()
             elseif BYTE_0 <= b and b <= BYTE_9 then
                -- Decimal escape.
                local cb = b-BYTE_0
 
                -- Up to three decimal digits.
-               offset = offset+1
-               b = sbyte(src, offset)
+               b = next_byte()
 
                if b then
                   local c2 = dec_char(b)
 
                   if c2 then
                      cb = 10*cb + c2
-                     offset = offset+1
-                     b = sbyte(src, offset)
+                     b = next_byte()
 
                      if b then
                         local c3 = dec_char(b)
 
                         if c3 then
                            cb = 10*cb + c3
-                           offset = offset+1
-                           b = sbyte(src, offset)
+                           b = next_byte()
                         end
                      end
                   end
@@ -304,10 +280,11 @@ local function lexer(src)
             -- Unfinished short string.
             error({})
          else
-            offset = offset+1
-            b = sbyte(src, offset)
+            b = next_byte()
          end
       end
+
+      -- Offset now points at the closing quote.
 
       if chunks then
          -- Put last chunk into buffer.
@@ -321,8 +298,8 @@ local function lexer(src)
          payload = ssub(src, chunk_start, offset-1)
       end
 
-      offset = offset+1  -- Skip closing quote.
       token = "TK_STRING"
+      return next_byte()
    end
 
    -- Payload for a number is simply a substring.
@@ -330,63 +307,49 @@ local function lexer(src)
    --    parsing it into actual number may be problematic.
    -- It is not needed currently anyway as Luacheck does not do static evaluation yet.
    local function load_number(b)
-      local start = offset-1
+      local start = offset
 
       local exp_lower, exp_upper = BYTE_e, BYTE_E
       local is_digit = dec_char
-      local has_digits = false
+      local has_digits = false  -- TODO: use offsets to determine if there were digits.
       local is_float = false
 
       if b == BYTE_0 then
-         b = sbyte(src, offset)
+         b = next_byte()
 
          if b == BYTE_x or b == BYTE_X then
             exp_lower, exp_upper = BYTE_p, BYTE_P
             is_digit = hex_char
-            offset = offset+1
-            b = sbyte(src, offset)
+            b = next_byte()
          else
             has_digits = true
          end
-      elseif b == BYTE_DOT then
-         -- Backtrack to dot.
-         offset = offset-1
-      else
-         -- It is a decimal digit.
-         b = sbyte(src, offset)
-         has_digits = true
       end
 
       while b ~= nil and is_digit(b) do
-         offset = offset+1
+         b = next_byte()
          has_digits = true
-         b = sbyte(src, offset)
       end
 
       if b == BYTE_DOT then
          -- Fractional part.
          is_float = true
-         -- Skip dot.
-         offset = offset+1
-         b = sbyte(src, offset)
+         b = next_byte()  -- Skip dot.
 
          while b ~= nil and is_digit(b) do
-            offset = offset+1
+            b = next_byte()
             has_digits = true
-            b = sbyte(src, offset)
          end
       end
 
       if b == exp_lower or b == exp_upper then
          -- Exponent part.
          is_float = true
-         offset = offset+1
-         b = sbyte(src, offset)
+         b = next_byte()
 
          -- Skip optional sign.
          if b == BYTE_PLUS or b == BYTE_DASH then
-            offset = offset+1
-            b = sbyte(src, offset)
+            b = next_byte()
          end
 
          -- Exponent consists of one or more decimal digits.
@@ -395,15 +358,18 @@ local function lexer(src)
          end
 
          repeat
-            offset = offset+1
-            b = sbyte(src, offset)
+            b = next_byte()
          until b == nil or not dec_char(b)
+      end
+
+      if not has_digits then
+         error({})
       end
 
       -- Is it cdata literal?
       if b == BYTE_i or b == BYTE_I then
          -- It is complex literal. Skip "i" or "I".
-         offset = offset+1
+         b = next_byte()
       else
          -- uint64_t and int64_t literals can not be fractional.
          if not is_float then
@@ -413,7 +379,7 @@ local function lexer(src)
 
                if (b1 == BYTE_l or b1 == BYTE_L) and (b2 == BYTE_l or b2 == BYTE_L) then
                   -- It is uint64_t literal.
-                  offset = offset+3
+                  b = next_byte(3)
                end
             elseif b == BYTE_l or b == BYTE_L then
                -- It may be uint64_t or int64_t literal.
@@ -422,38 +388,30 @@ local function lexer(src)
                if b1 == BYTE_l or b1 == BYTE_L then
                   if b2 == BYTE_u or b2 == BYTE_U then
                      -- It is uint64_t literal.
-                     offset = offset+3
+                     b = next_byte(3)
                   else
                      -- It is int64_t literal.
-                     offset = offset+2
+                     b = next_byte(2)
                   end
                end
             end
          end
       end
 
-      if has_digits then
-         payload = ssub(src, start, offset-1)
-         token = "TK_NUMBER"
-      else
-         error({})
-      end
+      payload = ssub(src, start, offset-1)
+      token = "TK_NUMBER"
+      return b
    end
 
    local function load_ident()
-      local start = offset-1
+      local start = offset
+      local b = next_byte()
 
-      while true do
-         local b = sbyte(src, offset)
-
-         -- TODO: use main jump table?
-         if (BYTE_a <= b and b <= BYTE_z) or
-               (BYTE_A <= b and b <= BYTE_Z) or
-               (BYTE_0 <= b and b <= BYTE_9) or b == BYTE_LDASH then
-            offset = offset+1
-         else
-            break
-         end
+      -- TODO: use main jump table?
+      while (BYTE_a <= b and b <= BYTE_z) or
+            (BYTE_A <= b and b <= BYTE_Z) or
+            (BYTE_0 <= b and b <= BYTE_9) or b == BYTE_LDASH do
+         b = next_byte()
       end
 
       local ident = ssub(src, start, offset-1)
@@ -462,154 +420,168 @@ local function lexer(src)
       if keyword then
          token = keyword
       else
-         token = "TK_NAME"
          payload = ident
+         token = "TK_NAME"
       end
-   end
 
-   -- All lex_* functions are called _after_ the char has been skipped.
+      return b
+   end
 
    local lex_newline = skip_newline
 
-   local lex_space = false
+   local lex_space = next_byte
 
    local function lex_dash()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       -- Is it "-" or comment?
       if b ~= BYTE_DASH then
          token = "-"
       else
          -- It is a comment.
-         offset = offset+1
+         b = next_byte()
          local start = offset
-         b = sbyte(src, offset)
 
          -- Is it a long comment?
          if b == BYTE_OBRACK then
-            offset = offset+1
-            local long_bracket = skip_long_bracket(BYTE_OBRACK)
+            local long_bracket
+            b, long_bracket = skip_long_bracket()
 
-            if long_bracket >= 0 then
-               load_long_string(long_bracket)
+            if b == BYTE_CBRACK then
+               b = load_long_string(long_bracket)
             else
                -- Short comment.
-               payload = ssub(src, start, skip_line())
+               b = skip_till_newline(b)
+               payload = ssub(src, start, offset-1)
+               b = skip_newline(b)
             end
          else
             -- Short comment.
-            payload = ssub(src, start, skip_line())
+            b = skip_till_newline(b)
+            payload = ssub(src, start, offset-1)
+            b = skip_newline(b)
          end
 
          token = "TK_COMMENT"
       end
+
+      return b
    end
 
    local function lex_bracket()
       -- Is it "[" or long string?
-      local long_bracket = skip_long_bracket(BYTE_OBRACK)
+      local b, long_bracket = skip_long_bracket()
 
-      if long_bracket >= 0 then
-         load_long_string(long_bracket)
+      if b == BYTE_OBRACK then
          token = "TK_STRING"
-      elseif long_bracket == -1 then
+         return load_long_string(long_bracket)
+      elseif long_bracket == 0 then
          token = "["
+         return b
       else
          error({})
       end
    end
 
    local function lex_eq()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       if b == BYTE_EQ then
-         offset = offset+1
          token = "TK_EQ"
+         return next_byte()
       else
          token = "="
+         return b
       end
    end
 
    local function lex_lt()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       if b == BYTE_EQ then
-         offset = offset+1
          token = "TK_LE"
+         return next_byte()
       elseif b == BYTE_LT then
-         offset = offset+1
          token = "TK_SHL"
+         return next_byte()
       else
          token = "<"
+         return b
       end
    end
 
    local function lex_gt()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       if b == BYTE_EQ then
-         offset = offset+1
          token = "TK_GE"
+         return next_byte()
       elseif b == BYTE_GT then
-         offset = offset+1
          token = "TK_SHR"
+         return next_byte()
       else
          token = ">"
+         return b
       end
    end
 
    local function lex_div()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       if b == BYTE_SLASH then
-         offset = offset+1
          token = "TK_IDIV"
+         return next_byte()
       else
          token = "/"
+         return b
       end
    end
 
    local function lex_ne()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       if b == BYTE_EQ then
-         offset = offset+1
          token = "TK_NE"
+         return next_byte()
       else
          token = "~"
+         return b
       end
    end
 
    local function lex_colon()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       if b == BYTE_COLON then
-         offset = offset+1
          token = "TK_DBCOLON"
+         return next_byte()
       else
          token = ":"
+         return b
       end
    end
 
    local lex_quote = load_short_string
 
    local function lex_dot()
-      local b = sbyte(src, offset)
+      local b = next_byte()
 
       if b == BYTE_DOT then
-         offset = offset+1
-         b = sbyte(src, offset)
+         b = next_byte()
 
          if b == BYTE_DOT then
-            offset = offset+1
             token = "TK_DOTS"
+            return next_byte()
          else
             token = "TK_CONCAT"
+            return b
          end
       elseif BYTE_0 <= b and b <= BYTE_9 then
-         load_number(BYTE_DOT)
+         -- Backtrack to dot.
+         return load_number(next_byte(-1))
       else
          token = "."
+         return b
       end
    end
 
@@ -619,6 +591,7 @@ local function lexer(src)
 
    local function lex_any(b)
       token = schar(b)
+      return next_byte()
    end
 
    -- Jump table is faster than if else chain.
@@ -660,28 +633,22 @@ local function lexer(src)
    end
 
    -- Returns character after space and its handler.
-   function skip_space()
-      local b, handler
-
+   function skip_space(b)
       while true do
-         b = sbyte(src, offset)
-         handler = characters[b]
+         local handler = characters[b]
 
          if handler == lex_newline then
-            offset = offset+1
-            handler(b)
+            b = lex_newline(b)
          elseif handler == lex_space then
-            offset = offset+1
+            b = lex_space()
          else
-            break
+            return b, handler
          end
       end
-
-      return b, handler
    end
 
    local function next_token()
-      local b, handler = skip_space()
+      local b, handler = skip_space(byte)
 
       -- Save location of token start.
       local token_line = line
@@ -691,8 +658,7 @@ local function lexer(src)
       if b == nil then
          token = "TK_EOS"
       else
-         offset = offset+1
-         handler(b)
+         byte = handler(b)
       end
 
       return token, payload, token_line, token_column, token_offset
@@ -702,10 +668,11 @@ local function lexer(src)
    line = 1
    line_offset = 1
    offset = 1
+   byte = next_byte(0)
 
    if ssub(src, 1, 2) == "#!" then
       -- Skip shebang.
-      skip_line()
+      byte = skip_newline(skip_till_newline(byte))
    end
 
    return next_token
