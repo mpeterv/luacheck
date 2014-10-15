@@ -42,6 +42,20 @@ local function dec_char(b)
    return nil
 end
 
+local function is_alpha(b)
+   return (BYTE_a <= b and b <= BYTE_z) or
+      (BYTE_A <= b and b <= BYTE_Z) or b == BYTE_LDASH
+end
+
+local function is_newline(b)
+   return (b == BYTE_LF) or (b == BYTE_CR)
+end
+
+local function is_space(b)
+   return (b == BYTE_SPACE) or (b == BYTE_FF) or
+      (b == BYTE_TAB) or (b == BYTE_VTAB)
+end
+
 local keywords = {
    ["and"] = "TK_AND",
    ["break"] = "TK_BREAK",
@@ -102,7 +116,7 @@ local function lexer(src)
    local function skip_newline(newline)
       local b = next_byte()
 
-      if b ~= newline and (b == BYTE_LF or b == BYTE_CR) then
+      if b ~= newline and is_newline(b) then
          b = next_byte()
       end
 
@@ -113,8 +127,21 @@ local function lexer(src)
 
    -- Returns the first newline character or nil.
    local function skip_till_newline(b)
-      while b ~= BYTE_LF and b ~= BYTE_CR and b ~= nil do 
+      while not is_newline(b) and b ~= nil do 
          b = next_byte()
+      end
+
+      return b
+   end
+
+   -- Returns character after space.
+   local function skip_space(b)
+      while is_space(b) or is_newline(b) do
+         if is_newline(b) then
+            b = skip_newline(b)
+         else
+            b = next_byte()
+         end
       end
 
       return b
@@ -136,8 +163,7 @@ local function lexer(src)
    local function load_long_string(opening_long_bracket)
       local b = next_byte()
 
-      -- If it is a newline, skip it.
-      if b == BYTE_LF or b == BYTE_CR then
+      if is_newline(b) then
          b = skip_newline(b)
       end
 
@@ -145,8 +171,7 @@ local function lexer(src)
       local line_start = offset
 
       while true do
-         -- TODO: use jump table?
-         if b == BYTE_LF or b == BYTE_CR then
+         if is_newline(b) then
             -- Add the finished line.
             lines[#lines+1] = ssub(src, line_start, offset-1)
 
@@ -172,9 +197,6 @@ local function lexer(src)
       payload = tconcat(lines, "\n")
       return next_byte()
    end
-
-   -- Forward declaration.
-   local skip_space
 
    local function load_short_string(quote)
       local b = next_byte()
@@ -207,9 +229,9 @@ local function lexer(src)
             if escape_byte then  -- Is it a simple escape sequence?
                b = next_byte()
                c = schar(escape_byte)
-            elseif b == BYTE_LF or b == BYTE_CR then
-               c = "\n"
+            elseif is_newline(b) then
                b = skip_newline(b)
+               c = "\n"
             elseif b == BYTE_x then
                -- Hexadecimal escape.
                b = next_byte()
@@ -235,10 +257,15 @@ local function lexer(src)
                -- TODO: here be utf magic.
             elseif b == BYTE_z then
                -- Zap following span of spaces.
-               b = skip_space()
-            elseif BYTE_0 <= b and b <= BYTE_9 then
-               -- Decimal escape.
-               local cb = b-BYTE_0
+               b = skip_space(next_byte())
+            else
+               -- Must be a decimal escape.
+               local cb = dec_char(b)
+
+               if not cb then
+                  -- Unknown escape sequence.
+                  error({})
+               end
 
                -- Up to three decimal digits.
                b = next_byte()
@@ -266,8 +293,6 @@ local function lexer(src)
                end
 
                c = schar(cb)
-            else
-               error({})
             end
 
             if c then
@@ -276,7 +301,7 @@ local function lexer(src)
 
             -- Next chunk starts after escape sequence.
             chunk_start = offset
-         elseif b == nil or b == BYTE_LF or b == BYTE_CR then
+         elseif b == nil or is_newline(b) then
             -- Unfinished short string.
             error({})
          else
@@ -407,10 +432,7 @@ local function lexer(src)
       local start = offset
       local b = next_byte()
 
-      -- TODO: use main jump table?
-      while (BYTE_a <= b and b <= BYTE_z) or
-            (BYTE_A <= b and b <= BYTE_Z) or
-            (BYTE_0 <= b and b <= BYTE_9) or b == BYTE_LDASH do
+      while is_alpha(b) or dec_char(b) do
          b = next_byte()
       end
 
@@ -576,7 +598,7 @@ local function lexer(src)
             token = "TK_CONCAT"
             return b
          end
-      elseif BYTE_0 <= b and b <= BYTE_9 then
+      elseif dec_char(b) then
          -- Backtrack to dot.
          return load_number(next_byte(-1))
       else
@@ -599,9 +621,9 @@ local function lexer(src)
 
    -- Ensure all handlers are in the array part.
    for i=0, 255 do
-      if BYTE_0 <= i and i <= BYTE_9 then
+      if dec_char(i) then
          characters[i] = lex_digit
-      elseif (BYTE_a <= i and i <= BYTE_z) or (BYTE_A <= i and i <= BYTE_Z) or i == BYTE_LDASH then
+      elseif is_alpha(i) then
          characters[i] = lex_alpha
       elseif i == BYTE_DOT then
          characters[i] = lex_dot
@@ -623,32 +645,17 @@ local function lexer(src)
          characters[i] = lex_lt
       elseif i == BYTE_GT then
          characters[i] = lex_gt
-      elseif i == BYTE_LF or i == BYTE_CR then
+      elseif is_newline(i) then
          characters[i] = lex_newline
-      elseif i == BYTE_SPACE or i == BYTE_FF or i == BYTE_TAB or i == BYTE_VTAB then
+      elseif is_space(i) then
          characters[i] = lex_space
       else
          characters[i] = lex_any
       end
    end
 
-   -- Returns character after space and its handler.
-   function skip_space(b)
-      while true do
-         local handler = characters[b]
-
-         if handler == lex_newline then
-            b = lex_newline(b)
-         elseif handler == lex_space then
-            b = lex_space()
-         else
-            return b, handler
-         end
-      end
-   end
-
    local function next_token()
-      local b, handler = skip_space(byte)
+      local b = skip_space(byte)
 
       -- Save location of token start.
       local token_line = line
@@ -658,7 +665,7 @@ local function lexer(src)
       if b == nil then
          token = "TK_EOS"
       else
-         byte = handler(b)
+         byte = characters[b](b)
       end
 
       return token, payload, token_line, token_column, token_offset
