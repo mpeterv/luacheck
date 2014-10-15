@@ -22,7 +22,7 @@ local BYTE_LT, BYTE_GT = sbyte("<"), sbyte(">")
 local BYTE_LF, BYTE_CR = sbyte("\n"), sbyte("\r")
 local BYTE_SPACE, BYTE_FF, BYTE_TAB, BYTE_VTAB = sbyte(" "), sbyte("\f"), sbyte("\t"), sbyte("\v")
 
-local function hex_char(b)
+local function to_hex(b)
    if BYTE_0 <= b and b <= BYTE_9 then
       return b-BYTE_0
    elseif BYTE_a <= b and b <= BYTE_f then
@@ -34,7 +34,7 @@ local function hex_char(b)
    end
 end
 
-local function dec_char(b)
+local function to_dec(b)
    if BYTE_0 <= b and b <= BYTE_9 then
       return b-BYTE_0
    end
@@ -198,7 +198,7 @@ local function lexer(src)
       return next_byte()
    end
 
-   local function load_short_string(quote)
+   local function lex_short_string(quote)
       local b = next_byte()
       local chunks  -- Buffer is only required when there are escape sequences.
       local chunk_start = offset
@@ -239,11 +239,11 @@ local function lexer(src)
                local c1, c2
 
                if b then
-                  c1 = hex_char(b)
+                  c1 = to_hex(b)
                   b = next_byte()
 
                   if b then
-                     c2 = hex_char(b)
+                     c2 = to_hex(b)
                      b = next_byte()
                   end
                end
@@ -260,7 +260,7 @@ local function lexer(src)
                b = skip_space(next_byte())
             else
                -- Must be a decimal escape.
-               local cb = dec_char(b)
+               local cb = to_dec(b)
 
                if not cb then
                   -- Unknown escape sequence.
@@ -271,14 +271,14 @@ local function lexer(src)
                b = next_byte()
 
                if b then
-                  local c2 = dec_char(b)
+                  local c2 = to_dec(b)
 
                   if c2 then
                      cb = 10*cb + c2
                      b = next_byte()
 
                      if b then
-                        local c3 = dec_char(b)
+                        local c3 = to_dec(b)
 
                         if c3 then
                            cb = 10*cb + c3
@@ -331,11 +331,11 @@ local function lexer(src)
    -- Luacheck is supposed to be forward-compatible with Lua 5.3 and LuaJIT syntax, so
    --    parsing it into actual number may be problematic.
    -- It is not needed currently anyway as Luacheck does not do static evaluation yet.
-   local function load_number(b)
+   local function lex_number(b)
       local start = offset
 
       local exp_lower, exp_upper = BYTE_e, BYTE_E
-      local is_digit = dec_char
+      local is_digit = to_dec
       local has_digits = false  -- TODO: use offsets to determine if there were digits.
       local is_float = false
 
@@ -344,7 +344,7 @@ local function lexer(src)
 
          if b == BYTE_x or b == BYTE_X then
             exp_lower, exp_upper = BYTE_p, BYTE_P
-            is_digit = hex_char
+            is_digit = to_hex
             b = next_byte()
          else
             has_digits = true
@@ -378,13 +378,13 @@ local function lexer(src)
          end
 
          -- Exponent consists of one or more decimal digits.
-         if b == nil or not dec_char(b) then
+         if b == nil or not to_dec(b) then
             error({})
          end
 
          repeat
             b = next_byte()
-         until b == nil or not dec_char(b)
+         until b == nil or not to_dec(b)
       end
 
       if not has_digits then
@@ -428,11 +428,11 @@ local function lexer(src)
       return b
    end
 
-   local function load_ident()
+   local function lex_ident()
       local start = offset
       local b = next_byte()
 
-      while is_alpha(b) or dec_char(b) do
+      while is_alpha(b) or to_dec(b) do
          b = next_byte()
       end
 
@@ -583,8 +583,6 @@ local function lexer(src)
       end
    end
 
-   local lex_quote = load_short_string
-
    local function lex_dot()
       local b = next_byte()
 
@@ -598,59 +596,54 @@ local function lexer(src)
             token = "TK_CONCAT"
             return b
          end
-      elseif dec_char(b) then
+      elseif to_dec(b) then
          -- Backtrack to dot.
-         return load_number(next_byte(-1))
+         return lex_number(next_byte(-1))
       else
          token = "."
          return b
       end
    end
 
-   local lex_digit = load_number
-
-   local lex_alpha = load_ident
-
    local function lex_any(b)
       token = schar(b)
       return next_byte()
    end
 
-   -- Jump table is faster than if else chain.
-   local characters = {}
+   -- Maps first bytes of tokens to functions that handle them.
+   local byte_handlers = {}
 
-   -- Ensure all handlers are in the array part.
-   for i=0, 255 do
-      if dec_char(i) then
-         characters[i] = lex_digit
-      elseif is_alpha(i) then
-         characters[i] = lex_alpha
-      elseif i == BYTE_DOT then
-         characters[i] = lex_dot
-      elseif i == BYTE_COLON then
-         characters[i] = lex_colon
-      elseif i == BYTE_OBRACK then
-         characters[i] = lex_bracket
-      elseif i == BYTE_QUOTE or i == BYTE_DQUOTE then
-         characters[i] = lex_quote
-      elseif i == BYTE_DASH then
-         characters[i] = lex_dash
-      elseif i == BYTE_SLASH then
-         characters[i] = lex_div
-      elseif i == BYTE_EQ then
-         characters[i] = lex_eq
-      elseif i == BYTE_NE then
-         characters[i] = lex_ne
-      elseif i == BYTE_LT then
-         characters[i] = lex_lt
-      elseif i == BYTE_GT then
-         characters[i] = lex_gt
-      elseif is_newline(i) then
-         characters[i] = lex_newline
-      elseif is_space(i) then
-         characters[i] = lex_space
+   for b=0, 255 do
+      if to_dec(b) then
+         byte_handlers[b] = lex_number
+      elseif is_alpha(b) then
+         byte_handlers[b] = lex_ident
+      elseif b == BYTE_DOT then
+         byte_handlers[b] = lex_dot
+      elseif b == BYTE_COLON then
+         byte_handlers[b] = lex_colon
+      elseif b == BYTE_OBRACK then
+         byte_handlers[b] = lex_bracket
+      elseif b == BYTE_QUOTE or b == BYTE_DQUOTE then
+         byte_handlers[b] = lex_short_string
+      elseif b == BYTE_DASH then
+         byte_handlers[b] = lex_dash
+      elseif b == BYTE_SLASH then
+         byte_handlers[b] = lex_div
+      elseif b == BYTE_EQ then
+         byte_handlers[b] = lex_eq
+      elseif b == BYTE_NE then
+         byte_handlers[b] = lex_ne
+      elseif b == BYTE_LT then
+         byte_handlers[b] = lex_lt
+      elseif b == BYTE_GT then
+         byte_handlers[b] = lex_gt
+      elseif is_newline(b) then
+         byte_handlers[b] = lex_newline
+      elseif is_space(b) then
+         byte_handlers[b] = lex_space
       else
-         characters[i] = lex_any
+         byte_handlers[b] = lex_any
       end
    end
 
@@ -665,7 +658,7 @@ local function lexer(src)
       if b == nil then
          token = "TK_EOS"
       else
-         byte = characters[b](b)
+         byte = byte_handlers[b](b)
       end
 
       return token, payload, token_line, token_column, token_offset
