@@ -443,10 +443,6 @@ local function lexer(src)
       end
    end
 
-   local lex_newline = skip_newline
-
-   local lex_space = next_byte
-
    local function lex_dash()
       local b = next_byte()
 
@@ -590,40 +586,31 @@ local function lexer(src)
    -- Each handler takes the first byte as an argument.
    -- Each handler stops at the character after the token and returns the token and,
    --    optionally, a value associated with the token.
-   local byte_handlers = {}
+   local byte_handlers = {
+      [BYTE_DOT] = lex_dot,
+      [BYTE_COLON] = lex_colon,
+      [BYTE_OBRACK] = lex_bracket,
+      [BYTE_QUOTE] = lex_short_string,
+      [BYTE_DQUOTE] = lex_short_string,
+      [BYTE_DASH] = lex_dash,
+      [BYTE_SLASH] = lex_div,
+      [BYTE_EQ] = lex_eq,
+      [BYTE_NE] = lex_ne,
+      [BYTE_LT] = lex_lt,
+      [BYTE_GT] = lex_gt,
+      [BYTE_LDASH] = lex_ident
+   }
 
-   for b=0, 255 do
-      if to_dec(b) then
-         byte_handlers[b] = lex_number
-      elseif is_alpha(b) then
-         byte_handlers[b] = lex_ident
-      elseif b == BYTE_DOT then
-         byte_handlers[b] = lex_dot
-      elseif b == BYTE_COLON then
-         byte_handlers[b] = lex_colon
-      elseif b == BYTE_OBRACK then
-         byte_handlers[b] = lex_bracket
-      elseif b == BYTE_QUOTE or b == BYTE_DQUOTE then
-         byte_handlers[b] = lex_short_string
-      elseif b == BYTE_DASH then
-         byte_handlers[b] = lex_dash
-      elseif b == BYTE_SLASH then
-         byte_handlers[b] = lex_div
-      elseif b == BYTE_EQ then
-         byte_handlers[b] = lex_eq
-      elseif b == BYTE_NE then
-         byte_handlers[b] = lex_ne
-      elseif b == BYTE_LT then
-         byte_handlers[b] = lex_lt
-      elseif b == BYTE_GT then
-         byte_handlers[b] = lex_gt
-      elseif is_newline(b) then
-         byte_handlers[b] = lex_newline
-      elseif is_space(b) then
-         byte_handlers[b] = lex_space
-      else
-         byte_handlers[b] = lex_any
-      end
+   for b=BYTE_0, BYTE_9 do
+      byte_handlers[b] = lex_number
+   end
+
+   for b=BYTE_a, BYTE_z do
+      byte_handlers[b] = lex_ident
+   end
+
+   for b=BYTE_A, BYTE_Z do
+      byte_handlers[b] = lex_ident
    end
 
    local function next_token()
@@ -639,7 +626,7 @@ local function lexer(src)
       if b == nil then
          token = "TK_EOS"
       else
-         token, value = byte_handlers[b](b)
+         token, value = (byte_handlers[b] or lex_any)(b)
       end
 
       return token, value, token_line, token_column, token_offset
