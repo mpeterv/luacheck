@@ -423,7 +423,7 @@ local function lex_ident(state)
    local start = state.offset
    local b = next_byte(state)
 
-   while is_alpha(b) or to_dec(b) do
+   while (b ~= nil) and (is_alpha(b) or to_dec(b)) do
       b = next_byte(state)
    end
 
