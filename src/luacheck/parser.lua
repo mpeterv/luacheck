@@ -3,12 +3,12 @@ local tinsert = table.insert
 local lexer = require "luacheck.lexer"
 
 local function new_state(src)
-   return {next_token = lexer(src)}
+   return {lexer = lexer.new_state(src)}
 end
 
 local function skip_token(state)
    repeat
-      state.token, state.payload, state.line, state.column, state.offset = state.next_token()
+      state.token, state.token_value, state.line, state.column, state.offset = lexer.next_token(state.lexer)
    until state.token ~= "TK_COMMENT"
 end
 
@@ -52,7 +52,7 @@ end
 
 local function check_name(state)
    check_token(state, "TK_NAME")
-   return state.payload
+   return state.token_value
 end
 
 local parse_block, parse_expression
@@ -93,14 +93,14 @@ end
 
 local function parse_number(state)
    local ast_node = new_ast_node(state, "Number")
-   ast_node[1] = state.payload
+   ast_node[1] = state.token_value
    skip_token(state)  -- Skip number.
    return ast_node
 end
 
 local function parse_string(state)
    local ast_node = new_ast_node(state, "String")
-   ast_node[1] = state.payload
+   ast_node[1] = state.token_value
    skip_token(state)  -- Skip string.
    return ast_node
 end
@@ -141,7 +141,7 @@ local function parse_table(state)
          local item_location = location(state)
 
          if state.token == "TK_NAME" then
-            local name = state.payload
+            local name = state.token_value
             skip_token(state)  -- Skip name.
 
             if test_and_skip_token(state, "=") then
@@ -150,27 +150,11 @@ local function parse_table(state)
                rhs = parse_expression(state)
             else
                -- `name` is beginning of an expression in array part.
-               -- Backtrack.
-               local lookahead_token = state.token
-               local lookahead_payload = state.payload
-               local lookahead_line = state.line
-               local lookahead_column = state.column
-               local lookahead_offset = state.offset
-
-               state.token = "TK_NAME"
-               state.payload = name
-               state.line = item_location.line
-               state.column = item_location.column
-               state.offset = item_location.offset
-
-               local next_token = state.next_token
-
-               state.next_token = function()
-                  state.next_token = next_token
-                  return lookahead_token, lookahead_payload,
-                     lookahead_line, lookahead_column, lookahead_offset
-               end
-
+               -- Backtrack lexer to before name.
+               state.lexer.line = item_location.line
+               state.lexer.line_offset = item_location.offset-item_location.column+1
+               state.lexer.offset = item_location.offset
+               skip_token(state)  -- Load name again.
                rhs = parse_expression(state)
             end
          elseif test_and_skip_token(state, "[") then
