@@ -28,7 +28,7 @@ local function get_calls(source)
 end
 
 
-describe("test luacheck.scan", function()
+describe("scan", function()
    it("considers empty source an empty block", function()
       assert.same({
          "START";

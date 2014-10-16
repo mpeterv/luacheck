@@ -20,7 +20,7 @@ local function get_token(source)
    return token
 end
 
-describe("test luacheck.lexer", function()
+describe("lexer", function()
    it("parses EOS correctly", function()
       assert.same({token = "TK_EOS"}, get_token(" "))
    end)
