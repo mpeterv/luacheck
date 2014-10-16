@@ -5,7 +5,9 @@ local lexer = {}
 local sbyte = string.byte
 local ssub = string.sub
 local schar = string.char
+local sreverse = string.reverse
 local tconcat = table.concat
+local mfloor = math.floor
 
 -- No point in inlining these, fetching a constant ~= fetching a local.
 local BYTE_0, BYTE_9, BYTE_f, BYTE_F = sbyte("0"), sbyte("9"), sbyte("f"), sbyte("F")
@@ -15,6 +17,7 @@ local BYTE_e, BYTE_E, BYTE_p, BYTE_P = sbyte("e"), sbyte("E"), sbyte("p"), sbyte
 local BYTE_a, BYTE_z, BYTE_A, BYTE_Z = sbyte("a"), sbyte("z"), sbyte("A"), sbyte("Z")
 local BYTE_DOT, BYTE_COLON = sbyte("."), sbyte(":")
 local BYTE_OBRACK, BYTE_CBRACK = sbyte("["), sbyte("]")
+local BYTE_OBRACE, BYTE_CBRACE = sbyte("{"), sbyte("}")
 local BYTE_QUOTE, BYTE_DQUOTE = sbyte("'"), sbyte('"')
 local BYTE_PLUS, BYTE_DASH, BYTE_LDASH = sbyte("+"), sbyte("-"), sbyte("_")
 local BYTE_SLASH, BYTE_BSLASH = sbyte("/"), sbyte("\\")
@@ -38,9 +41,27 @@ end
 local function to_dec(b)
    if BYTE_0 <= b and b <= BYTE_9 then
       return b-BYTE_0
+   else
+      return nil
+   end
+end
+
+local function to_utf(codepoint)
+   if codepoint < 0x80 then  -- ASCII?
+      return schar(codepoint)
    end
 
-   return nil
+   local buf = {}
+   local mfb = 0x3F
+
+   repeat
+      buf[#buf+1] = schar(codepoint % 0x40 + 0x80)
+      codepoint = mfloor(codepoint / 0x40)
+      mfb = mfloor(mfb / 2)
+   until codepoint <= mfb
+
+   buf[#buf+1] = schar(0xFE - mfb*2 + codepoint)
+   return sreverse(tconcat(buf))
 end
 
 local function is_alpha(b)
@@ -212,21 +233,21 @@ local function lex_short_string(state, quote)
 
          b = next_byte(state)
 
-         -- The final character to be put.
-         local c
+         -- The final string escape sequence evaluates to.
+         local s
 
          local escape_byte = simple_escapes[b]
 
          -- TODO: in \', \", \\ one char chunk can be avoided (added to the next one).
          if escape_byte then  -- Is it a simple escape sequence?
             b = next_byte(state)
-            c = schar(escape_byte)
+            s = schar(escape_byte)
          elseif is_newline(b) then
             b = skip_newline(state, b)
-            c = "\n"
+            s = "\n"
          elseif b == BYTE_x then
             -- Hexadecimal escape.
-            b = next_byte(state)
+            b = next_byte(state)  -- Skip "x".
             -- Exactly two hexadecimal digits.
             local c1, c2
 
@@ -241,12 +262,47 @@ local function lex_short_string(state, quote)
             end
 
             if c1 and c2 then
-               c = schar(c1*16 + c2)
+               s = schar(c1*16 + c2)
             else
                error({})
             end
          elseif b == BYTE_u then
-            -- TODO: here be utf magic.
+            b = next_byte(state)  -- Skip "u".
+
+            if b ~= BYTE_OBRACE then
+               error({})
+            end
+
+            b = next_byte(state)  -- Skip "{".
+
+            local codepoint = to_hex(b)  -- There should be at least one digit.
+
+            if not codepoint then
+               error({})
+            end
+
+            while true do
+               b = next_byte(state)
+               local hex = to_hex(b)
+
+               if hex then
+                  codepoint = codepoint*16 + hex
+
+                  if codepoint > 0x10FFFF then
+                     -- UTF-8 value too large.
+                     error({})
+                  end
+               else
+                  break
+               end
+            end
+
+            if b ~= BYTE_CBRACE then
+               error({})
+            end
+
+            b = next_byte(state)  -- Skip "}".
+            s = to_utf(codepoint)
          elseif b == BYTE_z then
             -- Zap following span of spaces.
             b = skip_space(state, next_byte(state))
@@ -284,11 +340,11 @@ local function lex_short_string(state, quote)
                error({})
             end
 
-            c = schar(cb)
+            s = schar(cb)
          end
 
-         if c then
-            chunks[#chunks+1] = c
+         if s then
+            chunks[#chunks+1] = s
          end
 
          -- Next chunk starts after escape sequence.

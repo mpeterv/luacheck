@@ -117,7 +117,24 @@ bar"]]))
          assert.has_errors(function() get_token([["\xxx"]]) end)
       end)
 
-      pending("parses utf-8 escape sequences correctly")
+      it("parses utf-8 escape sequences correctly", function()
+         assert.same({token = "TK_STRING", token_value = "\0\0"},
+            get_token([["\u{0}\u{00000000}"]]))
+         assert.same({token = "TK_STRING", token_value = "\0\127"},
+            get_token([["\u{0}\u{7F}"]]))
+         assert.same({token = "TK_STRING", token_value = "\194\128\223\191"},
+            get_token([["\u{80}\u{7fF}"]]))
+         assert.same({token = "TK_STRING", token_value = "\224\160\128\239\191\191"},
+            get_token([["\u{800}\u{FFFF}"]]))
+         assert.same({token = "TK_STRING", token_value = "\240\144\128\128\244\143\191\191"},
+            get_token([["\u{10000}\u{10FFFF}"]]))
+         assert.has_errors(function() get_token([["\u{110000}"]]) end)
+         assert.has_errors(function() get_token([["\u"]]) end)
+         assert.has_errors(function() get_token([["\unrelated"]]) end)
+         assert.has_errors(function() get_token([["\u{11unrelated"]]) end)
+         assert.has_errors(function() get_token([["\u{11]]) end)
+         assert.has_errors(function() get_token([["\u{unrelated}"]]) end)
+      end)
 
       it("detects unknown escape sequences", function()
          assert.has_errors(function() get_token([["\c"]]) end)
