@@ -453,7 +453,7 @@ local function lex_dash(state)
          local long_bracket
          b, long_bracket = skip_long_bracket(state)
 
-         if b == BYTE_CBRACK then
+         if b == BYTE_OBRACK then
             return lex_long_string(state, long_bracket, "TK_COMMENT")
          end
       end
