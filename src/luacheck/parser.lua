@@ -596,35 +596,35 @@ local function parse_goto(state)
 end
 
 local function parse_expression_statement(state)
-   local first_token = state.token
-   local primary_expression, is_prefix = parse_primary_expression(state)
+   local lhs
 
-   local tag = primary_expression.tag
-   if tag == "Call" or tag == "Invoke" then
-      -- A call.
-      return primary_expression
-   else
-      -- An assignment.
+   repeat
+      local first_token = state.token
+      local primary_expression, is_prefix = parse_primary_expression(state)
+
       if is_prefix and first_token == "(" then
-         -- (lhs) = rhs is invalid.
+         -- (expr) is invalid.
          error({})
       end
 
-      local lhs = {primary_expression}
-
-      while test_and_skip_token(state, ",") do
-         first_token = state.token
-         lhs[#lhs+1], is_prefix = parse_primary_expression(state)
-
-         if is_prefix and first_token == "(" then
+      if primary_expression.tag == "Call" or primary_expression.tag == "Invoke" then
+         if lhs then
+            -- This is an assingment, and a call is not a valid lvalue.
             error({})
+         else
+            -- It is a call.
+            return primary_expression
          end
       end
 
-      check_and_skip_token(state, "=")
-      local rhs = parse_expression_list(state)
-      return init_ast_node({lhs, rhs}, primary_expression, "Set")
-   end
+      -- This is an assingment.
+      lhs = lhs or {}
+      lhs[#lhs+1] = primary_expression
+   until not test_and_skip_token(state, ",")
+
+   check_and_skip_token(state, "=")
+   local rhs = parse_expression_list(state)
+   return init_ast_node({lhs, rhs}, lhs[1], "Set")
 end
 
 local statements = {
