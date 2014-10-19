@@ -557,7 +557,7 @@ local function parse_label(state)
    skip_token(state)  -- Skip "::".
    ast_node[1] = check_name(state)
    skip_token(state)  -- Skip label name.
-   check_and_skip_token(state, "::")
+   check_and_skip_token(state, "TK_DBCOLON")
    return ast_node
 end
 
