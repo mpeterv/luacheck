@@ -62,6 +62,213 @@ describe("parser", function()
       assert.is_nil(parser("break fail"))
    end)
 
+   it("parses do end correctly", function()
+      assert.same({tag = "Do"}, get_node("do end"))
+      assert.is_nil(parser("do"))
+      assert.is_nil(parser("do until false"))
+   end)
+
+   it("parses while do end correctly", function()
+      assert.same({tag = "While",
+                     {tag = "True"},
+                     {}
+                  }, get_node("while true do end"))
+      assert.is_nil(parser("while"))
+      assert.is_nil(parser("while true"))
+      assert.is_nil(parser("while true do"))
+      assert.is_nil(parser("while do end"))
+      assert.is_nil(parser("while true, false do end"))
+   end)
+
+   it("parses repeat until correctly", function()
+      assert.same({tag = "Repeat",
+                     {},
+                     {tag = "True"}
+                  }, get_node("repeat until true"))
+      assert.is_nil(parser("repeat"))
+      assert.is_nil(parser("repeat until"))
+      assert.is_nil(parser("repeat until true, false"))
+   end)
+
+   describe("when parsing if", function()
+      it("parses if then end correctly", function()
+         assert.same({tag = "If",
+                        {tag = "True"},
+                        {}
+                     }, get_node("if true then end"))
+         assert.is_nil(parser("if"))
+         assert.is_nil(parser("if true"))
+         assert.is_nil(parser("if true then"))
+         assert.is_nil(parser("if then end"))
+         assert.is_nil(parser("if true, false then end"))
+      end)
+
+      it("parses if then else end correctly", function()
+         assert.same({tag = "If",
+                        {tag = "True"},
+                        {},
+                        {}
+                     }, get_node("if true then else end"))
+         assert.is_nil(parser("if true then else"))
+         assert.is_nil(parser("if true then else else end"))
+      end)
+
+      it("parses if then elseif then end correctly", function()
+         assert.same({tag = "If",
+                        {tag = "True"},
+                        {},
+                        {tag = "False"},
+                        {}
+                     }, get_node("if true then elseif false then end"))
+         assert.is_nil(parser("if true then elseif end"))
+         assert.is_nil(parser("if true then elseif then end"))
+      end)
+
+      it("parses if then elseif then else end correctly", function()
+         assert.same({tag = "If",
+                        {tag = "True"},
+                        {},
+                        {tag = "False"},
+                        {},
+                        {}
+                     }, get_node("if true then elseif false then else end"))
+         assert.is_nil(parser("if true then elseif false then else"))
+      end)
+   end)
+
+   describe("when parsing for", function()
+      it("parses fornum correctly", function()
+         assert.same({tag = "Fornum",
+                        {tag = "Id", "i"},
+                        {tag = "Number", "1"},
+                        {tag = "Op", "len", {tag = "Id", "t"}},
+                        {}
+                     }, get_node("for i=1, #t do end"))
+         assert.is_nil(parser("for"))
+         assert.is_nil(parser("for i"))
+         assert.is_nil(parser("for i ~= 2"))
+         assert.is_nil(parser("for i = 2 do end"))
+         assert.is_nil(parser("for i=1, #t do"))
+         assert.is_nil(parser("for (i)=1, #t do end"))
+         assert.is_nil(parser("for 3=1, #t do end"))
+      end)
+
+      it("parses fornum with step correctly", function()
+         assert.same({tag = "Fornum",
+                        {tag = "Id", "i"},
+                        {tag = "Number", "1"},
+                        {tag = "Op", "len", {tag = "Id", "t"}},
+                        {tag = "Number", "2"},
+                        {}
+                     }, get_node("for i=1, #t, 2 do end"))
+         assert.is_nil(parser("for i=1, #t, 2, 3 do"))
+      end)
+
+      it("parses forin correctly", function()
+         assert.same({tag = "Forin", {
+                           {tag = "Id", "i"}
+                        }, {
+                           {tag = "Id", "t"}
+                        },
+                        {}
+                     }, get_node("for i in t do end"))
+         assert.same({tag = "Forin", {
+                           {tag = "Id", "i"},
+                           {tag = "Id", "j"}
+                        }, {
+                           {tag = "Id", "t"},
+                           {tag = "String", "foo"}
+                        },
+                        {}
+                     }, get_node("for i, j in t, 'foo' do end"))
+         assert.is_nil(parser("for in foo do end"))
+         assert.is_nil(parser("for i in do end"))
+      end)
+   end)
+
+   describe("when parsing functions", function()
+      it("parses simple function correctly", function()
+         assert.same({tag = "Set", {
+                           {tag = "Id", "a"}
+                        }, {
+                           {tag = "Function", {}, {}}
+                        }
+                     }, get_node("function a() end"))
+         assert.is_nil(parser("function"))
+         assert.is_nil(parser("function a"))
+         assert.is_nil(parser("function a("))
+         assert.is_nil(parser("function a()"))
+         assert.is_nil(parser("function (a)()"))
+         assert.is_nil(parser("function() end"))
+         assert.is_nil(parser("(function a() end)"))
+         assert.is_nil(parser("function a() end()"))
+      end)
+
+      it("parses simple function with arguments correctly", function()
+         assert.same({tag = "Set", {
+                           {tag = "Id", "a"}
+                        }, {
+                           {tag = "Function", {{tag = "Id", "b"}}, {}}
+                        }
+                     }, get_node("function a(b) end"))
+         assert.same({tag = "Set", {
+                           {tag = "Id", "a"}
+                        }, {
+                           {tag = "Function", {{tag = "Id", "b"}, {tag = "Id", "c"}}, {}}
+                        }
+                     }, get_node("function a(b, c) end"))
+         assert.same({tag = "Set", {
+                           {tag = "Id", "a"}
+                        }, {
+                           {tag = "Function", {{tag = "Id", "b"}, {tag = "Dots"}}, {}}
+                        }
+                     }, get_node("function a(b, ...) end"))
+         assert.is_nil(parser("function a(b, ) end"))
+         assert.is_nil(parser("function a(b.c) end"))
+         assert.is_nil(parser("function a((b)) end"))
+         assert.is_nil(parser("function a(..., ...) end"))
+      end)
+
+      it("parses field function correctly", function()
+         assert.same({tag = "Set", {
+                           {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}}
+                        }, {
+                           {tag = "Function", {}, {}}
+                        }
+                     }, get_node("function a.b() end"))
+         assert.same({tag = "Set", {
+                           {tag = "Index",
+                              {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}},
+                              {tag = "String", "c"}
+                           }
+                        }, {
+                           {tag = "Function", {}, {}}
+                        }
+                     }, get_node("function a.b.c() end"))
+         assert.is_nil(parser("function a[b]() end"))
+         assert.is_nil(parser("function a.() end"))
+      end)
+
+      it("parses method function correctly", function()
+         assert.same({tag = "Set", {
+                           {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}}
+                        }, {
+                           {tag = "Function", {{tag = "Id", "self"}}, {}}
+                        }
+                     }, get_node("function a:b() end"))
+         assert.same({tag = "Set", {
+                           {tag = "Index",
+                              {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}},
+                              {tag = "String", "c"}
+                           }
+                        }, {
+                           {tag = "Function", {{tag = "Id", "self"}}, {}}
+                        }
+                     }, get_node("function a.b:c() end"))
+         assert.is_nil(parser("function a:b.c() end"))
+      end)
+   end)
+
    describe("when parsing local declarations", function()
       it("parses simple local declaration correctly", function()
          assert.same({tag = "Local", {
@@ -109,6 +316,66 @@ describe("parser", function()
                      }, get_node("local function a() end"))
          assert.is_nil(parser("local function"))
          assert.is_nil(parser("local function a.b() end"))
+      end)
+   end)
+
+   describe("when parsing assignments", function()
+      it("parses single target assignment correctly", function()
+         assert.same({tag = "Set", {
+                           {tag = "Id", "a"}
+                        }, {
+                           {tag = "Id", "b"}
+                        }
+                     }, get_node("a = b"))
+         assert.same({tag = "Set", {
+                           {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}}
+                        }, {
+                           {tag = "Id", "c"}
+                        }
+                     }, get_node("a.b = c"))
+         assert.same({tag = "Set", {
+                           {tag = "Index",
+                              {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}},
+                              {tag = "String", "c"}
+                           }
+                        }, {
+                           {tag = "Id", "d"}
+                        }
+                     }, get_node("a.b.c = d"))
+         assert.same({tag = "Set", {
+                           {tag = "Index",
+                              {tag = "Invoke",
+                                 {tag = "Call", {tag = "Id", "f"}},
+                                 {tag = "String", "g"}
+                              },
+                              {tag = "Number", "9"}
+                           }
+                        }, {
+                           {tag = "Id", "d"}
+                        }
+                     }, get_node("(f():g())[9] = d"))
+         assert.is_nil(parser("a"))
+         assert.is_nil(parser("a = "))
+         assert.is_nil(parser("a() = b"))
+         assert.is_nil(parser("(a) = b"))
+         assert.is_nil(parser("1 = b"))
+      end)
+
+      it("parses multi assignment correctly", function()
+         assert.same({tag = "Set", {
+                           {tag = "Id", "a"},
+                           {tag = "Id", "b"}
+                        }, {
+                           {tag = "Id", "c"},
+                           {tag = "Id", "d"}
+                        }
+                     }, get_node("a, b = c, d"))
+         assert.is_nil(parser("a, b"))
+         assert.is_nil(parser("a, = b"))
+         assert.is_nil(parser("a, b = "))
+         assert.is_nil(parser("a, b = c,"))
+         assert.is_nil(parser("a, b() = c"))
+         assert.is_nil(parser("a, (b) = c"))
       end)
    end)
 end)
