@@ -378,4 +378,54 @@ describe("parser", function()
          assert.is_nil(parser("a, (b) = c"))
       end)
    end)
+
+   describe("when parsing expression statements", function()
+      it("parses calls correctly", function()
+         assert.same({tag = "Call",
+                        {tag = "Id", "a"}
+                     }, get_node("a()"))
+         assert.same({tag = "Call",
+                        {tag = "Id", "a"},
+                        {tag = "String", "b"}
+                     }, get_node("a'b'"))
+         assert.same({tag = "Call",
+                        {tag = "Id", "a"},
+                        {tag = "Table"}
+                     }, get_node("a{}"))
+         assert.same({tag = "Call",
+                        {tag = "Id", "a"},
+                        {tag = "Id", "b"}
+                     }, get_node("a(b)"))
+         assert.same({tag = "Call",
+                        {tag = "Id", "a"},
+                        {tag = "Id", "b"}
+                     }, get_node("(a)(b)"))
+         assert.same({tag = "Call",
+                        {tag = "Call",
+                           {tag = "Id", "a"},
+                           {tag = "Id", "b"}
+                        }
+                     }, get_node("(a)(b)()"))
+         assert.is_nil(parser("()()"))
+         assert.is_nil(parser("a("))
+         assert.is_nil(parser("1()"))
+         assert.is_nil(parser("'foo'()"))
+         assert.is_nil(parser("function() end ()"))
+      end)
+
+      pending("parses method calls correctly")
+   end)
+
+   describe("when parsing multiple statements", function()
+      it("does not allow statements after return", function()
+         assert.is_nil(parser("return break"))
+         assert.is_nil(parser("return; break"))
+         assert.is_nil(parser("return 1 break"))
+         assert.is_nil(parser("return 1; break"))
+         assert.is_nil(parser("return 1, 2 break"))
+         assert.is_nil(parser("return 1, 2; break"))
+      end)
+
+      pending("<add more tests here>")
+   end)
 end)
