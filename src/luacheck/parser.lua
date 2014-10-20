@@ -660,7 +660,10 @@ function parse_block(state)
             -- "return" must be the last statement.
             -- However, one ";" after it is allowed.
             test_and_skip_token(state, ";")
-            break
+            
+            if not closing_tokens[state.token] then
+               error({})
+            end
          end
       end
    end
