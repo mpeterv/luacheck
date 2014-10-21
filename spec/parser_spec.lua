@@ -12,19 +12,19 @@ local function strip_locations(ast)
    end
 end
 
-local function get_ast(src, keep_locations)
+local function get_ast(src)
    local ast = parser(src)
    assert.is_table(ast)
-
-   if not keep_locations then
-      strip_locations(ast)
-   end
-
+   strip_locations(ast)
    return ast
 end
 
 local function get_node(src)
    return get_ast(src)[1]
+end
+
+local function get_expr(src)
+   return get_node("return " .. src)[1]
 end
 
 describe("parser", function()
@@ -398,6 +398,11 @@ describe("parser", function()
                      }, get_node("a(b)"))
          assert.same({tag = "Call",
                         {tag = "Id", "a"},
+                        {tag = "Id", "b"},
+                        {tag = "Id", "c"}
+                     }, get_node("a(b, c)"))
+         assert.same({tag = "Call",
+                        {tag = "Id", "a"},
                         {tag = "Id", "b"}
                      }, get_node("(a)(b)"))
          assert.same({tag = "Call",
@@ -436,6 +441,12 @@ describe("parser", function()
          assert.same({tag = "Invoke",
                         {tag = "Id", "a"},
                         {tag = "String", "b"},
+                        {tag = "Id", "c"},
+                        {tag = "Id", "d"}
+                     }, get_node("a:b(c, d)"))
+         assert.same({tag = "Invoke",
+                        {tag = "Id", "a"},
+                        {tag = "String", "b"},
                         {tag = "Id", "c"}
                      }, get_node("(a):b(c)"))
          assert.same({tag = "Invoke",
@@ -452,10 +463,149 @@ describe("parser", function()
       end)
    end)
 
+   describe("when parsing expressions", function()
+      it("parses singleton expressions correctly", function()
+         assert.same({tag = "Nil"}, get_expr("nil"))
+         assert.same({tag = "True"}, get_expr("true"))
+         assert.same({tag = "False"}, get_expr("false"))
+         assert.same({tag = "Number", "1"}, get_expr("1"))
+         assert.same({tag = "String", "1"}, get_expr("'1'"))
+         assert.same({tag = "Table"}, get_expr("{}"))
+         assert.same({tag = "Function", {}, {}}, get_expr("function() end"))
+         assert.same({tag = "Dots"}, get_expr("..."))
+      end)
+
+      it("parses table constructors correctly", function()
+         assert.same({tag = "Table",
+                        {tag = "Id", "a"},
+                        {tag = "Id", "b"},
+                        {tag = "Id", "c"}
+                     }, get_expr("{a, b, c}"))
+         assert.same({tag = "Table",
+                        {tag = "Id", "a"},
+                        {tag = "Pair", {tag = "String", "b"}, {tag = "Id", "c"}},
+                        {tag = "Id", "d"}
+                     }, get_expr("{a, b = c, d}"))
+         assert.same({tag = "Table",
+                        {tag = "String", "a"},
+                        {tag = "Pair", {tag = "Id", "b"}, {tag = "Id", "c"}},
+                        {tag = "Id", "d"}
+                     }, get_expr("{[[a]], [b] = c, d}"))
+         assert.same({tag = "Table",
+                        {tag = "Id", "a"},
+                        {tag = "Id", "b"},
+                        {tag = "Id", "c"}
+                     }, get_expr("{a; b, c}"))
+         assert.same({tag = "Table",
+                        {tag = "Id", "a"},
+                        {tag = "Id", "b"},
+                        {tag = "Id", "c"}
+                     }, get_expr("{a; b, c,}"))
+         assert.same({tag = "Table",
+                        {tag = "Id", "a"},
+                        {tag = "Id", "b"},
+                        {tag = "Id", "c"}
+                     }, get_expr("{a; b, c;}"))
+         assert.is_nil(parser("return {;}"))
+         assert.is_nil(parser("return {"))
+         assert.is_nil(parser("return {a,,}"))
+         assert.is_nil(parser("return {a = "))
+      end)
+
+      it("parses simple expressions correctly", function()
+         assert.same({tag = "Op", "unm",
+                        {tag = "Number", "1"}
+                     }, get_expr("-1"))
+         assert.same({tag = "Op", "add",
+                        {tag = "Op", "add",
+                           {tag = "Number", "1"},
+                           {tag = "Number", "2"}
+                        },
+                        {tag = "Number", "3"}
+                     }, get_expr("1+2+3"))
+         assert.same({tag = "Op", "pow",
+                        {tag = "Number", "1"},
+                        {tag = "Op", "pow",
+                           {tag = "Number", "2"},
+                           {tag = "Number", "3"}
+                        }
+                     }, get_expr("1^2^3"))
+         assert.same({tag = "Op", "concat",
+                        {tag = "String", "1"},
+                        {tag = "Op", "concat",
+                           {tag = "String", "2"},
+                           {tag = "String", "3"}
+                        }
+                     }, get_expr("'1'..'2'..'3'"))
+      end)
+
+      it("handles operator precedence correctly", function()
+         assert.same({tag = "Op", "add",
+                        {tag = "Op", "unm",
+                           {tag = "Number", "1"}
+                        },
+                        {tag = "Op", "mul",
+                           {tag = "Number", "2"},
+                           {tag = "Op", "pow",
+                              {tag = "Number", "3"},
+                              {tag = "Number", "4"}
+                           }
+                        }
+                     }, get_expr("-1+2*3^4"))
+         assert.same({tag = "Op", "bor",
+                        {tag = "Op", "bor",
+                           {tag = "Op", "band",
+                              {tag = "Op", "shr",
+                                 {tag = "Number", "1"},
+                                 {tag = "Number", "2"}
+                              },
+                              {tag = "Op", "shl",
+                                 {tag = "Number", "3"},
+                                 {tag = "Number", "4"}
+                              }
+                           },
+                           {tag = "Op", "bxor",
+                              {tag = "Number", "5"},
+                              {tag = "Number", "6"}
+                           }
+                        },
+                        {tag = "Op", "bnot",
+                           {tag = "Number", "7"}
+                        }
+                     }, get_expr("1 >> 2 & 3 << 4 | 5 ~ 6 | ~7"))
+         assert.same({tag = "Op", "or",
+                        {tag = "Op", "and",
+                           {tag = "Op", "eq",
+                              {tag = "Id", "a"},
+                              {tag = "Id", "b"}
+                           },
+                           {tag = "Op", "eq",
+                              {tag = "Id", "c"},
+                              {tag = "Id", "d"}
+                           }
+                        },
+                        {tag = "Op", "ne",
+                           {tag = "Id", "e"},
+                           {tag = "Id", "f"}
+                        }
+                     }, get_expr("a == b and c == d or e ~= f"))
+      end)
+   end)
+
    describe("when parsing multiple statements", function()
+      it("considers semicolons and comments no-op statements", function()
+         assert.same({tag = "Set", {
+                           {tag = "Id", "a"}
+                        }, {
+                           {tag = "Id", "b"}
+                        }
+                     }, get_node(";;;a = b;--[[]];--;"))
+      end)
+
       it("does not allow statements after return", function()
          assert.is_nil(parser("return break"))
          assert.is_nil(parser("return; break"))
+         assert.is_nil(parser("return;;"))
          assert.is_nil(parser("return 1 break"))
          assert.is_nil(parser("return 1; break"))
          assert.is_nil(parser("return 1, 2 break"))
