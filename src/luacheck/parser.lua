@@ -55,25 +55,28 @@ local function check_name(state)
    return state.token_value
 end
 
+-- If needed, wraps last expression in expressions in "Paren" node.
+local function opt_add_parens(expressions, is_inside_parentheses)
+   if is_inside_parentheses then
+      local last = expressions[#expressions]
+
+      if last and last.tag == "Call" or last.tag == "Invoke" or last.tag == "Dots" then
+         expressions[#expressions] = init_ast_node({last}, last, "Paren")
+      end
+   end
+end
+
 local parse_block, parse_expression
 
 local function parse_expression_list(state)
    local list = {}
-   local is_inside_parentheses
+   local is_inside_parentheses = false
 
    repeat
       list[#list+1], is_inside_parentheses = parse_expression(state)
    until not test_and_skip_token(state, ",")
 
-   -- Parentheses around the last expression may be significant.
-   if is_inside_parentheses then
-      local last = list[#list]
-      local tag = last.tag
-      if tag == "Call" or tag == "Invoke" or tag == "Dots" then
-         list[#list] = init_ast_node({last}, last, "Paren")
-      end
-   end
-
+   opt_add_parens(list, is_inside_parentheses)
    return list
 end
 
@@ -132,6 +135,7 @@ end
 local function parse_table(state)
    local ast_node = new_ast_node(state, "Table")
    skip_token(state)  -- Skip "{"
+   local is_inside_parentheses = false
 
    repeat
       if state.token == "}" then
@@ -147,7 +151,7 @@ local function parse_table(state)
             if test_and_skip_token(state, "=") then
                -- `name` = `expr`.
                lhs = init_ast_node({name}, item_location, "String")
-               rhs = parse_expression(state)
+               rhs, is_inside_parentheses = parse_expression(state)
             else
                -- `name` is beginning of an expression in array part.
                -- Backtrack lexer to before name.
@@ -155,7 +159,7 @@ local function parse_table(state)
                state.lexer.line_offset = item_location.offset-item_location.column+1
                state.lexer.offset = item_location.offset
                skip_token(state)  -- Load name again.
-               rhs = parse_expression(state)
+               rhs, is_inside_parentheses = parse_expression(state)
             end
          elseif test_and_skip_token(state, "[") then
             -- [ `expr` ] = `expr`.
@@ -165,7 +169,7 @@ local function parse_table(state)
             rhs = parse_expression(state)
          else
             -- Expression in array part.
-            rhs = parse_expression(state)
+            rhs, is_inside_parentheses = parse_expression(state)
          end
 
          if lhs then
@@ -179,6 +183,7 @@ local function parse_table(state)
    until not (test_and_skip_token(state, ",") or test_and_skip_token(state, ";"))
 
    check_and_skip_token(state, "}")
+   opt_add_parens(ast_node, is_inside_parentheses)
    return ast_node
 end
 
