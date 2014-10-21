@@ -413,7 +413,43 @@ describe("parser", function()
          assert.is_nil(parser("function() end ()"))
       end)
 
-      pending("parses method calls correctly")
+      it("parses method calls correctly", function()
+         assert.same({tag = "Invoke",
+                        {tag = "Id", "a"},
+                        {tag = "String", "b"}
+                     }, get_node("a:b()"))
+         assert.same({tag = "Invoke",
+                        {tag = "Id", "a"},
+                        {tag = "String", "b"},
+                        {tag = "String", "c"}
+                     }, get_node("a:b'c'"))
+         assert.same({tag = "Invoke",
+                        {tag = "Id", "a"},
+                        {tag = "String", "b"},
+                        {tag = "Table"}
+                     }, get_node("a:b{}"))
+         assert.same({tag = "Invoke",
+                        {tag = "Id", "a"},
+                        {tag = "String", "b"},
+                        {tag = "Id", "c"}
+                     }, get_node("a:b(c)"))
+         assert.same({tag = "Invoke",
+                        {tag = "Id", "a"},
+                        {tag = "String", "b"},
+                        {tag = "Id", "c"}
+                     }, get_node("(a):b(c)"))
+         assert.same({tag = "Invoke",
+                        {tag = "Invoke",
+                           {tag = "Id", "a"},
+                           {tag = "String", "b"}
+                        }, {tag = "String", "c"}
+                     }, get_node("a:b():c()"))
+         assert.is_nil(parser("1:b()"))
+         assert.is_nil(parser("'':a()"))
+         assert.is_nil(parser("function()end:b()"))
+         assert.is_nil(parser("a:b:c()"))
+         assert.is_nil(parser("a:"))
+      end)
    end)
 
    describe("when parsing multiple statements", function()
