@@ -683,6 +683,117 @@ describe("parser", function()
          assert.is_nil(parser("return 1, 2; break"))
       end)
 
-      pending("<add more tests here>")
+      it("parses nested statements correctly", function()
+         assert.same({
+                        {tag = "Localrec",
+                           {tag = "Id", "f"},
+                           {tag = "Function", {}, {
+                              {tag = "While",
+                                 {tag = "True"},
+                                 {
+                                    {tag = "If",
+                                       {tag = "Nil"},
+                                       {
+                                          {tag = "Call",
+                                             {tag = "Id", "f"}
+                                          },
+                                          {tag = "Return"}
+                                       },
+                                       {tag = "False"},
+                                       {
+                                          {tag = "Call",
+                                             {tag = "Id", "g"}
+                                          },
+                                          {tag = "Break"}
+                                       },
+                                       {
+                                          {tag = "Call",
+                                             {tag = "Id", "h"}
+                                          },
+                                          {tag = "Repeat",
+                                             {
+                                                {tag = "Goto", "fail"}
+                                             },
+                                             {tag = "Id", "get_forked"}
+                                          }
+                                       }
+                                    }
+                                 }
+                              },
+                              {tag = "Label", "fail"}
+                           }}
+                        },
+                        {tag = "Do",
+                           {tag = "Fornum",
+                              {tag = "Id", "i"},
+                              {tag = "Number", "1"},
+                              {tag = "Number", "2"},
+                              {
+                                 {tag = "Call",
+                                    {tag = "Id", "nothing"}
+                                 }
+                              }
+                           },
+                           {tag = "Forin",
+                              {
+                                 {tag = "Id", "k"},
+                                 {tag = "Id", "v"}
+                              },
+                              {
+                                 {tag = "Call",
+                                    {tag = "Id", "pairs"}
+                                 }
+                              },
+                              {
+                                 {tag = "Call",
+                                    {tag = "Id", "print"},
+                                    {tag = "String", "bar"}
+                                 },
+                                 {tag = "Call",
+                                    {tag = "Id", "assert"},
+                                    {tag = "Number", "42"}
+                                 }
+                              }
+                           },
+                           {tag = "Return"}
+                        },
+                     }, get_ast([[
+local function f()
+   while true do
+      if nil then
+         f()
+         return
+      elseif false then
+         g()
+         break
+      else
+         h()
+
+         repeat
+            goto fail
+         until get_forked
+      end
+   end
+
+   ::fail::
+end
+
+do
+   for i=1, 2 do
+      nothing()
+   end
+
+   for k, v in pairs() do
+      print("bar")
+      assert(42)
+   end
+
+   return
+end
+]]))
+
+      end)
    end)
+
+   pending("provides correct location info")
 end)
