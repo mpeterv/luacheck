@@ -512,6 +512,40 @@ describe("parser", function()
          assert.is_nil(parser("return {a = "))
       end)
 
+      it("wraps last element in table constructors in parens when needed", function()
+         assert.same({tag = "Table",
+                        {tag = "Id", "a"},
+                        {tag = "Paren",
+                           {tag = "Call",
+                              {tag = "Id", "f"}
+                           }
+                        }
+                     }, get_expr("{a, (f())}"))
+         assert.same({tag = "Table",
+                        {tag = "Call",
+                           {tag = "Id", "f"}
+                        },
+                        {tag = "Id", "a"}
+                     }, get_expr("{(f()), a}"))
+         assert.same({tag = "Table",
+                        {tag = "Pair",
+                           {tag = "String", "a"},
+                           {tag = "Call",
+                              {tag = "Id", "f"}
+                           }
+                        }
+                     }, get_expr("{a = (f())}"))
+         assert.same({tag = "Table",
+                        {tag = "Call",
+                           {tag = "Id", "f"}
+                        },
+                        {tag = "Pair",
+                           {tag = "String", "a"},
+                           {tag = "Id", "b"}
+                        }
+                     }, get_expr("{(f()), a = b}"))
+      end)
+
       it("parses simple expressions correctly", function()
          assert.same({tag = "Op", "unm",
                         {tag = "Number", "1"}
@@ -589,6 +623,43 @@ describe("parser", function()
                            {tag = "Id", "f"}
                         }
                      }, get_expr("a == b and c == d or e ~= f"))
+      end)
+
+      it("wraps last expression in a list in parens when needed", function()
+         assert.same({tag = "Return",
+                        {tag = "Dots"},
+                        {tag = "Paren", {tag = "Dots"}}
+                     }, get_node("return (...), (...)"))
+         assert.same({tag = "Return",
+                        {tag = "Dots"},
+                        {tag = "Dots"}
+                     }, get_node("return (...), ..."))
+         assert.same({tag = "Return",
+                        {tag = "True"},
+                        {tag = "False"}
+                     }, get_node("return (true), (false)"))
+         assert.same({tag = "Return",
+                        {tag = "Call",
+                           {tag = "Id", "f"}
+                        },
+                        {tag = "Paren",
+                           {tag = "Call",
+                              {tag = "Id", "g"}
+                           }
+                        }
+                     }, get_node("return (f()), (g())"))
+         assert.same({tag = "Return",
+                        {tag = "Invoke",
+                           {tag = "Id", "f"},
+                           {tag = "String", "n"}
+                        },
+                        {tag = "Paren",
+                           {tag = "Invoke",
+                              {tag = "Id", "g"},
+                              {tag = "String", "m"}
+                           }
+                        }
+                     }, get_node("return (f:n()), (g:m())"))
       end)
    end)
 
