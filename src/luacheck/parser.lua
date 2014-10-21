@@ -239,9 +239,10 @@ local function parse_call_arguments(state)
       end
    elseif state.token == "{" then
       return {parse_table(state)}
-   else
-      -- token == TK_STRING.
+   elseif state.token == "TK_STRING" then
       return {parse_string(state)}
+   else
+      error({})
    end
 end
 
