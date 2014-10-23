@@ -1,5 +1,4 @@
--- A (prematurely, but not completely) optimized Lua lexer.
--- Should support syntax of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT(64bit and complex cdata literals).
+-- Lexer should support syntax of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT(64bit and complex cdata literals).
 local lexer = {}
 
 local sbyte = string.byte
@@ -217,7 +216,6 @@ local function lex_short_string(state, quote)
    local chunk_start = state.offset
 
    while b ~= quote do
-      -- TODO: use jump tables?
       if b == BYTE_BSLASH then
          -- Escape sequence.
 
@@ -238,7 +236,6 @@ local function lex_short_string(state, quote)
 
          local escape_byte = simple_escapes[b]
 
-         -- TODO: in \', \", \\ one char chunk can be avoided (added to the next one).
          if escape_byte then  -- Is it a simple escape sequence?
             b = next_byte(state)
             s = schar(escape_byte)
@@ -385,7 +382,7 @@ local function lex_number(state, b)
 
    local exp_lower, exp_upper = BYTE_e, BYTE_E
    local is_digit = to_dec
-   local has_digits = false  -- TODO: use offsets to determine if there were digits.
+   local has_digits = false
    local is_float = false
 
    if b == BYTE_0 then
