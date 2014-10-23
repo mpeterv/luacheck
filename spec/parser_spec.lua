@@ -795,5 +795,80 @@ end
       end)
    end)
 
-   pending("provides correct location info")
+   it("provides correct location info", function()
+      assert.same({
+                     {tag = "Localrec", line = 1, column = 1, offset = 1,
+                        {tag = "Id", "foo", line = 1, column = 16, offset = 16},
+                        {tag = "Function", line = 1, column = 7, offset = 7,
+                           {
+                              {tag = "Id", "a", line = 1, column = 20, offset = 20},
+                              {tag = "Id", "b", line = 1, column = 23, offset = 23},
+                              {tag = "Id", "c", line = 1, column = 26, offset = 26},
+                              {tag = "Dots", line = 1, column = 29, offset = 29}
+                           },
+                           {
+                              {tag = "Local", line = 2, column = 4, offset = 37,
+                                 {
+                                    {tag = "Id", "d", line = 2, column = 10, offset = 43}
+                                 },
+                                 {
+                                    {tag = "Op", "mul", line = 2, column = 15, offset = 48,
+                                       {tag = "Op", "add", line = 2, column = 15, offset = 48,
+                                          {tag = "Id", "a", line = 2, column = 15, offset = 48},
+                                          {tag = "Id", "b", line = 2, column = 19, offset = 52}
+                                       },
+                                       {tag = "Id", "c", line = 2, column = 24, offset = 57}
+                                    }
+                                 }
+                              },
+                              {tag = "Return", line = 3, column = 4, offset = 62,
+                                 {tag = "Id", "d", line = 3, column = 11, offset = 69},
+                                 {tag = "Paren", line = 3, column = 15, offset = 73,
+                                    {tag = "Dots", line = 3, column = 15, offset = 73}
+                                 }
+                              }
+                           }
+                        }
+                     },
+                     {tag = "Set", line = 6, column = 1, offset = 83,
+                        {
+                           {tag = "Index", line = 6, column = 10, offset = 92,
+                              {tag = "Id", "t", line = 6, column = 10, offset = 92},
+                              {tag = "String", "bar", line = 6, column = 12, offset = 94}
+                           }
+                        },
+                        {
+                           {tag = "Function", line = 6, column = 1, offset = 83,
+                              {
+                                 {tag = "Id", "self", line = 6, column = 15, offset = 97},
+                                 {tag = "Id", "arg", line = 6, column = 16, offset = 98}
+                              },
+                              {
+                                 {tag = "If", line = 7, column = 4, offset = 106,
+                                    {tag = "Id", "arg", line = 7, column = 7, offset = 109},
+                                    {
+                                       {tag = "Call", line = 8, column = 7, offset = 124,
+                                          {tag = "Id", "print", line = 8, column = 7, offset = 124},
+                                          {tag = "Id", "arg", line = 8, column = 13, offset = 130}
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }, parser([[
+local function foo(a, b, c, ...)
+   local d = (a + b) * c
+   return d, (...)
+end
+
+function t:bar(arg)
+   if arg then
+      print(arg)
+   end
+end
+]]))
+
+   end)
 end)
