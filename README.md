@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/mpeterv/luacheck.png?branch=master)](https://travis-ci.org/mpeterv/luacheck)
 
-Luacheck is a tool for linting and static analysis of [Lua](http://www.lua.org) code. It is able to spot usage of undefined global variables, unused local variables and a few other typical problems within Lua applications.
+Luacheck is a tool for linting and static analysis of [Lua](http://www.lua.org) code. It is able to spot usage of undefined global variables, unused local variables and a few other typical problems within Lua programs.
 
 Luacheck provides a command line interface as well as a Lua module which can be used by other programs.
 
@@ -32,7 +32,7 @@ Documentation is available [online](http://luacheck.readthedocs.org). If Luachec
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.5.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.6.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 

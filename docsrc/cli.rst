@@ -35,7 +35,7 @@ The output of ``luacheck`` consists of separate reports for each checked file an
 
    Total: 14 warnings / 1 error in 4 files
 
-``luacheck`` exits with 0 if no warnings or errors occured and with 1 otherwise.
+``luacheck`` exits with 0 if no warnings or errors occured and with a positive number otherwise.
 
 .. _cliopts:
 

@@ -27,7 +27,7 @@ Option                     Type                       Default value
 ``options.unused_globals`` Boolean                    ``true``
 ``options.ignore``         Array of strings           ``{}``
 ``options.only``           Array of strings           (Do not filter)
-========================== ==========================================
+========================== ========================== ===============
 
 When checking ``n``-th file, ``luacheck`` will try to combine ``options[n]`` with general options, similarly to how per file config tables overwrite general config table. See :doc:`config`.
 
