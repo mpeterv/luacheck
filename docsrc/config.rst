@@ -19,7 +19,7 @@ An example of a config which makes ``luacheck`` ensure that only globals from th
 Per-file overrides
 ------------------
 
-The envirment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<path>]``. For example, the following config re-enables detection of unused arguments only for ``myfile.lua``:
+The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<path>]``. For example, the following config re-enables detection of unused arguments only for ``myfile.lua``:
 
 .. code-block:: lua
    :linenos:

@@ -4,7 +4,7 @@ Types of warnings
 Luacheck generates warnings of three types:
 
 * warnings related to global variables;
-* warnings related to unused local variables and variables;
+* warnings related to unused local variables and values;
 * warnings related to redefined local variables.
 
 Global variables
