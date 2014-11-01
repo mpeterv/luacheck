@@ -215,7 +215,6 @@ local function main()
          return opts
       end
 
-      local res
       config_path = config_path or default_config
 
       local function validate(opts)
@@ -223,33 +222,22 @@ local function main()
 
          if not ok then
             if invalid_field then
-               return ("Couldn't load configuration from %s: invalid value of option '%s'\n"):format(
-                  config_path, invalid_field)
+               fatal(("Couldn't load configuration from %s: invalid value of option '%s'\n"):format(
+                  config_path, invalid_field))
             else
-               return ("Couldn't load configuration from %s: validation error\n"):format(config_path)
+               fatal(("Couldn't load configuration from %s: validation error\n"):format(config_path))
             end
          end
       end
 
-      local err = validate(config)
-
-      if err then
-         fatal(err)
-      end
-
-      res = options.combine(config, opts)
+      validate(config)
+      local res = options.combine(config, opts)
 
       for i, file in ipairs(files) do
-         local file_config = type(config.files) == "table" and config.files[file]
+         local file_config = type(config.files) == "table" and rawget(config.files, file)
 
          if file_config then
-            local err = validate(file_config)
-
-            if err then
-               fatal(err)
-               return opts
-            end
-
+            validate(file_config)
             res[i] = file_config
          end
       end
