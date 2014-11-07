@@ -53,8 +53,6 @@ local function main()
       min - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0; 
       max - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0; 
       none - no standard globals. ]]
-         :default "_G"
-         :show_default(false)
          :convert(stds)
       parser:option "--globals"
          :description "Add custom globals on top of standard ones. "
