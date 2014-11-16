@@ -255,6 +255,95 @@ describe("filter", function()
       }))
    end)
 
+   it("allows globals defined in top level function scope with allow_defined_top = true", function()
+      assert.same({
+         {
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "bar"
+            },
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "baz"
+            }
+         }
+      }, filter({
+         {
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "foo"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "foo",
+               top = true
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "bar"
+            },
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "baz"
+            }
+         }
+      }, {
+         allow_defined_top = true
+      }))
+   end)
+
+   it("allows globals defined in the same file with module = true", function()
+      assert.same({
+         {},
+         {
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "foo"
+            }
+         }
+      }, filter({
+         {
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "foo"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "foo"
+            }
+         },
+         {
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "foo"
+            }
+         }
+      }, {
+         allow_defined = true,
+         module = true
+      }))
+   end)
+
    it("removes unused global warnings with unused_globals = false", function()
       assert.same({
          {

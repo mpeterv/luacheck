@@ -68,6 +68,10 @@ local function main()
          :description "Equivalent to --std=max. "
       parser:flag "-d" "--allow-defined"
          :description "Allow defining globals by setting them. "
+      parser:flag "-t" "--allow-defined-top"
+         :description "Allow defining globals by setting them in the top level scope. "
+      parser:flag "-m" "--module"
+         :description "Only allow accessing globals defined in the same file. "
       parser:flag "--no-unused-globals"
          :description "Filter out warnings related to set but unused global variables. "
 
@@ -181,7 +185,7 @@ local function main()
    local function get_options(args)
       local res = {}
 
-      for _, argname in ipairs {"allow_defined", "compat", "std"} do
+      for _, argname in ipairs {"allow_defined", "allow_defined_top", "module", "compat", "std"} do
          if args[argname] then
             res[argname] = args[argname]
          end

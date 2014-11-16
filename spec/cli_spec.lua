@@ -342,6 +342,34 @@ Total: 1 warning / 0 errors in 2 files
 ]], get_output "spec/samples/defined2.lua spec/samples/defined.lua -d")
    end)
 
+   it("allows restricting scope of defined globals to the file with their definition", function()
+      assert.equal([[
+Checking spec/samples/defined2.lua                Failure
+
+    spec/samples/defined2.lua:1:1: accessing undefined variable foo
+
+Checking spec/samples/defined3.lua                Failure
+
+    spec/samples/defined3.lua:1:1: unused global variable foo
+    spec/samples/defined3.lua:2:1: unused global variable foo
+    spec/samples/defined3.lua:3:1: unused global variable bar
+
+Total: 4 warnings / 0 errors in 2 files
+]], get_output "spec/samples/defined2.lua spec/samples/defined3.lua -d -m")
+   end)
+
+   it("allows ignoring globals defined in top level scope", function()
+      assert.equal([[
+Checking spec/samples/defined4.lua                Failure
+
+    spec/samples/defined4.lua:1:10: unused global variable foo
+    spec/samples/defined4.lua:2:4: setting non-standard global variable foo
+    spec/samples/defined4.lua:3:4: setting non-standard global variable bar
+
+Total: 3 warnings / 0 errors in 1 file
+]], get_output "spec/samples/defined4.lua -t")
+   end)
+
    it("detects unused defined globals", function()
       assert.equal([[
 Checking spec/samples/defined3.lua                Failure
@@ -398,6 +426,6 @@ Total: 0 warnings / 0 errors in 2 files
    end)
 
    it("expands folders", function()
-      assert.equal("Total: 29 warnings / 1 error in 11 files\n", get_output "spec/samples -qqq")
+      assert.equal("Total: 32 warnings / 1 error in 12 files\n", get_output "spec/samples -qqq")
    end)
 end)

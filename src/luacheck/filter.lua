@@ -16,42 +16,57 @@ local function get_normalized_opts(report, opts)
    return res
 end
 
--- Returns sets of defined and used globals inferred from report. 
-local function get_defined_and_used_globals(report)
-   local defined, used = {}, {}
+local function handle_implicit_definitions(report, opts)
+   local global_scope = {
+      defined = {},
+      used = {}
+   }
+   local scopes = {}
+   local definitions = {}
 
-   for _, file_report in ipairs(report) do
+   for i, file_report in ipairs(report) do
+      if opts[i].module then
+         scopes[i] = {
+            defined = {},
+            used = {}
+         }
+      else
+         scopes[i] = global_scope
+      end
+
       for _, warning in ipairs(file_report) do
          if warning.type == "global" then
             if warning.subtype == "set" then
-               defined[warning.name] = true
+               if opts[i].allow_defined or (opts[i].allow_defined_top and warning.top) then
+                  scopes[i].defined[warning.name] = true
+                  definitions[warning] = true
+               end
+
+               warning.top = nil
             else
-               used[warning.name] = true
+               scopes[i].used[warning.name] = true
             end
          end
       end
    end
 
-   return defined, used
-end
+   for i, file_report in ipairs(report) do
+      for j=#file_report, 1, -1 do
+         local warning = file_report[j]
 
--- Operates on a file report. 
--- Deletes warnings related to defined globals. 
--- If `check_unused_globals`, transforms set warnings into unused global warnings. 
-local function handle_defined_globals(report, check_unused_globals, defined, used)
-   for i=#report, 1, -1 do
-      local warning = report[i]
-
-      if warning.type == "global" then
-         if warning.subtype == "set" then
-            if check_unused_globals and not used[warning.name] then
-               warning.subtype = "unused"
+         if warning.type == "global" then
+            if warning.subtype == "set" then
+               if definitions[warning] then
+                  if opts[i].unused_globals and not scopes[i].used[warning.name] then
+                     warning.subtype = "unused"
+                  else
+                     table.remove(file_report, j)
+                  end
+               end
             else
-               table.remove(report, i)
-            end
-         else
-            if defined[warning.name] then
-               table.remove(report, i)
+               if scopes[i].defined[warning.name] then
+                  table.remove(file_report, j)
+               end
             end
          end
       end
@@ -84,15 +99,11 @@ end
 local function filter(report, opts)
    local res = {}
    opts = get_normalized_opts(report, opts)
-   local defined, used = get_defined_and_used_globals(report)
+   handle_implicit_definitions(report, opts)
 
    for i, file_report in ipairs(report) do
       if not file_report.error then
          res[i] = filter_file_report(report[i], opts[i])
-
-         if opts[i].allow_defined then
-            handle_defined_globals(res[i], opts[i].unused_globals, defined, used)
-         end
       else
          res[i] = file_report
       end

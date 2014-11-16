@@ -25,15 +25,26 @@ end
 
    it("detects global access", function()
       assert.same({
-         {type = "global", subtype = "set", vartype = "global", name = "foo", line = 1, column = 1}
+         {type = "global", subtype = "set", vartype = "global", name = "foo", line = 1, column = 1, top = true}
       }, get_report[[
 foo = {}
       ]])
    end)
 
+   it("detects global set in nested functions", function()
+      assert.same({
+         {type = "global", subtype = "set", vartype = "global", name = "foo", line = 2, column = 4}
+      }, get_report[[
+local function bar()
+   foo = {}
+end
+bar()
+      ]])
+   end)
+
    it("detects global access in multi-assignments", function()
       assert.same({
-         {type = "global", subtype = "set", vartype = "global", name = "y", line = 2, column = 4},
+         {type = "global", subtype = "set", vartype = "global", name = "y", line = 2, column = 4, top = true},
          {type = "global", subtype = "access", vartype = "global", name = "print", line = 3, column = 1}
       }, get_report[[
 local x

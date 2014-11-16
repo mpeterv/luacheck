@@ -13,17 +13,36 @@ local function check(ast)
    -- Array part contains outer scope, outer closure and outer cycle. 
    local outer = {}
 
-   local function add_warning(node, type_, subtype, vartype, prev_node)
-      table.insert(report, {
+   local function add(w)
+      table.insert(report, w)
+   end
+
+   local function warning(node, type_, subtype, vartype)
+      return {
          type = type_,
          subtype = subtype,
          vartype = vartype,
          name = node[1],
          line = node.line,
-         column = node.column,
-         prev_line = prev_node and prev_node.line,
-         prev_column = prev_node and prev_node.column
-      })
+         column = node.column
+      }
+   end
+
+   local function global_warning(node, action, outer)
+      local w = warning(node, "global", action, "global")
+
+      if action == "set" and not outer[2] then
+         w.top = true
+      end
+
+      return w
+   end
+
+   local function redefined_warning(node, prev_var)
+      local w = warning(node, "redefined", "var", prev_var.type)
+      w.prev_line = prev_var.node.line
+      w.prev_column = prev_var.node.column
+      return w
    end
 
    local function resolve(name)
@@ -59,7 +78,7 @@ local function check(ast)
                      vartype = "var"
                   end
 
-                  add_warning(variable.value.node, "unused", "value", vartype)
+                  add(warning(variable.value.node, "unused", "value", vartype))
                   return
                end
 
@@ -72,10 +91,10 @@ local function check(ast)
    -- If the variable was unused, adds a warning. 
    local function check_variable_usage(variable)
       if not variable.mentioned then
-         add_warning(variable.node, "unused", "var", variable.type)
+         add(warning(variable.node, "unused", "var", variable.type))
       else
          if not variable.used then
-            add_warning(variable.value.node, "unused", "value", variable.type)
+            add(warning(variable.value.node, "unused", "value", variable.type))
          else
             check_value_usage(variable)
          end
@@ -110,7 +129,7 @@ local function check(ast)
 
       if not variable then
          if name ~= "..." then
-            add_warning(node, "global", action, "global")
+            add(global_warning(node, action, outer))
          end
       else
          if action == "access" then
@@ -162,7 +181,7 @@ local function check(ast)
 
       if prev_variable then
          check_variable_usage(prev_variable)
-         add_warning(node, "redefined", "var", prev_variable.type, prev_variable.node)
+         add(redefined_warning(node, prev_variable))
       end
 
       register_variable(node, type_)
