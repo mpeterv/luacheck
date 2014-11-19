@@ -4,7 +4,8 @@ local warnings = {
          global = "accessing undefined variable %s"
       },
       set = {
-         global = "setting non-standard global variable %s"
+         global = "setting non-standard global variable %s",
+         module = "setting non-module global variable %s"
       },
       unused = {
          global = "unused global variable %s"

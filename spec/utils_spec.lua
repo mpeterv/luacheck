@@ -92,4 +92,13 @@ describe("utils", function()
          assert.same({1, 2, 3, 4}, utils.concat_arrays({{}, {1}, {2, 3, 4}, {}}))
       end)
    end)
+
+   describe("update", function()
+      it("updates first table with entries from second", function()
+         local t1 = {k1 = 1, k2 = 2}
+         local t2 = {k2 = 3, k3 = 4}
+         utils.update(t1, t2)
+         assert.same({k1 = 1, k2 = 3, k3 = 4}, t1)
+      end)
+   end)
 end)

@@ -39,7 +39,7 @@ local function main()
       parser:flag "-u" "--no-unused"
          :description "Filter out warnings related to unused variables. "
       parser:flag "-a" "--no-unused-args"
-         :description "ilter out warnings related to unused arguments and loop variables. "
+         :description "Filter out warnings related to unused arguments and loop variables. "
       parser:flag "-v" "--no-unused-values"
          :description "Filter out warnings related to unused values. "
 
@@ -67,11 +67,11 @@ local function main()
       parser:flag "-c" "--compat"
          :description "Equivalent to --std=max. "
       parser:flag "-d" "--allow-defined"
-         :description "Allow defining globals by setting them. "
+         :description "Allow defining globals implicitly by setting them. "
       parser:flag "-t" "--allow-defined-top"
-         :description "Allow defining globals by setting them in the top level scope. "
+         :description "Allow defining globals implicitly by setting them in the top level scope. "
       parser:flag "-m" "--module"
-         :description "Only allow accessing globals defined in the same file. "
+         :description "Limit visibility of implicitly defined globals to their files. "
       parser:flag "--no-unused-globals"
          :description "Filter out warnings related to set but unused global variables. "
 

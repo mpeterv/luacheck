@@ -344,6 +344,71 @@ describe("filter", function()
       }))
    end)
 
+   it("only allows setting globals defined in the same file with module = true", function()
+      assert.same({
+         {},
+         {
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "module",
+               name = "string"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "module",
+               name = "bar"
+            }
+         }
+      }, filter({
+         {
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "bar"
+            }
+         },
+         {
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "foo",
+               top = true
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "foo",
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "string"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "bar"
+            }
+         }
+      }, {
+            {
+               allow_defined = true,
+               unused_globals = false
+            },
+            {
+               allow_defined_top = true,
+               module = true
+            }
+      }))
+   end)
+
    it("removes unused global warnings with unused_globals = false", function()
       assert.same({
          {

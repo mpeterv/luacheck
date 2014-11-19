@@ -348,13 +348,9 @@ Checking spec/samples/defined2.lua                Failure
 
     spec/samples/defined2.lua:1:1: accessing undefined variable foo
 
-Checking spec/samples/defined3.lua                Failure
+Checking spec/samples/defined3.lua                OK
 
-    spec/samples/defined3.lua:1:1: unused global variable foo
-    spec/samples/defined3.lua:2:1: unused global variable foo
-    spec/samples/defined3.lua:3:1: unused global variable bar
-
-Total: 4 warnings / 0 errors in 2 files
+Total: 1 warning / 0 errors in 2 files
 ]], get_output "spec/samples/defined2.lua spec/samples/defined3.lua -d -m")
    end)
 
@@ -363,10 +359,9 @@ Total: 4 warnings / 0 errors in 2 files
 Checking spec/samples/defined4.lua                Failure
 
     spec/samples/defined4.lua:1:10: unused global variable foo
-    spec/samples/defined4.lua:2:4: setting non-standard global variable foo
     spec/samples/defined4.lua:3:4: setting non-standard global variable bar
 
-Total: 3 warnings / 0 errors in 1 file
+Total: 2 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/defined4.lua -t")
    end)
 
