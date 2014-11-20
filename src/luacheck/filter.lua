@@ -30,7 +30,7 @@ end
 
 -- Given a "global set" warning, return whether it is an implicit definition.
 local function is_definition(warning, opts)
-   return opts.allow_defined or (opts.allow_defined_top and warning.top)
+   return opts.allow_defined or (opts.allow_defined_top and warning.notes and warning.notes.top)
 end
 
 -- Extracts sets of defined and used globals from a file report.
@@ -85,16 +85,13 @@ local function filter_implicit_defs_file(file_report, opts, globally_defined, gl
    for _, warning in ipairs(file_report) do
       if warning.type == "global" then
          if warning.subtype == "set" then
-            local is_def = is_definition(warning, opts)
-            warning.top = nil
-
             if opts.module then
                if not locally_defined[warning.name] then
                   warning.vartype = "module"
                   table.insert(res, warning)
                end
             else
-               if is_def then
+               if is_definition(warning, opts) then
                   if not globally_used[warning.name] and opts.unused_globals then
                      warning.subtype = "unused"
                      table.insert(res, warning)
@@ -154,6 +151,14 @@ local function filter_file_report(report, opts)
    return res
 end
 
+local function remove_notes(report)
+   for _, file_report in ipairs(report) do
+      for _, warning in ipairs(file_report) do
+         warning.notes = nil
+      end
+   end
+end
+
 -- Assumes `opts` are normalized. 
 local function filter_report(report, opts)
    local res = {}
@@ -166,6 +171,7 @@ local function filter_report(report, opts)
       end
    end
 
+   remove_notes(res)
    return res
 end
 

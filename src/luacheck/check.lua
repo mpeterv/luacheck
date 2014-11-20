@@ -2,7 +2,6 @@ local scan = require "luacheck.scan"
 
 --- Checks a Metalua AST. 
 -- Returns an array of warnings. 
--- See luacheck function. 
 local function check(ast)
    local callbacks = {}
    local report = {}
@@ -32,7 +31,7 @@ local function check(ast)
       local w = warning(node, "global", action, "global")
 
       if action == "set" and not outer[2] then
-         w.top = true
+         w.notes = {top = true}
       end
 
       return w

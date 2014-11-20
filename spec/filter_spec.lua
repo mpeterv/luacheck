@@ -284,7 +284,7 @@ describe("filter", function()
                subtype = "set",
                vartype = "global",
                name = "foo",
-               top = true
+               notes = {top = true}
             },
             {
                type = "global",
@@ -376,7 +376,7 @@ describe("filter", function()
                subtype = "set",
                vartype = "global",
                name = "foo",
-               top = true
+               notes = {top = true}
             },
             {
                type = "global",
