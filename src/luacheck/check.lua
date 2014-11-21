@@ -197,8 +197,16 @@ local function check(ast)
 
             if not variable.is_upvalue and not variable.value then
                -- Variable is uninitialized.
-               variable.uninitialized = variable.uninitialized or {}
-               table.insert(variable.uninitialized, warning(node, "uninit", "uninit", variable.type))
+
+               -- If the access is inside a loop, a value can come from the previous iteration.
+               -- This can not be easily checked without flow analysis in place.
+               -- Simply ignore such accesses for now.
+               -- FIXME: loop conditions are not considered being inside loops. Some cooperation from scanner is needed.
+               -- TODO: try for each assignment remove uninitialized warnings it invalidates.
+               if outer[3] == variable.outer[3] then
+                  variable.uninitialized = variable.uninitialized or {}
+                  table.insert(variable.uninitialized, warning(node, "uninit", "uninit", variable.type))
+               end
             end
          end
 

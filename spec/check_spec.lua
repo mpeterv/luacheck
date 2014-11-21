@@ -254,6 +254,23 @@ return a
       ]])
    end)
 
+   it("does not detect accessing unitialized variables in a loop", function()
+      assert.same({}, get_report[[
+local a
+
+while true do
+   if true then
+      local c = {}
+      a = a or {c}
+   end
+
+   if true then
+      return a
+   end
+end
+      ]])
+   end)
+
    it("detects unset variables", function()
       assert.same({
          {type = "unused", subtype = "unset", vartype = "var", name = "a", line = 1, column = 7}
