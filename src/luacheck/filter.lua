@@ -33,6 +33,11 @@ local function is_definition(warning, opts)
    return opts.allow_defined or (opts.allow_defined_top and warning.notes and warning.notes.top)
 end
 
+-- Given a warning, return whether it is about an unused secondary value or variable.
+local function is_secondary(warning)
+   return warning.type == "unused" and warning.notes and warning.notes.secondary
+end
+
 -- Extracts sets of defined and used globals from a file report.
 local function get_defined_and_used_globals(file_report, opts)
    local defined, used = {}, {}
@@ -139,6 +144,7 @@ local function filter_file_report(report, opts)
             (warning.subtype ~= "value" or opts.unused_values) and
             (warning.type == "global" or warning.name ~= "_") and
             (warning.vartype ~= "global" or not opts.globals[warning.name]) and
+            (not is_secondary(warning) or opts.unused_secondaries) and
             (warning.type ~= "unused" or warning.vartype == "var" or warning.subtype == "value" or opts.unused_args) then
          if not opts.ignore[warning.name] then
             if not opts.only or opts.only[warning.name] then

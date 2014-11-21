@@ -146,6 +146,44 @@ describe("filter", function()
       }))
    end)
 
+   it("filters unused warnings related to secondary variables", function()
+      assert.same({
+         {
+            {
+               type = "unused",
+               subtype = "var",
+               vartype = "arg",
+               name = "baz"
+            }
+         }
+      }, filter({
+         {
+            {
+               type = "unused",
+               subtype = "var",
+               vartype = "var",
+               name = "foo",
+               notes = {secondary = true}
+            },
+            {
+               type = "unused",
+               subtype = "value",
+               vartype = "var",
+               name = "bar",
+               notes = {secondary = true}
+            },
+            {
+               type = "unused",
+               subtype = "var",
+               vartype = "arg",
+               name = "baz"
+            }
+         }
+      }, {
+         unused_secondaries = false
+      }))
+   end)
+
    it("filters defined globals", function()
       assert.same({
          {

@@ -18,8 +18,20 @@ local function get_calls(source)
       on_access = function(node)
          table.insert(result, "ACCESS "..node[1])
       end,
-      on_assignment = function(node, is_init)
-         table.insert(result, (is_init and "INIT " or "SET ")..node[1])
+      on_assignment = function(nodes, is_init)
+         local names = {}
+
+         for _, node in ipairs(nodes) do
+            table.insert(names, node[1])
+         end
+
+         names = table.concat(names, ", ")
+
+         if nodes.lhs_len then
+            names = names.." ("..tostring(nodes.lhs_len)..")"
+         end
+
+         table.insert(result, (is_init and "INIT " or "SET ")..names)
       end
    }
 
@@ -53,8 +65,15 @@ describe("scan", function()
          "ACCESS f";
          "VAR d";
          "VAR b";
-         "INIT d";
-         "INIT b";
+         "INIT d, b (2)";
+         --
+         "ACCESS g";
+         "ACCESS h";
+         "VAR x";
+         "VAR y";
+         "VAR z";
+         "INIT x";
+         "INIT y, z (2)";
          --
          "END";
       }, get_calls[[
@@ -62,6 +81,7 @@ describe("scan", function()
          local b, c
          local z, c = true
          local d, b = f()
+         local x, y, z = g(), h()
       ]])
    end)
 
@@ -80,11 +100,16 @@ describe("scan", function()
          "ACCESS d";
          "SET d";
          --
+         "ACCESS s";
+         "ACCESS g";
+         "SET e (2)";
+         --
          "END";
       }, get_calls[[
          a = b
          local c = c
          d = {a, c = d}
+         e, g[1] = s:method()
       ]])
    end)
 

@@ -136,12 +136,44 @@ return a, b
 
    it("considers a variable initialized if short rhs ends with potential multivalue", function()
       assert.same({
-         {type = "unused", subtype = "value", vartype = "var", name = "b", line = 2, column = 13}
+         {type = "unused", subtype = "value", vartype = "var", name = "b", line = 2, column = 13, notes = {secondary = true}}
       }, get_report[[
 return function(...)
    local a, b = ...
    b = "bar"
    return a, b
+end
+      ]])
+   end)
+
+   it("reports unused variable as secondary if it is assigned together with a used one", function()
+      assert.same({
+         {type = "unused", subtype = "var", vartype = "var", name = "a", line = 2, column = 10, notes = {secondary = true}}
+      }, get_report[[
+return function(f)
+   local a, b = f()
+   return b
+end
+      ]])
+   end)
+
+   it("reports unused value as secondary if it is assigned together with a used one", function()
+      assert.same({
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 3, column = 4, notes = {secondary = true}}
+      }, get_report[[
+return function(f)
+   local a, b
+   a, b = f()
+   return b
+end
+      ]])
+
+      assert.same({
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 3, column = 4, notes = {secondary = true}}
+      }, get_report[[
+return function(f, t)
+   local a
+   a, t[1] = f()
 end
       ]])
    end)

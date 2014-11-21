@@ -287,6 +287,27 @@ Total: 6 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/unused_code.lua --no-unused-values")
    end)
 
+   it("allows to ignore unused secondary values and variables", function()
+      assert.equal([[
+Checking spec/samples/unused_secondaries.lua      Failure
+
+    spec/samples/unused_secondaries.lua:3:7: unused variable a
+    spec/samples/unused_secondaries.lua:6:7: unused variable x
+    spec/samples/unused_secondaries.lua:6:13: unused variable z
+    spec/samples/unused_secondaries.lua:10:1: value assigned to variable o is unused
+
+Total: 4 warnings / 0 errors in 1 file
+]], get_output "spec/samples/unused_secondaries.lua")
+
+      assert.equal([[
+Checking spec/samples/unused_secondaries.lua      Failure
+
+    spec/samples/unused_secondaries.lua:6:7: unused variable x
+
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/samples/unused_secondaries.lua -s")
+   end)
+
    it("handles errors gracefully", function()
       assert.equal([[
 Checking spec/samples/python_code.lua             Syntax error
@@ -421,6 +442,6 @@ Total: 0 warnings / 0 errors in 2 files
    end)
 
    it("expands folders", function()
-      assert.equal("Total: 32 warnings / 1 error in 12 files\n", get_output "spec/samples -qqq")
+      assert.equal("Total: 36 warnings / 1 error in 13 files\n", get_output "spec/samples -qqq")
    end)
 end)

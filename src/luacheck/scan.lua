@@ -6,7 +6,9 @@ local tags = {}
 -- callbacks.on_end(node) - when a scope ends
 -- callbacks.on_local(node, type) - when a local variable is created
 -- callbacks.on_access(node) - when a variable is accessed
--- callbacks.on_assignment(node, is_init) - when an assignment is made
+-- callbacks.on_assignment({node*, lhs_len = 1}, is_init) - when an assignment is made
+--    node* is an array of Id nodes assigned to from one rhs item.
+--    lhs_len is total number of lhs items assigned to.
 local function scan(node, callbacks)
    local tag = node.tag or "Block"
 
@@ -27,7 +29,7 @@ local function scan_names(node, callbacks, type_, is_init)
          callbacks.on_local(node[i], type_)
 
          if is_init then
-            callbacks.on_assignment(node[i], true)
+            callbacks.on_assignment({node[i]}, true)
          end
       elseif node[i].tag == "Dots" then
          node[i][1] = "..."
@@ -37,18 +39,33 @@ local function scan_names(node, callbacks, type_, is_init)
 end
 
 local function scan_assignment(node, callbacks, is_init)
-   local rhs_last_tag = node[2][#node[2]].tag
-   local rhs_unpacks = (rhs_last_tag == "Dots") or (rhs_last_tag == "Call") or (
-      rhs_last_tag == "Invoke")
+   local lhs, rhs = node[1], node[2]
+   local rhs_last = rhs[#rhs]
+   local rhs_unpacks = (rhs_last.tag == "Dots") or (rhs_last.tag == "Call") or (
+      rhs_last.tag == "Invoke")
+   -- nodes assigned to from the last, unpacking rhs item.
+   local co_nodes = rhs_unpacks and #rhs < #lhs and {
+      lhs_len = #lhs - #rhs + 1
+   }  
 
-   for i=1, #node[1] do
-      if node[1][i].tag == "Id" then
-         if not is_init or rhs_unpacks or (i <= #node[2]) then
-            callbacks.on_assignment(node[1][i], is_init)
+   for i=1, #lhs do
+      if lhs[i].tag == "Id" then
+         if i < #rhs then
+            callbacks.on_assignment({lhs[i]}, is_init)
+         else
+            if co_nodes then
+               table.insert(co_nodes, lhs[i])
+            elseif not is_init or rhs_unpacks or (i == #rhs) then
+               callbacks.on_assignment({lhs[i]}, is_init)
+            end
          end
       else
-         scan(node[1][i], callbacks)
+         scan(lhs[i], callbacks)
       end
+   end
+
+   if co_nodes then
+      callbacks.on_assignment(co_nodes, is_init)
    end
 end
 
@@ -115,7 +132,7 @@ function tags.Fornum(node, callbacks)
 
    callbacks.on_start(node)
    callbacks.on_local(node[1], "loop")
-   callbacks.on_assignment(node[1], true)
+   callbacks.on_assignment({node[1]}, true)
    scan_inner(node[5] or node[4], callbacks)
    return callbacks.on_end(node)
 end
@@ -150,7 +167,7 @@ end
 function tags.Localrec(node, callbacks)
    callbacks.on_local(node[1], "var")
    scan(node[2], callbacks)
-   return callbacks.on_assignment(node[1], true)
+   return callbacks.on_assignment({node[1]}, true)
 end
 
 return scan

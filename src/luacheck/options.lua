@@ -42,6 +42,7 @@ options.options = {
    redefined = boolean_opt_true,
    unused_args = boolean_opt_true,
    unused_values = boolean_opt_true,
+   unused_secondaries = boolean_opt_true,
    unused_globals = boolean_opt_true,
    compat = boolean_opt_false,
    allow_defined = boolean_opt_false,
