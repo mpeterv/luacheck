@@ -142,6 +142,7 @@ local function filter_file_report(report, opts)
    for _, warning in ipairs(report) do
       if opts[warning.type] and
             (warning.subtype ~= "value" or opts.unused_values) and
+            (warning.subtype ~= "unset" or opts.unset) and
             (warning.type == "global" or warning.name ~= "_") and
             (warning.vartype ~= "global" or not opts.globals[warning.name]) and
             (not is_secondary(warning) or opts.unused_secondaries) and

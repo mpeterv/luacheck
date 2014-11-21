@@ -13,10 +13,11 @@ describe("check", function()
 
    it("does not find anything wrong in used locals", function()
       assert.same({
-         {type = "global", subtype = "access", vartype = "global", name = "print", line = 4, column = 4}
+         {type = "global", subtype = "access", vartype = "global", name = "print", line = 5, column = 4}
       }, get_report[[
 local a
 local b = 5
+a = 6
 do
    print(b, {a})
 end
@@ -237,9 +238,28 @@ print(foo)
          {type = "redefined", subtype = "var", vartype = "arg", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
       }, get_report[[
 return function(foo, ...)
-   local foo
+   local foo = 1
    return foo
 end
+      ]])
+   end)
+
+   it("detects accessing unitialized variables", function()
+      assert.same({
+         {type = "uninit", subtype = "uninit", vartype = "var", name = "a", line = 2, column = 5}
+      }, get_report[[
+local a
+a = a * 2
+return a
+      ]])
+   end)
+
+   it("detects unset variables", function()
+      assert.same({
+         {type = "unused", subtype = "unset", vartype = "var", name = "a", line = 1, column = 7}
+      }, get_report[[
+local a
+return a
       ]])
    end)
 

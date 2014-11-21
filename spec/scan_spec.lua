@@ -123,6 +123,7 @@ describe("scan", function()
          "ARG y";
          "INIT y";
          "VARARG ...";
+         "INIT ...";
          "ACCESS y";
          "END";
          "SET a";
@@ -133,6 +134,7 @@ describe("scan", function()
          --
          "START";
          "VARARG ...";
+         "INIT ...";
          "ACCESS ...";
          "END";
          "SET c";

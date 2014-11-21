@@ -29,6 +29,14 @@ local warnings = {
          var = "value assigned to variable %s is unused",
          arg = "value of argument %s is unused",
          loop = "value of loop variable %s is unused"
+      },
+      unset = {
+         var = "variable %s is never set"
+      }
+   },
+   uninit = {
+      uninit = {
+         var = "accessing uninitialized variable %s"
       }
    }
 }

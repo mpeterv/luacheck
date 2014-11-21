@@ -38,7 +38,7 @@ describe("filter", function()
       }))
    end)
 
-   it("removes unused and redefined warnings related to _", function()
+   it("removes non-global warnings related to _", function()
       assert.same({
          {
             {
@@ -67,6 +67,12 @@ describe("filter", function()
                subtype = "var",
                vartype = "arg",
                name = "_"
+            },
+            {
+               type = "uninit",
+               subtype = "unset",
+               vartype = "var",
+               name = "_"
             }
          }
       }))
@@ -80,6 +86,12 @@ describe("filter", function()
                subtype = "var",
                vartype = "var",
                name = "foo"
+            },
+            {
+               type = "uninit",
+               subtype = "uninit",
+               vartype = "var",
+               name = "qu"
             }
          }
       }, filter({
@@ -97,6 +109,12 @@ describe("filter", function()
                name = "bar"
             },
             {
+               type = "uninit",
+               subtype = "uninit",
+               vartype = "var",
+               name = "qu"
+            },
+            {
                type = "redefined",
                subtype = "var",
                vartype = "loop",
@@ -106,6 +124,58 @@ describe("filter", function()
       }, {
          global = false,
          redefined = false
+      }))
+
+      assert.same({
+         {
+            {
+               type = "unused",
+               subtype = "unset",
+               vartype = "var",
+               name = "foo"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "var",
+               name = "bar"
+            },
+            {
+               type = "redefined",
+               subtype = "var",
+               vartype = "loop",
+               name = "baz"
+            }
+         }
+      }, filter({
+         {
+            {
+               type = "unused",
+               subtype = "unset",
+               vartype = "var",
+               name = "foo"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "var",
+               name = "bar"
+            },
+            {
+               type = "uninit",
+               subtype = "uninit",
+               vartype = "var",
+               name = "qu"
+            },
+            {
+               type = "redefined",
+               subtype = "var",
+               vartype = "loop",
+               name = "baz"
+            }
+         }
+      }, {
+         uninit = false
       }))
    end)
 
@@ -138,11 +208,18 @@ describe("filter", function()
                subtype = "var",
                vartype = "arg",
                name = "baz"
+            },
+            {
+               type = "unused",
+               subtype = "unset",
+               vartype = "var",
+               name = "qu"
             }
          }
       }, {
          unused_values = false,
-         unused_args = false
+         unused_args = false,
+         unset = false
       }))
    end)
 

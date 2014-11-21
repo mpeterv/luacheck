@@ -27,13 +27,13 @@ local function scan_names(node, callbacks, type_, is_init)
    for i=1, #node do
       if node[i].tag == "Id" then
          callbacks.on_local(node[i], type_)
-
-         if is_init then
-            callbacks.on_assignment({node[i]}, true)
-         end
       elseif node[i].tag == "Dots" then
          node[i][1] = "..."
          callbacks.on_local(node[i], "vararg")
+      end
+
+      if is_init then
+         callbacks.on_assignment({node[i]}, true)
       end
    end
 end

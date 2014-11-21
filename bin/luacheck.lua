@@ -38,12 +38,17 @@ local function main()
          :description "Filter out warnings related to redefined variables. "
       parser:flag "-u" "--no-unused"
          :description "Filter out warnings related to unused variables. "
+      parser:flag "-i" "--no-uninit"
+         :description "Filter out warnings related to uninitialized variables. "
+
       parser:flag "-a" "--no-unused-args"
          :description "Filter out warnings related to unused arguments and loop variables. "
       parser:flag "-v" "--no-unused-values"
          :description "Filter out warnings related to unused values. "
       parser:flag "-s" "--no-unused-secondaries"
          :description "Filter out warnings related to unused variables set together with used ones. "
+      parser:flag "--no-unset"
+         :description "Filter out warnings related to unset variables. "
 
       parser:option "--std"
          :description [[Set standard globals. <std> must be one of:
@@ -197,9 +202,11 @@ local function main()
             global = "no_global",
             redefined = "no_redefined",
             unused = "no_unused",
+            uninit = "no_uninit",
             unused_args = "no_unused_args",
             unused_values = "no_unused_values",
             unused_secondaries = "no_unused_secondaries",
+            unset = "no_unset",
             unused_globals = "no_unused_globals"} do
          if args[argname] then
             res[optname] = not args[argname]
