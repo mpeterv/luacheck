@@ -8,7 +8,7 @@ Luacheck provides a command line interface as well as a Lua module which can be 
 
 ## Quick start
 
-The easiest way to install Luacheck is to use [LuaRocks](http://luarocks.org). From your command line run the following command (you may want to prepend it with `sudo` on Linux):
+The easiest way to install Luacheck is to use [LuaRocks](http://luarocks.org). From your command line run the following command (you may want to prepend it with `sudo`):
 
 ```
 $ luarocks install luacheck
@@ -32,7 +32,7 @@ Documentation is available [online](http://luacheck.readthedocs.org). If Luachec
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.6.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.7.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 
