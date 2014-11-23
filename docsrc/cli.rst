@@ -46,16 +46,20 @@ Short options that do not take an argument can be combined into one, so that ``-
 
 Options taking several arguments can be used several time; ``--ignore foo --ignore bar`` is equivalent to ``--ignore foo bar``.
 
-Note that options that may take several arguments, such as ``--globals``, should not be used immidiately before positional arguments; given ``--globals foo bar file.lua``, ``luacheck`` will consider all ``foo``, ``bar`` and ``file.lua`` global and then panic as there are no file names left.
+Note that options that may take several arguments, such as ``--globals``, should not be used immediately before positional arguments; given ``--globals foo bar file.lua``, ``luacheck`` will consider all ``foo``, ``bar`` and ``file.lua`` global and then panic as there are no file names left.
 
 ==================================== =============================================================================
 Option                               Meaning
 ==================================== =============================================================================
-``-g`` | ``no-global``               Filter out warnings related to global variables.
-``-r`` | ``no-redefined``            Filter out warnings related to redefined variables.
-``-u`` | ``no-unused``               Filter out warnings related to unused variables.
-``-a`` | ``no-unused-args``          Filter out warnings related to unused arguments and loop variables.
-``-v`` | ``no-unused-values``        Filter out warnings related to unused values.
+``-g`` | ``--no-global``             Filter out warnings related to global variables.
+``-r`` | ``--no-redefined``          Filter out warnings related to redefined variables.
+``-u`` | ``--no-unused``             Filter out warnings related to unused variables.
+``-a`` | ``--no-unused-args``        Filter out warnings related to unused arguments and loop variables.
+``-v`` | ``--no-unused-values``      Filter out warnings related to unused values.
+``-s`` | ``--no-unused-secondaries`` Filter out warnings related to unused variables set together with used ones.
+
+                                     See :ref:`secondaryvaluesandvariables`
+``--no-unset``                       Filter out warnings related to unset variables.
 ``--std <std>``                      Set standard globals. ``<std>`` must be one of:
 
                                      * ``_G`` - globals of the Lua interpreter ``luacheck`` runs on (default);
@@ -69,7 +73,15 @@ Option                               Meaning
 ``--globals [<global>] ...``         Add custom globals on top of standard ones.
 ``--new-globals [<global>] ...``     Set custom globals. Removes custom globals added previously.
 ``-c`` | ``--compat``                Equivalent to ``--std=max``.
-``-d`` | ``--allow-defined``         Allow defining globals by setting them. See :ref:`allowdefined`.
+``-d`` | ``--allow-defined``         Allow defining globals implicitly by setting them.
+
+                                     See :ref:`implicitlydefinedglobals`
+``-t`` | ``--allow-defined-top``     Allow defining globals implicitly by setting them in the top level scope.
+
+                                     See :ref:`implicitlydefinedglobals`
+``-m`` | ``--module``                Limit visibility of implicitly defined globals to their files.
+
+                                     See :ref:`modules`
 ``--no-unused-globals``              Filter out warnings related to set but unused global variables.
 ``--ignore <var> [<var>] ...``       Filter out warnings related to variables named ``<var>``.
 ``--only <var> [<var>] ...``         Filter out warnings not related to variables named ``<var>``.
