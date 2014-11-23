@@ -6,9 +6,9 @@ By default, ``luacheck`` tries to load configuration from ``.luacheckrc`` file i
 Config format
 -------------
 
-Config is simply a Lua script executed by ``luacheck``. It may set various options by assigning to globals. See :ref:`opts`.
+Config is simply a Lua script executed by ``luacheck``. It may set various options by assigning to globals. See :ref:`options`.
 
-An example of a config which makes ``luacheck`` ensure that only globals from the portable instersection of Lua 5.1, Lua 5.2 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:
+An example of a config which makes ``luacheck`` ensure that only globals from the portable intersection of Lua 5.1, Lua 5.2 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:
 
 .. code-block:: lua
    :linenos:

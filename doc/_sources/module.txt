@@ -5,29 +5,33 @@ Luacheck module
 
 The first argument of the function should be an array. Each element should be either a file name (string) or an open file handle, in which case ``luacheck`` will read it till EOF and close it.
 
-.. _opts:
+.. _options:
 
 Options
 -------
 
 The second argument, if present, should be a table of options. Options are interpreted similarly to corresponding command line switches; see :ref:`cliopts`.
 
-========================== ========================== ===============
-Option                     Type                       Default value
-========================== ========================== ===============
-``options.global``         Boolean                    ``true``
-``options.redefined``      Boolean                    ``true``
-``options.unused``         Boolean                    ``true``
-``options.unused_args``    Boolean                    ``true``
-``options.unused_values``  Boolean                    ``true``
-``options.std``            String or array of strings ``"_G"``
-``options.globals``        Array of strings           ``{}``
-``options.compat``         Boolean                    ``false``
-``options.allow_defined``  Boolean                    ``false``
-``options.unused_globals`` Boolean                    ``true``
-``options.ignore``         Array of strings           ``{}``
-``options.only``           Array of strings           (Do not filter)
-========================== ========================== ===============
+============================== ========================== ===============
+Option                         Type                       Default value
+============================== ========================== ===============
+``options.global``             Boolean                    ``true``
+``options.redefined``          Boolean                    ``true``
+``options.unused``             Boolean                    ``true``
+``options.unused_args``        Boolean                    ``true``
+``options.unused_values``      Boolean                    ``true``
+``options.unused_secondaries`` Boolean                    ``true``
+``options.unset``              Boolean                    ``true``
+``options.std``                String or array of strings ``"_G"``
+``options.globals``            Array of strings           ``{}``
+``options.compat``             Boolean                    ``false``
+``options.allow_defined``      Boolean                    ``false``
+``options.allow_defined_top``  Boolean                    ``false``
+``options.module``             Boolean                    ``false``
+``options.unused_globals``     Boolean                    ``true``
+``options.ignore``             Array of strings           ``{}``
+``options.only``               Array of strings           (Do not filter)
+============================== ========================== ===============
 
 When checking ``n``-th file, ``luacheck`` will try to combine ``options[n]`` with general options, similarly to how per file config tables overwrite general config table. See :doc:`config`.
 

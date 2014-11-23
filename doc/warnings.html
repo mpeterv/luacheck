@@ -122,16 +122,25 @@
 </ul>
 <div class="section" id="global-variables">
 <h2>Global variables<a class="headerlink" href="#global-variables" title="Permalink to this headline">¶</a></h2>
-<p>A global variable is defined if it is one of the standard globals (set using <tt class="docutils literal"><span class="pre">--std</span></tt> option in the command line and <tt class="docutils literal"><span class="pre">std</span></tt> option in the config) or custom globals (set using <tt class="docutils literal"><span class="pre">--globals</span></tt> option in the command line and <tt class="docutils literal"><span class="pre">globals</span></tt> option in the config).</p>
-<p>When an undefined global variable is accessed or set, a warning of corresponding subtype is generated.</p>
-<div class="section" id="implicit-definition">
-<span id="allowdefined"></span><h3>Implicit definition<a class="headerlink" href="#implicit-definition" title="Permalink to this headline">¶</a></h3>
-<p>If <tt class="docutils literal"><span class="pre">--allow_defined</span></tt> option is used, or <tt class="docutils literal"><span class="pre">allow_defined</span> <span class="pre">=</span> <span class="pre">true</span></tt> is in the config, global variables are automatically defined if they are set in one of the checked files. Luacheck will generate a warning if an implicitly defined global variable is never accessed.</p>
+<p>To determine whether an assignment to a global or accessing a global should produce a warning, Luacheck builds a list of defined globals for each file. Globals can be defined explicitly or implicitly. Accessing or setting an undefined global produces or warning of corresponding subtype. All warnings related to globals can be disabled using <tt class="docutils literal"><span class="pre">-g</span></tt>/<tt class="docutils literal"><span class="pre">--no-global</span></tt> CLI option or <tt class="docutils literal"><span class="pre">global</span></tt> config option.</p>
+<div class="section" id="explicitly-defined-globals">
+<h3>Explicitly defined globals<a class="headerlink" href="#explicitly-defined-globals" title="Permalink to this headline">¶</a></h3>
+<p>Explicitly defined globals consist of standard and custom globals. Standard globals are globals provided by Lua interpreter, and can be set using <tt class="docutils literal"><span class="pre">--std</span></tt> CLI option or <tt class="docutils literal"><span class="pre">std</span></tt> config option. Custom globals are globals accessible due to other reasons, and can be set using <tt class="docutils literal"><span class="pre">--globals</span></tt> CLI option or <tt class="docutils literal"><span class="pre">globals</span></tt> config option.</p>
+</div>
+<div class="section" id="implicitly-defined-globals">
+<span id="implicitlydefinedglobals"></span><h3>Implicitly defined globals<a class="headerlink" href="#implicitly-defined-globals" title="Permalink to this headline">¶</a></h3>
+<p>Luacheck can be configured to consider globals assigned under some conditions to be defined implicitly. When <tt class="docutils literal"><span class="pre">-d</span></tt>/<tt class="docutils literal"><span class="pre">--allow_defined</span></tt> CLI option or <tt class="docutils literal"><span class="pre">allow_defined</span></tt> config option is used, all assignments to globals define them; when <tt class="docutils literal"><span class="pre">-t</span></tt>/<tt class="docutils literal"><span class="pre">--allow_defined_top</span></tt> CLI option or <tt class="docutils literal"><span class="pre">allow_defined_top</span></tt> config option is used, assignments to globals in the top level function scope (also known as main chunk) define them.</p>
+<p>If an implicitly defined global is not accessed anywhere, a warning is produced, unless <tt class="docutils literal"><span class="pre">--no-unused-globals</span></tt> CLI option or <tt class="docutils literal"><span class="pre">unused_globals</span></tt> config option is used.</p>
+</div>
+<div class="section" id="modules">
+<span id="id1"></span><h3>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h3>
+<p>Files can be marked as modules using <tt class="docutils literal"><span class="pre">-m</span></tt>/<tt class="docutils literal"><span class="pre">--module</span></tt> CLI option or <tt class="docutils literal"><span class="pre">module</span></tt> config option to simulate semantics of the deprecated <a class="reference external" href="http://www.lua.org/manual/5.1/manual.html#pdf-module">module</a> function. Globals implicitly defined inside a module are not visible outside and are not reported as unused. Additionally, only assignments to implicitly defined globals are allowed.</p>
 </div>
 </div>
 <div class="section" id="unused-variables">
 <h2>Unused variables<a class="headerlink" href="#unused-variables" title="Permalink to this headline">¶</a></h2>
-<p>Luacheck generates warnings for all unused local variables except one named <tt class="docutils literal"><span class="pre">_</span></tt>. Detection of unused arguments and loop variables can be disabled using <tt class="docutils literal"><span class="pre">-a</span></tt> flag in the command line or <tt class="docutils literal"><span class="pre">unused_args</span> <span class="pre">=</span> <span class="pre">false</span></tt> in the config.</p>
+<p>Luacheck generates warnings for all unused local variables except one named <tt class="docutils literal"><span class="pre">_</span></tt>. These warnings can be disabled using <tt class="docutils literal"><span class="pre">-u</span></tt>/<tt class="docutils literal"><span class="pre">--no-unused</span></tt> CLI option or <tt class="docutils literal"><span class="pre">unused</span></tt> config option.</p>
+<p>Detection of unused arguments and loop variables can be disabled using <tt class="docutils literal"><span class="pre">-a</span></tt>/<tt class="docutils literal"><span class="pre">--no-unused-args</span></tt> CLI option or <tt class="docutils literal"><span class="pre">unused_args</span></tt> config option.</p>
 <div class="section" id="unused-values">
 <h3>Unused values<a class="headerlink" href="#unused-values" title="Permalink to this headline">¶</a></h3>
 <p>Luacheck also detects unused values: redundant assignments to variables which are then not used before another assignment. As an example, in the following snippet value assigned to <tt class="docutils literal"><span class="pre">foo</span></tt> on line 4 is unused, as it is always overwritten on line 7:</p>
@@ -152,12 +161,30 @@
 <span class="k">return</span> <span class="n">foo</span>
 </pre></div>
 </td></tr></table></div>
+<p>Detection of unused values can be disabled using <tt class="docutils literal"><span class="pre">-v</span></tt>/<tt class="docutils literal"><span class="pre">--no-unused-values</span></tt> CLI option or <tt class="docutils literal"><span class="pre">unused_values</span></tt> config option.</p>
+</div>
+<div class="section" id="secondary-values-and-variables">
+<span id="secondaryvaluesandvariables"></span><h3>Secondary values and variables<a class="headerlink" href="#secondary-values-and-variables" title="Permalink to this headline">¶</a></h3>
+<p>Unused value assigned to a local variable is secondary if its origin is the last item on the RHS of assignment, and another value from that item is used. Secondary values typically appear when result of a function call is put into locals, and only some of them are later used. For example, here value assigned to <tt class="docutils literal"><span class="pre">b</span></tt> is secondary, value assigned to <tt class="docutils literal"><span class="pre">c</span></tt> is used, and value assigned to <tt class="docutils literal"><span class="pre">a</span></tt> is simply unused:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="kd">local</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">f</span><span class="p">(),</span> <span class="n">g</span><span class="p">()</span>
+
+<span class="k">return</span> <span class="n">c</span>
+</pre></div>
+</td></tr></table></div>
+<p>Secondary variables are unused variables initialized with a secondary value. In the snippet above, <tt class="docutils literal"><span class="pre">b</span></tt> is a secondary variable.</p>
+<p>Warnings related to unused secondary values and variables can be removed using <tt class="docutils literal"><span class="pre">-s</span></tt>/<tt class="docutils literal"><span class="pre">--no-unused-secondaries</span></tt> CLI option or <tt class="docutils literal"><span class="pre">unused_secondaries</span></tt> config option.</p>
+</div>
+<div class="section" id="unset-variables">
+<h3>Unset variables<a class="headerlink" href="#unset-variables" title="Permalink to this headline">¶</a></h3>
+<p>Luacheck generates warnings for local variables that are accessed but never set. These warnings can be removed using <tt class="docutils literal"><span class="pre">--no-unset</span></tt> CLI option or <tt class="docutils literal"><span class="pre">unset</span></tt> config option.</p>
 </div>
 </div>
 <div class="section" id="redefined-variables">
 <h2>Redefined variables<a class="headerlink" href="#redefined-variables" title="Permalink to this headline">¶</a></h2>
-<p>Luacheck detects declarations of local variables shadowing previous declarations in the same scope, unless the variable is named <tt class="docutils literal"><span class="pre">_</span></tt>.</p>
-<p>Note that it is <strong>not</strong> necessary to define a new local variable when overwritting an argument:</p>
+<p>Luacheck detects declarations of local variables shadowing previous declarations in the same scope, unless the variable is named <tt class="docutils literal"><span class="pre">_</span></tt>. This diagnostic can be disabled using <tt class="docutils literal"><span class="pre">-r</span></tt>/<tt class="docutils literal"><span class="pre">--no-redefined</span></tt> CLI option or <tt class="docutils literal"><span class="pre">redefined</span></tt> config option.</p>
+<p>Note that it is <strong>not</strong> necessary to define a new local variable when overwriting an argument:</p>
 <div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3

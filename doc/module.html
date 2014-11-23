@@ -116,13 +116,13 @@
 <p><tt class="docutils literal"><span class="pre">luacheck</span></tt> module is a single function. Use <tt class="docutils literal"><span class="pre">local</span> <span class="pre">luacheck</span> <span class="pre">=</span> <span class="pre">require</span> <span class="pre">&quot;luacheck&quot;</span></tt> to import it.</p>
 <p>The first argument of the function should be an array. Each element should be either a file name (string) or an open file handle, in which case <tt class="docutils literal"><span class="pre">luacheck</span></tt> will read it till EOF and close it.</p>
 <div class="section" id="options">
-<span id="opts"></span><h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
 <p>The second argument, if present, should be a table of options. Options are interpreted similarly to corresponding command line switches; see <a class="reference internal" href="cli.html#cliopts"><em>Command line options</em></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="39%" />
-<col width="39%" />
-<col width="22%" />
+<col width="42%" />
+<col width="37%" />
+<col width="21%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Option</th>
@@ -151,6 +151,14 @@
 <td>Boolean</td>
 <td><tt class="docutils literal"><span class="pre">true</span></tt></td>
 </tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">options.unused_secondaries</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">options.unset</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">options.std</span></tt></td>
 <td>String or array of strings</td>
 <td><tt class="docutils literal"><span class="pre">&quot;_G&quot;</span></tt></td>
@@ -164,6 +172,14 @@
 <td><tt class="docutils literal"><span class="pre">false</span></tt></td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">options.allow_defined</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">options.allow_defined_top</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">options.module</span></tt></td>
 <td>Boolean</td>
 <td><tt class="docutils literal"><span class="pre">false</span></tt></td>
 </tr>

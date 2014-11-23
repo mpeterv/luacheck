@@ -153,7 +153,7 @@ Total: 14 warnings / 1 error in 4 files
 <span id="cliopts"></span><h2>Command line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h2>
 <p>Short options that do not take an argument can be combined into one, so that <tt class="docutils literal"><span class="pre">-qqu</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">-q</span> <span class="pre">-q</span> <span class="pre">-u</span></tt>. For long options, both <tt class="docutils literal"><span class="pre">--option</span> <span class="pre">value</span></tt> or <tt class="docutils literal"><span class="pre">--option=value</span></tt> can be used.</p>
 <p>Options taking several arguments can be used several time; <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">--ignore</span> <span class="pre">bar</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">bar</span></tt>.</p>
-<p>Note that options that may take several arguments, such as <tt class="docutils literal"><span class="pre">--globals</span></tt>, should not be used immidiately before positional arguments; given <tt class="docutils literal"><span class="pre">--globals</span> <span class="pre">foo</span> <span class="pre">bar</span> <span class="pre">file.lua</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will consider all <tt class="docutils literal"><span class="pre">foo</span></tt>, <tt class="docutils literal"><span class="pre">bar</span></tt> and <tt class="docutils literal"><span class="pre">file.lua</span></tt> global and then panic as there are no file names left.</p>
+<p>Note that options that may take several arguments, such as <tt class="docutils literal"><span class="pre">--globals</span></tt>, should not be used immediately before positional arguments; given <tt class="docutils literal"><span class="pre">--globals</span> <span class="pre">foo</span> <span class="pre">bar</span> <span class="pre">file.lua</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will consider all <tt class="docutils literal"><span class="pre">foo</span></tt>, <tt class="docutils literal"><span class="pre">bar</span></tt> and <tt class="docutils literal"><span class="pre">file.lua</span></tt> global and then panic as there are no file names left.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="32%" />
@@ -165,20 +165,28 @@ Total: 14 warnings / 1 error in 4 files
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-g</span></tt> | <tt class="docutils literal"><span class="pre">no-global</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-g</span></tt> | <tt class="docutils literal"><span class="pre">--no-global</span></tt></td>
 <td>Filter out warnings related to global variables.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-r</span></tt> | <tt class="docutils literal"><span class="pre">no-redefined</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-r</span></tt> | <tt class="docutils literal"><span class="pre">--no-redefined</span></tt></td>
 <td>Filter out warnings related to redefined variables.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-u</span></tt> | <tt class="docutils literal"><span class="pre">no-unused</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-u</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused</span></tt></td>
 <td>Filter out warnings related to unused variables.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-a</span></tt> | <tt class="docutils literal"><span class="pre">no-unused-args</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-a</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-args</span></tt></td>
 <td>Filter out warnings related to unused arguments and loop variables.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-v</span></tt> | <tt class="docutils literal"><span class="pre">no-unused-values</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-v</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-values</span></tt></td>
 <td>Filter out warnings related to unused values.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-s</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-secondaries</span></tt></td>
+<td><p class="first">Filter out warnings related to unused variables set together with used ones.</p>
+<p class="last">See <a class="reference internal" href="warnings.html#secondaryvaluesandvariables"><em>Secondary values and variables</em></a></p>
+</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-unset</span></tt></td>
+<td>Filter out warnings related to unset variables.</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--std</span> <span class="pre">&lt;std&gt;</span></tt></td>
 <td><p class="first">Set standard globals. <tt class="docutils literal"><span class="pre">&lt;std&gt;</span></tt> must be one of:</p>
@@ -204,7 +212,19 @@ Total: 14 warnings / 1 error in 4 files
 <td>Equivalent to <tt class="docutils literal"><span class="pre">--std=max</span></tt>.</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-d</span></tt> | <tt class="docutils literal"><span class="pre">--allow-defined</span></tt></td>
-<td>Allow defining globals by setting them. See <a class="reference internal" href="warnings.html#allowdefined"><em>Implicit definition</em></a>.</td>
+<td><p class="first">Allow defining globals implicitly by setting them.</p>
+<p class="last">See <a class="reference internal" href="warnings.html#implicitlydefinedglobals"><em>Implicitly defined globals</em></a></p>
+</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-t</span></tt> | <tt class="docutils literal"><span class="pre">--allow-defined-top</span></tt></td>
+<td><p class="first">Allow defining globals implicitly by setting them in the top level scope.</p>
+<p class="last">See <a class="reference internal" href="warnings.html#implicitlydefinedglobals"><em>Implicitly defined globals</em></a></p>
+</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-m</span></tt> | <tt class="docutils literal"><span class="pre">--module</span></tt></td>
+<td><p class="first">Limit visibility of implicitly defined globals to their files.</p>
+<p class="last">See <a class="reference internal" href="warnings.html#modules"><em>Modules</em></a></p>
+</td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-unused-globals</span></tt></td>
 <td>Filter out warnings related to set but unused global variables.</td>

@@ -117,8 +117,8 @@
 <p>By default, <tt class="docutils literal"><span class="pre">luacheck</span></tt> tries to load configuration from <tt class="docutils literal"><span class="pre">.luacheckrc</span></tt> file in the current directory. Path to config can be set using <tt class="docutils literal"><span class="pre">--config</span></tt> option. Config loading can be disabled using <tt class="docutils literal"><span class="pre">--no-config</span></tt> flag.</p>
 <div class="section" id="config-format">
 <h2>Config format<a class="headerlink" href="#config-format" title="Permalink to this headline">¶</a></h2>
-<p>Config is simply a Lua script executed by <tt class="docutils literal"><span class="pre">luacheck</span></tt>. It may set various options by assigning to globals. See <a class="reference internal" href="module.html#opts"><em>Options</em></a>.</p>
-<p>An example of a config which makes <tt class="docutils literal"><span class="pre">luacheck</span></tt> ensure that only globals from the portable instersection of Lua 5.1, Lua 5.2 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:</p>
+<p>Config is simply a Lua script executed by <tt class="docutils literal"><span class="pre">luacheck</span></tt>. It may set various options by assigning to globals. See <a class="reference internal" href="module.html#options"><em>Options</em></a>.</p>
+<p>An example of a config which makes <tt class="docutils literal"><span class="pre">luacheck</span></tt> ensure that only globals from the portable intersection of Lua 5.1, Lua 5.2 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:</p>
 <div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
 <span class="n">unused_args</span> <span class="o">=</span> <span class="kc">false</span>
