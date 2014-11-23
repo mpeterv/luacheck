@@ -39,7 +39,6 @@ local array_of_strings = {
 options.options = {
    global = boolean_opt_true,
    unused = boolean_opt_true,
-   uninit = boolean_opt_true,
    redefined = boolean_opt_true,
    unused_args = boolean_opt_true,
    unused_values = boolean_opt_true,

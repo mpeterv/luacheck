@@ -33,11 +33,6 @@ local warnings = {
       unset = {
          var = "variable %s is never set"
       }
-   },
-   uninit = {
-      uninit = {
-         var = "accessing uninitialized variable %s"
-      }
    }
 }
 

@@ -11,9 +11,8 @@ local function check(ast)
 
    -- Current outer scope. 
    -- Each scope is a table mapping names to variables: tables
-   --    {node, mentioned, used, type, is_upvalue, outer[, uninitialized][, value]}
+   --    {node, mentioned, used, type, is_upvalue, outer[, value]}
    -- Array part contains outer scope, outer closure and outer cycle. 
-   -- "uninitialized" field contains warnings about uninitialized usage of variable.
    -- Value is a table {node, used, outer, covalues, secondary[, unused_warning]}
    -- Covalues are values originating from the same multi-value item on rhs.
    --    E.g. in `a, b, c = foo(), bar()` values assigned to `b` and `c` are covalues.
@@ -144,13 +143,6 @@ local function check(ast)
          else
             -- Variable is used but never set.
             add(warning(variable.node, "unused", "unset", variable.type))
-            return
-         end
-      end
-
-      if variable.uninitialized then
-         for _, w in ipairs(variable.uninitialized) do
-            add(w)
          end
       end
    end
@@ -194,20 +186,6 @@ local function check(ast)
 
          if action == "access" then
             access(variable)
-
-            if not variable.is_upvalue and not variable.value then
-               -- Variable is uninitialized.
-
-               -- If the access is inside a loop, a value can come from the previous iteration.
-               -- This can not be easily checked without flow analysis in place.
-               -- Simply ignore such accesses for now.
-               -- FIXME: loop conditions are not considered being inside loops. Some cooperation from scanner is needed.
-               -- TODO: try for each assignment remove uninitialized warnings it invalidates.
-               if outer[3] == variable.outer[3] then
-                  variable.uninitialized = variable.uninitialized or {}
-                  table.insert(variable.uninitialized, warning(node, "uninit", "uninit", variable.type))
-               end
-            end
          end
 
          return variable

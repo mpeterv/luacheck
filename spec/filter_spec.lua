@@ -86,12 +86,6 @@ describe("filter", function()
                subtype = "var",
                vartype = "var",
                name = "foo"
-            },
-            {
-               type = "uninit",
-               subtype = "uninit",
-               vartype = "var",
-               name = "qu"
             }
          }
       }, filter({
@@ -107,12 +101,6 @@ describe("filter", function()
                subtype = "set",
                vartype = "var",
                name = "bar"
-            },
-            {
-               type = "uninit",
-               subtype = "uninit",
-               vartype = "var",
-               name = "qu"
             },
             {
                type = "redefined",

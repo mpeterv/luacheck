@@ -38,8 +38,6 @@ local function main()
          :description "Filter out warnings related to redefined variables. "
       parser:flag "-u" "--no-unused"
          :description "Filter out warnings related to unused variables. "
-      parser:flag "-i" "--no-uninit"
-         :description "Filter out warnings related to uninitialized variables. "
 
       parser:flag "-a" "--no-unused-args"
          :description "Filter out warnings related to unused arguments and loop variables. "
@@ -202,7 +200,6 @@ local function main()
             global = "no_global",
             redefined = "no_redefined",
             unused = "no_unused",
-            uninit = "no_uninit",
             unused_args = "no_unused_args",
             unused_values = "no_unused_values",
             unused_secondaries = "no_unused_secondaries",
