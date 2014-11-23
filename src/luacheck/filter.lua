@@ -74,9 +74,9 @@ local function get_implicit_defs_info(report, opts)
 
       if not opts[i].module then
          utils.update(info.globally_defined, defined)
-         utils.update(info.globally_used, used)
       end
 
+      utils.update(info.globally_used, used)
       info.locally_defined[i] = defined
    end
 

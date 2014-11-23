@@ -512,6 +512,44 @@ describe("filter", function()
       }))
    end)
 
+   it("using an implicitly defined global from a module marks it as used", function()
+      assert.same({
+         {},
+         {}
+      }, filter({
+         {
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "foo"
+            }
+         },
+         {
+            {
+               type = "global",
+               subtype = "access",
+               vartype = "global",
+               name = "foo"
+            },
+            {
+               type = "global",
+               subtype = "set",
+               vartype = "global",
+               name = "bar",
+            }
+         }
+      }, {
+            {
+               allow_defined = true
+            },
+            {
+               allow_defined = true,
+               module = true
+            }
+      }))
+   end)
+
    it("removes unused global warnings with unused_globals = false", function()
       assert.same({
          {
