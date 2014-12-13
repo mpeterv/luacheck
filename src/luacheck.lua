@@ -13,7 +13,7 @@ local function get_report(file)
       return {error = "I/O"}
    end
 
-   local ast, _ = parse(src)
+   local ast = parse(src)
 
    if not ast then
       return {error = "syntax"}

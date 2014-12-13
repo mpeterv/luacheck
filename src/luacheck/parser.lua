@@ -683,33 +683,30 @@ local function parse(src)
    return parse_block(state)
 end
 
+local function error_handler(err)
+   if type(err) == "table" then
+      -- Syntax error.
+      return true
+   else
+      -- Probably a bug.
+      return false, err.."\n"..debug.traceback()
+   end
+end
+
 local function pparse(src)
    local function task()
       return parse(src)
    end
 
-   local runtime_error
-   local traceback
-
-   local function error_handler(err)
-      traceback = debug.traceback()
-
-      if type(err) ~= "table" then
-         -- Probably a bug.
-         runtime_error = err.."\n"..traceback
-      end
-   end
-
-   local ok, res = xpcall(task, error_handler)
+   local ok, res, err = xpcall(task, error_handler)
 
    if ok then
       return res
-   elseif runtime_error then
-      -- Propagate error.
-      error(runtime_error)
+   elseif res then
+      return nil
    else
-      -- Syntax error.
-      return nil, traceback
+      -- Propagate error.
+      error(err)
    end
 end
 
