@@ -67,11 +67,11 @@ Total: ###5# warnings / ##0# errors in 2 files
 Checking spec/samples/good_code.lua               OK
 Checking spec/samples/bad_code.lua                Failure
 
-    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:16: unused variable 'helper'
     spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'
+    spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'
 
 Total: 5 warnings / 0 errors in 2 files
 ]], get_output ("spec/samples/good_code.lua spec/samples/bad_code.lua --no-color", true))
