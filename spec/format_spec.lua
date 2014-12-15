@@ -157,11 +157,11 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    it("does not color output if options.color == false", function()
       assert.equal([[Checking stdin                                    Failure
 
-    stdin:2:7: unused global variable foo
+    stdin:2:7: unused global variable 'foo'
 
 Checking foo.lua                                  Failure
 
-    foo.lua:2:7: unused global variable foo
+    foo.lua:2:7: unused global variable 'foo'
 
 Checking bar.lua                                  OK
 Checking baz.lua                                  Syntax error

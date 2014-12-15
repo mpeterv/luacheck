@@ -55,7 +55,7 @@ local function format_file_report_header(report, file_name, color)
    return label..(" "):rep(math.max(50 - #label, 1))..status
 end
 
-local function format_file_report(report, file_name, color)
+local function format_file_report(report, file_name, color, quote)
    local buf = {format_file_report_header(report, file_name, color)}
 
    if not report.error and #report > 0 then
@@ -63,7 +63,7 @@ local function format_file_report(report, file_name, color)
 
       for _, warning in ipairs(report) do
          local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
-         local message = warnings[warning.type][warning.subtype][warning.vartype]:format(color("%{bright}"..warning.name), warning.prev_line)
+         local message = warnings[warning.type][warning.subtype][warning.vartype]:format(color("%{bright}"..quote(warning.name)), warning.prev_line)
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 
@@ -79,9 +79,14 @@ end
 --    `options.limit`: See CLI. Default: 0. 
 --    `options.color`: should use ansicolors? Default: true. 
 local function format(report, file_names, options)
-   local color = options.color ~= false and require "ansicolors" or function(s)
-      return s:gsub("(%%{(.-)})", "")
+   local color, quote
+   if options.color ~= false then -- use colors; don't quote the var name
+     color, quote = require "ansicolors", function(s) return s end
+   else -- don't use colors; quote the var name
+     color = function(s) return s:gsub("(%%{(.-)})", "") end
+     quote = function(s) return "'"..s.."'" end
    end
+
    local quiet = options.quiet or 0
    local limit = options.limit or 0
 
@@ -91,7 +96,7 @@ local function format(report, file_names, options)
       for i, file_report in ipairs(report) do
          if quiet == 0 or file_report.error or #file_report > 0 then
             table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
-               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color))
+               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color, quote))
          end
       end
 
