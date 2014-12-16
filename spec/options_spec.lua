@@ -57,10 +57,10 @@ describe("options", function()
       it("scalar options overwrite old values", function()
          assert.same({
             global = true,
-            compat = true
+            unused = true
          }, options.combine({
             global = false,
-            compat = true
+            unused = true
          }, {
             global = true
          }))
@@ -105,6 +105,14 @@ describe("options", function()
             globals = {"baz"}
          }).globals)
       end)
+
+      it("applies `compat`", function()
+         assert.same({std = "max"}, options.combine({
+            std = "min"
+         }, {
+            std = "luajit", compat = "true"
+         }))
+      end)
    end)
 
    describe("normalize", function()
@@ -134,13 +142,6 @@ describe("options", function()
          assert.same({foo = true}, options.normalize({
             std = {"foo"}
          }).globals)
-      end)
-
-      it("opts.compat == true is equivalent to opts.std == max", function()
-         assert.same(
-            options.normalize({compat = true}).globals,
-            options.normalize({std = "max"}).globals
-         )
       end)
    end)
 end)

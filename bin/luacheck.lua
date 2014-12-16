@@ -249,7 +249,7 @@ local function main()
             validate(file_config)
          end
 
-         res[i] = options.combine(config, file_config or {}, opts)
+         res[i] = options.combine(config, file_config, opts)
       end
 
       return res

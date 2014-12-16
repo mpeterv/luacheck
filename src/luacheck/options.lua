@@ -86,12 +86,30 @@ function options.validate(opts)
    return ok and is_valid, invalid_opt
 end
 
+-- Applies `compat`, returns opts.
+local function preprocess(opts)
+   if opts then
+      local res = {}
+
+      for opt in pairs(options.options) do
+         res[opt] = opts[opt]
+      end
+
+      if res.compat then
+         res.std = "max"
+         res.compat = nil
+      end
+
+      return res
+   end
+end
+
 -- Takes several options tables and combines them into one. 
 function options.combine(...)
    local res = {}
 
    for i=1, select("#", ...) do
-      local opts = select(i, ...) or {}
+      local opts = preprocess(select(i, ...)) or {}
 
       for opt in pairs(options.options) do
          if opts[opt] ~= nil then
@@ -115,7 +133,7 @@ function options.combine(...)
    return res
 end
 
--- Returns normalized options: converts arrays to sets, applies defaults, applies compat and env_aware
+-- Returns normalized options: converts arrays to sets, applies defaults.
 function options.normalize(opts)
    opts = opts or {}
    local res = {}
@@ -126,10 +144,6 @@ function options.normalize(opts)
       else
          res[opt] = opts[opt]
       end
-   end
-
-   if res.compat then
-      res.std = "max"
    end
 
    res.globals = utils.concat_arrays {stds[res.std] or res.std, res.globals}
