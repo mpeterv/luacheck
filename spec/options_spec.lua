@@ -95,6 +95,16 @@ describe("options", function()
             new_globals = {"bar"}
          }).globals)
       end)
+
+      it("old new_globals does not overwrite globals", function()
+         assert.same({"bar", "baz"}, options.combine({
+            globals = {"foo"}
+         }, {
+            new_globals = {"bar"}
+         }, {
+            globals = {"baz"}
+         }).globals)
+      end)
    end)
 
    describe("normalize", function()

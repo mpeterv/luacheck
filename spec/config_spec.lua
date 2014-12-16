@@ -72,8 +72,12 @@ Fatal error: Couldn't load configuration from spec/configs/config_404.luacheckrc
    end)
 
    describe("overwriting", function()
-      it("prioritizes CLI options", function()
+      it("prioritizes CLI options over config", function()
          assert.equal(0, get_exitcode "spec/samples/compat.lua --config=spec/configs/limit_config.luacheckrc -l10")
+      end)
+
+      it("prioritizes CLI options over config overrides", function()
+         assert.equal(1, get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_config.luacheckrc --new-globals foo")
       end)
 
       it("concats array-like options from config and CLI", function()
