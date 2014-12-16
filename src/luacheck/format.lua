@@ -1,4 +1,6 @@
-local warnings = {
+local ansicolors = require "ansicolors"
+
+local message_formats = {
    global = {
       access = {
          global = "accessing undefined variable %s"
@@ -37,25 +39,41 @@ local warnings = {
 }
 
 local function plural(number)
-   return number == 1 and "" or "s"
+   return (number == 1) and "" or "s"
+end
+
+local function format_color(fmt, str, color)
+   return color and ansicolors(fmt .. str) or str
+end
+
+local function format_name(name, color)
+   return color and ansicolors("%{bright}" .. name) or ("'" .. name .. "'")
+end
+
+local function format_number(number, limit, color)
+   return format_color("%{bright}" .. (number > limit and "%{red}" or ""), number, color)
+end
+
+local function capitalize(str)
+   return str:gsub("^.", string.upper)
 end
 
 local function format_file_report_header(report, file_name, color)
-   local label = "Checking "..file_name
+   local label = "Checking " .. file_name
    local status
 
    if report.error then
-      status = color ("%{bright}"..report.error:sub(1, 1):upper()..report.error:sub(2).." error")
+      status = format_color("%{bright}", capitalize(report.error) .. " error", color)
    elseif #report == 0 then
-      status = color "%{bright}%{green}OK"
+      status = format_color("%{bright}%{green}", "OK", color)
    else
-      status = color "%{bright}%{red}Failure"
+      status = format_color("%{bright}%{red}", "Failure", color)
    end
 
-   return label..(" "):rep(math.max(50 - #label, 1))..status
+   return label .. (" "):rep(math.max(50 - #label, 1)) .. status
 end
 
-local function format_file_report(report, file_name, color, quote)
+local function format_file_report(report, file_name, color)
    local buf = {format_file_report_header(report, file_name, color)}
 
    if not report.error and #report > 0 then
@@ -63,7 +81,8 @@ local function format_file_report(report, file_name, color, quote)
 
       for _, warning in ipairs(report) do
          local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
-         local message = warnings[warning.type][warning.subtype][warning.vartype]:format(color("%{bright}"..quote(warning.name)), warning.prev_line)
+         local message_format = message_formats[warning.type][warning.subtype][warning.vartype]
+         local message = message_format:format(format_name(warning.name, color), warning.prev_line)
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 
@@ -79,16 +98,9 @@ end
 --    `options.limit`: See CLI. Default: 0. 
 --    `options.color`: should use ansicolors? Default: true. 
 local function format(report, file_names, options)
-   local color, quote
-   if options.color ~= false then -- use colors; don't quote the var name
-     color, quote = require "ansicolors", function(s) return s end
-   else -- don't use colors; quote the var name
-     color = function(s) return s:gsub("(%%{(.-)})", "") end
-     quote = function(s) return "'"..s.."'" end
-   end
-
    local quiet = options.quiet or 0
    local limit = options.limit or 0
+   local color = options.color ~= false
 
    local buf = {}
 
@@ -96,7 +108,7 @@ local function format(report, file_names, options)
       for i, file_report in ipairs(report) do
          if quiet == 0 or file_report.error or #file_report > 0 then
             table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
-               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color, quote))
+               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color))
          end
       end
 
@@ -105,13 +117,9 @@ local function format(report, file_names, options)
       end
    end
 
-   local function format_number(number, limit)
-      return color("%{bright}"..(number > limit and "%{red}" or "")..number)
-   end
-
    table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
-      format_number(report.warnings, limit), plural(report.warnings),
-      format_number(report.errors, 0), plural(report.errors),
+      format_number(report.warnings, limit, color), plural(report.warnings),
+      format_number(report.errors, 0, color), plural(report.errors),
       #report, plural(#report)
    ))
 
