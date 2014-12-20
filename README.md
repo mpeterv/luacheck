@@ -26,6 +26,14 @@ Checking myfile.lua                               Failure
 Total: 2 warnings / 0 errors in 1 file
 ```
 
+## Editor support
+
+There are a few plugins which allow using Luacheck directly inside an editor, showing warnings inline:
+
+* For Vim, [Syntastic](https://github.com/scrooloose/syntastic/) contains [luacheck checker](https://github.com/scrooloose/syntastic/wiki/Lua%3A---luacheck);
+* For Sublime Text 3 there is [SublimeLinter-luacheck](https://sublime.wbond.net/packages/SublimeLinter-luacheck) which requires [SublimeLinter](http://sublimelinter.readthedocs.org/en/latest/);
+* For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/AtomLinter/Linter).
+
 ## Documentation
 
 Documentation is available [online](http://luacheck.readthedocs.org). If Luacheck has been installed using LuaRocks, it can be browsed offline using `luarocks doc luacheck` command.
