@@ -21,6 +21,7 @@ build = {
    type = "builtin",
    modules = {
       luacheck = "src/luacheck.lua",
+      ["luacheck.linearize"] = "src/luacheck/linearize.lua",
       ["luacheck.scan"] = "src/luacheck/scan.lua",
       ["luacheck.check"] = "src/luacheck/check.lua",
       ["luacheck.parser"] = "src/luacheck/parser.lua",

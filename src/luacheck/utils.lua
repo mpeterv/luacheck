@@ -112,4 +112,42 @@ function utils.update(t1, t2)
    end
 end
 
+local class_metatable = {}
+
+function class_metatable.__call(class, ...)
+   local obj = setmetatable({}, class)
+
+   if class.__init then
+      class.__init(obj, ...)
+   end
+
+   return obj
+end
+
+function utils.class()
+   local class = setmetatable({}, class_metatable)
+   class.__index = class
+   return class
+end
+
+utils.Stack = utils.class()
+
+function utils.Stack:__init()
+   self.size = 0
+end
+
+function utils.Stack:push(value)
+   self.size = self.size + 1
+   self[self.size] = value
+   self.top = value
+end
+
+function utils.Stack:pop(value)
+   local value = self[self.size]
+   self[self.size] = nil
+   self.size = self.size - 1
+   self.top = self[self.size]
+   return value
+end
+
 return utils
