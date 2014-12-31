@@ -128,6 +128,7 @@ end
 
 local function parse_dots(state)
    local ast_node = new_ast_node(state, "Dots")
+   ast_node[1] = "..."
    skip_token(state)  -- Skip "...".
    return ast_node
 end

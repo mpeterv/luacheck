@@ -220,7 +220,7 @@ describe("parser", function()
          assert.same({tag = "Set", {
                            {tag = "Id", "a"}
                         }, {
-                           {tag = "Function", {{tag = "Id", "b"}, {tag = "Dots"}}, {}}
+                           {tag = "Function", {{tag = "Id", "b"}, {tag = "Dots", "..."}}, {}}
                         }
                      }, get_node("function a(b, ...) end"))
          assert.is_nil(parser("function a(b, ) end"))
@@ -472,7 +472,7 @@ describe("parser", function()
          assert.same({tag = "String", "1"}, get_expr("'1'"))
          assert.same({tag = "Table"}, get_expr("{}"))
          assert.same({tag = "Function", {}, {}}, get_expr("function() end"))
-         assert.same({tag = "Dots"}, get_expr("..."))
+         assert.same({tag = "Dots", "..."}, get_expr("..."))
       end)
 
       it("parses table constructors correctly", function()
@@ -627,12 +627,12 @@ describe("parser", function()
 
       it("wraps last expression in a list in parens when needed", function()
          assert.same({tag = "Return",
-                        {tag = "Dots"},
-                        {tag = "Paren", {tag = "Dots"}}
+                        {tag = "Dots", "..."},
+                        {tag = "Paren", {tag = "Dots", "..."}}
                      }, get_node("return (...), (...)"))
          assert.same({tag = "Return",
-                        {tag = "Dots"},
-                        {tag = "Dots"}
+                        {tag = "Dots", "..."},
+                        {tag = "Dots", "..."}
                      }, get_node("return (...), ..."))
          assert.same({tag = "Return",
                         {tag = "True"},
@@ -804,7 +804,7 @@ end
                               {tag = "Id", "a", line = 1, column = 20, offset = 20},
                               {tag = "Id", "b", line = 1, column = 23, offset = 23},
                               {tag = "Id", "c", line = 1, column = 26, offset = 26},
-                              {tag = "Dots", line = 1, column = 29, offset = 29}
+                              {tag = "Dots", "...", line = 1, column = 29, offset = 29}
                            },
                            {
                               {tag = "Local", line = 2, column = 4, offset = 37,
@@ -824,7 +824,7 @@ end
                               {tag = "Return", line = 3, column = 4, offset = 62,
                                  {tag = "Id", "d", line = 3, column = 11, offset = 69},
                                  {tag = "Paren", line = 3, column = 15, offset = 73,
-                                    {tag = "Dots", line = 3, column = 15, offset = 73}
+                                    {tag = "Dots", "...", line = 3, column = 15, offset = 73}
                                  }
                               }
                            }
