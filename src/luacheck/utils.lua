@@ -142,7 +142,7 @@ function utils.Stack:push(value)
    self.top = value
 end
 
-function utils.Stack:pop(value)
+function utils.Stack:pop()
    local value = self[self.size]
    self[self.size] = nil
    self.size = self.size - 1

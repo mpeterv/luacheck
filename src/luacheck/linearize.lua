@@ -60,6 +60,13 @@ local function new_eval_item(expr)
    }
 end
 
+local function new_noop_item(location)
+   return {
+      tag = "Noop",
+      location = location
+   }
+end
+
 local function new_local_item(lhs, rhs)
    return {
       tag = "Local",
@@ -128,7 +135,7 @@ function LinState:register_var(node, type_)
 
    if prev_var then
       self.chstate:warn_redefined(var, prev_var)
-      prev_var.scope_end = self.items.size
+      prev_var.scope_end = self.lines.top.items.size
    end
 
    self.scopes.top.vars[var.name] = var
@@ -175,10 +182,7 @@ function LinState:emit_goto(name, is_conditional)
 end
 
 function LinState:emit_noop(location)
-   self:emit({
-      tag = "Noop",
-      location = location
-   })
+   self:emit(new_noop_item(location))
 end
 
 function LinState:emit_stmt(stmt)
