@@ -431,6 +431,9 @@ function LinState:scan_expr_Index(item, node)
    self:scan_expr(item, node[2])
 end
 
+LinState.scan_expr_Call = LinState.scan_exprs
+LinState.scan_expr_Invoke = LinState.scan_exprs
+
 function LinState:scan_expr_Op(item, node)
    self:scan_expr(item, node[2])
 
