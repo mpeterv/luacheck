@@ -71,7 +71,34 @@ local function get_line_as_string(src)
    return table.concat(buf, "\n")
 end
 
+local function value_info_to_string(item)
+   local buf = {}
 
+   for var, value in pairs(item.set_variables) do
+      table.insert(buf, ("%s (%s / %s%s%s%s)"):format(
+         var.name, var.type, value.type,
+         value.empty and ", empty" or (value.initial and ", initial" or ""),
+         value.secondaries and (", " .. tostring(#value.secondaries) .. " secondaries") or "",
+         value.secondaries and value.secondaries.used and ", used" or ""))
+   end
+
+   table.sort(buf)
+   return item.tag .. ": " .. table.concat(buf, ", ")
+end
+
+local function get_value_info_as_string(src)
+   local line = get_line(src)
+   local buf = {}
+
+   for _, item in ipairs(line.items) do
+      if item.tag == "Local" or item.tag == "Set" then
+         assert.is_table(item.set_variables)
+         table.insert(buf, value_info_to_string(item))
+      end
+   end
+
+   return table.concat(buf, "\n")
+end
 
 describe("linearize", function()
    describe("when linearizing flow", function()
@@ -229,6 +256,64 @@ do
    stmts()
    ::label2::
 end]]))
+      end)
+   end)
+
+   describe("when registering values", function()
+      it("registers values in empty chunk correctly", function()
+         assert.equal([[
+Local: ... (arg / arg, initial)]], get_value_info_as_string(""))
+      end)
+
+      it("registers values in assignments correctly", function()
+         assert.equal([[
+Local: ... (arg / arg, initial)
+Local: a (var / var, initial)
+Set: a (var / var)]], get_value_info_as_string([[
+local a = b
+a = d]]))
+      end)
+
+      it("registers empty values correctly", function()
+         assert.equal([[
+Local: ... (arg / arg, initial)
+Local: a (var / var, initial), b (var / var, empty)
+Set: a (var / var), b (var / var)]], get_value_info_as_string([[
+local a, b = 4
+a, b = 5]]))
+      end)
+
+      it("registers function values as of type func", function()
+         assert.equal([[
+Local: ... (arg / arg, initial)
+Local: f (var / func, initial)]], get_value_info_as_string([[
+local function f() end]]))
+      end)
+
+      it("registers overwritten args and counters as of type var", function()
+         assert.equal([[
+Local: ... (arg / arg, initial)
+Local: i (loopi / loopi, initial)
+Set: i (loopi / var)]], get_value_info_as_string([[
+for i = 1, 10 do i = 6 end]]))
+      end)
+
+      it("registers groups of secondary values", function()
+         assert.equal([[
+Local: ... (arg / arg, initial)
+Local: a (var / var, initial), b (var / var, initial, 2 secondaries), c (var / var, initial, 2 secondaries)
+Set: a (var / var), b (var / var, 2 secondaries), c (var / var, 2 secondaries)]], get_value_info_as_string([[
+local a, b, c = f(), g()
+a, b, c = f(), g()]]))
+      end)
+
+      it("marks groups of secondary values used if one of values is put into global or index", function()
+         assert.equal([[
+Local: ... (arg / arg, initial)
+Local: a (var / var, empty)
+Set: a (var / var, 1 secondaries, used)]], get_value_info_as_string([[
+local a
+g, a = f()]]))
       end)
    end)
 end)
