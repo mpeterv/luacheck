@@ -27,7 +27,18 @@ local function new_var(line, node, type_)
       location = node.location,
       type = type_,
       line = line,
-      scope_start = line.items.size + 1
+      scope_start = line.items.size + 1,
+      values = {}
+   }
+end
+
+local function new_value(var_node, value_node, is_init)
+   return {
+      var = var_node.var,
+      location = var_node.location,
+      type = value_node and value_node.tag == "Function" and "func" or (is_init and var_node.var.type or "var"),
+      initial = is_init,
+      empty = is_init and not value_node and (var_node.var.type == "var")
    }
 end
 
@@ -85,6 +96,10 @@ local function new_set_item(lhs, rhs)
       accesses = {},
       lines = {}
    }
+end
+
+local function is_unpacking(node)
+   return node.tag == "Dots" or node.tag == "Call" or node.tag == "Invoke"
 end
 
 local LinState = utils.class()
@@ -435,6 +450,56 @@ function LinState:scan_expr_Table(item, node)
    end
 end
 
+-- Puts tables {var = value{} into field `set_variables` of items in line which set values.
+-- Registers set values in field `values` of variables.
+function LinState:register_set_variables()
+   local line = self.lines.top
+
+   for _, item in ipairs(line.items) do
+      if item.tag == "Local" or item.tag == "Set" then
+         item.set_variables = {}
+
+         local is_init = item.tag == "Local"
+         local unpacking_item -- Rightmost item of rhs which may unpack into several lhs items.
+
+         if item.rhs then
+            local last_rhs_item = item.rhs[#item.rhs]
+
+            if is_unpacking(last_rhs_item) then
+               unpacking_item = last_rhs_item
+            end
+         end
+
+         local secondaries -- Array of values unpacked from rightmost rhs item.
+
+         if unpacking_item and (#item.lhs > #item.rhs) then
+            secondaries = {}
+         end
+
+         for i, node in ipairs(item.lhs) do
+            local value
+
+            if node.var then
+               value = new_value(node, item.rhs and item.rhs[i] or unpacking_item, is_init)
+               item.set_variables[node.var] = value
+               table.insert(node.var.values, value)
+            end
+
+            if secondaries and (i >= #item.rhs) then
+               if value then
+                  value.secondaries = secondaries
+                  table.insert(secondaries, value)
+               else
+                  -- If one of secondary values is assigned to a global or index,
+                  -- it is considered used.
+                  secondaries.used = true
+               end
+            end
+         end
+      end
+   end
+end
+
 function LinState:build_line(args, block)
    self.lines:push(new_line())
    self:enter_scope()
@@ -443,6 +508,7 @@ function LinState:build_line(args, block)
    self:emit_block(block)
    self:register_label("return")
    self:leave_scope()
+   self:register_set_variables()
    local line = self.lines:pop()
 
    for _, prev_line in ipairs(self.lines) do
