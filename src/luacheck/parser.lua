@@ -21,15 +21,13 @@ local function location(state)
 end
 
 local function init_ast_node(node, location, tag)
-   node.line = location.line
-   node.column = location.column
-   node.offset = location.offset
+   node.location = location
    node.tag = tag
    return node
 end
 
 local function new_ast_node(state, tag)
-   return init_ast_node({}, state, tag)
+   return init_ast_node({}, location(state), tag)
 end
 
 local function check_token(state, token)
@@ -61,7 +59,7 @@ local function opt_add_parens(expressions, is_inside_parentheses)
       local last = expressions[#expressions]
 
       if last and last.tag == "Call" or last.tag == "Invoke" or last.tag == "Dots" then
-         expressions[#expressions] = init_ast_node({last}, last, "Paren")
+         expressions[#expressions] = init_ast_node({last}, last.location, "Paren")
       end
    end
 end
@@ -255,14 +253,14 @@ end
 local function parse_field_index(state, lhs)
    skip_token(state)  -- Skip ".".
    local rhs = parse_name(state)
-   return init_ast_node({lhs, rhs}, lhs, "Index")
+   return init_ast_node({lhs, rhs}, lhs.location, "Index")
 end
 
 local function parse_index(state, lhs)
    skip_token(state)  -- Skip "[".
    local rhs = parse_expression(state)
    check_and_skip_token(state, "]")
-   return init_ast_node({lhs, rhs}, lhs, "Index")
+   return init_ast_node({lhs, rhs}, lhs.location, "Index")
 end
 
 local function parse_invoke(state, lhs)
@@ -271,13 +269,13 @@ local function parse_invoke(state, lhs)
    local args = parse_call_arguments(state)
    tinsert(args, 1, lhs)
    tinsert(args, 2, method_name)
-   return init_ast_node(args, lhs, "Invoke")
+   return init_ast_node(args, lhs.location, "Invoke")
 end
 
 local function parse_call(state, lhs)
    local args = parse_call_arguments(state)
    tinsert(args, 1, lhs)
-   return init_ast_node(args, lhs, "Call")
+   return init_ast_node(args, lhs.location, "Call")
 end
 
 local primary_tokens = {
@@ -400,7 +398,7 @@ local function parse_subexpression(state, limit)
       skip_token(state)  -- Skip operator.
       -- Read subexpression with higher priority.
       local subexpression = parse_subexpression(state, right_priorities[binary_operator])
-      expression = init_ast_node({binary_operator, expression, subexpression}, expression, "Op")
+      expression = init_ast_node({binary_operator, expression, subexpression}, expression.location, "Op")
    end
 
    return expression, is_prefix
@@ -631,7 +629,7 @@ local function parse_expression_statement(state)
 
    check_and_skip_token(state, "=")
    local rhs = parse_expression_list(state)
-   return init_ast_node({lhs, rhs}, lhs[1], "Set")
+   return init_ast_node({lhs, rhs}, lhs[1].location, "Set")
 end
 
 local statements = {

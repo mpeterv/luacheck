@@ -1,9 +1,7 @@
 local parser = require "luacheck.parser"
 
 local function strip_locations(ast)
-   ast.line = nil
-   ast.column = nil
-   ast.offset = nil
+   ast.location = nil
 
    for i=1, #ast do
       if type(ast[i]) == "table" then
@@ -797,59 +795,59 @@ end
 
    it("provides correct location info", function()
       assert.same({
-                     {tag = "Localrec", line = 1, column = 1, offset = 1,
-                        {tag = "Id", "foo", line = 1, column = 16, offset = 16},
-                        {tag = "Function", line = 1, column = 7, offset = 7,
+                     {tag = "Localrec", location = {line = 1, column = 1, offset = 1},
+                        {tag = "Id", "foo", location = {line = 1, column = 16, offset = 16}},
+                        {tag = "Function", location = {line = 1, column = 7, offset = 7},
                            {
-                              {tag = "Id", "a", line = 1, column = 20, offset = 20},
-                              {tag = "Id", "b", line = 1, column = 23, offset = 23},
-                              {tag = "Id", "c", line = 1, column = 26, offset = 26},
-                              {tag = "Dots", "...", line = 1, column = 29, offset = 29}
+                              {tag = "Id", "a", location = {line = 1, column = 20, offset = 20}},
+                              {tag = "Id", "b", location = {line = 1, column = 23, offset = 23}},
+                              {tag = "Id", "c", location = {line = 1, column = 26, offset = 26}},
+                              {tag = "Dots", "...", location = {line = 1, column = 29, offset = 29}}
                            },
                            {
-                              {tag = "Local", line = 2, column = 4, offset = 37,
+                              {tag = "Local", location = {line = 2, column = 4, offset = 37},
                                  {
-                                    {tag = "Id", "d", line = 2, column = 10, offset = 43}
+                                    {tag = "Id", "d", location = {line = 2, column = 10, offset = 43}}
                                  },
                                  {
-                                    {tag = "Op", "mul", line = 2, column = 15, offset = 48,
-                                       {tag = "Op", "add", line = 2, column = 15, offset = 48,
-                                          {tag = "Id", "a", line = 2, column = 15, offset = 48},
-                                          {tag = "Id", "b", line = 2, column = 19, offset = 52}
+                                    {tag = "Op", "mul", location = {line = 2, column = 15, offset = 48},
+                                       {tag = "Op", "add", location = {line = 2, column = 15, offset = 48},
+                                          {tag = "Id", "a", location = {line = 2, column = 15, offset = 48}},
+                                          {tag = "Id", "b", location = {line = 2, column = 19, offset = 52}}
                                        },
-                                       {tag = "Id", "c", line = 2, column = 24, offset = 57}
+                                       {tag = "Id", "c", location = {line = 2, column = 24, offset = 57}}
                                     }
                                  }
                               },
-                              {tag = "Return", line = 3, column = 4, offset = 62,
-                                 {tag = "Id", "d", line = 3, column = 11, offset = 69},
-                                 {tag = "Paren", line = 3, column = 15, offset = 73,
-                                    {tag = "Dots", "...", line = 3, column = 15, offset = 73}
+                              {tag = "Return", location = {line = 3, column = 4, offset = 62},
+                                 {tag = "Id", "d", location = {line = 3, column = 11, offset = 69}},
+                                 {tag = "Paren", location = {line = 3, column = 15, offset = 73},
+                                    {tag = "Dots", "...", location = {line = 3, column = 15, offset = 73}}
                                  }
                               }
                            }
                         }
                      },
-                     {tag = "Set", line = 6, column = 1, offset = 83,
+                     {tag = "Set", location = {line = 6, column = 1, offset = 83},
                         {
-                           {tag = "Index", line = 6, column = 10, offset = 92,
-                              {tag = "Id", "t", line = 6, column = 10, offset = 92},
-                              {tag = "String", "bar", line = 6, column = 12, offset = 94}
+                           {tag = "Index", location = {line = 6, column = 10, offset = 92},
+                              {tag = "Id", "t", location = {line = 6, column = 10, offset = 92}},
+                              {tag = "String", "bar", location = {line = 6, column = 12, offset = 94}}
                            }
                         },
                         {
-                           {tag = "Function", line = 6, column = 1, offset = 83,
+                           {tag = "Function", location = {line = 6, column = 1, offset = 83},
                               {
-                                 {tag = "Id", "self", line = 6, column = 15, offset = 97},
-                                 {tag = "Id", "arg", line = 6, column = 16, offset = 98}
+                                 {tag = "Id", "self", location = {line = 6, column = 15, offset = 97}},
+                                 {tag = "Id", "arg", location = {line = 6, column = 16, offset = 98}}
                               },
                               {
-                                 {tag = "If", line = 7, column = 4, offset = 106,
-                                    {tag = "Id", "arg", line = 7, column = 7, offset = 109},
+                                 {tag = "If", location = {line = 7, column = 4, offset = 106},
+                                    {tag = "Id", "arg", location = {line = 7, column = 7, offset = 109}},
                                     {
-                                       {tag = "Call", line = 8, column = 7, offset = 124,
-                                          {tag = "Id", "print", line = 8, column = 7, offset = 124},
-                                          {tag = "Id", "arg", line = 8, column = 13, offset = 130}
+                                       {tag = "Call", location = {line = 8, column = 7, offset = 124},
+                                          {tag = "Id", "print", location = {line = 8, column = 7, offset = 124}},
+                                          {tag = "Id", "arg", location = {line = 8, column = 13, offset = 130}}
                                        }
                                     }
                                  }

@@ -31,8 +31,8 @@ local function check(ast)
          subtype = subtype,
          vartype = vartype,
          name = node[1],
-         line = node.line,
-         column = node.column
+         line = node.location.line,
+         column = node.location.column
       }
    end
 
@@ -78,8 +78,8 @@ local function check(ast)
 
    local function redefined_warning(node, prev_var)
       local w = warning(node, "redefined", "var", prev_var.type)
-      w.prev_line = prev_var.node.line
-      w.prev_column = prev_var.node.column
+      w.prev_line = prev_var.node.location.line
+      w.prev_column = prev_var.node.location.column
       return w
    end
 
