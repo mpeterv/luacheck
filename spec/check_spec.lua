@@ -101,7 +101,7 @@ end
 
    it("detects unused locals from loops", function()
       assert.same({
-         {type = "unused", subtype = "var", vartype = "loop", name = "i", line = 1, column = 5},
+         {type = "unused", subtype = "var", vartype = "loopi", name = "i", line = 1, column = 5},
          {type = "unused", subtype = "var", vartype = "loop", name = "i", line = 2, column = 5},
          {type = "global", subtype = "access", vartype = "global", name = "pairs", line = 2, column = 10}
       }, get_report[[
@@ -112,6 +112,7 @@ for i in pairs{} do end
 
    it("detects unused values", function()
       assert.same({
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 3, column = 4},
          {type = "unused", subtype = "value", vartype = "var", name = "a", line = 5, column = 4},
          {type = "global", subtype = "access", vartype = "global", name = "print", line = 9, column = 1}
       }, get_report[[

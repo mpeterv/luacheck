@@ -262,12 +262,12 @@ end]]))
    describe("when registering values", function()
       it("registers values in empty chunk correctly", function()
          assert.equal([[
-Local: ... (arg / arg, initial)]], get_value_info_as_string(""))
+Local: ... (vararg / vararg, initial)]], get_value_info_as_string(""))
       end)
 
       it("registers values in assignments correctly", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
+Local: ... (vararg / vararg, initial)
 Local: a (var / var, initial)
 Set: a (var / var)]], get_value_info_as_string([[
 local a = b
@@ -276,7 +276,7 @@ a = d]]))
 
       it("registers empty values correctly", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
+Local: ... (vararg / vararg, initial)
 Local: a (var / var, initial), b (var / var, empty)
 Set: a (var / var), b (var / var)]], get_value_info_as_string([[
 local a, b = 4
@@ -285,14 +285,14 @@ a, b = 5]]))
 
       it("registers function values as of type func", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
+Local: ... (vararg / vararg, initial)
 Local: f (var / func, initial)]], get_value_info_as_string([[
 local function f() end]]))
       end)
 
       it("registers overwritten args and counters as of type var", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
+Local: ... (vararg / vararg, initial)
 Local: i (loopi / loopi, initial)
 Set: i (loopi / var)]], get_value_info_as_string([[
 for i = 1, 10 do i = 6 end]]))
@@ -300,7 +300,7 @@ for i = 1, 10 do i = 6 end]]))
 
       it("registers groups of secondary values", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
+Local: ... (vararg / vararg, initial)
 Local: a (var / var, initial), b (var / var, initial, 2 secondaries), c (var / var, initial, 2 secondaries)
 Set: a (var / var), b (var / var, 2 secondaries), c (var / var, 2 secondaries)]], get_value_info_as_string([[
 local a, b, c = f(), g()
@@ -309,7 +309,7 @@ a, b, c = f(), g()]]))
 
       it("marks groups of secondary values used if one of values is put into global or index", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
+Local: ... (vararg / vararg, initial)
 Local: a (var / var, empty)
 Set: a (var / var, 1 secondaries, used)]], get_value_info_as_string([[
 local a

@@ -16,21 +16,27 @@ local message_formats = {
    redefined = {
       var = {
          var = "variable %s was previously defined on line %s",
+         func = "variable %s was previously defined on line %s",
          arg = "variable %s was previously defined as an argument on line %s",
-         loop = "variable %s was previously defined as a loop variable on line %s"
+         loop = "variable %s was previously defined as a loop variable on line %s",
+         loopi = "variable %s was previously defined as a loop variable on line %s"
       }
    },
    unused = {
       var = {
          var = "unused variable %s",
+         func = "unused variable %s",
          arg = "unused argument %s",
          loop = "unused loop variable %s",
+         loopi = "unused loop variable %s",
          vararg = "unused variable length argument"
       },
       value = {
          var = "value assigned to variable %s is unused",
+         func = "value assigned to variable %s is unused",
          arg = "value of argument %s is unused",
-         loop = "value of loop variable %s is unused"
+         loop = "value of loop variable %s is unused",
+         loopi = "value of loop variable %s is unused"
       },
       unset = {
          var = "variable %s is never set"

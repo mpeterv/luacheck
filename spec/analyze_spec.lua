@@ -13,7 +13,7 @@ function ChState:syntax_error()
    error({})
 end
 
-function ChState:warn_redefined()
+function ChState:warn_redefined(var, prev_var)
    
 end
 

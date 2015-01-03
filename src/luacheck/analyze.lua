@@ -65,12 +65,6 @@ end
 -- A pair `var = {values}` in this table means that accessed local variable `var` can contain one of values `values`.
 -- Values that can be accessed locally are marked as used.
 local function propogate_values(line)
-   for _, item in ipairs(line.items) do
-      if item.accesses then
-         item.used_values = {}
-      end
-   end
-
    -- It is not very clever to simply propogate every single assigned value.
    -- Fortunately, performance hit seems small (can be compenstated by inlining a few functions in lexer).
    for i, item in ipairs(line.items) do
@@ -192,7 +186,10 @@ local function check_for_warnings(chstate, line)
    for _, item in ipairs(line.items) do
       if item.tag == "Local" then
          for var in pairs(item.set_variables) do
-            check_var(chstate, var)
+            -- Do not check implicit top level vararg.
+            if var.location then
+               check_var(chstate, var)
+            end
          end
       end
    end

@@ -25,7 +25,7 @@ local function new_var(line, node, type_)
    return {
       name = node[1],
       location = node.location,
-      type = type_,
+      type = (node[1] == "...") and "vararg" or type_,
       line = line,
       scope_start = line.items.size + 1,
       values = {}
@@ -67,6 +67,7 @@ local function new_eval_item(expr)
       tag = "Eval",
       expr = expr,
       accesses = {},
+      used_values = {},
       lines = {}
    }
 end
@@ -84,6 +85,7 @@ local function new_local_item(lhs, rhs)
       lhs = lhs,
       rhs = rhs,
       accesses = rhs and {},
+      used_values = rhs and {},
       lines = rhs and {}
    }
 end
@@ -94,6 +96,7 @@ local function new_set_item(lhs, rhs)
       lhs = lhs,
       rhs = rhs,
       accesses = {},
+      used_values = {},
       lines = {}
    }
 end
@@ -174,7 +177,7 @@ function LinState:resolve_var(node, action)
       end
    end
 
-   self.chstate:warn_global(node, action)
+   self.chstate:warn_global(node, action, self.lines.size == 1)
 end
 
 function LinState:register_label(name)
@@ -511,8 +514,10 @@ function LinState:build_line(args, block)
    self.lines:push(new_line())
    self:enter_scope()
    self:emit(new_local_item(args))
+   self:enter_scope()
    self:register_vars(args, "arg")
-   self:emit_block(block)
+   self:emit_stmts(block)
+   self:leave_scope()
    self:register_label("return")
    self:leave_scope()
    self:register_set_variables()
@@ -535,7 +540,7 @@ function LinState:scan_expr_Function(item, node)
 end
 
 -- Builds linear representation of AST and returns it.
--- Emits warnings: global, redefined, unused label (NYI in chstate), empty block (NYI).
+-- Emits warnings: global, redefined, unused label.
 local function linearize(chstate, ast)
    local linstate = LinState(chstate)
    local line = linstate:build_line({{tag = "Dots", "..."}}, ast)

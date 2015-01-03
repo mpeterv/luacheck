@@ -96,9 +96,11 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:7:17: unused loop variable c
     spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
     spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
+    spec/samples/unused_code.lua:20:7: value assigned to variable z is unused
+    spec/samples/unused_code.lua:21:13: value assigned to variable z is unused
     spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
 
-Total: 14 warnings / 0 errors in 3 files
+Total: 16 warnings / 0 errors in 3 files
 ]], get_output "-q spec/samples/*d_code.lua")
       assert.equal([[
 Total: 0 warnings / 0 errors in 1 file
@@ -109,12 +111,12 @@ Total: 0 warnings / 0 errors in 1 file
       assert.equal([[Checking spec/samples/bad_code.lua                Failure
 Checking spec/samples/unused_code.lua             Failure
 
-Total: 14 warnings / 0 errors in 3 files
+Total: 16 warnings / 0 errors in 3 files
 ]], get_output "-qq spec/samples/*d_code.lua")
    end)
 
    it("suppresses file info output with -qqq", function()
-      assert.equal([[Total: 14 warnings / 0 errors in 3 files
+      assert.equal([[Total: 16 warnings / 0 errors in 3 files
 ]], get_output "-qqq spec/samples/*d_code.lua")
    end)
 
@@ -253,9 +255,11 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:7:17: unused loop variable c
     spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
     spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
+    spec/samples/unused_code.lua:20:7: value assigned to variable z is unused
+    spec/samples/unused_code.lua:21:13: value assigned to variable z is unused
     spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
 
-Total: 9 warnings / 0 errors in 1 file
+Total: 11 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/unused_code.lua")
    end)
 
@@ -266,9 +270,11 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:5:13: unused variable q
     spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
     spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
+    spec/samples/unused_code.lua:20:7: value assigned to variable z is unused
+    spec/samples/unused_code.lua:21:13: value assigned to variable z is unused
     spec/samples/unused_code.lua:22:1: value assigned to variable z is unused
 
-Total: 4 warnings / 0 errors in 1 file
+Total: 6 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/unused_code.lua --no-unused-args")
    end)
 
@@ -442,6 +448,6 @@ Total: 0 warnings / 0 errors in 2 files
    end)
 
    it("expands folders", function()
-      assert.equal("Total: 36 warnings / 1 error in 13 files\n", get_output "spec/samples -qqq")
+      assert.equal("Total: 40 warnings / 1 error in 13 files\n", get_output "spec/samples -qqq")
    end)
 end)
