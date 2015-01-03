@@ -1,17 +1,55 @@
+local function register_value(values_per_var, var, value)
+   if not values_per_var[var] then
+      values_per_var[var] = {}
+   end
+
+   table.insert(values_per_var[var], value)
+end
+
+local function add_resolution(item, var, value)
+   register_value(item.used_values, var, value)
+   value.used = true
+
+   if value.secondaries then
+      value.secondaries.used = true
+   end
+end
+
 local function in_scope(var, index)
    return (var.scope_start <= index) and (index <= var.scope_end)
 end
 
 -- Propogates value assigned to variable along linear representation.
+-- Registers value as live where variable is accessed or propogation stops.
 -- Stops when out of scope of variable or at another assignment to it.
 local function propogate_value(line, var, value, visited, index)
-   local item = line.items[index]
-
-   if (not item) or visited[index] or (not in_scope(var, index)) then
+   if visited[index] then
       return
    end
 
    visited[index] = true
+
+   local item = line.items[index]
+
+   if not item then
+      -- End of the line. Add value to values live at the end.
+      register_value(line.last_live_values, var, value)
+      return
+   end
+
+   if item.accesses and item.accesses[var] then
+      add_resolution(item, var, value)
+   end
+
+   if (not in_scope(var, index)) or (item.set_variables and item.set_variables[var]) then
+      -- End of value propogation. Add value to values live at item.
+      if not item.live_values then
+         item.live_values = {}
+      end
+
+      register_value(item.live_values, var, value)
+      return
+   end
 
    if item.tag == "Jump" then
       return propogate_value(line, var, value, visited, item.to)
@@ -19,19 +57,6 @@ local function propogate_value(line, var, value, visited, index)
       -- A lot of nested loops or `if`s can cause a stack overflow here.
       propogate_value(line, var, value, visited, item.to)
       return propogate_value(line, var, value, visited, index + 1)
-   end
-
-   if item.accesses and item.accesses[var] then
-      if not item.used_values[var] then
-         item.used_values[var] = {}
-      end
-
-      table.insert(item.used_values[var], value)
-      value.used = true
-   end
-
-   if item.set_variables and item.set_variables[var] then
-      return
    else
       return propogate_value(line, var, value, visited, index + 1)
    end
@@ -61,6 +86,8 @@ local function propogate_values(line)
 end
 
 local function analyze_line(_, line)
+   -- {var = values} live at the end of line.
+   line.last_live_values = {}
    propogate_values(line)
    -- propogate_closures(line)
    -- ???
