@@ -163,21 +163,54 @@ local function propogate_closures(line)
    end
 end
 
-local function analyze_line(_, line)
+local function analyze_line(line)
    -- {var = values} live at the end of line.
    line.last_live_values = {}
    propogate_values(line)
    propogate_closures(line)
-   -- ???
+end
+
+-- Emits warnings for variable.
+local function check_var(chstate, var)
+   if #var.values == 1 then
+      if not var.values[1].used then
+         chstate:warn_unused_variable(var)
+      elseif var.values[1].empty then
+         chstate:warn_unset(var)
+      end
+   else
+      for _, value in ipairs(var.values) do
+         if (not value.used) and (not value.empty) then
+            chstate:warn_unused_value(value)
+         end
+      end
+   end
+end
+
+-- Emits warnings for unused variables and values and unset variables in line.
+local function check_for_warnings(chstate, line)
+   for _, item in ipairs(line.items) do
+      if item.tag == "Local" then
+         for var in pairs(item.set_variables) do
+            check_var(chstate, var)
+         end
+      end
+   end
 end
 
 -- Finds reaching assignments for all variable accesses.
--- Emits warnings: unused variable, unused value, unset variable, uninitialized access (NYI in chstate).
+-- Emits warnings: unused variable, unused value, unset variable.
 local function analyze(chstate, line)
-   analyze_line(chstate, line)
+   analyze_line(line)
 
    for _, nested_line in ipairs(line.lines) do
-      analyze_line(chstate, nested_line)
+      analyze_line(nested_line)
+   end
+
+   check_for_warnings(chstate, line)
+
+   for _, nested_line in ipairs(line.lines) do
+      check_for_warnings(chstate, nested_line)
    end
 end
 

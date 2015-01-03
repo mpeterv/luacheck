@@ -25,6 +25,18 @@ function ChState:warn_unused_label()
    
 end
 
+function ChState:warn_unused_variable()
+   
+end
+
+function ChState:warn_unused_value()
+   
+end
+
+function ChState:warn_unset()
+   
+end
+
 local function get_line_(src)
    local ast = parser(src)
    local chstate = ChState()
@@ -62,7 +74,7 @@ end
 
 local function get_used_variables_as_string(src)
    local line = get_line(src)
-   analyze(chstate, line)
+   analyze(ChState(), line)
 
    local buf = {}
 
