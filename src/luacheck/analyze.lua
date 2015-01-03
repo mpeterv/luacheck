@@ -155,6 +155,24 @@ local function propogate_closures(line)
          end
       end
    end
+
+   -- It is assumed that all closures are live at the end of the line.
+   -- Therefore, all accesses and sets inside closures can resolve to each other.
+   for _, subline in ipairs(line.lines) do
+      for var, accessing_items in pairs(subline.accessed_upvalues) do
+         if var.line == line then
+            for _, accessing_item in ipairs(accessing_items) do
+               for _, another_subline in ipairs(line.lines) do
+                  if another_subline.set_upvalues[var] then
+                     for _, setting_item in ipairs(another_subline.set_upvalues[var]) do
+                        add_resolution(accessing_item, var, setting_item.set_variables[var])
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
 end
 
 local function analyze_line(line)
