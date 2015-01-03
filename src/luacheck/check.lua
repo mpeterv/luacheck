@@ -48,7 +48,7 @@ function ChState:warn_global(node, action, is_top)
    })
 end
 
-function ChState:warn_unused_label(_)
+function ChState.warn_unused_label(_)
    -- NYI
 end
 

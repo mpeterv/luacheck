@@ -68,7 +68,7 @@ local parse_block, parse_expression
 
 local function parse_expression_list(state)
    local list = {}
-   local is_inside_parentheses = false
+   local is_inside_parentheses
 
    repeat
       list[#list+1], is_inside_parentheses = parse_expression(state)
