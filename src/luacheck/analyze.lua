@@ -28,7 +28,6 @@ local function propogate_value(line, var, value, visited, index)
    end
 
    visited[index] = true
-
    local item = line.items[index]
 
    if not item then
@@ -78,8 +77,87 @@ local function propogate_values(line)
       if item.set_variables then
          for var, value in pairs(item.set_variables) do
             if var.line == line then
+               -- Values are only live at the item after assignment.
                propogate_value(line, var, value, {[i] = true}, i + 1)
             end
+         end
+      end
+   end
+end
+
+-- Assumes that closure (subline) is live at index.
+-- Updates variable resolution and propogates further.
+-- When a closure accessing upvalue is live at item where a value of the variable is live,
+-- the access can resolve to the value.
+-- When a closure setting upvalue is live at item where the variable is accessed,
+-- the access can resolve to the value.
+-- Live values are only stored when their liveness ends. However, as closure propogation is unrestricted,
+-- if there is an intermediate item where value is factually live and closure is live, closure will at some
+-- point propogate to where value liveness ends and is stored as live.
+-- (Chances that I will understand this comment six months later: non-existent)
+local function propogate_closure(line, subline, visited, index)
+   -- TODO: do not duplicate code in the two propogation routines.
+   if visited[index] then
+      return
+   end
+
+   visited[index] = true
+   local item = line.items[index]
+   local live_values
+
+   if not item then
+      live_values = line.last_live_values
+   else
+      live_values = item.live_values
+   end
+
+   if live_values then
+      for var, accessing_items in pairs(subline.accessed_upvalues) do
+         if var.line == line then
+            if live_values[var] then
+               for _, accessing_item in ipairs(accessing_items) do
+                  for _, value in ipairs(live_values[var]) do
+                     add_resolution(accessing_item, var, value)
+                  end
+               end
+            end
+         end
+      end
+   end
+
+   if not item then
+      return
+   end
+
+   if item.accesses then
+      for var, setting_items in pairs(subline.set_upvalues) do
+         if var.line == line then
+            if item.accesses[var] then
+               for _, setting_item in ipairs(setting_items) do
+                  add_resolution(item, var, setting_item.set_variables[var])
+               end
+            end
+         end
+      end
+   end
+
+   if item.tag == "Jump" then
+      return propogate_closure(line, subline, visited, item.to)
+   elseif item.tag == "Cjump" then
+      propogate_closure(line, subline, visited, item.to)
+      return propogate_closure(line, subline, visited, index + 1)
+   else
+      return propogate_closure(line, subline, visited, index + 1)
+   end
+end
+
+-- Updates variable resolution to account for closures and upvalues.
+local function propogate_closures(line)
+   for i, item in ipairs(line.items) do
+      if item.lines then
+         for _, subline in ipairs(item.lines) do
+            -- Closures are considered live at the item they are created.
+            propogate_closure(line, subline, {}, i)
          end
       end
    end
@@ -89,7 +167,7 @@ local function analyze_line(_, line)
    -- {var = values} live at the end of line.
    line.last_live_values = {}
    propogate_values(line)
-   -- propogate_closures(line)
+   propogate_closures(line)
    -- ???
 end
 

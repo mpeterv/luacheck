@@ -5,8 +5,8 @@ local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"
 -- Who needs classes anyway.
 local function new_line()
    return {
-      accessed_upvalues = {},
-      set_upvalues = {},
+      accessed_upvalues = {}, -- Maps variables to arrays of accessing items.
+      set_upvalues = {}, -- Maps variables to arays of setting items.
       lines = {},
       items = utils.Stack()
    }
@@ -364,7 +364,7 @@ function LinState:emit_stmt_Set(node)
          local var = self:resolve_var(expr, "set")
 
          if var then
-            self:register_upvalue_action(var, "set")
+            self:register_upvalue_action(item, var, "set")
          end
       else
          self:scan_expr(item, expr)
@@ -389,7 +389,7 @@ function LinState:scan_exprs(item, nodes)
    end
 end
 
-function LinState:register_upvalue_action(var, action)
+function LinState:register_upvalue_action(item, var, action)
    local key = (action == "set") and "set_upvalues" or "accessed_upvalues"
 
    for i = self.lines.size, 1, -1 do
@@ -397,7 +397,11 @@ function LinState:register_upvalue_action(var, action)
          break
       end
 
-      self.lines[i][key][var] = true
+      if not self.lines[i][key][var] then
+         self.lines[i][key][var] = {}
+      end
+
+      table.insert(self.lines[i][key][var], item)
    end
 end
 
@@ -407,7 +411,7 @@ function LinState:mark_access(item, node)
    end
 
    table.insert(item.accesses[node.var], node)
-   self:register_upvalue_action(node.var, "access")
+   self:register_upvalue_action(item, node.var, "access")
 end
 
 function LinState:scan_expr_Id(item, node)
