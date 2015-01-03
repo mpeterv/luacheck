@@ -152,4 +152,51 @@ print(a, b)
 ]]))
       end)
    end)
+
+   describe("when resolving upvalues", function()
+      it("resolves set upvalues naively", function()
+         assert.equal([[
+Eval: f = (3:16)
+Eval: a = (1:7, 4:4)]], get_used_variables_as_string([[
+local a
+
+local function f()
+   a = 5
+end
+
+f()
+print(a)
+]]))
+      end)
+
+      it("naively determines where closure is live", function()
+         assert.equal([[
+Eval: a = (1:7)
+Eval: a = (1:7, 6:4)]], get_used_variables_as_string([[
+local a = 4
+
+print(a)
+
+local function f()
+   a = 5
+end
+
+print(a)
+]]))
+      end)
+
+      it("naively determines where closure is live in loops", function()
+         assert.equal([[
+Eval: a = (1:7, 6:22)
+Eval: a = (1:7, 6:22)]], get_used_variables_as_string([[
+local a = 4
+
+repeat
+   print(a)
+
+   escape(function() a = 5 end)
+until a
+]]))
+      end)
+   end)
 end)
