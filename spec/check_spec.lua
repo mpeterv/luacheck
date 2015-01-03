@@ -128,6 +128,31 @@ print(a)
       ]])
    end)
 
+   it("detects unused value when it and a closure using it can't live together", function()
+      assert.same({
+         {type = "global", subtype = "access", vartype = "global", name = "escape", line = 3, column = 4},
+         {type = "unused", subtype = "value", vartype = "var", name = "a", line = 5, column = 4}
+      }, get_report[[
+local a
+if true then
+   escape(function() return a end)
+else
+   a = 3
+   return
+end
+      ]])
+   end)
+
+   it("does not consider value assigned to upvalue as unused if it is accessed in another closure", function()
+      assert.same({}, get_report[[
+local a
+
+local function f(x) a = x end
+local function g() return a end
+return f, g
+      ]])
+   end)
+
    it("does not consider a variable initialized if it can't get a value due to short rhs", function()
       assert.same({}, get_report[[
 local a, b = "foo"
