@@ -14,4 +14,4 @@ Contents:
 
 Luacheck provides a command line interface as well as a Lua module which can be used by other programs.
 
-This is the documentation for the 0.7.1 version.
+This is the documentation for the 0.7.2 version.

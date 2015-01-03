@@ -40,7 +40,7 @@ Documentation is available [online](http://luacheck.readthedocs.org). If Luachec
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.7.1. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.7.2. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 
@@ -59,7 +59,7 @@ To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted) i
 ```
 The MIT License (MIT)
 
-Copyright (c) 2014 Peter Melnichenko
+Copyright (c) 2014 - 2015 Peter Melnichenko
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

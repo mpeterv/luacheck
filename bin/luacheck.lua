@@ -1,5 +1,5 @@
 #!/bin/env lua
-local version = "0.7.1"
+local version = "0.7.2"
 
 local function fatal(msg)
    io.stderr:write("Fatal error: "..msg.."\n")

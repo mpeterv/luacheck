@@ -43,18 +43,19 @@ Detection of unused arguments and loop variables can be disabled using ``-a``/``
 Unused values
 ^^^^^^^^^^^^^
 
-Luacheck also detects unused values: redundant assignments to variables which are then not used before another assignment. As an example, in the following snippet value assigned to ``foo`` on line 4 is unused, as it is always overwritten on line 7:
+Luacheck also detects unused values: redundant assignments to variables which are then not used before another assignment. As an example, in the following snippet value assigned to ``foo`` on line 1 is unused, as it is overwritten in both branches of ``if`` statement before being used:
 
 .. code-block:: lua
    :linenos:
 
-   local foo
+   local foo = expr1()
 
    if condition() then
-      foo = expr1()
+      foo = expr2()
+   else
+      foo = expr3()
    end
 
-   foo = expr2()
    return foo
 
 Detection of unused values can be disabled using ``-v``/``--no-unused-values`` CLI option or ``unused_values`` config option.
