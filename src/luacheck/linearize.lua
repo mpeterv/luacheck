@@ -433,30 +433,18 @@ function LinState:scan_expr_Dots(item, node)
    self:mark_access(item, node)
 end
 
-function LinState:scan_expr_Index(item, node)
-   self:scan_expr(item, node[1])
-   self:scan_expr(item, node[2])
-end
-
+LinState.scan_expr_Index = LinState.scan_exprs
 LinState.scan_expr_Call = LinState.scan_exprs
 LinState.scan_expr_Invoke = LinState.scan_exprs
+LinState.scan_expr_Paren = LinState.scan_exprs
+LinState.scan_expr_Pair = LinState.scan_exprs
+LinState.scan_expr_Table = LinState.scan_exprs
 
 function LinState:scan_expr_Op(item, node)
    self:scan_expr(item, node[2])
 
    if node[3] then
       self:scan_expr(item, node[3])
-   end
-end
-
-function LinState:scan_expr_Table(item, node)
-   for _, expr in ipairs(node) do
-      if expr.tag == "Pair" then
-         self:scan_expr(item, expr[1])
-         self:scan_expr(item, expr[2])
-      else
-         self:scan_expr(item, expr)
-      end
    end
 end
 
