@@ -14,12 +14,7 @@ local function get_report(file)
    end
 
    local ast = parse(src)
-
-   if not ast then
-      return {error = "syntax"}
-   end
-
-   return check(ast)
+   return ast and utils.pcall(check, ast) or {error = "syntax"}
 end
 
 local function validate_files(files)

@@ -150,4 +150,31 @@ function utils.Stack:pop()
    return value
 end
 
+local function error_handler(err)
+   if type(err) == "table" then
+      return true
+   else
+      return false, err.."\n"..debug.traceback()
+   end
+end
+
+-- Calls f with arg, returns what it does.
+-- If f throws a table, returns nil.
+-- If f throws not a table, rethrows.
+function utils.pcall(f, arg)
+   local function task()
+      return f(arg)
+   end
+
+   local ok, res, err = xpcall(task, error_handler)
+
+   if ok then
+      return res
+   elseif res then
+      return nil
+   else
+      error(err, 0)
+   end
+end
+
 return utils

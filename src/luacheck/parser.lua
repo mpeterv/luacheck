@@ -1,6 +1,7 @@
-local tinsert = table.insert
-
 local lexer = require "luacheck.lexer"
+local utils = require "luacheck.utils"
+
+local tinsert = table.insert
 
 local function new_state(src)
    return {lexer = lexer.new_state(src)}
@@ -682,31 +683,8 @@ local function parse(src)
    return parse_block(state)
 end
 
-local function error_handler(err)
-   if type(err) == "table" then
-      -- Syntax error.
-      return true
-   else
-      -- Probably a bug.
-      return false, err.."\n"..debug.traceback()
-   end
-end
-
 local function pparse(src)
-   local function task()
-      return parse(src)
-   end
-
-   local ok, res, err = xpcall(task, error_handler)
-
-   if ok then
-      return res
-   elseif res then
-      return nil
-   else
-      -- Propagate error.
-      error(err)
-   end
+   return utils.pcall(parse, src)
 end
 
 return pparse
