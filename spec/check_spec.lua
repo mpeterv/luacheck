@@ -143,6 +143,17 @@ end
       ]])
    end)
 
+   it("does not detect unused value when it and a closure using it can live together", function()
+      assert.same({
+         {type = "global", subtype = "access", vartype = "global", name = "escape", line = 3, column = 4},
+      }, get_report[[
+local a = 3
+if true then
+   escape(function() return a end)
+end
+      ]])
+   end)
+
    it("does not consider value assigned to upvalue as unused if it is accessed in another closure", function()
       assert.same({}, get_report[[
 local a
