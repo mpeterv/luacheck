@@ -48,8 +48,14 @@ function ChState:warn_global(node, action, is_top)
    })
 end
 
-function ChState.warn_unused_label(_)
-   -- NYI
+function ChState:warn_unused_label(label)
+   self:warn({
+      type = "NYI",
+      subtype = "unused_label",
+      name = label.name,
+      line = label.location.line,
+      column = label.location.column
+   })
 end
 
 function ChState:warn_unused_variable(var)

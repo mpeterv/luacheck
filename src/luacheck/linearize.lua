@@ -42,9 +42,10 @@ local function new_value(var_node, value_node, is_init)
    }
 end
 
-local function new_label(line, name)
+local function new_label(line, name, location)
    return {
       name = name,
+      location = location,
       index = line.items.size + 1
    }
 end
@@ -136,8 +137,8 @@ function LinState:leave_scope()
       end
    end
 
-   for _, label in ipairs(left_scope.labels) do
-      if not label.used and not pseudo_labels[label.name] then
+   for name, label in pairs(left_scope.labels) do
+      if not label.used and not pseudo_labels[name] then
          self.chstate:warn_unused_label(label)
       end
    end
@@ -180,13 +181,13 @@ function LinState:resolve_var(node, action)
    self.chstate:warn_global(node, action, self.lines.size == 1)
 end
 
-function LinState:register_label(name)
+function LinState:register_label(name, location)
    if self.scopes.top.labels[name] then
       assert(not pseudo_labels[name])
       self.chstate:syntax_error()
    end
 
-   self.scopes.top.labels[name] = new_label(self.lines.top, name)
+   self.scopes.top.labels[name] = new_label(self.lines.top, name, location)
 end
 
 function LinState:emit(item)
@@ -308,7 +309,7 @@ function LinState:emit_stmt_If(node)
 end
 
 function LinState:emit_stmt_Label(node)
-   self:register_label(node[1])
+   self:register_label(node[1], node.location)
 end
 
 function LinState:emit_stmt_Goto(node)
