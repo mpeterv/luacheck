@@ -275,6 +275,16 @@ return a
       ]])
    end)
 
+   it("detects unused labels", function()
+      assert.same({
+         {type = "NYI", subtype = "unused_label", name = "fail", line = 2, column = 4}
+      }, get_report[[
+::fail::
+do ::fail:: end
+goto fail
+      ]])
+   end)
+
    it("handles argparse sample", function()
       assert.table(get_report(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)
