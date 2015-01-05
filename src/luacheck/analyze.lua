@@ -6,14 +6,6 @@ local function register_value(values_per_var, var, value)
    table.insert(values_per_var[var], value)
 end
 
-local function add_live_value(item, var, value)
-   if not item.live_values then
-      item.live_values = {}
-   end
-
-   register_value(item.live_values, var, value)
-end
-
 local function add_resolution(item, var, value)
    register_value(item.used_values, var, value)
    value.used = true
@@ -30,7 +22,7 @@ end
 -- Propogates value assigned to variable along linear representation.
 -- Registers value as live where variable is accessed or propogation stops.
 -- Stops when out of scope of variable or at another assignment to it.
-local function propogate_value(line, var, value, visited, prev_item, index)
+local function propogate_value(line, var, value, visited, index)
    if visited[index] then
       return
    end
@@ -39,7 +31,7 @@ local function propogate_value(line, var, value, visited, prev_item, index)
    local item = line.items[index]
 
    if not item then
-      add_live_value(prev_item, var, value)
+      register_value(line.last_live_values, var, value)
       return
    end
 
@@ -48,18 +40,22 @@ local function propogate_value(line, var, value, visited, prev_item, index)
    end
 
    if not in_scope(var, index) or (item.set_variables and item.set_variables[var]) then
-      add_live_value(prev_item, var, value)
+      if not item.live_values then  
+         item.live_values = {}    
+      end
+
+      register_value(item.live_values, var, value)  
       return
    end
 
    if item.tag == "Jump" then
-      return propogate_value(line, var, value, visited, item, item.to)
+      return propogate_value(line, var, value, visited, item.to)
    elseif item.tag == "Cjump" then
       -- A lot of nested loops or `if`s can cause a stack overflow here.
-      propogate_value(line, var, value, visited, item, item.to)
-      return propogate_value(line, var, value, visited, item, index + 1)
+      propogate_value(line, var, value, visited, item.to)
+      return propogate_value(line, var, value, visited, index + 1)
    else
-      return propogate_value(line, var, value, visited, item, index + 1)
+      return propogate_value(line, var, value, visited, index + 1)
    end
 end
 
@@ -67,6 +63,9 @@ end
 -- A pair `var = {values}` in this table means that accessed local variable `var` can contain one of values `values`.
 -- Values that can be accessed locally are marked as used.
 local function propogate_values(line)
+   -- {var = values} live at the end of line.   
+   line.last_live_values = {}
+
    -- It is not very clever to simply propogate every single assigned value.
    -- Fortunately, performance hit seems small (can be compenstated by inlining a few functions in lexer).
    for i, item in ipairs(line.items) do
@@ -74,7 +73,7 @@ local function propogate_values(line)
          for var, value in pairs(item.set_variables) do
             if var.line == line then
                -- Values are only live at the item after assignment.
-               propogate_value(line, var, value, {[i] = true}, item, i + 1)
+               propogate_value(line, var, value, {[i] = true}, i + 1)
             end
          end
       end
@@ -99,23 +98,30 @@ local function propogate_closure(line, subline, visited, index)
 
    visited[index] = true
    local item = line.items[index]
+   local live_values    
 
    if not item then
-      return
+      live_values = line.last_live_values
+   else   
+      live_values = item.live_values
    end
 
-   if item.live_values then
+   if live_values then
       for var, accessing_items in pairs(subline.accessed_upvalues) do
          if var.line == line then
-            if item.live_values[var] then
+            if live_values[var] then
                for _, accessing_item in ipairs(accessing_items) do
-                  for _, value in ipairs(item.live_values[var]) do
+                  for _, value in ipairs(live_values[var]) do
                      add_resolution(accessing_item, var, value)
                   end
                end
             end
          end
       end
+   end
+
+   if not item then
+      return
    end
 
    if item.accesses then
