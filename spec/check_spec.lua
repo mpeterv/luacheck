@@ -285,6 +285,66 @@ goto fail
       ]])
    end)
 
+   it("detects unreachable code", function()
+      assert.same({
+         {type = "NYI", subtype = "unreachable", line = 2, column = 1}
+      }, get_report[[
+do return end
+if true then return 6 end
+return 3
+      ]])
+
+      assert.same({
+         {type = "NYI", subtype = "unreachable", line = 7, column = 1},
+         {type = "NYI", subtype = "unreachable", line = 13, column = 1}
+      }, get_report[[
+if false then
+   return 4
+else
+   return 6
+end
+
+if true then
+   return 7
+else
+   return 8
+end
+
+return 3
+      ]])
+   end)
+
+   it("detects accessing uninitialized variables", function()
+      assert.same({
+         {type = "global", subtype = "access", vartype = "global", name = "get", line = 6, column = 8},
+         {type = "NYI", subtype = "uninit", name = "a", line = 6, column = 12}
+      }, get_report[[
+local a
+
+if true then
+   a = 5
+else
+   a = get(a)
+end
+
+return a
+      ]])
+   end)
+
+   it("does not detect accessing unitialized variables incorrectly in loops", function()
+      assert.same({
+         {type = "global", subtype = "access", vartype = "global", name = "get", line = 4, column = 8}
+      }, get_report[[
+local a
+
+while not a do
+   a = get()
+end
+
+return a
+      ]])
+   end)
+
    it("handles argparse sample", function()
       assert.table(get_report(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)
