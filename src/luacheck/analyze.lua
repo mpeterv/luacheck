@@ -1,3 +1,5 @@
+local core_utils = require "luacheck.core_utils"
+
 local function register_value(values_per_var, var, value)
    if not values_per_var[var] then
       values_per_var[var] = {}
@@ -19,20 +21,13 @@ local function in_scope(var, index)
    return (var.scope_start <= index) and (index <= var.scope_end)
 end
 
--- Propogates value assigned to variable along linear representation.
--- Registers value as live where variable is accessed or propogation stops.
+-- Called when value of var is live at an item.
+-- Registers value as live where variable is accessed or liveness propogation stops.
 -- Stops when out of scope of variable or at another assignment to it.
-local function propogate_value(line, var, value, visited, index)
-   if visited[index] then
-      return
-   end
-
-   visited[index] = true
-   local item = line.items[index]
-
+local function value_propogation_callback(line, index, item, var, value)
    if not item then
       register_value(line.last_live_values, var, value)
-      return
+      return true
    end
 
    if item.accesses and item.accesses[var] then
@@ -45,17 +40,7 @@ local function propogate_value(line, var, value, visited, index)
       end
 
       register_value(item.live_values, var, value)  
-      return
-   end
-
-   if item.tag == "Jump" then
-      return propogate_value(line, var, value, visited, item.to)
-   elseif item.tag == "Cjump" then
-      -- A lot of nested loops or `if`s can cause a stack overflow here.
-      propogate_value(line, var, value, visited, item.to)
-      return propogate_value(line, var, value, visited, index + 1)
-   else
-      return propogate_value(line, var, value, visited, index + 1)
+      return true
    end
 end
 
@@ -73,31 +58,24 @@ local function propogate_values(line)
          for var, value in pairs(item.set_variables) do
             if var.line == line then
                -- Values are only live at the item after assignment.
-               propogate_value(line, var, value, {[i] = true}, i + 1)
+               core_utils.walk_line(line, {[i] = true}, i + 1, value_propogation_callback, var, value)
             end
          end
       end
    end
 end
 
--- Assumes that closure (subline) is live at index.
--- Updates variable resolution and propogates further.
+-- Called when closure (subline) is live at index.
+-- Updates variable resolution:
 -- When a closure accessing upvalue is live at item where a value of the variable is live,
 -- the access can resolve to the value.
 -- When a closure setting upvalue is live at item where the variable is accessed,
 -- the access can resolve to the value.
 -- Live values are only stored when their liveness ends. However, as closure propogation is unrestricted,
 -- if there is an intermediate item where value is factually live and closure is live, closure will at some
--- point propogate to where value liveness ends and is stored as live.
+-- point be propogated to where value liveness ends and is stored as live.
 -- (Chances that I will understand this comment six months later: non-existent)
-local function propogate_closure(line, subline, visited, index)
-   -- TODO: do not duplicate code in the two propogation routines.
-   if visited[index] then
-      return
-   end
-
-   visited[index] = true
-   local item = line.items[index]
+local function closure_propogation_callback(line, index, item, subline)
    local live_values    
 
    if not item then
@@ -121,7 +99,7 @@ local function propogate_closure(line, subline, visited, index)
    end
 
    if not item then
-      return
+      return true
    end
 
    if item.accesses then
@@ -135,15 +113,6 @@ local function propogate_closure(line, subline, visited, index)
          end
       end
    end
-
-   if item.tag == "Jump" then
-      return propogate_closure(line, subline, visited, item.to)
-   elseif item.tag == "Cjump" then
-      propogate_closure(line, subline, visited, item.to)
-      return propogate_closure(line, subline, visited, index + 1)
-   else
-      return propogate_closure(line, subline, visited, index + 1)
-   end
 end
 
 -- Updates variable resolution to account for closures and upvalues.
@@ -152,7 +121,7 @@ local function propogate_closures(line)
       if item.lines then
          for _, subline in ipairs(item.lines) do
             -- Closures are considered live at the item they are created.
-            propogate_closure(line, subline, {}, i)
+            core_utils.walk_line(line, {}, i, closure_propogation_callback, subline)
          end
       end
    end
