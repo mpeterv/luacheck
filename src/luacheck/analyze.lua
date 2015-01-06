@@ -75,7 +75,7 @@ end
 -- if there is an intermediate item where value is factually live and closure is live, closure will at some
 -- point be propogated to where value liveness ends and is stored as live.
 -- (Chances that I will understand this comment six months later: non-existent)
-local function closure_propogation_callback(line, index, item, subline)
+local function closure_propogation_callback(line, _, item, subline)
    local live_values    
 
    if not item then

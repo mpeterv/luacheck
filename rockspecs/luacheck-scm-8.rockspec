@@ -23,6 +23,7 @@ build = {
       luacheck = "src/luacheck.lua",
       ["luacheck.linearize"] = "src/luacheck/linearize.lua",
       ["luacheck.analyze"] = "src/luacheck/analyze.lua",
+      ["luacheck.reachability"] = "src/luacheck/reachability.lua",
       ["luacheck.core_utils"] = "src/luacheck/core_utils.lua",
       ["luacheck.check"] = "src/luacheck/check.lua",
       ["luacheck.parser"] = "src/luacheck/parser.lua",

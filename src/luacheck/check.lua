@@ -1,5 +1,6 @@
 local linearize = require "luacheck.linearize"
 local analyze = require "luacheck.analyze"
+local reachability = require "luacheck.reachability"
 local utils = require "luacheck.utils"
 
 local notes_top = {top = true}
@@ -93,6 +94,25 @@ function ChState:warn_unset(var)
    })
 end
 
+function ChState:warn_uninit(node)
+   self:warn({
+      type = "NYI",
+      subtype = "uninit",
+      name = node[1],
+      line = node.location.line,
+      column = node.location.column
+   })
+end
+
+function ChState:warn_unreachable(location)
+   self:warn({
+      type = "NYI",
+      subtype = "unreachable",
+      line = location.line,
+      column = location.column
+   })
+end
+
 function ChState:get_report()
    table.sort(self.warnings, function(warning1, warning2)
       return warning1.line < warning2.line or
@@ -109,6 +129,7 @@ local function check(ast)
    local chstate = ChState()
    local line = linearize(chstate, ast)
    analyze(chstate, line)
+   reachability(chstate, line)
    return chstate:get_report()
 end
 
