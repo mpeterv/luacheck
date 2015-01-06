@@ -67,6 +67,7 @@ local function new_eval_item(expr)
    return {
       tag = "Eval",
       expr = expr,
+      location = expr.location,
       accesses = {},
       used_values = {},
       lines = {}
@@ -80,22 +81,24 @@ local function new_noop_item(location)
    }
 end
 
-local function new_local_item(lhs, rhs)
+local function new_local_item(lhs, rhs, location)
    return {
       tag = "Local",
       lhs = lhs,
       rhs = rhs,
+      location = location,
       accesses = rhs and {},
       used_values = rhs and {},
       lines = rhs and {}
    }
 end
 
-local function new_set_item(lhs, rhs)
+local function new_set_item(lhs, rhs, location)
    return {
       tag = "Set",
       lhs = lhs,
       rhs = rhs,
+      location = location,
       accesses = {},
       used_values = {},
       lines = {}
@@ -221,14 +224,12 @@ function LinState:emit_block(block)
 end
 
 function LinState:emit_stmt_Do(node)
-   if #node == 0 then
-      self:emit_noop(node.location)
-   else
-      self:emit_block(node)
-   end
+   self:emit_noop(node.location)
+   self:emit_block(node)
 end
 
 function LinState:emit_stmt_While(node)
+   self:emit_noop(node.location)
    self:enter_scope()
    self:register_label("do")
    self:emit_expr(node[1])
@@ -240,6 +241,7 @@ function LinState:emit_stmt_While(node)
 end
 
 function LinState:emit_stmt_Repeat(node)
+   self:emit_noop(node.location)
    self:enter_scope()
    self:register_label("do")
    self:enter_scope()
@@ -252,6 +254,7 @@ function LinState:emit_stmt_Repeat(node)
 end
 
 function LinState:emit_stmt_Fornum(node)
+   self:emit_noop(node.location)
    self:emit_expr(node[2])
    self:emit_expr(node[3])
 
@@ -273,6 +276,7 @@ function LinState:emit_stmt_Fornum(node)
 end
 
 function LinState:emit_stmt_Forin(node)
+   self:emit_noop(node.location)
    self:emit_exprs(node[2])
    self:enter_scope()
    self:register_label("do")
@@ -288,6 +292,7 @@ function LinState:emit_stmt_Forin(node)
 end
 
 function LinState:emit_stmt_If(node)
+   self:emit_noop(node.location)
    self:enter_scope()
 
    for i = 1, #node - 1, 2 do
@@ -322,6 +327,7 @@ function LinState:emit_stmt_Break(_)
 end
 
 function LinState:emit_stmt_Return(node)
+   self:emit_noop(node.location)
    self:emit_exprs(node)
    self:emit_goto("return")
 end
@@ -342,7 +348,7 @@ LinState.emit_stmt_Call = LinState.emit_expr
 LinState.emit_stmt_Invoke = LinState.emit_expr
 
 function LinState:emit_stmt_Local(node)
-   local item = new_local_item(node[1], node[2])
+   local item = new_local_item(node[1], node[2], node.location)
    self:emit(item)
 
    if node[2] then
@@ -353,14 +359,14 @@ function LinState:emit_stmt_Local(node)
 end
 
 function LinState:emit_stmt_Localrec(node)
-   local item = new_local_item({node[1]}, {node[2]})
+   local item = new_local_item({node[1]}, {node[2]}, node.location)
    self:register_var(node[1], "var")
    self:emit(item)
    self:scan_expr(item, node[2])
 end
 
 function LinState:emit_stmt_Set(node)
-   local item = new_set_item(node[1], node[2])
+   local item = new_set_item(node[1], node[2], node.location)
    self:scan_exprs(item, node[2])
 
    for _, expr in ipairs(node[1]) do
