@@ -47,6 +47,12 @@ Total: 5 warnings / 0 errors in 1 file
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua")
    end)
 
+   it("works for incorrect patterns in options", function()
+      assert.equal([[
+Fatal error: Invalid pattern '^%1foo$'
+]], get_output "spec/samples/bad_code.lua --ignore %1foo")
+   end)
+
    it("colors output", function()
       assert.equal([[
 Checking spec/samples/good_code.lua               ###OK#
