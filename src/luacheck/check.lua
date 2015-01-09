@@ -3,11 +3,8 @@ local analyze = require "luacheck.analyze"
 local reachability = require "luacheck.reachability"
 local utils = require "luacheck.utils"
 
-local notes_top = {top = true}
-local notes_secondary = {secondary = true}
-
-local function get_notes_secondary(value)
-   return value.secondaries and value.secondaries.used and notes_secondary
+local function is_secondary(value)
+   return value.secondaries and value.secondaries.used
 end
 
 local ChState = utils.class()
@@ -24,11 +21,80 @@ function ChState:warn(warning)
    table.insert(self.warnings, warning)
 end
 
+local action_codes = {
+   set = 1,
+   mutate = 2, -- NYI
+   access = 3
+}
+
+local type_codes = {
+   var = 1,
+   func = 1,
+   arg = 2,
+   vararg = 2,
+   loop = 3,
+   loopi = 3
+}
+
+function ChState:warn_global(node, action, is_top)
+   self:warn({
+      code = "11" .. action_codes[action],
+      name = node[1],
+      line = node.location.line,
+      column = node.location.column,
+      top = is_top and (action == "set") or nil
+   })
+end
+
+-- TODO: warning 12* for read-only globals.
+
+-- W131 (unused global) is monkey-patched during filtering.
+
+function ChState:warn_unused_variable(var)
+   self:warn({
+      code = "21" .. type_codes[var.type],
+      name = var.name,
+      line = var.location.line,
+      column = var.location.column,
+      secondary = is_secondary(var.values[1]) or nil,
+      func = (var.type == "func") or nil,
+      vararg = (var.type == "vararg") or nil
+   })
+end
+
+function ChState:warn_unset(var)
+   self:warn({
+      code = "221",
+      name = var.name,
+      line = var.location.line,
+      column = var.location.column
+   })
+end
+
+-- TODO: warning 23* for variables set but never accessed.
+
+function ChState:warn_unused_value(value)
+   self:warn({
+      code = "31" .. type_codes[value.type],
+      name = value.var.name,
+      line = value.location.line,
+      column = value.location.column,
+      secondary = is_secondary(value) or nil
+   })
+end
+
+function ChState:warn_uninit(node)
+   self:warn({
+      code = "321",
+      name = node[1],
+      line = node.location.line,
+      column = node.location.column
+   })
+end
+
 function ChState:warn_redefined(var, prev_var)
    self:warn({
-      type = "redefined",
-      subtype = "var",
-      vartype = prev_var.type,
+      code = "41" .. type_codes[prev_var.type],
       name = var.name,
       line = var.location.line,
       column = var.location.column,
@@ -37,81 +103,28 @@ function ChState:warn_redefined(var, prev_var)
    })
 end
 
-function ChState:warn_global(node, action, is_top)
+-- TODO: warning 42* for declarations shadowing declaration in outer scope.
+
+function ChState:warn_unreachable(location)
    self:warn({
-      type = "global",
-      subtype = action,
-      vartype = "global",
-      name = node[1],
-      line = node.location.line,
-      column = node.location.column,
-      notes = is_top and (action == "set") and notes_top or nil
+      code = "511",
+      line = location.line,
+      column = location.column
    })
 end
 
 function ChState:warn_unused_label(label)
    self:warn({
-      type = "NYI",
-      subtype = "unused_label",
+      code = "521",
       name = label.name,
       line = label.location.line,
       column = label.location.column
    })
 end
 
-function ChState:warn_unused_variable(var)
-   self:warn({
-      type = "unused",
-      subtype = "var",
-      vartype = var.type,
-      name = var.name,
-      line = var.location.line,
-      column = var.location.column,
-      notes = get_notes_secondary(var.values[1])
-   })
-end
-
-function ChState:warn_unused_value(value)
-   self:warn({
-      type = "unused",
-      subtype = "value",
-      vartype = value.type,
-      name = value.var.name,
-      line = value.location.line,
-      column = value.location.column,
-      notes = get_notes_secondary(value)
-   })
-end
-
-function ChState:warn_unset(var)
-   self:warn({
-      type = "unused",
-      subtype = "unset",
-      vartype = "var",
-      name = var.name,
-      line = var.location.line,
-      column = var.location.column
-   })
-end
-
-function ChState:warn_uninit(node)
-   self:warn({
-      type = "NYI",
-      subtype = "uninit",
-      name = node[1],
-      line = node.location.line,
-      column = node.location.column
-   })
-end
-
-function ChState:warn_unreachable(location)
-   self:warn({
-      type = "NYI",
-      subtype = "unreachable",
-      line = location.line,
-      column = location.column
-   })
-end
+-- TODO: warning 53* for unbalanced assignments.
+-- TODO: warning 54* for empty blocks.
+--    Requires changes in parser to report location of if branches properly.
 
 function ChState:get_report()
    table.sort(self.warnings, function(warning1, warning2)

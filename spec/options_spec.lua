@@ -1,19 +1,13 @@
 local options = require "luacheck.options"
 
-local globals = {_ENV = (function() local _ENV = {}; return not _G end)() or nil}
-
-for k in pairs(_G) do
-   globals[k] = true
-end
-
 describe("options", function()
    describe("validate", function()
       it("returns true if options are empty", function()
-         assert.is_true(options.validate())
+         assert.is_true(options.validate(options.config_options))
       end)
 
       it("returns true if options are valid", function()
-         assert.is_true(options.validate({
+         assert.is_true(options.validate(options.config_options, {
             globals = {"foo"},
             compat = false,
             unrelated = function() end
@@ -21,127 +15,101 @@ describe("options", function()
       end)
 
       it("returns false if options are invalid", function()
-         assert.is_false(options.validate({
+         assert.is_false(options.validate(options.config_options, {
             globals = 3,
             redefined = false
          }))
 
-         assert.is_false(options.validate({
+         assert.is_false(options.validate(options.config_options, {
             globals = {3}
          }))
 
-         assert.is_false(options.validate(function() end))
+         assert.is_false(options.validate(options.config_options, function() end))
 
-         assert.is_false(options.validate({
+         assert.is_false(options.validate(options.config_options, {
             unused = 0
          }))
       end)
 
       it("additionally returns name of the problematic field", function()
-         assert.equal("globals", select(2, options.validate({
+         assert.equal("globals", select(2, options.validate(options.config_options, {
             globals = 3,
             redefined = false
          })))
 
-         assert.equal("globals", select(2, options.validate({
+         assert.equal("globals", select(2, options.validate(options.config_options, {
             globals = {3}
          })))
 
-         assert.equal("unused", select(2, options.validate({
+         assert.equal("unused", select(2, options.validate(options.config_options, {
             unused = 0
          })))
       end)
    end)
 
-   describe("combine", function()
-      it("scalar options overwrite old values", function()
-         assert.same({
-            global = true,
-            unused = true
-         }, options.combine({
-            global = false,
-            unused = true
-         }, {
-            global = true
-         }))
-      end)
-
-      it("opts.std overwrites old value", function()
-         assert.same({
-            std = {"bar"}
-         }, options.combine({
-            std = "min"
-         }, {
-            std = {"foo"}
-         }, {
-            std = {"bar"}
-         }))
-      end)
-
-      it("globals, ignore and only options are concatenated with old values", function()
-         assert.same({
-            globals = {"foo", "bar"}
-         }, options.combine({
-            globals = {"foo"}
-         }, {
-            globals = {"bar"}
-         }))
-      end)
-
-      it("new_globals overwrites globals", function()
-         assert.same({"bar"}, options.combine({
-            globals = {"foo"}
-         }, {
-            new_globals = {"bar"}
-         }).globals)
-      end)
-
-      it("old new_globals does not overwrite globals", function()
-         assert.same({"bar", "baz"}, options.combine({
-            globals = {"foo"}
-         }, {
-            new_globals = {"bar"}
-         }, {
-            globals = {"baz"}
-         }).globals)
-      end)
-
-      it("applies `compat`", function()
-         assert.same({std = "max"}, options.combine({
-            std = "min"
-         }, {
-            std = "luajit", compat = "true"
-         }))
-      end)
-   end)
-
    describe("normalize", function()
       it("applies default values", function()
-         opts = options.normalize()
-         assert.same(opts, options.normalize({}))
+         opts = options.normalize({})
+         assert.same(opts, options.normalize({{}}))
 
-         assert.is_true(opts.global)
-         assert.is_true(opts.unused)
-         assert.is_true(opts.redefined)
-         assert.is_true(opts.unused_args)
-         assert.is_true(opts.unused_values)
+         assert.is_true(opts.unused_secondaries)
+         assert.is_false(opts.module)
          assert.is_false(opts.allow_defined)
-         assert.is_false(opts.only)
-         assert.same({}, opts.ignore)
+         assert.is_false(opts.allow_defined_top)
+         assert.is_table(opts.globals)
+         assert.same({}, opts.rules)
       end)
 
-      it("applies _G+_ENV as default globals", function()
-         assert.same(globals, options.normalize().globals)
+      it("considers simple boolean options", function()
+         local opts = options.normalize({
+            {
+               module = false,
+               unused_secondaries = true
+            }, {
+               module = true,
+               allow_defined = false
+            }
+         })
+
+         assert.is_true(opts.module)
+         assert.is_true(opts.unused_secondaries)
+         assert.is_false(opts.allow_defined)
       end)
 
-      it("considers opts.std", function()
-         assert.same({}, options.normalize({
-            std = "none"
+      it("considers opts.std and opts.compat", function()
+         assert.same({baz = true}, options.normalize({
+            {
+               std = "none"
+            }, {
+               globals = {"foo", "bar"},
+               compat = true
+            }, {
+               new_globals = {"baz"},
+               compat = false
+            }
          }).globals)
+      end)
 
-         assert.same({foo = true}, options.normalize({
-            std = {"foo"}
-         }).globals)
+      it("considers macros, ignore, enable and only", function()
+         assert.same({
+               {{{nil, "^foo$"}}, "only"},
+               {{{"^31", nil}}, "disable"},
+               {{{"^[23]", nil}}, "enable"},
+               {{{"^511", nil}}, "enable"},
+               {{{"^412", nil}, {"1$", "^bar$"}}, "disable"}
+            }, options.normalize({
+            {
+               unused = false
+            }, {
+               ignore = {"412", "1$/bar"}
+            }, {
+               unused = true,
+               unused_values = false,
+               enable = {"511"}
+            }, {
+               only = {"foo"}
+            }
+         }).rules)
       end)
    end)
 end)

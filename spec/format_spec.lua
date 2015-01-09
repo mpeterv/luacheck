@@ -22,9 +22,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    errors = 1,
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -32,9 +30,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -63,9 +59,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    errors = 1,
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -73,9 +67,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -98,9 +90,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    errors = 1,
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -108,9 +98,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -129,9 +117,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    errors = 1,
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -139,9 +125,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -171,9 +155,7 @@ Total: 2 warnings / 1 error in 4 files]], format({
    errors = 1,
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7
@@ -181,9 +163,7 @@ Total: 2 warnings / 1 error in 4 files]], format({
    },
    {
       {
-         type = "global",
-         subtype = "unused",
-         vartype = "global",
+         code = "131",
          name = "foo",
          line = 2,
          column = 7

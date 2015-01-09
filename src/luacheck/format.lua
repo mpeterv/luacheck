@@ -1,48 +1,46 @@
 local ansicolors = require "ansicolors"
 
 local message_formats = {
-   global = {
-      access = {
-         global = "accessing undefined variable %s"
-      },
-      set = {
-         global = "setting non-standard global variable %s",
-         module = "setting non-module global variable %s"
-      },
-      unused = {
-         global = "unused global variable %s"
-      }
-   },
-   redefined = {
-      var = {
-         var = "variable %s was previously defined on line %s",
-         func = "variable %s was previously defined on line %s",
-         arg = "variable %s was previously defined as an argument on line %s",
-         loop = "variable %s was previously defined as a loop variable on line %s",
-         loopi = "variable %s was previously defined as a loop variable on line %s"
-      }
-   },
-   unused = {
-      var = {
-         var = "unused variable %s",
-         func = "unused variable %s",
-         arg = "unused argument %s",
-         loop = "unused loop variable %s",
-         loopi = "unused loop variable %s",
-         vararg = "unused variable length argument"
-      },
-      value = {
-         var = "value assigned to variable %s is unused",
-         func = "value assigned to variable %s is unused",
-         arg = "value of argument %s is unused",
-         loop = "value of loop variable %s is unused",
-         loopi = "value of loop variable %s is unused"
-      },
-      unset = {
-         var = "variable %s is never set"
-      }
-   }
+   ["111"] = function(w)
+      if w.module then return "setting non-module global variable %s"
+         else return "setting non-standard global variable %s" end end,
+   ["112"] = "mutating non-standard global variable %s",
+   ["113"] = "accessing undefined variable %s",
+   ["131"] = "unused global variable %s",
+   ["211"] = function(w)
+      if w.func then return "unused function %s"
+         else return "unused variable %s" end end,
+   ["212"] = function(w)
+      if w.vararg then return "unused variable length argument"
+         else return "unused argument %s" end end,
+   ["213"] = "unused loop variable %s",
+   ["221"] = "variable %s is never set",
+   ["231"] = "variable %s is never accessed",
+   ["232"] = "argument %s is never accessed",
+   ["233"] = "loop variable %s is never accessed",
+   ["311"] = "value assigned to variable %s is unused",
+   ["312"] = "value of argument %s is unused",
+   ["313"] = "value of loop variable %s is unused",
+   ["321"] = "accessing uninitialized variable %s",
+   ["411"] = "variable %s was previously defined on line %s",
+   ["412"] = "variable %s was previously defined as an argument on line %s",
+   ["413"] = "variable %s was previously defined as a loop variable on line %s",
+   ["421"] = "shadowing definition of variable %s on line %s",
+   ["422"] = "shadowing definition of argument %s on line %s",
+   ["423"] = "shadowing definition of loop variable %s on line %s",
+   ["511"] = "unreachable code",
+   ["521"] = "unused label %s"
 }
+
+local function get_message_format(warning)
+   local message_format = message_formats[warning.code]
+
+   if type(message_format) == "function" then
+      return message_format(warning)
+   else
+      return message_format
+   end
+end
 
 local function plural(number)
    return (number == 1) and "" or "s"
@@ -87,8 +85,8 @@ local function format_file_report(report, file_name, color)
 
       for _, warning in ipairs(report) do
          local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
-         local message_format = message_formats[warning.type][warning.subtype][warning.vartype]
-         local message = message_format:format(format_name(warning.name, color), warning.prev_line)
+         local message_format = get_message_format(warning)
+         local message = message_format:format(warning.name and format_name(warning.name, color), warning.prev_line)
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 

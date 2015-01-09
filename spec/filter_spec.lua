@@ -5,30 +5,22 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "baz"
             }
          }
       }, filter({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo"
             },
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "bar"
             },
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "baz"
             }
          }
@@ -38,40 +30,30 @@ describe("filter", function()
       }))
    end)
 
-   it("removes non-global warnings related to _", function()
+   it("removes unused var/value and redefined warnings related to _", function()
       assert.same({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo"
             }
          }
       }, filter({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo"
             },
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "_"
             },
             {
-               type = "redefined",
-               subtype = "var",
-               vartype = "arg",
+               code = "412",
                name = "_"
             },
             {
-               type = "uninit",
-               subtype = "unset",
-               vartype = "var",
+               code = "221",
                name = "_"
             }
          }
@@ -82,30 +64,22 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo"
             }
          }
       }, filter({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "var",
+               code = "111",
                name = "bar"
             },
             {
-               type = "redefined",
-               subtype = "var",
-               vartype = "loop",
+               code = "413",
                name = "baz"
             }
          }
@@ -117,53 +91,75 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "unused",
-               subtype = "unset",
-               vartype = "var",
+               code = "221",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "var",
+               code = "111",
                name = "bar"
             },
             {
-               type = "redefined",
-               subtype = "var",
-               vartype = "loop",
+               code = "413",
                name = "baz"
             }
          }
       }, filter({
          {
             {
-               type = "unused",
-               subtype = "unset",
-               vartype = "var",
+               code = "221",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "var",
+               code = "111",
                name = "bar"
             },
             {
-               type = "uninit",
-               subtype = "uninit",
-               vartype = "var",
+               code = "321",
                name = "qu"
             },
             {
-               type = "redefined",
-               subtype = "var",
-               vartype = "loop",
+               code = "413",
                name = "baz"
             }
          }
       }, {
-         uninit = false
+         ignore = {"32"}
+      }))
+   end)
+
+   it("filters warnings by code and name using patterns", function()
+      assert.same({
+         {
+            {
+               code = "212",
+               name = "bar"
+            },
+            {
+               code = "413",
+               name = "_baz"
+            }
+         }
+      }, filter({
+         {
+            {
+               code = "212",
+               name = "bar"
+            },
+            {
+               code = "212",
+               name = "_qu"
+            },
+            {
+               code = "321",
+               name = "foo"
+            },
+            {
+               code = "413",
+               name = "_baz"
+            }
+         }
+      }, {
+         ignore = {"foo", "212/_.*"}
       }))
    end)
 
@@ -171,36 +167,26 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo"
             }
          }
       }, filter({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo"
             },
             {
-               type = "unused",
-               subtype = "value",
-               vartype = "var",
+               code = "311",
                name = "bar"
             },
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "arg",
+               code = "212",
                name = "baz"
             },
             {
-               type = "unused",
-               subtype = "unset",
-               vartype = "var",
+               code = "221",
                name = "qu"
             }
          }
@@ -215,32 +201,24 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "arg",
+               code = "212",
                name = "baz"
             }
          }
       }, filter({
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "foo",
-               notes = {secondary = true}
+               secondary = true
             },
             {
-               type = "unused",
-               subtype = "value",
-               vartype = "var",
+               code = "311",
                name = "bar",
-               notes = {secondary = true}
+               secondary = true
             },
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "arg",
+               code = "212",
                name = "baz"
             }
          }
@@ -253,24 +231,18 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "module"
             }
          }
       }, filter({
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "module"
             }
          }
@@ -284,24 +256,18 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "module"
             }
          }
       }, filter({
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "package"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "module"
             }
          }
@@ -314,42 +280,30 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "global",
-               subtype = "unused",
-               vartype = "global",
+               code = "131",
                name = "bar"
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "baz"
             }
          }
       }, filter({
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "bar"
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "baz"
             }
          }
@@ -362,43 +316,31 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "bar"
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "baz"
             }
          }
       }, filter({
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "foo",
-               notes = {top = true}
+               top = true
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "bar"
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "baz"
             }
          }
@@ -412,32 +354,24 @@ describe("filter", function()
          {},
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             }
          }
       }, filter({
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "foo"
             }
          },
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             }
          }
@@ -452,51 +386,39 @@ describe("filter", function()
          {},
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "module",
-               name = "string"
+               code = "111",
+               name = "string",
+               module = true
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "module",
-               name = "bar"
+               code = "111",
+               name = "bar",
+               module = true
             }
          }
       }, filter({
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "bar"
             }
          },
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "foo",
-               notes = {top = true}
+               top = true
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "foo",
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "string"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "bar"
             }
          }
@@ -519,23 +441,17 @@ describe("filter", function()
       }, filter({
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "foo"
             }
          },
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "bar",
             }
          }
@@ -554,36 +470,26 @@ describe("filter", function()
       assert.same({
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "baz"
             }
          }
       }, filter({
          {
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "foo"
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "bar"
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "baz"
             }
          }

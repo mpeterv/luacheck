@@ -34,7 +34,7 @@ local function raw_validate_options(opts)
       ("bad argument #2 to 'luacheck' (table or nil expected, got %s)"):format(type(opts))
    )
 
-   local ok, invalid_field = options.validate(opts)
+   local ok, invalid_field = options.validate(options.config_options, opts)
 
    if not ok then
       if invalid_field then
@@ -51,6 +51,12 @@ local function validate_options(items, opts)
    if opts ~= nil then
       for i in ipairs(items) do
          raw_validate_options(opts[i])
+
+         if opts[i] ~= nil then
+            for _, nested_opts in ipairs(opts[i]) do
+               raw_validate_options(nested_opts)
+            end
+         end
       end
    end
 end

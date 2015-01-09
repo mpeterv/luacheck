@@ -1,17 +1,22 @@
 local options = require "luacheck.options"
 local utils = require "luacheck.utils"
 
--- Returns array of normalized options, one for each file. 
+-- Returns array of normalized options, one for each file.
 local function get_normalized_opts(report, opts)
    local res = {}
-   local normalized_base_opts = options.normalize(opts)
 
    for i in ipairs(report) do
+      local option_stack = {opts}
+
       if opts and opts[i] then
-         res[i] = options.normalize(options.combine(opts, opts[i]))
-      else
-         res[i] = normalized_base_opts
+         option_stack[2] = opts[i]
+
+         for _, nested_opts in ipairs(opts[i]) do
+            table.insert(option_stack, nested_opts)
+         end
       end
+
+      res[i] = options.normalize(option_stack)
    end
 
    return res
@@ -29,13 +34,8 @@ end
 -- Setting a global not defined in the module results in "setting non-module global variable" warning.
 
 -- Given a "global set" warning, return whether it is an implicit definition.
-local function is_definition(warning, opts)
-   return opts.allow_defined or (opts.allow_defined_top and warning.notes and warning.notes.top)
-end
-
--- Given a warning, return whether it is about an unused secondary value or variable.
-local function is_secondary(warning)
-   return warning.type == "unused" and warning.notes and warning.notes.secondary
+local function is_definition(opts, warning)
+   return opts.allow_defined or (opts.allow_defined_top and warning.top)
 end
 
 -- Extracts sets of defined and used globals from a file report.
@@ -43,9 +43,9 @@ local function get_defined_and_used_globals(file_report, opts)
    local defined, used = {}, {}
 
    for _, warning in ipairs(file_report) do
-      if warning.type == "global" then
-         if warning.subtype == "set" then
-            if is_definition(warning, opts) then
+      if warning.code:match("11.") then
+         if warning.code == "111" then
+            if is_definition(opts, warning) then
                defined[warning.name] = true
             end
          else
@@ -88,17 +88,18 @@ local function filter_implicit_defs_file(file_report, opts, globally_defined, gl
    local res = {}
 
    for _, warning in ipairs(file_report) do
-      if warning.type == "global" then
-         if warning.subtype == "set" then
+      if warning.code:match("11.") then
+         if warning.code == "111" then
             if opts.module then
                if not locally_defined[warning.name] then
-                  warning.vartype = "module"
+                  warning.module = true
                   table.insert(res, warning)
                end
             else
-               if is_definition(warning, opts) then
-                  if not globally_used[warning.name] and opts.unused_globals then
-                     warning.subtype = "unused"
+               if is_definition(opts, warning) then
+                  if not globally_used[warning.name] then
+                     warning.code = "131"
+                     warning.top = nil
                      table.insert(res, warning)
                   end
                else
@@ -136,34 +137,96 @@ local function filter_implicit_defs(report, opts)
    return res
 end
 
+-- Returns two optional booleans indicating if warning matches pattern by code and name.
+local function match(warning, pattern)
+   local matches_code, matches_name
+   local code_pattern, name_pattern = pattern[1], pattern[2]
+
+   if code_pattern then
+      matches_code = not not warning.code:match(code_pattern)
+   end
+
+   if name_pattern then
+      if warning.code:match("5..") then
+         -- Statement-related warnings can't match by name.
+         matches_name = false
+      else
+         matches_name = not not warning.name:match(name_pattern)
+      end
+   end
+
+   return matches_code, matches_name
+end
+
+local function is_enabled(rules, warning)
+   -- A warning is enabled when its code and name are enabled.
+   local enabled_code, enabled_name = false, false
+
+   for _, rule in ipairs(rules) do
+      local matches_one = false
+
+      for _, pattern in ipairs(rule[1]) do
+         local matches_code, matches_name = match(warning, pattern)
+
+         -- If a factor is enabled, warning can't be disable by it.
+         if enabled_code then
+            matches_code = rule[2] ~= "disable"
+         end
+
+         if enabled_name then
+            matches_code = rule[2] ~= "disable"
+         end
+
+         if (matches_code and matches_name ~= false) or
+               (matches_name and matches_code ~= false) then
+            matches_one = true
+         end
+
+         if rule[2] == "enable" then
+            if matches_code then
+               enabled_code = true
+            end
+
+            if matches_name then
+               enabled_name = true
+            end
+
+            if enabled_code and enabled_name then
+               -- Enable as matching to some `enable` pattern by code and to other by name.
+               return true
+            end
+         elseif rule[2] == "disable" then
+            if matches_one then
+               -- Disable as matching to `disable` pattern.
+               return false
+            end
+         end
+      end
+
+      if rule[2] == "only" and not matches_one then
+         -- Disable as not matching to any of `only` patterns.
+         return false
+      end
+   end
+
+   -- Enable by default.
+   return true
+end
+
 local function filter_file_report(report, opts)
    local res = {}
 
    for _, warning in ipairs(report) do
-      if opts[warning.type] and
-            (warning.subtype ~= "value" or opts.unused_values) and
-            (warning.subtype ~= "unset" or opts.unset) and
-            (warning.type == "global" or warning.name ~= "_") and
-            (warning.vartype ~= "global" or not opts.globals[warning.name]) and
-            (not is_secondary(warning) or opts.unused_secondaries) and
-            (warning.type ~= "unused" or warning.vartype == "var" or warning.subtype == "value" or opts.unused_args) then
-         if not opts.ignore[warning.name] then
-            if not opts.only or opts.only[warning.name] then
-               table.insert(res, warning)
-            end
+      if (not warning.code:match("[234]..") or warning.name ~= "_") and
+            (not warning.code:match("1..") or warning.module or not opts.globals[warning.name]) and
+            (not warning.secondary or opts.unused_secondaries) then
+         if is_enabled(opts.rules, warning) then
+            table.insert(res, warning)
          end
       end
    end
 
    return res
-end
-
-local function remove_notes(report)
-   for _, file_report in ipairs(report) do
-      for _, warning in ipairs(file_report) do
-         warning.notes = nil
-      end
-   end
 end
 
 -- Assumes `opts` are normalized. 
@@ -178,12 +241,12 @@ local function filter_report(report, opts)
       end
    end
 
-   remove_notes(res)
    return res
 end
 
 -- Removes warnings from report that do not match options. 
--- `opts[i]`, if present, is used as options when processing `report[i]`. 
+-- `opts[i]`, if present, is used as options when processing `report[i]`
+-- together with options in its array part. 
 local function filter(report, opts)
    opts = get_normalized_opts(report, opts)
    report = filter_implicit_defs(report, opts)

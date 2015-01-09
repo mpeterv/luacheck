@@ -3,11 +3,15 @@ local options = {}
 local utils = require "luacheck.utils"
 local stds = require "luacheck.stds"
 
-local function is_boolean(x)
+local function boolean(x)
    return type(x) == "boolean"
 end
 
-local function is_array_of_strings(x)
+local function number(x)
+   return type(x) == "number"
+end
+
+local function array_of_strings(x)
    if type(x) ~= "table" then
       return false
    end
@@ -21,50 +25,40 @@ local function is_array_of_strings(x)
    return true
 end
 
-local boolean_opt_true = {
-   default = true,
-   validate = is_boolean
-}
+local function std_or_array_of_strings(x)
+   return stds[x] or array_of_strings(x)
+end
 
-local boolean_opt_false = {
-   default = false,
-   validate = is_boolean
-}
-
-local array_of_strings = {
-   default = {},
-   validate = is_array_of_strings
-}
-
-options.options = {
-   global = boolean_opt_true,
-   unused = boolean_opt_true,
-   redefined = boolean_opt_true,
-   unused_args = boolean_opt_true,
-   unused_values = boolean_opt_true,
-   unused_secondaries = boolean_opt_true,
-   unset = boolean_opt_true,
-   unused_globals = boolean_opt_true,
-   compat = boolean_opt_false,
-   allow_defined = boolean_opt_false,
-   allow_defined_top = boolean_opt_false,
-   module = boolean_opt_false,
+options.config_options = {
+   global = boolean,
+   unused = boolean,
+   redefined = boolean,
+   unused_args = boolean,
+   unused_values = boolean,
+   unused_secondaries = boolean,
+   unset = boolean,
+   unused_globals = boolean,
+   compat = boolean,
+   allow_defined = boolean,
+   allow_defined_top = boolean,
+   module = boolean,
    globals = array_of_strings,
    new_globals = array_of_strings,
-   std = {
-      default = "_G",
-      validate = function(x) return stds[x] or is_array_of_strings(x) end
-   },
+   std = std_or_array_of_strings,
    ignore = array_of_strings,
-   only = {
-      default = false,
-      validate = is_array_of_strings
-   }
-}  
+   enable = array_of_strings,
+   only = array_of_strings
+}
 
--- Returns true if opts are valid. 
--- Otherwise returns false and, optionally, name of the problematic option. 
-function options.validate(opts)
+options.top_config_options = {
+   limit = number,
+   color = boolean
+}
+utils.update(options.top_config_options, options.config_options)
+
+-- Returns true if opts is valid option_set.
+-- Otherwise returns false and, optionally, name of the problematic option.
+function options.validate(option_set, opts)
    if opts == nil then
       return true
    end
@@ -72,10 +66,10 @@ function options.validate(opts)
    local ok, is_valid, invalid_opt = pcall(function()
       assert(type(opts) == "table")
 
-      for opt, opt_data in pairs(options.options) do
-         if opts[opt] ~= nil then
-            if not opt_data.validate(opts[opt]) then
-               return false, opt
+      for option, validator in pairs(option_set) do
+         if opts[option] ~= nil then
+            if not validator(opts[option]) then
+               return false, option
             end
          end
       end
@@ -86,74 +80,181 @@ function options.validate(opts)
    return ok and is_valid, invalid_opt
 end
 
--- Applies `compat`, returns opts.
-local function preprocess(opts)
-   if opts then
-      local res = {}
+-- Option stack is an array of options with options closer to end
+-- overriding options closer to beginning.
 
-      for opt in pairs(options.options) do
-         res[opt] = opts[opt]
+local function get_std(opts_stack)
+   local std
+   local no_compat = false
+
+   -- TODO: implement and use utils.ripairs
+   for i = #opts_stack, 1, -1 do
+      local opts = opts_stack[i]
+
+      if opts.compat and not no_compat then
+         std = "max"
+         break
+      elseif opts.compat == false then
+         no_compat = true
       end
 
-      if res.compat then
-         res.std = "max"
-         res.compat = nil
+      if opts.std then
+         std = opts.std
+         break
+      end
+   end
+
+   return std and (stds[std] or std) or stds._G
+end
+
+local function get_globals(opts_stack)
+   local globals_lists = {}
+
+   for i = #opts_stack, 1, -1 do
+      local opts = opts_stack[i]
+
+      if opts.new_globals then
+         table.insert(globals_lists, opts.new_globals)
+         break
       end
 
-      return res
+      if opts.globals then
+         table.insert(globals_lists, opts.globals)
+      end
+   end
+
+   return utils.concat_arrays(globals_lists)
+end
+
+local function get_boolean_opt(opts_stack, option)
+   for i = #opts_stack, 1, -1 do
+      local opts = opts_stack[i]
+
+      if opts[option] ~= nil then
+         return opts[option]
+      end
    end
 end
 
--- Takes several options tables and combines them into one. 
-function options.combine(...)
-   local res = {}
+local function anchor_pattern(pattern, only_start)
+   if not pattern then
+      return
+   end
 
-   for i=1, select("#", ...) do
-      local opts = preprocess(select(i, ...)) or {}
+   if pattern:sub(1, 1) == "^" or pattern:sub(-1) == "$" then
+      return pattern
+   else
+      return "^" .. pattern .. (only_start and "" or "$")
+   end
+end
 
-      for opt in pairs(options.options) do
-         if opts[opt] ~= nil then
-            if res[opt] == nil then
-               res[opt] = opts[opt]
-            else
-               if opt == "globals" or opt == "ignore" or opt == "only" then
-                  res[opt] = utils.concat_arrays {res[opt], opts[opt]}
-               else
-                  res[opt] = opts[opt]
-               end
+-- Returns {pair of normalized patterns for code and name}.
+-- `pattern` can be:
+--    string containing '/': first part matches warning code, second - variable name;
+--    string containing letters: matches variable name;
+--    otherwise: matches warning code.
+-- Unless anchored by user, pattern for name is anchored from both sides
+-- and pattern for code is only anchored at the beginning.
+local function normalize_pattern(pattern)
+   local code_pattern, name_pattern
+   local slash_pos = pattern:find("/")
+
+   if slash_pos then
+      code_pattern = pattern:sub(1, slash_pos - 1)
+      name_pattern = pattern:sub(slash_pos + 1)
+   elseif pattern:find("[_a-zA-Z]") then
+      name_pattern = pattern
+   else
+      code_pattern = pattern
+   end
+
+   return {anchor_pattern(code_pattern, true), anchor_pattern(name_pattern)}
+end
+
+-- From most specific to less specific, pairs {option, pattern}.
+-- Applying macros in order is required to get deterministic resuls
+-- and get sensible results when intersecting macros are used.
+-- E.g. unused = false, unused_args = true should leave unused args enabled.
+local macros = {
+   {"unused_globals", "13"},
+   {"unused_args", "21[23]"},
+   {"unset", "22"},
+   {"unused_values", "31"},
+   {"global", "1"},
+   {"unused", "[23]"},
+   {"redefined", "4"}
+}
+
+-- Returns array of rules which should be applied in order.
+-- A rule is a table {{pattern*}, type}.
+-- `pattern` is a non-normalized pattern.
+-- `type` can be "enable", "disable" or "only".
+local function get_rules(opts_stack)
+   local rules = {}
+   local used_macros = {}
+
+   for i = #opts_stack, 1, -1 do
+      local opts = opts_stack[i]
+
+      for _, macro_info in ipairs(macros) do
+         local option, pattern = macro_info[1], macro_info[2]
+
+         if not used_macros[option] then
+            if opts[option] ~= nil then
+               table.insert(rules, {{pattern}, opts[option] and "enable" or "disable"})
+               used_macros[option] = true
             end
          end
       end
 
-      if opts.new_globals ~= nil then
-         res.globals = opts.new_globals
+      if opts.ignore then
+         table.insert(rules, {opts.ignore, "disable"})
+      end
+
+      if opts.only then
+         table.insert(rules, {opts.only, "only"})
+      end
+
+      if opts.enable then
+         table.insert(rules, {opts.enable, "enable"})
       end
    end
 
-   return res
+   return rules
 end
 
--- Returns normalized options: converts arrays to sets, applies defaults.
-function options.normalize(opts)
-   opts = opts or {}
+local function normalize_patterns(rules)
+   for _, rule in ipairs(rules) do
+      for i, pattern in ipairs(rule[1]) do
+         rule[1][i] = normalize_pattern(pattern)
+      end
+   end
+end
+
+-- Returns normalized options.
+-- Normalized options have fields:
+--    globals: set of strings;
+--    unused_secondaries, module, allow_defined, allow_defined_top: booleans;
+--    rules: see get_rules.
+function options.normalize(opts_stack)
    local res = {}
 
-   for opt, opt_data in pairs(options.options) do
-      if opts[opt] == nil then
-         res[opt] = opt_data.default
+   res.globals = utils.array_to_set(get_globals(opts_stack))
+   local std = utils.array_to_set(get_std(opts_stack))
+   utils.update(res.globals, std)
+
+   for _, option in ipairs {"unused_secondaries", "module", "allow_defined", "allow_defined_top"} do
+      local value = get_boolean_opt(opts_stack, option)
+
+      if value == nil then
+         res[option] = option == "unused_secondaries" -- Default is true only for unused_secondaries.
       else
-         res[opt] = opts[opt]
+         res[option] = value
       end
    end
 
-   res.globals = utils.concat_arrays {stds[res.std] or res.std, res.globals}
-
-   for opt, value in pairs(res) do
-      if type(value) == "table" then
-         res[opt] = utils.array_to_set(value)
-      end
-   end
-
+   res.rules = get_rules(opts_stack)
+   normalize_patterns(res.rules)
    return res
 end
 

@@ -31,33 +31,27 @@ describe("luacheck", function()
          {},
          {
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "var",
+               code = "211",
                name = "helper",
                line = 3,
                column = 16
             },
             {
-               type = "unused",
-               subtype = "var",
-               vartype = "vararg",
+               code = "212",
                name = "...",
                line = 3,
-               column = 23
+               column = 23,
+               vararg = true
             },
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "embrace",
                line = 7,
-               column = 10
+               column = 10,
+               top = true
             },
             {
-               type = "redefined",
-               subtype = "var",
-               vartype = "arg",
+               code = "412",
                name = "opt",
                line = 8,
                column = 10,
@@ -65,9 +59,7 @@ describe("luacheck", function()
                prev_column = 18
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "hepler",
                line = 9,
                column = 11
@@ -90,17 +82,14 @@ describe("luacheck", function()
          {},
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "embrace",
                line = 7,
-               column = 10
+               column = 10,
+               top = true
             },
             {
-               type = "redefined",
-               subtype = "var",
-               vartype = "arg",
+               code = "412",
                name = "opt",
                line = 8,
                column = 10,
@@ -108,9 +97,7 @@ describe("luacheck", function()
                prev_column = 18
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "hepler",
                line = 9,
                column = 11
@@ -135,17 +122,14 @@ describe("luacheck", function()
          {},
          {
             {
-               type = "global",
-               subtype = "set",
-               vartype = "global",
+               code = "111",
                name = "embrace",
                line = 7,
-               column = 10
+               column = 10,
+               top = true
             },
             {
-               type = "global",
-               subtype = "access",
-               vartype = "global",
+               code = "113",
                name = "hepler",
                line = 9,
                column = 11

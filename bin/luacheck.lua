@@ -92,8 +92,7 @@ local function main()
          :argname "<var>"
 
       parser:option "-l" "--limit"
-         :description "Exit with 0 if there are <limit> or less warnings."
-         :default("0")
+         :description "Exit with 0 if there are <limit> or less warnings. (default: 0)"
          :convert(tonumber)
 
       local config_opt = parser:option "--config"
@@ -113,9 +112,7 @@ local function main()
       parser:flag "--no-color"
          :description "Do not color output"
 
-      local args = parser:parse()
-      args.color = not args.no_color
-      return args
+      return parser:parse()
    end
 
    -- Expands folders, rockspecs, -
@@ -226,8 +223,8 @@ local function main()
 
       config_path = config_path or default_config
 
-      local function validate(opts)
-         local ok, invalid_field = options.validate(opts)
+      local function validate(option_set, opts)
+         local ok, invalid_field = options.validate(option_set, opts)
 
          if not ok then
             if invalid_field then
@@ -239,17 +236,17 @@ local function main()
          end
       end
 
-      validate(config)
+      validate(options.top_config_options, config)
       local res = {}
 
       for i, file in ipairs(files) do
+         res[i] = {config, opts}
          local file_config = type(config.files) == "table" and rawget(config.files, file)
 
          if file_config then
-            validate(file_config)
+            validate(options.config_options, file_config)
+            table.insert(res[i], 2, file_config)
          end
-
-         res[i] = options.combine(config, file_config, opts)
       end
 
       return res
@@ -274,8 +271,18 @@ local function main()
 
    local file_names, bad_rockspecs = expand_files(args.files)
    local files = remove_bad_rockspecs(file_names, bad_rockspecs)
-   local report = luacheck(files, combine_config_and_options(config, arg.config, opts, files))
+   local report = luacheck(files, combine_config_and_options(config, args.config, opts, files))
    insert_bad_rockspecs(report, file_names, bad_rockspecs)
+
+   -- Apply cli options from config.
+   if args.no_color then
+      args.color = false
+   else
+      args.color = not config or (config.color ~= false)
+   end
+
+   args.limit = args.limit or (config and config.limit or 0)
+
    print(format(report, file_names, args))
 
    local exit_code
