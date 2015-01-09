@@ -224,11 +224,17 @@ local function get_rules(opts_stack)
 end
 
 local function normalize_patterns(rules)
-   for _, rule in ipairs(rules) do
-      for i, pattern in ipairs(rule[1]) do
-         rule[1][i] = normalize_pattern(pattern)
+   local res = {}
+
+   for i, rule in ipairs(rules) do
+      res[i] = {{}, rule[2]}
+
+      for j, pattern in ipairs(rule[1]) do
+         res[i][1][j] = normalize_pattern(pattern)
       end
    end
+
+   return res
 end
 
 -- Returns normalized options.
@@ -253,8 +259,7 @@ function options.normalize(opts_stack)
       end
    end
 
-   res.rules = get_rules(opts_stack)
-   normalize_patterns(res.rules)
+   res.rules = normalize_patterns(get_rules(opts_stack))
    return res
 end
 
