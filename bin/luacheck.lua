@@ -7,8 +7,12 @@ local function fatal(msg)
 end
 
 local function global_error_handler(err)
-   fatal(debug.traceback(
-      ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(version, err), 2))
+   if type(err) == "table" and err.pattern then
+      fatal("Invalid pattern '" .. err.pattern .. "'")
+   else
+      fatal(debug.traceback(
+         ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(version, err), 2))
+   end
 end
 
 local function main()
