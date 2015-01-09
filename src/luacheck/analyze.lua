@@ -58,7 +58,7 @@ local function propogate_values(line)
          for var, value in pairs(item.set_variables) do
             if var.line == line then
                -- Values are only live at the item after assignment.
-               core_utils.walk_line(line, {[i] = true}, i + 1, value_propogation_callback, var, value)
+               core_utils.walk_line(line, {}, i + 1, value_propogation_callback, var, value)
             end
          end
       end
