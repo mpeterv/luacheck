@@ -87,10 +87,7 @@ local function get_std(opts_stack)
    local std
    local no_compat = false
 
-   -- TODO: implement and use utils.ripairs
-   for i = #opts_stack, 1, -1 do
-      local opts = opts_stack[i]
-
+   for _, opts in utils.ripairs(opts_stack) do
       if opts.compat and not no_compat then
          std = "max"
          break
@@ -110,9 +107,7 @@ end
 local function get_globals(opts_stack)
    local globals_lists = {}
 
-   for i = #opts_stack, 1, -1 do
-      local opts = opts_stack[i]
-
+   for _, opts in utils.ripairs(opts_stack) do
       if opts.new_globals then
          table.insert(globals_lists, opts.new_globals)
          break
@@ -127,9 +122,7 @@ local function get_globals(opts_stack)
 end
 
 local function get_boolean_opt(opts_stack, option)
-   for i = #opts_stack, 1, -1 do
-      local opts = opts_stack[i]
-
+   for _, opts in utils.ripairs(opts_stack) do
       if opts[option] ~= nil then
          return opts[option]
       end
@@ -193,9 +186,7 @@ local function get_rules(opts_stack)
    local rules = {}
    local used_macros = {}
 
-   for i = #opts_stack, 1, -1 do
-      local opts = opts_stack[i]
-
+   for _, opts in utils.ripairs(opts_stack) do
       for _, macro_info in ipairs(macros) do
          local option, pattern = macro_info[1], macro_info[2]
 

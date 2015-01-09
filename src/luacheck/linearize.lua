@@ -172,8 +172,8 @@ function LinState:register_vars(nodes, type_)
 end
 
 function LinState:resolve_var(node, action)
-   for i = self.scopes.size, 1, -1 do
-      local var = self.scopes[i].vars[node[1]]
+   for _, scope in utils.ripairs(self.scopes) do
+      local var = scope.vars[node[1]]
 
       if var then
          node.var = var
@@ -402,16 +402,16 @@ end
 function LinState:register_upvalue_action(item, var, action)
    local key = (action == "set") and "set_upvalues" or "accessed_upvalues"
 
-   for i = self.lines.size, 1, -1 do
-      if self.lines[i] == var.line then
+   for _, line in utils.ripairs(self.lines) do
+      if line == var.line then
          break
       end
 
-      if not self.lines[i][key][var] then
-         self.lines[i][key][var] = {}
+      if not line[key][var] then
+         line[key][var] = {}
       end
 
-      table.insert(self.lines[i][key][var], item)
+      table.insert(line[key][var], item)
    end
 end
 

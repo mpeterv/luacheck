@@ -177,4 +177,17 @@ function utils.pcall(f, arg)
    end
 end
 
+local function ripairs_iterator(array, i)
+   if i == 1 then
+      return nil
+   else
+      i = i - 1
+      return i, array[i]
+   end
+end
+
+function utils.ripairs(array)
+   return ripairs_iterator, array, #array + 1
+end
+
 return utils
