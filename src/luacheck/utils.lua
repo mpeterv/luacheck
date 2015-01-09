@@ -14,6 +14,8 @@ end
 
 local dir_sep = package.config:sub(1,1)
 
+utils.is_windows = dir_sep == "\\"
+
 -- Returns list of all files in directory matching pattern. 
 function utils.extract_files(dir_path, pattern)
    local res = {}

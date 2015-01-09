@@ -14,7 +14,6 @@ Luacheck is a tool for linting and static analysis of Lua code. It is able to sp
 dependencies = {
    "lua >= 5.1, < 5.4",
    "argparse >= 0.3.0",
-   "ansicolors >= 1.0-1",
    "luafilesystem >= 1.6.2"
 }
 build = {

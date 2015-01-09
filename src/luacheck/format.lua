@@ -1,4 +1,6 @@
-local ansicolors = require "ansicolors"
+local utils = require "luacheck.utils"
+
+local color_support = not utils.is_windows or os.getenv("ANSICON")
 
 local message_formats = {
    ["111"] = function(w)
@@ -46,16 +48,37 @@ local function plural(number)
    return (number == 1) and "" or "s"
 end
 
-local function format_color(fmt, str, color)
-   return color and ansicolors(fmt .. str) or str
+local color_codes = {
+   reset = 0,
+   bright = 1,
+   red = 31,
+   green = 32
+}
+
+local function encode_color(c)
+   return "\27[" .. tostring(color_codes[c]) .. "m"
+end
+
+local function colorize(str, ...)
+   str = str .. encode_color("reset")
+
+   for _, color in ipairs({...}) do
+      str = encode_color(color) .. str
+   end
+
+   return encode_color("reset") .. str
+end
+
+local function format_color(str, color, ...)
+   return color and colorize(str, ...) or str
 end
 
 local function format_name(name, color)
-   return color and ansicolors("%{bright}" .. name) or ("'" .. name .. "'")
+   return color and colorize(name, "bright") or ("'" .. name .. "'")
 end
 
 local function format_number(number, limit, color)
-   return format_color("%{bright}" .. (number > limit and "%{red}" or ""), number, color)
+   return format_color(tostring(number), color, "bright", (number > limit) and "red" or nil)
 end
 
 local function capitalize(str)
@@ -67,11 +90,11 @@ local function format_file_report_header(report, file_name, color)
    local status
 
    if report.error then
-      status = format_color("%{bright}", capitalize(report.error) .. " error", color)
+      status = format_color(capitalize(report.error) .. " error", color, "bright")
    elseif #report == 0 then
-      status = format_color("%{bright}%{green}", "OK", color)
+      status = format_color("OK", color, "bright", "green")
    else
-      status = format_color("%{bright}%{red}", "Failure", color)
+      status = format_color("Failure", color, "bright", "red")
    end
 
    return label .. (" "):rep(math.max(50 - #label, 1)) .. status
@@ -104,7 +127,7 @@ end
 local function format(report, file_names, options)
    local quiet = options.quiet or 0
    local limit = options.limit or 0
-   local color = options.color ~= false
+   local color = (options.color ~= false) and color_support
 
    local buf = {}
 
