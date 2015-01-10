@@ -153,11 +153,15 @@ end
 
 function LinState:register_var(node, type_)
    local var = new_var(self.lines.top, node, type_)
-   local prev_var = self.scopes.top.vars[var.name]
+   local prev_var = self:resolve_var(var.name)
 
-   if prev_var then
-      self.chstate:warn_redefined(var, prev_var)
-      prev_var.scope_end = self.lines.top.items.size
+   if prev_var and prev_var.line == var.line then
+      local same_scope = self.scopes.top.vars[var.name]
+      self.chstate:warn_redefined(var, prev_var, same_scope)
+
+      if same_scope then
+         prev_var.scope_end = self.lines.top.items.size
+      end
    end
 
    self.scopes.top.vars[var.name] = var
@@ -171,17 +175,26 @@ function LinState:register_vars(nodes, type_)
    end
 end
 
-function LinState:resolve_var(node, action)
+function LinState:resolve_var(name)
    for _, scope in utils.ripairs(self.scopes) do
-      local var = scope.vars[node[1]]
+      local var = scope.vars[name]
 
       if var then
-         node.var = var
          return var
       end
    end
+end
 
-   self.chstate:warn_global(node, action, self.lines.size == 1)
+function LinState:check_var(node, action)
+   local var = self:resolve_var(node[1])
+
+   if not var then
+      self.chstate:warn_global(node, action, self.lines.size == 1)
+   else
+      node.var = var
+   end
+
+   return var
 end
 
 function LinState:register_label(name, location)
@@ -371,7 +384,7 @@ function LinState:emit_stmt_Set(node)
 
    for _, expr in ipairs(node[1]) do
       if expr.tag == "Id" then
-         local var = self:resolve_var(expr, "set")
+         local var = self:check_var(expr, "set")
 
          if var then
             self:register_upvalue_action(item, var, "set")
@@ -425,13 +438,13 @@ function LinState:mark_access(item, node)
 end
 
 function LinState:scan_expr_Id(item, node)
-   if self:resolve_var(node, "access") then
+   if self:check_var(node, "access") then
       self:mark_access(item, node)
    end
 end
 
 function LinState:scan_expr_Dots(item, node)
-   local dots = self:resolve_var(node, "access")
+   local dots = self:check_var(node, "access")
 
    if not dots or dots.line ~= self.lines.top then
       self.chstate:syntax_error()
@@ -535,7 +548,7 @@ function LinState:scan_expr_Function(item, node)
 end
 
 -- Builds linear representation of AST and returns it.
--- Emits warnings: global, redefined, unused label.
+-- Emits warnings: global, redefined/shadowed, unused label.
 local function linearize(chstate, ast)
    local linstate = LinState(chstate)
    local line = linstate:build_line({{tag = "Dots", "..."}}, ast)

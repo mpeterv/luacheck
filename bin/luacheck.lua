@@ -133,15 +133,15 @@ local function main()
          if file == "-" then
             table.insert(res, io.stdin)
          elseif utils.is_dir(file) then
-            for _, file in ipairs(utils.extract_files(file, "%.lua$")) do
-               add(file)
+            for _, nested_file in ipairs(utils.extract_files(file, "%.lua$")) do
+               add(nested_file)
             end
          elseif file:sub(-#".rockspec") == ".rockspec" then
             local related_files, err = expand_rockspec(file)
 
             if related_files then
-               for _, file in ipairs(related_files) do
-                  add(file)
+               for _, related_file in ipairs(related_files) do
+                  add(related_file)
                end
             else
                add(file)

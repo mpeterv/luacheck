@@ -92,9 +92,9 @@ function ChState:warn_uninit(node)
    })
 end
 
-function ChState:warn_redefined(var, prev_var)
+function ChState:warn_redefined(var, prev_var, same_scope)
    self:warn({
-      code = "41" .. type_codes[prev_var.type],
+      code = "4" .. (same_scope and "1" or "2") .. type_codes[prev_var.type],
       name = var.name,
       line = var.location.line,
       column = var.location.column,
@@ -102,8 +102,6 @@ function ChState:warn_redefined(var, prev_var)
       prev_column = prev_var.location.column
    })
 end
-
--- TODO: warning 42* for declarations shadowing declaration in outer scope.
 
 function ChState:warn_unreachable(location)
    self:warn({

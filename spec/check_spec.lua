@@ -72,8 +72,8 @@ print(a)
 local a = 4
 
 do
-   local a = 6
-   print(a)
+   local b = 6
+   print(b)
 end
       ]])
    end)
@@ -262,6 +262,25 @@ print(foo)
 return function(foo, ...)
    local foo = 1
    return foo
+end
+      ]])
+   end)
+
+   it("detects shadowing definitions", function()
+      assert.same({
+         {code = "421", name = "a", line = 7, column = 13, prev_line = 4, prev_column = 10}
+      }, get_report[[
+local a = 46
+
+return a, function(foo, ...)
+   local a = 1
+
+   do
+      local a = 6
+      foo(a, ...)
+   end
+
+   return a
 end
       ]])
    end)
