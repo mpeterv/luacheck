@@ -71,7 +71,26 @@ function ChState:warn_unset(var)
    })
 end
 
--- TODO: warning 23* for variables set but never accessed.
+function ChState:warn_unaccessed(var)
+   -- Mark as secondary if all assigned values are secondary.
+   -- It is guaranteed that there are at least two values.
+   local secondary = true
+
+   for _, value in ipairs(var.values) do
+      if not value.empty and not is_secondary(value) then
+         secondary = nil
+         break
+      end
+   end
+
+   self:warn({
+      code = "23" .. type_codes[var.type],
+      name = var.name,
+      line = var.location.line,
+      column = var.location.column,
+      secondary = secondary
+   })
+end
 
 function ChState:warn_unused_value(value)
    self:warn({

@@ -429,6 +429,8 @@ function LinState:register_upvalue_action(item, var, action)
 end
 
 function LinState:mark_access(item, node)
+   node.var.accessed = true
+
    if not item.accesses[node.var] then
       item.accesses[node.var] = {}
    end

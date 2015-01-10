@@ -19,7 +19,7 @@ local function reachability_callback(_, _, item, chstate)
       for var, accessing_nodes in pairs(item.accesses) do
          local possible_values = item.used_values[var]
 
-         if ((#var.values > 1) or not var.values[1].empty) and (#possible_values == 1) and possible_values[1].empty then
+         if not var.empty and (#possible_values == 1) and possible_values[1].empty then
             for _, accessing_node in ipairs(accessing_nodes) do
                chstate:warn_uninit(accessing_node)
             end

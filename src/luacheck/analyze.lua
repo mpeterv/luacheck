@@ -156,8 +156,11 @@ local function check_var(chstate, var)
       if not var.values[1].used then
          chstate:warn_unused_variable(var)
       elseif var.values[1].empty then
+         var.empty = true
          chstate:warn_unset(var)
       end
+   elseif not var.accessed then
+      chstate:warn_unaccessed(var)
    else
       for _, value in ipairs(var.values) do
          if (not value.used) and (not value.empty) then

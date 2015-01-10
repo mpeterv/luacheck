@@ -182,7 +182,7 @@ end
 
    it("reports unused value as secondary if it is assigned together with a used one", function()
       assert.same({
-         {code = "311", name = "a", line = 3, column = 4, secondary = true}
+         {code = "231", name = "a", line = 2, column = 10, secondary = true}
       }, get_report[[
 return function(f)
    local a, b
@@ -192,7 +192,7 @@ end
       ]])
 
       assert.same({
-         {code = "311", name = "a", line = 3, column = 4, secondary = true}
+         {code = "231", name = "a", line = 2, column = 10, secondary = true}
       }, get_report[[
 return function(f, t)
    local a
