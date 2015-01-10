@@ -448,7 +448,21 @@ Total: 0 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/defined3.lua spec/samples/defined2.lua -d --no-unused-globals")
    end)
 
+   it("detects flow issues", function()
+      assert.equal([[
+Checking spec/samples/bad_flow.lua                Failure
+
+    spec/samples/bad_flow.lua:1:28: empty if branch
+    spec/samples/bad_flow.lua:6:4: empty do..end block
+    spec/samples/bad_flow.lua:12:10: left-hand side of assignment is too long
+    spec/samples/bad_flow.lua:16:10: left-hand side of assignment is too short
+    spec/samples/bad_flow.lua:21:7: unreachable code
+
+Total: 5 warnings / 0 errors in 1 file
+]], get_output "spec/samples/bad_flow.lua")
+   end)
+
    it("expands folders", function()
-      assert.equal("Total: 37 warnings / 1 error in 13 files\n", get_output "spec/samples -qqq")
+      assert.equal("Total: 42 warnings / 1 error in 14 files\n", get_output "spec/samples -qqq")
    end)
 end)
