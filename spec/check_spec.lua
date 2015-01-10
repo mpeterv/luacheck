@@ -45,6 +45,7 @@ bar()
 
    it("detects global access in multi-assignments", function()
       assert.same({
+         {code = "532", line = 2, column = 1},
          {code = "111", name = "y", line = 2, column = 4, top = true},
          {code = "113", name = "print", line = 3, column = 1}
       }, get_report[[
@@ -204,7 +205,8 @@ end
    it("considers a variable assigned even if it can't get a value due to short rhs (it still gets nil)", function()
       assert.same({
          {code = "311", name = "a", line = 1, column = 7},
-         {code = "311", name = "b", line = 1, column = 10}
+         {code = "311", name = "b", line = 1, column = 10},
+         {code = "532", line = 2, column = 1}
       }, get_report[[
 local a, b = "foo", "bar"
 a, b = "bar"
@@ -361,6 +363,19 @@ while not a do
 end
 
 return a
+      ]])
+   end)
+
+   it("detects unbalanced assignments", function()
+      assert.same({
+         {code = "532", line = 4, column = 1},
+         {code = "531", line = 5, column = 1}
+      }, get_report[[
+local a, b = 4; (...)(a)
+
+a, b = (...)(); (...)(a, b)
+a, b = 5; (...)(a, b)
+a, b = 1, 2, 3; (...)(a, b)
       ]])
    end)
 

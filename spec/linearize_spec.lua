@@ -24,6 +24,10 @@ function ChState:warn_unused_label()
    
 end
 
+function ChState:warn_unbalanced()
+   
+end
+
 local function get_line_(src)
    local ast = parser(src)
    local chstate = ChState()

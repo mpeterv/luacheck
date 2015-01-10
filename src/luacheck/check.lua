@@ -139,7 +139,14 @@ function ChState:warn_unused_label(label)
    })
 end
 
--- TODO: warning 53* for unbalanced assignments.
+function ChState:warn_unbalanced(location, shorter_lhs)
+   self:warn({
+      code = "53" .. (shorter_lhs and "1" or "2"),
+      line = location.line,
+      column = location.column
+   })
+end
+
 -- TODO: warning 54* for empty blocks.
 --    Requires changes in parser to report location of if branches properly.
 

@@ -449,6 +449,6 @@ Total: 0 warnings / 0 errors in 2 files
    end)
 
    it("expands folders", function()
-      assert.equal("Total: 36 warnings / 1 error in 13 files\n", get_output "spec/samples -qqq")
+      assert.equal("Total: 37 warnings / 1 error in 13 files\n", get_output "spec/samples -qqq")
    end)
 end)

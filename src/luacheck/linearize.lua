@@ -206,6 +206,17 @@ function LinState:register_label(name, location)
    self.scopes.top.labels[name] = new_label(self.lines.top, name, location)
 end
 
+-- `node` is assignment node (`Local or `Set).
+function LinState:check_balance(node)
+   if node[2] then
+      if #node[1] < #node[2] then
+         self.chstate:warn_unbalanced(node.location, true)
+      elseif (#node[1] > #node[2]) and node.tag ~= "Local" and not is_unpacking(node[2][#node[2]]) then
+         self.chstate:warn_unbalanced(node.location)
+      end
+   end
+end
+
 function LinState:emit(item)
    self.lines.top.items:push(item)
 end
@@ -361,6 +372,7 @@ LinState.emit_stmt_Call = LinState.emit_expr
 LinState.emit_stmt_Invoke = LinState.emit_expr
 
 function LinState:emit_stmt_Local(node)
+   self:check_balance(node)
    local item = new_local_item(node[1], node[2], node.location)
    self:emit(item)
 
@@ -379,6 +391,7 @@ function LinState:emit_stmt_Localrec(node)
 end
 
 function LinState:emit_stmt_Set(node)
+   self:check_balance(node)
    local item = new_set_item(node[1], node[2], node.location)
    self:scan_exprs(item, node[2])
 
@@ -550,7 +563,7 @@ function LinState:scan_expr_Function(item, node)
 end
 
 -- Builds linear representation of AST and returns it.
--- Emits warnings: global, redefined/shadowed, unused label.
+-- Emits warnings: global, redefined/shadowed, unused label, unbalanced assignment.
 local function linearize(chstate, ast)
    local linstate = LinState(chstate)
    local line = linstate:build_line({{tag = "Dots", "..."}}, ast)
