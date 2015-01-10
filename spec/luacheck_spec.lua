@@ -34,7 +34,8 @@ describe("luacheck", function()
                code = "211",
                name = "helper",
                line = 3,
-               column = 16
+               column = 16,
+               func = true
             },
             {
                code = "212",

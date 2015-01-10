@@ -57,7 +57,7 @@ function ChState:warn_unused_variable(var)
       line = var.location.line,
       column = var.location.column,
       secondary = is_secondary(var.values[1]) or nil,
-      func = (var.type == "func") or nil,
+      func = (var.values[1].type == "func") or nil,
       vararg = (var.type == "vararg") or nil
    })
 end

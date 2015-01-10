@@ -43,7 +43,7 @@ Total: 0 warnings / 0 errors in 1 file
          assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
 
-    spec/samples/bad_code.lua:3:16: unused variable helper
+    spec/samples/bad_code.lua:3:16: unused function helper
     spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
