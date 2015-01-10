@@ -147,8 +147,13 @@ function ChState:warn_unbalanced(location, shorter_lhs)
    })
 end
 
--- TODO: warning 54* for empty blocks.
---    Requires changes in parser to report location of if branches properly.
+function ChState:warn_empty_block(location, do_end)
+   self:warn({
+      code = "54" .. (do_end and "1" or "2"),
+      line = location.line,
+      column = location.column
+   })
+end
 
 function ChState:get_report()
    table.sort(self.warnings, function(warning1, warning2)

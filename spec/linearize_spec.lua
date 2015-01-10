@@ -28,6 +28,10 @@ function ChState:warn_unbalanced()
    
 end
 
+function ChState:warn_empty_block()
+   
+end
+
 local function get_line_(src)
    local ast = parser(src)
    local chstate = ChState()

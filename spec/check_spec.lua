@@ -379,6 +379,28 @@ a, b = 1, 2, 3; (...)(a, b)
       ]])
    end)
 
+   it("detects empty blocks", function()
+      assert.same({
+         {code = "541", line = 1, column = 1},
+         {code = "542", line = 3, column = 9},
+         {code = "542", line = 5, column = 14},
+         {code = "542", line = 7, column = 1}
+      }, get_report[[
+do end
+
+if true then
+
+elseif false then
+
+else
+
+end
+
+while true do end
+repeat until true
+      ]])
+   end)
+
    it("handles argparse sample", function()
       assert.table(get_report(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)

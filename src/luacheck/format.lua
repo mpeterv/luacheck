@@ -33,7 +33,9 @@ local message_formats = {
    ["511"] = "unreachable code",
    ["521"] = "unused label %s",
    ["531"] = "left-hand side of assignment is too short",
-   ["532"] = "left-hand side of assignment is too long"
+   ["532"] = "left-hand side of assignment is too long",
+   ["541"] = "empty do..end block",
+   ["542"] = "empty if branch"
 }
 
 local function get_message_format(warning)

@@ -418,12 +418,15 @@ local function parse_if(state)
    repeat
       skip_token(state)  -- Skip "if" or "elseif".
       ast_node[#ast_node+1] = parse_expression(state)  -- Parse the condition.
+      local branch_location = location(state)
       check_and_skip_token(state, "TK_THEN")
-      ast_node[#ast_node+1] = parse_block(state)
+      ast_node[#ast_node+1] = parse_block(state, branch_location)
    until state.token ~= "TK_ELSEIF"
 
-   if test_and_skip_token(state, "TK_ELSE") then
-      ast_node[#ast_node+1] = parse_block(state)
+   if state.token == "TK_ELSE" then
+      local branch_location = location(state)
+      skip_token(state)
+      ast_node[#ast_node+1] = parse_block(state, branch_location)
    end
 
    check_and_skip_token(state, "TK_END")
@@ -651,8 +654,8 @@ local function parse_statement(state)
    return (statements[state.token] or parse_expression_statement)(state)
 end
 
-function parse_block(state)
-   local block = {}
+function parse_block(state, location)
+   local block = {location = location}
 
    while not closing_tokens[state.token] do
       local first_token = state.token

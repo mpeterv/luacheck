@@ -848,7 +848,7 @@ end
                               {
                                  {tag = "If", location = {line = 7, column = 4, offset = 106},
                                     {tag = "Id", "arg", location = {line = 7, column = 7, offset = 109}},
-                                    {
+                                    {location = {line = 7, column = 11, offset = 113}, -- Branch location.
                                        {tag = "Call", location = {line = 8, column = 7, offset = 124},
                                           {tag = "Id", "print", location = {line = 8, column = 7, offset = 124}},
                                           {tag = "Id", "arg", location = {line = 8, column = 13, offset = 130}}

@@ -217,6 +217,12 @@ function LinState:check_balance(node)
    end
 end
 
+function LinState:check_empty_block(block)
+   if #block == 0 then
+      self.chstate:warn_empty_block(block.location, block.tag == "Do")
+   end
+end
+
 function LinState:emit(item)
    self.lines.top.items:push(item)
 end
@@ -248,6 +254,7 @@ function LinState:emit_block(block)
 end
 
 function LinState:emit_stmt_Do(node)
+   self:check_empty_block(node)
    self:emit_noop(node.location)
    self:emit_block(node)
 end
@@ -323,6 +330,7 @@ function LinState:emit_stmt_If(node)
       self:enter_scope()
       self:emit_expr(node[i])
       self:emit_goto("else", true)
+      self:check_empty_block(node[i + 1])
       self:emit_block(node[i + 1])
       self:emit_goto("end")
       self:register_label("else")
@@ -330,6 +338,7 @@ function LinState:emit_stmt_If(node)
    end
 
    if #node % 2 == 1 then
+      self:check_empty_block(node[#node])
       self:emit_block(node[#node])
    end
 
@@ -563,7 +572,7 @@ function LinState:scan_expr_Function(item, node)
 end
 
 -- Builds linear representation of AST and returns it.
--- Emits warnings: global, redefined/shadowed, unused label, unbalanced assignment.
+-- Emits warnings: global, redefined/shadowed, unused label, unbalanced assignment, empty block.
 local function linearize(chstate, ast)
    local linstate = LinState(chstate)
    local line = linstate:build_line({{tag = "Dots", "..."}}, ast)
