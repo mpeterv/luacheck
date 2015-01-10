@@ -680,7 +680,9 @@ end
 local function parse(src)
    local state = new_state(src)
    skip_token(state)
-   return parse_block(state)
+   local ast = parse_block(state)
+   check_token(state, "TK_EOS")
+   return ast
 end
 
 local function pparse(src)

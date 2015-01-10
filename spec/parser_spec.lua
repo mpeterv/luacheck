@@ -30,6 +30,10 @@ describe("parser", function()
       assert.same({}, get_ast(" "))
    end)
 
+   it("does not allow extra ending keywords", function()
+      assert.is_nil(parser("end"))
+   end)
+
    it("parses return statement correctly", function()
       assert.same({tag = "Return"}, get_node("return"))
       assert.same({tag = "Return",
