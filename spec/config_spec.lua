@@ -53,6 +53,23 @@ Checking spec/samples/unused_code.lua             OK
 Total: 4 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/override_config.luacheckrc")
       end)
+
+      it("allows reenabling warnings ignored in config using --enable", function()
+         assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused function helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Checking spec/samples/unused_code.lua             Failure
+
+    spec/samples/unused_code.lua:5:13: unused variable q
+
+Total: 5 warnings / 0 errors in 2 files
+]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/override_config.luacheckrc --enable=211")
+      end)
    end)
 
    describe("error handling", function()

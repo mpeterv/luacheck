@@ -89,6 +89,11 @@ local function main()
          :args "+"
          :count "*"
          :argname "<var>"
+      parser:option "--enable"
+         :description "Do not filter out warnings related to these variables. "
+         :args "+"
+         :count "*"
+         :argname "<var>"
       parser:option "--only"
          :description "Filter out warnings not related to these variables. "
          :args "+"
@@ -211,7 +216,7 @@ local function main()
          end
       end
 
-      for _, argname in ipairs {"globals", "new_globals", "ignore", "only"} do
+      for _, argname in ipairs {"globals", "new_globals", "ignore", "enable", "only"} do
          if #args[argname] > 0 then
             res[argname] = utils.concat_arrays(args[argname])
          end
