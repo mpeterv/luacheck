@@ -457,12 +457,13 @@ Checking spec/samples/bad_flow.lua                Failure
     spec/samples/bad_flow.lua:12:10: left-hand side of assignment is too long
     spec/samples/bad_flow.lua:16:10: left-hand side of assignment is too short
     spec/samples/bad_flow.lua:21:7: unreachable code
+    spec/samples/bad_flow.lua:25:1: loop is executed at most once
 
-Total: 5 warnings / 0 errors in 1 file
+Total: 6 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/bad_flow.lua")
    end)
 
    it("expands folders", function()
-      assert.equal("Total: 42 warnings / 1 error in 14 files\n", get_output "spec/samples -qqq")
+      assert.equal("Total: 43 warnings / 1 error in 14 files\n", get_output "spec/samples -qqq")
    end)
 end)

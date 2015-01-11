@@ -31,6 +31,7 @@ local message_formats = {
    ["422"] = "shadowing definition of argument %s on line %s",
    ["423"] = "shadowing definition of loop variable %s on line %s",
    ["511"] = "unreachable code",
+   ["512"] = "loop is executed at most once",
    ["521"] = "unused label %s",
    ["531"] = "left-hand side of assignment is too short",
    ["532"] = "left-hand side of assignment is too long",

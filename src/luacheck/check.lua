@@ -122,9 +122,9 @@ function ChState:warn_redefined(var, prev_var, same_scope)
    })
 end
 
-function ChState:warn_unreachable(location)
+function ChState:warn_unreachable(location, unrepeatable)
    self:warn({
-      code = "511",
+      code = "51" .. (unrepeatable and "2" or "1"),
       line = location.line,
       column = location.column
    })

@@ -74,10 +74,11 @@ local function new_eval_item(expr)
    }
 end
 
-local function new_noop_item(location)
+local function new_noop_item(location, loop_end)
    return {
       tag = "Noop",
-      location = location
+      location = location,
+      loop_end = loop_end
    }
 end
 
@@ -233,8 +234,8 @@ function LinState:emit_goto(name, is_conditional)
    table.insert(self.scopes.top.gotos, new_goto(name, jump))
 end
 
-function LinState:emit_noop(location)
-   self:emit(new_noop_item(location))
+function LinState:emit_noop(location, loop_end)
+   self:emit(new_noop_item(location, loop_end))
 end
 
 function LinState:emit_stmt(stmt)
@@ -266,6 +267,7 @@ function LinState:emit_stmt_While(node)
    self:emit_expr(node[1])
    self:emit_goto("break", true)
    self:emit_block(node[2])
+   self:emit_noop(node.location, true)
    self:emit_goto("do")
    self:register_label("break")
    self:leave_scope()
@@ -301,6 +303,7 @@ function LinState:emit_stmt_Fornum(node)
    self:register_var(node[1], "loopi")
    self:emit_stmts(node[5] or node[4])
    self:leave_scope()
+   self:emit_noop(node.location, true)
    self:emit_goto("do")
    self:register_label("break")
    self:leave_scope()
@@ -317,6 +320,7 @@ function LinState:emit_stmt_Forin(node)
    self:register_vars(node[1], "loop")
    self:emit_stmts(node[3])
    self:leave_scope()
+   self:emit_noop(node.location, true)
    self:emit_goto("do")
    self:register_label("break")
    self:leave_scope()

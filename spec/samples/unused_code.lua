@@ -5,7 +5,7 @@ function foo.bar(baz)
       local q
 
       for a, b, c in pairs(foo) do
-         return 4
+         print(4)
       end
    end
 end

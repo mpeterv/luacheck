@@ -21,3 +21,12 @@ else
       print("How could this happen?")
    end
 end
+
+while true do
+   if package.loaded.foo then
+      return 4
+   else
+      print(5)
+      break
+   end
+end
