@@ -54,6 +54,26 @@ Total: 4 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/override_config.luacheckrc")
       end)
 
+      it("uses all overrides prefixing file name", function()
+         assert.equal([[
+Checking spec/samples/unused_secondaries.lua      Failure
+
+    spec/samples/unused_secondaries.lua:12:1: value assigned to variable o is unused
+
+Checking spec/samples/unused_code.lua             Failure
+
+    spec/samples/unused_code.lua:3:18: unused argument baz
+    spec/samples/unused_code.lua:4:8: unused loop variable i
+    spec/samples/unused_code.lua:7:11: unused loop variable a
+    spec/samples/unused_code.lua:7:14: unused loop variable b
+    spec/samples/unused_code.lua:7:17: unused loop variable c
+    spec/samples/unused_code.lua:13:7: value assigned to variable x is unused
+    spec/samples/unused_code.lua:14:1: value assigned to variable x is unused
+
+Total: 8 warnings / 0 errors in 2 files
+]], get_output "spec/samples/unused_secondaries.lua spec/samples/unused_code.lua --config=spec/configs/multioverride_config.luacheckrc")
+      end)
+
       it("allows reenabling warnings ignored in config using --enable", function()
          assert.equal([[
 Checking spec/samples/bad_code.lua                Failure

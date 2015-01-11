@@ -263,13 +263,29 @@ local function main()
       local res = {}
 
       for i, file in ipairs(files) do
-         res[i] = {config, opts}
-         local file_config = type(config.files) == "table" and rawget(config.files, file)
+         res[i] = {config}
 
-         if file_config then
-            validate(options.config_options, file_config)
-            table.insert(res[i], 2, file_config)
+         if type(config.files) == "table" then
+            local overriding_paths = {}
+
+            for path in pairs(config.files) do
+               if file:sub(1, #path) == path then
+                  table.insert(overriding_paths, path)
+               end
+            end
+
+            -- Since all paths are prefixes of path, sorting by len is equivalent to regular sorting.
+            table.sort(overriding_paths)
+
+            -- Apply overrides from less specific (shorter prefixes) to more specific (longer prefixes).
+            for _, path in ipairs(overriding_paths) do
+               local overriding_config = config.files[path]
+               validate(options.config_options, overriding_config)
+               table.insert(res[i], overriding_config)
+            end
          end
+
+         table.insert(res[i], opts)
       end
 
       return res
