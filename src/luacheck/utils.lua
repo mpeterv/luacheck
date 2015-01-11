@@ -1,42 +1,66 @@
 local utils = {}
 
-local lfs = require "lfs"
-
--- Returns whether path points to a directory. 
-function utils.is_dir(path)
-   return lfs.attributes(path, "mode") == "directory"
-end
-
--- Returns whether path points to a file. 
-function utils.is_file(path)
-   return lfs.attributes(path, "mode") == "file"
-end
-
 local dir_sep = package.config:sub(1,1)
 
 utils.is_windows = dir_sep == "\\"
 
--- Returns list of all files in directory matching pattern. 
-function utils.extract_files(dir_path, pattern)
-   local res = {}
+local has_lfs, lfs = pcall(require, "lfs")
 
-   local function scan(dir_path)
-      for path in lfs.dir(dir_path) do
-         if path ~= "." and path ~= ".." then
-            local full_path = dir_path .. dir_sep .. path
+if has_lfs then
+   -- Returns whether path points to a directory. 
+   function utils.is_dir(path)
+      return lfs.attributes(path, "mode") == "directory"
+   end
 
-            if utils.is_dir(full_path) then
-               scan(full_path)
-            elseif path:match(pattern) and utils.is_file(full_path) then
-               table.insert(res, full_path)
+   -- Returns whether path points to a file. 
+   function utils.is_file(path)
+      return lfs.attributes(path, "mode") == "file"
+   end
+
+   -- Returns list of all files in directory matching pattern. 
+   function utils.extract_files(dir_path, pattern)
+      local res = {}
+
+      local function scan(dir_path)
+         for path in lfs.dir(dir_path) do
+            if path ~= "." and path ~= ".." then
+               local full_path = dir_path .. dir_sep .. path
+
+               if utils.is_dir(full_path) then
+                  scan(full_path)
+               elseif path:match(pattern) and utils.is_file(full_path) then
+                  table.insert(res, full_path)
+               end
             end
          end
       end
+
+      scan(dir_path)
+      table.sort(res)
+      return res
+   end
+else
+   -- No luafilesystem. Effectively disable recursive directory checking.
+   -- Using something like os.execute("ls") may be possible but is a hack.
+
+   function utils.is_dir(_)
+      return false
    end
 
-   scan(dir_path)
-   table.sort(res)
-   return res
+   function utils.is_file(path)
+      local fh = io.open(path)
+
+      if fh then
+         fh:close()
+         return true
+      else
+         return false
+      end
+   end
+
+   function utils.extract_files(_, _)
+      return {}
+   end
 end
 
 -- Returns all contents of file(path or file handler) or nil. 
