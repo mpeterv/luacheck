@@ -46,9 +46,7 @@ function ChState:warn_global(node, action, is_top)
    })
 end
 
--- TODO: warning 12* for read-only globals.
-
--- W131 (unused global) is monkey-patched during filtering.
+-- W12* (read-only global) and W131 (unused global) are monkey-patched during filtering.
 
 function ChState:warn_unused_variable(var)
    self:warn({

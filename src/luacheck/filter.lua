@@ -239,8 +239,12 @@ local function filter_file_report(report, opts)
    local res = {}
 
    for _, warning in ipairs(report) do
+      if warning.code:match("11[12]") and not warning.module and opts.read_globals[warning.name] then
+         warning.code = "12" .. warning.code:sub(3, 3)
+      end
+
       if (not warning.code:match("[234]..") or warning.name ~= "_") and
-            (not warning.code:match("1..") or warning.module or not opts.globals[warning.name]) and
+            (not warning.code:match("11.") or warning.module or not opts.globals[warning.name]) and
             (not warning.secondary or opts.unused_secondaries) then
          if is_enabled(opts.rules, warning) then
             table.insert(res, warning)

@@ -90,6 +90,29 @@ describe("options", function()
          }).globals)
       end)
 
+      it("considers read-only and regular globals", function()
+         local opts = options.normalize({
+            {
+               std = "lua52",
+               globals = {"foo", "bar"},
+               read_globals = {"baz"}
+            }, {
+               new_read_globals = {"quux"},
+            }
+         })
+         local globals = opts.globals
+         local read_globals = opts.read_globals
+         assert.is_true(globals.foo)
+         assert.is_true(globals.bar)
+         assert.is_nil(globals.baz)
+         assert.is_true(globals.quux)
+         assert.is_true(read_globals.quux)
+         assert.is_true(read_globals.string)
+         assert.is_nil(read_globals._ENV)
+         assert.is_true(globals.string)
+         assert.is_true(globals._ENV)
+      end)
+
       it("considers macros, ignore, enable and only", function()
          assert.same({
                {{{nil, "^foo$"}}, "only"},

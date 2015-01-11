@@ -3,7 +3,7 @@ local utils = require "luacheck.utils"
 local stds = {}
 
 stds.lua51 = {
-   "_G",
+   _G = true,
    "_VERSION",
    "arg",
    "assert",
@@ -46,8 +46,8 @@ stds.lua51 = {
 }
 
 stds.lua52 = {
-   "_ENV",
-   "_G",
+   _ENV = true,
+   _G = true,
    "_VERSION",
    "arg",
    "assert",
@@ -85,8 +85,8 @@ stds.lua52 = {
 }
 
 stds.lua52c = {
-   "_ENV",
-   "_G",
+   _ENV = true,
+   _G = true,
    "_VERSION",
    "arg",
    "assert",
@@ -127,7 +127,7 @@ stds.lua52c = {
 }
 
 stds.luajit = {
-   "_G",
+   _G = true,
    "_VERSION",
    "arg",
    "assert",
@@ -171,7 +171,7 @@ stds.luajit = {
    "xpcall"
 }
 
-local min = {}
+local min = {_G = true}
 local std_sets = {}
 
 for name, std in pairs(stds) do
@@ -186,11 +186,17 @@ end
 
 stds.min = min
 stds.max = utils.concat_arrays {stds.lua51, stds.lua52, stds.luajit}
+stds.max._G = true
+stds.max._ENV = true
 
 stds._G = {}
 
 for global in pairs(_G) do
-   table.insert(stds._G, global)
+   if global == "_G" then
+      stds._G._G = true
+   else
+      table.insert(stds._G, global)
+   end
 end
 
 local function has_env()
@@ -199,7 +205,7 @@ local function has_env()
 end
 
 if has_env() then
-   table.insert(stds._G, "_ENV")
+   stds._G._ENV = true
 end
 
 stds.none = {}

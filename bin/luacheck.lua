@@ -68,8 +68,18 @@ local function main()
          :args "*"
          :count "*"
          :argname "<global>"
+      parser:option "--read-globals"
+         :description "Add read-only globals. "
+         :args "*"
+         :count "*"
+         :argname "<global>"
       parser:option "--new-globals"
          :description "Set custom globals. Removes custom globals added previously. "
+         :args "*"
+         :count "*"
+         :argname "<global>"
+      parser:option "--new-read-globals"
+         :description "Set read-only globals. Removes read-only globals added previously. "
          :args "*"
          :count "*"
          :argname "<global>"
@@ -216,7 +226,8 @@ local function main()
          end
       end
 
-      for _, argname in ipairs {"globals", "new_globals", "ignore", "enable", "only"} do
+      for _, argname in ipairs {"globals", "read_globals", "new_globals", "new_read_globals",
+            "ignore", "enable", "only"} do
          if #args[argname] > 0 then
             res[argname] = utils.concat_arrays(args[argname])
          end

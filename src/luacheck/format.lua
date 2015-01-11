@@ -8,6 +8,8 @@ local message_formats = {
          else return "setting non-standard global variable %s" end end,
    ["112"] = "mutating non-standard global variable %s",
    ["113"] = "accessing undefined variable %s",
+   ["121"] = "setting read-only global variable %s",
+   ["122"] = "mutating read-only global variable %s",
    ["131"] = "unused global variable %s",
    ["211"] = function(w)
       if w.func then return "unused function %s"

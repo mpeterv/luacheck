@@ -463,7 +463,22 @@ Total: 6 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/bad_flow.lua")
    end)
 
+   it("detects issues related to read-only globals", function()
+      assert.equal([[
+Checking spec/samples/read_globals.lua            Failure
+
+    spec/samples/read_globals.lua:1:1: setting read-only global variable string
+    spec/samples/read_globals.lua:2:1: mutating read-only global variable table
+    spec/samples/read_globals.lua:5:1: setting read-only global variable bar
+    spec/samples/read_globals.lua:6:1: mutating non-standard global variable baz
+    spec/samples/read_globals.lua:6:21: accessing undefined variable baz
+
+Total: 5 warnings / 0 errors in 1 file
+]], get_output "spec/samples/read_globals.lua --std=lua52 --globals foo --read-globals bar")
+   end)
+
    it("expands folders", function()
-      assert.equal("Total: 43 warnings / 1 error in 14 files\n", get_output "spec/samples -qqq")
+      local output = get_output "spec/samples -qqq"
+      assert.truthy(output:match("Total: [%d]+ warnings / 1 error in 15 files\n"))
    end)
 end)

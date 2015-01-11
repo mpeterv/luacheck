@@ -43,7 +43,9 @@ options.config_options = {
    allow_defined_top = boolean,
    module = boolean,
    globals = array_of_strings,
+   read_globals = array_of_strings,
    new_globals = array_of_strings,
+   new_read_globals = array_of_strings,
    std = std_or_array_of_strings,
    ignore = array_of_strings,
    enable = array_of_strings,
@@ -104,17 +106,32 @@ local function get_std(opts_stack)
    return std and (stds[std] or std) or stds._G
 end
 
-local function get_globals(opts_stack)
+-- Takes std as table, returns sets of std globals and read-only std globals.
+-- Array part of std table contains read-only globals, hash part - regular globals as keys.
+local function std_to_globals(std)
+   local std_globals = {}
+   local std_read_globals = utils.array_to_set(std)
+
+   for k in pairs(std) do
+      if type(k) == "string" then
+         std_globals[k] = true
+      end
+   end
+
+   return std_globals, std_read_globals
+end
+
+local function get_globals(opts_stack, key)
    local globals_lists = {}
 
    for _, opts in utils.ripairs(opts_stack) do
-      if opts.new_globals then
-         table.insert(globals_lists, opts.new_globals)
+      if opts["new_" .. key] then
+         table.insert(globals_lists, opts["new_" .. key])
          break
       end
 
-      if opts.globals then
-         table.insert(globals_lists, opts.globals)
+      if opts[key] then
+         table.insert(globals_lists, opts[key])
       end
    end
 
@@ -231,14 +248,23 @@ end
 -- Returns normalized options.
 -- Normalized options have fields:
 --    globals: set of strings;
+--    read_globals: subset of globals;
 --    unused_secondaries, module, allow_defined, allow_defined_top: booleans;
 --    rules: see get_rules.
 function options.normalize(opts_stack)
    local res = {}
 
-   res.globals = utils.array_to_set(get_globals(opts_stack))
-   local std = utils.array_to_set(get_std(opts_stack))
-   utils.update(res.globals, std)
+   res.globals = utils.array_to_set(get_globals(opts_stack, "globals"))
+   res.read_globals = utils.array_to_set(get_globals(opts_stack, "read_globals"))
+   local std_globals, std_read_globals = std_to_globals(get_std(opts_stack))
+   utils.update(res.globals, std_globals)
+   utils.update(res.read_globals, std_read_globals)
+
+   for k in pairs(res.globals) do
+      res.read_globals[k] = nil
+   end
+
+   utils.update(res.globals, res.read_globals)
 
    for _, option in ipairs {"unused_secondaries", "module", "allow_defined", "allow_defined_top"} do
       local value = get_boolean_opt(opts_stack, option)
