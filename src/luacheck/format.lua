@@ -107,7 +107,7 @@ local function format_file_report_header(report, file_name, color)
    return label .. (" "):rep(math.max(50 - #label, 1)) .. status
 end
 
-local function format_file_report(report, file_name, color)
+local function format_file_report(report, file_name, color, codes)
    local buf = {format_file_report_header(report, file_name, color)}
 
    if not report.error and #report > 0 then
@@ -117,6 +117,11 @@ local function format_file_report(report, file_name, color)
          local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
          local message_format = get_message_format(warning)
          local message = message_format:format(warning.name and format_name(warning.name, color), warning.prev_line)
+
+         if codes then
+            message = ("(W%s) %s"):format(warning.code, message)
+         end
+
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 
@@ -131,10 +136,12 @@ end
 --    `options.quiet`: integer in range 0-3. See CLI. Default: 0. 
 --    `options.limit`: See CLI. Default: 0. 
 --    `options.color`: should use ansicolors? Default: true. 
+--    `options.codes`: should output warning codes? Default: false.
 local function format(report, file_names, options)
    local quiet = options.quiet or 0
    local limit = options.limit or 0
    local color = (options.color ~= false) and color_support
+   local codes = options.codes
 
    local buf = {}
 
@@ -142,7 +149,7 @@ local function format(report, file_names, options)
       for i, file_report in ipairs(report) do
          if quiet == 0 or file_report.error or #file_report > 0 then
             table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
-               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color))
+               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color, codes))
          end
       end
 

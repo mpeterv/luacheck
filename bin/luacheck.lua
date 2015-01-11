@@ -128,6 +128,9 @@ local function main()
       -qq: Suppress output of warnings. 
       -qqq: Only print total number of warnings and errors. ]]
 
+      parser:flag "--codes"
+         :description "Show warning codes. "
+
       parser:flag "--no-color"
          :description "Do not color output"
 
@@ -302,6 +305,7 @@ local function main()
    end
 
    args.limit = args.limit or (config and config.limit or 0)
+   args.codes = args.codes or config and config.codes
 
    print(format(report, file_names, args))
 

@@ -70,6 +70,33 @@ Checking spec/samples/unused_code.lua             Failure
 Total: 5 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/override_config.luacheckrc --enable=211")
       end)
+
+      it("allows using cli-specific options in top level config", function()
+         assert.equal([[
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:1:1: (W113) accessing undefined variable 'module'
+    spec/samples/bad_code.lua:3:16: (W211) unused function 'helper'
+    spec/samples/bad_code.lua:3:23: (W212) unused variable length argument
+    spec/samples/bad_code.lua:7:10: (W111) setting non-standard global variable 'embrace'
+    spec/samples/bad_code.lua:8:10: (W412) variable 'opt' was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
+
+Checking spec/samples/unused_code.lua             Failure
+
+    spec/samples/unused_code.lua:3:18: (W212) unused argument 'baz'
+    spec/samples/unused_code.lua:4:8: (W213) unused loop variable 'i'
+    spec/samples/unused_code.lua:5:13: (W211) unused variable 'q'
+    spec/samples/unused_code.lua:7:11: (W213) unused loop variable 'a'
+    spec/samples/unused_code.lua:7:14: (W213) unused loop variable 'b'
+    spec/samples/unused_code.lua:7:17: (W213) unused loop variable 'c'
+    spec/samples/unused_code.lua:13:7: (W311) value assigned to variable 'x' is unused
+    spec/samples/unused_code.lua:14:1: (W311) value assigned to variable 'x' is unused
+    spec/samples/unused_code.lua:21:7: (W231) variable 'z' is never accessed
+
+Total: 15 warnings / 0 errors in 2 files
+]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/cli_specific_config.luacheckrc --std=lua52")
+      end)
    end)
 
    describe("error handling", function()
