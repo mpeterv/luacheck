@@ -24,7 +24,7 @@ end
       ]])
    end)
 
-   it("detects global access", function()
+   it("detects global set", function()
       assert.same({
          {code = "111", name = "foo", line = 1, column = 1, top = true}
       }, get_report[[
@@ -58,17 +58,25 @@ print(x)
    it("detects global access in self swap", function()
       assert.same({
          {code = "113", name = "a", line = 1, column = 11},
-         {code = "113", name = "print", line = 2, column = 1},
+         {code = "113", name = "print", line = 2, column = 1}
       }, get_report[[
 local a = a
 print(a)
       ]])
    end)
 
+   it("detects global mutation", function()
+      assert.same({
+         {code = "112", name = "a", line = 1, column = 1}
+      }, get_report[[
+a[1] = 6
+      ]])
+   end)
+
    it("detects unused locals", function()
       assert.same({
          {code = "211", name = "a", line = 1, column = 7},
-         {code = "113", name = "print", line = 5, column = 4},
+         {code = "113", name = "print", line = 5, column = 4}
       }, get_report[[
 local a = 4
 
@@ -131,7 +139,7 @@ print(a)
 
    it("does not detect unused value when it and a closure using it can live together", function()
       assert.same({
-         {code = "113", name = "escape", line = 3, column = 4},
+         {code = "113", name = "escape", line = 3, column = 4}
       }, get_report[[
 local a = 3
 if true then

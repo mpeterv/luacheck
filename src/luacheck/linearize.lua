@@ -416,7 +416,16 @@ function LinState:emit_stmt_Set(node)
             self:register_upvalue_action(item, var, "set")
          end
       else
-         self:scan_expr(item, expr)
+         assert(expr.tag == "Index")
+
+         if expr[1].tag == "Id" and not self:resolve_var(expr[1][1]) then
+            -- Warn about mutated global.
+            self:check_var(expr[1], "mutate")
+         else
+            self:scan_expr(item, expr[1])
+         end
+
+         self:scan_expr(item, expr[2])
       end
    end
 
