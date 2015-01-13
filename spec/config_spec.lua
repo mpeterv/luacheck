@@ -95,7 +95,6 @@ Total: 5 warnings / 0 errors in 2 files
          assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
 
-    spec/samples/bad_code.lua:1:1: (W113) accessing undefined variable 'module'
     spec/samples/bad_code.lua:3:16: (W211) unused function 'helper'
     spec/samples/bad_code.lua:3:23: (W212) unused variable length argument
     spec/samples/bad_code.lua:7:10: (W111) setting non-standard global variable 'embrace'
@@ -114,7 +113,7 @@ Checking spec/samples/unused_code.lua             Failure
     spec/samples/unused_code.lua:14:1: (W311) value assigned to variable 'x' is unused
     spec/samples/unused_code.lua:21:7: (W231) variable 'z' is never accessed
 
-Total: 15 warnings / 0 errors in 2 files
+Total: 14 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/cli_specific_config.luacheckrc --std=lua52")
       end)
    end)

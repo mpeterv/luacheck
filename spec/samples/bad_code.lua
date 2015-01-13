@@ -1,4 +1,4 @@
-module(..., package.seeall)
+package.loaded[...] = {}
 
 local function helper(...)
    -- NYI
