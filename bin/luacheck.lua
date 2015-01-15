@@ -1,4 +1,4 @@
-#!/bin/env lua
+#!/usr/bin/env lua
 local version = "0.7.3"
 
 local function fatal(msg)
