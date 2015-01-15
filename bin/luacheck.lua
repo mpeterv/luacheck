@@ -58,9 +58,11 @@ local function main()
       lua51 - globals of Lua 5.1; 
       lua52 - globals of Lua 5.2; 
       lua52c - globals of Lua 5.2 compiled with LUA_COMPAT_ALL; 
+      lua53 - globals of Lua 5.3; 
+      lua53c - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
       luajit - globals of LuaJIT 2.0; 
-      min - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0; 
-      max - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0; 
+      min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0; 
+      max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0; 
       none - no standard globals. ]]
          :convert(stds)
       parser:option "--globals"

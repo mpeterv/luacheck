@@ -126,6 +126,85 @@ stds.lua52c = {
    "xpcall"
 }
 
+stds.lua53 = {
+   _ENV = true,
+   _G = true,
+   "_VERSION",
+   "arg",
+   "assert",
+   "collectgarbage",
+   "coroutine",
+   "debug",
+   "dofile",
+   "error",
+   "getmetatable",
+   "io",
+   "ipairs",
+   "load",
+   "loadfile",
+   "math",
+   "next",
+   "os",
+   "package",
+   "pairs",
+   "pcall",
+   "print",
+   "rawequal",
+   "rawget",
+   "rawlen",
+   "rawset",
+   "require",
+   "select",
+   "setmetatable",
+   "string",
+   "table",
+   "tonumber",
+   "tostring",
+   "type",
+   "utf8",
+   "xpcall"
+}
+
+stds.lua53c = {
+   _ENV = true,
+   _G = true,
+   "_VERSION",
+   "arg",
+   "assert",
+   "bit32",
+   "collectgarbage",
+   "coroutine",
+   "debug",
+   "dofile",
+   "error",
+   "getmetatable",
+   "io",
+   "ipairs",
+   "load",
+   "loadfile",
+   "math",
+   "next",
+   "os",
+   "package",
+   "pairs",
+   "pcall",
+   "print",
+   "rawequal",
+   "rawget",
+   "rawlen",
+   "rawset",
+   "require",
+   "select",
+   "setmetatable",
+   "string",
+   "table",
+   "tonumber",
+   "tostring",
+   "type",
+   "utf8",
+   "xpcall"
+}
+
 stds.luajit = {
    _G = true,
    "_VERSION",
@@ -179,13 +258,13 @@ for name, std in pairs(stds) do
 end
 
 for global in pairs(std_sets.lua51) do
-   if std_sets.lua52[global] and std_sets.luajit[global] then
+   if std_sets.lua52[global] and std_sets.lua53[global] and std_sets.luajit[global] then
       table.insert(min, global)
    end
 end
 
 stds.min = min
-stds.max = utils.concat_arrays {stds.lua51, stds.lua52, stds.luajit}
+stds.max = utils.concat_arrays {stds.lua51, stds.lua52, stds.lua53, stds.luajit}
 stds.max._G = true
 stds.max._ENV = true
 
