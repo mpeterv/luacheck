@@ -16,9 +16,8 @@ local function global_error_handler(err)
 end
 
 local function main()
-   local argparse = require "argparse"
-
    local luacheck = require "luacheck"
+   local argparse = require "luacheck.argparse"
    local stds = require "luacheck.stds"
    local options = require "luacheck.options"
    local expand_rockspec = require "luacheck.expand_rockspec"

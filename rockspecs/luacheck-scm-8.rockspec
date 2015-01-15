@@ -13,7 +13,6 @@ Luacheck is a tool for linting and static analysis of Lua code. It is able to sp
 }
 dependencies = {
    "lua >= 5.1, < 5.4",
-   "argparse >= 0.3.0",
    "luafilesystem >= 1.6.2"
 }
 build = {
@@ -31,8 +30,9 @@ build = {
       ["luacheck.options"] = "src/luacheck/options.lua",
       ["luacheck.stds"] = "src/luacheck/stds.lua",
       ["luacheck.expand_rockspec"] = "src/luacheck/expand_rockspec.lua",
+      ["luacheck.format"] = "src/luacheck/format.lua",
       ["luacheck.utils"] = "src/luacheck/utils.lua",
-      ["luacheck.format"] = "src/luacheck/format.lua"
+      ["luacheck.argparse"] = "src/luacheck/argparse.lua"
    },
    install = {
       bin = {
