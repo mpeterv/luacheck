@@ -4,6 +4,7 @@ local stds = {}
 
 stds.lua51 = {
    _G = true,
+   package = true,
    "_VERSION",
    "arg",
    "assert",
@@ -25,7 +26,6 @@ stds.lua51 = {
    "newproxy",
    "next",
    "os",
-   "package",
    "pairs",
    "pcall",
    "print",
@@ -48,6 +48,7 @@ stds.lua51 = {
 stds.lua52 = {
    _ENV = true,
    _G = true,
+   package = true,
    "_VERSION",
    "arg",
    "assert",
@@ -65,7 +66,6 @@ stds.lua52 = {
    "math",
    "next",
    "os",
-   "package",
    "pairs",
    "pcall",
    "print",
@@ -87,6 +87,7 @@ stds.lua52 = {
 stds.lua52c = {
    _ENV = true,
    _G = true,
+   package = true,
    "_VERSION",
    "arg",
    "assert",
@@ -106,7 +107,6 @@ stds.lua52c = {
    "module",
    "next",
    "os",
-   "package",
    "pairs",
    "pcall",
    "print",
@@ -129,6 +129,7 @@ stds.lua52c = {
 stds.lua53 = {
    _ENV = true,
    _G = true,
+   package = true,
    "_VERSION",
    "arg",
    "assert",
@@ -145,7 +146,6 @@ stds.lua53 = {
    "math",
    "next",
    "os",
-   "package",
    "pairs",
    "pcall",
    "print",
@@ -168,6 +168,7 @@ stds.lua53 = {
 stds.lua53c = {
    _ENV = true,
    _G = true,
+   package = true,
    "_VERSION",
    "arg",
    "assert",
@@ -185,7 +186,6 @@ stds.lua53c = {
    "math",
    "next",
    "os",
-   "package",
    "pairs",
    "pcall",
    "print",
@@ -207,6 +207,7 @@ stds.lua53c = {
 
 stds.luajit = {
    _G = true,
+   package = true,
    "_VERSION",
    "arg",
    "assert",
@@ -230,7 +231,6 @@ stds.luajit = {
    "newproxy",
    "next",
    "os",
-   "package",
    "pairs",
    "pcall",
    "print",
@@ -250,7 +250,7 @@ stds.luajit = {
    "xpcall"
 }
 
-local min = {_G = true}
+local min = {_G = true, package = true}
 local std_sets = {}
 
 for name, std in pairs(stds) do
@@ -267,12 +267,13 @@ stds.min = min
 stds.max = utils.concat_arrays {stds.lua51, stds.lua52, stds.lua53, stds.luajit}
 stds.max._G = true
 stds.max._ENV = true
+stds.max.package = true
 
 stds._G = {}
 
 for global in pairs(_G) do
-   if global == "_G" then
-      stds._G._G = true
+   if global == "_G" or global == "package" then
+      stds._G[global] = true
    else
       table.insert(stds._G, global)
    end
