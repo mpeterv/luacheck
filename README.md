@@ -2,17 +2,25 @@
 
 [![Build Status](https://travis-ci.org/mpeterv/luacheck.png?branch=master)](https://travis-ci.org/mpeterv/luacheck)
 
-Luacheck is a tool for linting and static analysis of [Lua](http://www.lua.org) code. It is able to spot usage of undefined global variables, unused local variables and a few other typical problems within Lua programs.
+Luacheck is a static analyzer and a linter for [Lua](http://www.lua.org) which detects issues such as usage of undefined global variables, unused variables and values, etc. It is fairly configurable and can be used as a part of automated testing, manually from the command line or [inside an editor](#editor-support). There is also a Lua module which can be used by other programs.
 
-Luacheck provides a command line interface as well as a Lua module which can be used by other programs.
-
-## Quick start
+## Installation
 
 The easiest way to install Luacheck is to use [LuaRocks](http://luarocks.org). From your command line run the following command (you may want to prepend it with `sudo`):
 
-```
+```bash
 $ luarocks install luacheck
 ```
+
+If it is not possible to install `luafilesystem` in your environment, use `luarocks install luacheck --deps-mode=none`.
+
+### Manual installation
+
+1. Download and unpack latest release ([.zip](https://github.com/mpeterv/luacheck/archive/0.8.0.zip) [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.8.0.tar.gz)).
+2. Copy contents of `src` directory to a directory for Lua libraries. Run `lua -e 'print(package.path)'` to see where it could be.
+3. Copy `bin/luacheck.lua` to `PATH`. On Windows, also copy `bin/luacheck.bat`.
+
+## Basic usage
 
 After Luacheck is installed, run `luacheck` program from the command line. Pass a list of files or directories to be checked:
 
