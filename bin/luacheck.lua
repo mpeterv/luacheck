@@ -36,33 +36,39 @@ local function main()
          :argname "<file>"
 
       parser:flag "-g" "--no-global"
-         :description "Filter out warnings related to global variables. "
-      parser:flag "-r" "--no-redefined"
-         :description "Filter out warnings related to redefined variables. "
+         :description [[Filter out warnings related to global variables. 
+Equivalent to --ignore 1. ]]
       parser:flag "-u" "--no-unused"
-         :description "Filter out warnings related to unused variables. "
+         :description [[Filter out warnings related to unused variables and values. 
+Equivalent to --ignore [23]. ]]
+      parser:flag "-r" "--no-redefined"
+         :description [[Filter out warnings related to redefined variables. 
+Equivalent to --ignore 4. ]]
 
       parser:flag "-a" "--no-unused-args"
-         :description "Filter out warnings related to unused arguments and loop variables. "
+         :description [[Filter out warnings related to unused arguments and loop variables. 
+Equivalent to --ignore 21[23]. ]]
       parser:flag "-v" "--no-unused-values"
-         :description "Filter out warnings related to unused values. "
+         :description [[Filter out warnings related to unused values. 
+Equivalent to --ignore 31. ]]
+      parser:flag "--no-unset"
+         :description [[Filter out warnings related to unset variables. 
+Equivalent to --ignore 22. ]]
       parser:flag "-s" "--no-unused-secondaries"
          :description "Filter out warnings related to unused variables set together with used ones. "
-      parser:flag "--no-unset"
-         :description "Filter out warnings related to unset variables. "
 
       parser:option "--std"
          :description [[Set standard globals. <std> must be one of:
-      _G - globals of the current Lua interpreter(default); 
-      lua51 - globals of Lua 5.1; 
-      lua52 - globals of Lua 5.2; 
-      lua52c - globals of Lua 5.2 compiled with LUA_COMPAT_ALL; 
-      lua53 - globals of Lua 5.3; 
-      lua53c - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
-      luajit - globals of LuaJIT 2.0; 
-      min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0; 
-      max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0; 
-      none - no standard globals. ]]
+   _G - globals of the current Lua interpreter(default); 
+   lua51 - globals of Lua 5.1; 
+   lua52 - globals of Lua 5.2; 
+   lua52c - globals of Lua 5.2 compiled with LUA_COMPAT_ALL; 
+   lua53 - globals of Lua 5.3; 
+   lua53c - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
+   luajit - globals of LuaJIT 2.0; 
+   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0; 
+   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0; 
+   none - no standard globals. ]]
          :convert(stds)
       parser:option "--globals"
          :description "Add custom globals on top of standard ones. "
@@ -85,7 +91,7 @@ local function main()
          :count "*"
          :argname "<global>"
       parser:flag "-c" "--compat"
-         :description "Equivalent to --std=max. "
+         :description "Equivalent to --std max. "
       parser:flag "-d" "--allow-defined"
          :description "Allow defining globals implicitly by setting them. "
       parser:flag "-t" "--allow-defined-top"
@@ -93,23 +99,28 @@ local function main()
       parser:flag "-m" "--module"
          :description "Limit visibility of implicitly defined globals to their files. "
       parser:flag "--no-unused-globals"
-         :description "Filter out warnings related to set but unused global variables. "
+         :description [[Filter out warnings related to set but unused global variables. 
+Equivalent to --ignore 13. ]]
 
       parser:option "--ignore" "-i"
-         :description "Filter out warnings related to these variables. "
+         :description [[Filter out warnings matching these patterns. 
+If a pattern contains slash, part before slash matches warning code
+   and part after it matches name of related variable.
+Otherwise, if the pattern contains letters, it matches name of related variable.
+Otherwise, the pattern matches warning code.]]
          :args "+"
          :count "*"
-         :argname "<var>"
+         :argname "<patt>"
       parser:option "--enable" "-e"
-         :description "Do not filter out warnings related to these variables. "
+         :description "Do not filter out warnings matching these patterns. "
          :args "+"
          :count "*"
-         :argname "<var>"
+         :argname "<patt>"
       parser:option "--only" "-o"
-         :description "Filter out warnings not related to these variables. "
+         :description "Filter out warnings not matching these patterns. "
          :args "+"
          :count "*"
-         :argname "<var>"
+         :argname "<patt>"
 
       parser:option "-l" "--limit"
          :description "Exit with 0 if there are <limit> or less warnings. (default: 0)"
