@@ -106,7 +106,8 @@ Equivalent to --ignore 13. ]]
          :description [[Filter out warnings matching these patterns. 
 If a pattern contains slash, part before slash matches warning code
    and part after it matches name of related variable.
-Otherwise, if the pattern contains letters, it matches name of related variable.
+Otherwise, if the pattern contains letters or underscore,
+   it matches name of related variable.
 Otherwise, the pattern matches warning code.]]
          :args "+"
          :count "*"
@@ -137,8 +138,8 @@ Otherwise, the pattern matches warning code.]]
       parser:flag "-q" "--quiet"
          :count "0-3"
          :description [[Suppress output for files without warnings. 
-      -qq: Suppress output of warnings. 
-      -qqq: Only print total number of warnings and errors. ]]
+   -qq: Suppress output of warnings. 
+   -qqq: Only print total number of warnings and errors. ]]
 
       parser:flag "--codes"
          :description "Show warning codes. "
