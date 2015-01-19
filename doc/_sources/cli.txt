@@ -5,7 +5,7 @@ Command line interface
 
 * Given a file, ``luacheck`` will check it.
 * Given ``-``, ``luacheck`` will check stdin.
-* Given a directory, ``luacheck`` will check all files with ``.lua`` extension within it.
+* Given a directory, ``luacheck`` will check all files with ``.lua`` extension within it. This feature requires `luafilesystem <http://keplerproject.github.io/luafilesystem/>`_ (installed automatically if LuaRocks was used to install Luacheck).
 * Given a rockspec (a file with ``.rockspec`` extension), ``luacheck`` will check all files with ``.lua`` extension mentioned in the rockspec in ``build.install.lua``, ``build.install.bin`` and ``build.modules`` tables.
 
 The output of ``luacheck`` consists of separate reports for each checked file and ends with a summary::
@@ -44,54 +44,74 @@ Command line options
 
 Short options that do not take an argument can be combined into one, so that ``-qqu`` is equivalent to ``-q -q -u``. For long options, both ``--option value`` or ``--option=value`` can be used.
 
-Options taking several arguments can be used several time; ``--ignore foo --ignore bar`` is equivalent to ``--ignore foo bar``.
+Options taking several arguments can be used several times; ``--ignore foo --ignore bar`` is equivalent to ``--ignore foo bar``.
 
 Note that options that may take several arguments, such as ``--globals``, should not be used immediately before positional arguments; given ``--globals foo bar file.lua``, ``luacheck`` will consider all ``foo``, ``bar`` and ``file.lua`` global and then panic as there are no file names left.
 
-==================================== =============================================================================
-Option                               Meaning
-==================================== =============================================================================
-``-g`` | ``--no-global``             Filter out warnings related to global variables.
-``-r`` | ``--no-redefined``          Filter out warnings related to redefined variables.
-``-u`` | ``--no-unused``             Filter out warnings related to unused variables.
-``-a`` | ``--no-unused-args``        Filter out warnings related to unused arguments and loop variables.
-``-v`` | ``--no-unused-values``      Filter out warnings related to unused values.
-``-s`` | ``--no-unused-secondaries`` Filter out warnings related to unused variables set together with used ones.
+===================================== ============================================================================
+Option                                Meaning
+===================================== ============================================================================
+``-g`` | ``--no-global``              Filter out warnings related to global variables.
+``-u`` | ``--no-unused``              Filter out warnings related to unused variables and values.
+``-r`` | ``--no-redefined``           Filter out warnings related to redefined variables.
+``-a`` | ``--no-unused-args``         Filter out warnings related to unused arguments and loop variables.
+``-v`` | ``--no-unused-values``       Filter out warnings related to unused values.
+``--no-unset``                        Filter out warnings related to unset variables.
+``-s`` | ``--no-unused-secondaries``  Filter out warnings related to unused variables set together with used ones.
 
-                                     See :ref:`secondaryvaluesandvariables`
-``--no-unset``                       Filter out warnings related to unset variables.
-``--std <std>``                      Set standard globals. ``<std>`` must be one of:
+                                      See :ref:`secondaryvaluesandvariables`
+``--std <std>``                       Set standard globals. ``<std>`` must be one of:
 
-                                     * ``_G`` - globals of the Lua interpreter ``luacheck`` runs on (default);
-                                     * ``lua51`` - globals of Lua 5.1;
-                                     * ``lua52`` - globals of Lua 5.2;
-                                     * ``lua52c`` - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;
-                                     * ``luajit`` - globals of LuaJIT 2.0;
-                                     * ``min`` - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
-                                     * ``max`` - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
-                                     * ``none`` - no standard globals.
-``--globals [<global>] ...``         Add custom globals on top of standard ones.
-``--new-globals [<global>] ...``     Set custom globals. Removes custom globals added previously.
-``-c`` | ``--compat``                Equivalent to ``--std=max``.
-``-d`` | ``--allow-defined``         Allow defining globals implicitly by setting them.
+                                      * ``_G`` - globals of the Lua interpreter ``luacheck`` runs on (default);
+                                      * ``lua51`` - globals of Lua 5.1;
+                                      * ``lua52`` - globals of Lua 5.2;
+                                      * ``lua52c`` - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;
+                                      * ``lua53`` - globals of Lua 5.3; 
+                                      * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
+                                      * ``luajit`` - globals of LuaJIT 2.0;
+                                      * ``min`` - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
+                                      * ``max`` - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
+                                      * ``none`` - no standard globals.
+``--globals [<global>] ...``          Add custom globals on top of standard ones.
+``--read-globals [<global>] ...``     Add read-only globals.
+``--new-globals [<global>] ...``      Set custom globals. Removes custom globals added previously.
+``--new-read-globals [<global>] ...`` Set read-only globals. Removes read-only globals added previously.
+``-c`` | ``--compat``                 Equivalent to ``--std max``.
+``-d`` | ``--allow-defined``          Allow defining globals implicitly by setting them.
 
-                                     See :ref:`implicitlydefinedglobals`
-``-t`` | ``--allow-defined-top``     Allow defining globals implicitly by setting them in the top level scope.
+                                      See :ref:`implicitlydefinedglobals`
+``-t`` | ``--allow-defined-top``      Allow defining globals implicitly by setting them in the top level scope.
 
-                                     See :ref:`implicitlydefinedglobals`
-``-m`` | ``--module``                Limit visibility of implicitly defined globals to their files.
+                                      See :ref:`implicitlydefinedglobals`
+``-m`` | ``--module``                 Limit visibility of implicitly defined globals to their files.
 
-                                     See :ref:`modules`
-``--no-unused-globals``              Filter out warnings related to set but unused global variables.
-``--ignore <var> [<var>] ...``       Filter out warnings related to variables named ``<var>``.
-``--only <var> [<var>] ...``         Filter out warnings not related to variables named ``<var>``.
-``-l <limit>`` | ``--limit <limit>`` Exit with 0 if there are ``<limit>`` or less warnings (default: ``0``).
-``--config <config>``                Path to custom configuration file (default: ``.luacheckrc``).
-``--no-config``                      Do not look up custom configuration file.
-``-q`` | ``--quiet``                 Suppress report output for files without warnings.
+                                      See :ref:`modules`
+``--no-unused-globals``               Filter out warnings related to set but unused global variables.
+``--ignore | -i <patt> [<patt>] ...`` Filter out warnings matching patterns.
+``--enable | -o <patt> [<patt>] ...`` Do not filter out warnings matching patterns.
+``--only | -o <patt> [<patt>] ...``   Filter out warnings not matching patterns.
+``-l <limit>`` | ``--limit <limit>``  Exit with 0 if there are ``<limit>`` or less warnings (default: ``0``).
+``--config <config>``                 Path to custom configuration file (default: ``.luacheckrc``).
+``--no-config``                       Do not look up custom configuration file.
+``-q`` | ``--quiet``                  Suppress report output for files without warnings.
 
-                                     * ``-qq`` - Suppress output of warnings.
-                                     * ``-qqq`` - Only output summary.
-``--no-color``                       Do not colorize output.
-``-h`` | ``--help``                  Show help and exit.
-==================================== =============================================================================
+                                      * ``-qq`` - Suppress output of warnings.
+                                      * ``-qqq`` - Only output summary.
+``--no-color``                        Do not colorize output.
+``-h`` | ``--help``                   Show help and exit.
+===================================== ============================================================================
+
+.. _patterns:
+
+Patterns
+--------
+
+CLI options ``--ignore``, ``--enable`` and ``--only`` and corresponding config options allow filtering warnings using pattern matching on warning codes, variable names or both. If a pattern contains a slash, the part before slash matches warning code and the part after matches variable name. Otherwise, if a pattern contains a letter or underscore, it matches variable name. Otherwise, it matches warning code. E.g.:
+
+======= =========================================================================
+Pattern Matching warnings
+======= =========================================================================
+4.2     Shadowing declarations of arguments or redefining them.
+.*_     Warnings related to variables with ``_`` suffix.
+4.2/.*_ Shadowing declarations of arguments with ``_`` suffix or redefining them.
+======= =========================================================================

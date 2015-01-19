@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Luacheck documentation &mdash; luacheck 0.7.3 documentation</title>
+  <title>Luacheck documentation &mdash; luacheck 0.8.0 documentation</title>
   
 
   
@@ -28,8 +28,8 @@
   
 
   
-    <link rel="top" title="luacheck 0.7.3 documentation" href="#"/>
-        <link rel="next" title="Types of warnings" href="warnings.html"/> 
+    <link rel="top" title="luacheck 0.8.0 documentation" href="#"/>
+        <link rel="next" title="List of warnings" href="warnings.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -57,23 +57,24 @@
         
         
             <ul>
-<li class="toctree-l1"><a class="reference internal" href="warnings.html">Types of warnings</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="warnings.html">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables">Unused variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#redefined-variables">Redefined variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and  values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#shadowing-declarations">Shadowing declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="config.html#config-format">Config format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-overrides">Per-file overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#config-options">Config options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module.html#options">Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
 </ul>
 </li>
@@ -116,41 +117,39 @@
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="warnings.html">Types of warnings</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="warnings.html">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="warnings.html#explicitly-defined-globals">Explicitly defined globals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="warnings.html#read-only-globals">Read-only globals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="warnings.html#implicitly-defined-globals">Implicitly defined globals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="warnings.html#modules">Modules</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables">Unused variables</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="warnings.html#unused-values">Unused values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and  values</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="warnings.html#unused-values-and-uninitialized-variables">Unused values and uninitialized variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="warnings.html#secondary-values-and-variables">Secondary values and variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="warnings.html#unset-variables">Unset variables</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#redefined-variables">Redefined variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#shadowing-declarations">Shadowing declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="config.html#config-format">Config format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-overrides">Per-file overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#config-options">Config options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module.html#options">Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
 </ul>
 </li>
 </ul>
 </div>
-<p><a class="reference external" href="https://github.com/mpeterv/luacheck/">Luacheck</a> is a tool for linting and static analysis of <a class="reference external" href="http://www.lua.org/">Lua</a> code. It is able to spot usage of undefined global variables, unused local variables and a few other typical problems within Lua programs.</p>
-<p>Luacheck provides a command line interface as well as a Lua module which can be used by other programs.</p>
-<p>This is the documentation for the 0.7.3 version.</p>
+<p>This is documentation for <a class="reference external" href="https://github.com/mpeterv/luacheck/">Luacheck</a> 0.8.0, a static analyzer and a linter for <a class="reference external" href="http://www.lua.org/">Lua</a>.</p>
 </div>
 
 
@@ -159,7 +158,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="warnings.html" class="btn btn-neutral float-right" title="Types of warnings"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="warnings.html" class="btn btn-neutral float-right" title="List of warnings"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -189,7 +188,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.7.3',
+            VERSION:'0.8.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Command line interface &mdash; luacheck 0.7.3 documentation</title>
+  <title>Command line interface &mdash; luacheck 0.8.0 documentation</title>
   
 
   
@@ -28,9 +28,9 @@
   
 
   
-    <link rel="top" title="luacheck 0.7.3 documentation" href="index.html"/>
+    <link rel="top" title="luacheck 0.8.0 documentation" href="index.html"/>
         <link rel="next" title="Configuration file" href="config.html"/>
-        <link rel="prev" title="Types of warnings" href="warnings.html"/> 
+        <link rel="prev" title="List of warnings" href="warnings.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -58,23 +58,24 @@
         
         
             <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="warnings.html">Types of warnings</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="warnings.html">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables">Unused variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#redefined-variables">Redefined variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and  values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#shadowing-declarations">Shadowing declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#command-line-options">Command line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#patterns">Patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="config.html#config-format">Config format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-overrides">Per-file overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#config-options">Config options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module.html#options">Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
 </ul>
 </li>
@@ -118,7 +119,7 @@
 <ul class="simple">
 <li>Given a file, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check it.</li>
 <li>Given <tt class="docutils literal"><span class="pre">-</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check stdin.</li>
-<li>Given a directory, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension within it.</li>
+<li>Given a directory, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension within it. This feature requires <a class="reference external" href="http://keplerproject.github.io/luafilesystem/">luafilesystem</a> (installed automatically if LuaRocks was used to install Luacheck).</li>
 <li>Given a rockspec (a file with <tt class="docutils literal"><span class="pre">.rockspec</span></tt> extension), <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension mentioned in the rockspec in <tt class="docutils literal"><span class="pre">build.install.lua</span></tt>, <tt class="docutils literal"><span class="pre">build.install.bin</span></tt> and <tt class="docutils literal"><span class="pre">build.modules</span></tt> tables.</li>
 </ul>
 <p>The output of <tt class="docutils literal"><span class="pre">luacheck</span></tt> consists of separate reports for each checked file and ends with a summary:</p>
@@ -152,12 +153,12 @@ Total: 14 warnings / 1 error in 4 files
 <div class="section" id="command-line-options">
 <span id="cliopts"></span><h2>Command line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h2>
 <p>Short options that do not take an argument can be combined into one, so that <tt class="docutils literal"><span class="pre">-qqu</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">-q</span> <span class="pre">-q</span> <span class="pre">-u</span></tt>. For long options, both <tt class="docutils literal"><span class="pre">--option</span> <span class="pre">value</span></tt> or <tt class="docutils literal"><span class="pre">--option=value</span></tt> can be used.</p>
-<p>Options taking several arguments can be used several time; <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">--ignore</span> <span class="pre">bar</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">bar</span></tt>.</p>
+<p>Options taking several arguments can be used several times; <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">--ignore</span> <span class="pre">bar</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">foo</span> <span class="pre">bar</span></tt>.</p>
 <p>Note that options that may take several arguments, such as <tt class="docutils literal"><span class="pre">--globals</span></tt>, should not be used immediately before positional arguments; given <tt class="docutils literal"><span class="pre">--globals</span> <span class="pre">foo</span> <span class="pre">bar</span> <span class="pre">file.lua</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will consider all <tt class="docutils literal"><span class="pre">foo</span></tt>, <tt class="docutils literal"><span class="pre">bar</span></tt> and <tt class="docutils literal"><span class="pre">file.lua</span></tt> global and then panic as there are no file names left.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="32%" />
-<col width="68%" />
+<col width="33%" />
+<col width="67%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Option</th>
@@ -168,11 +169,11 @@ Total: 14 warnings / 1 error in 4 files
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">-g</span></tt> | <tt class="docutils literal"><span class="pre">--no-global</span></tt></td>
 <td>Filter out warnings related to global variables.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-r</span></tt> | <tt class="docutils literal"><span class="pre">--no-redefined</span></tt></td>
-<td>Filter out warnings related to redefined variables.</td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-u</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused</span></tt></td>
+<td>Filter out warnings related to unused variables and values.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-u</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused</span></tt></td>
-<td>Filter out warnings related to unused variables.</td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-r</span></tt> | <tt class="docutils literal"><span class="pre">--no-redefined</span></tt></td>
+<td>Filter out warnings related to redefined variables.</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-a</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-args</span></tt></td>
 <td>Filter out warnings related to unused arguments and loop variables.</td>
@@ -180,13 +181,13 @@ Total: 14 warnings / 1 error in 4 files
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">-v</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-values</span></tt></td>
 <td>Filter out warnings related to unused values.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-s</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-secondaries</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-unset</span></tt></td>
+<td>Filter out warnings related to unset variables.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-s</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-secondaries</span></tt></td>
 <td><p class="first">Filter out warnings related to unused variables set together with used ones.</p>
 <p class="last">See <a class="reference internal" href="warnings.html#secondaryvaluesandvariables"><em>Secondary values and variables</em></a></p>
 </td>
-</tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-unset</span></tt></td>
-<td>Filter out warnings related to unset variables.</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--std</span> <span class="pre">&lt;std&gt;</span></tt></td>
 <td><p class="first">Set standard globals. <tt class="docutils literal"><span class="pre">&lt;std&gt;</span></tt> must be one of:</p>
@@ -195,6 +196,8 @@ Total: 14 warnings / 1 error in 4 files
 <li><tt class="docutils literal"><span class="pre">lua51</span></tt> - globals of Lua 5.1;</li>
 <li><tt class="docutils literal"><span class="pre">lua52</span></tt> - globals of Lua 5.2;</li>
 <li><tt class="docutils literal"><span class="pre">lua52c</span></tt> - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;</li>
+<li><tt class="docutils literal"><span class="pre">lua53</span></tt> - globals of Lua 5.3;</li>
+<li><tt class="docutils literal"><span class="pre">lua53c</span></tt> - globals of Lua 5.3 compiled with LUA_COMPAT_5_2;</li>
 <li><tt class="docutils literal"><span class="pre">luajit</span></tt> - globals of LuaJIT 2.0;</li>
 <li><tt class="docutils literal"><span class="pre">min</span></tt> - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;</li>
 <li><tt class="docutils literal"><span class="pre">max</span></tt> - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;</li>
@@ -205,11 +208,17 @@ Total: 14 warnings / 1 error in 4 files
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">--globals</span> <span class="pre">[&lt;global&gt;]</span> <span class="pre">...</span></tt></td>
 <td>Add custom globals on top of standard ones.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--new-globals</span> <span class="pre">[&lt;global&gt;]</span> <span class="pre">...</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--read-globals</span> <span class="pre">[&lt;global&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Add read-only globals.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--new-globals</span> <span class="pre">[&lt;global&gt;]</span> <span class="pre">...</span></tt></td>
 <td>Set custom globals. Removes custom globals added previously.</td>
 </tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--new-read-globals</span> <span class="pre">[&lt;global&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Set read-only globals. Removes read-only globals added previously.</td>
+</tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">-c</span></tt> | <tt class="docutils literal"><span class="pre">--compat</span></tt></td>
-<td>Equivalent to <tt class="docutils literal"><span class="pre">--std=max</span></tt>.</td>
+<td>Equivalent to <tt class="docutils literal"><span class="pre">--std</span> <span class="pre">max</span></tt>.</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-d</span></tt> | <tt class="docutils literal"><span class="pre">--allow-defined</span></tt></td>
 <td><p class="first">Allow defining globals implicitly by setting them.</p>
@@ -229,22 +238,25 @@ Total: 14 warnings / 1 error in 4 files
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-unused-globals</span></tt></td>
 <td>Filter out warnings related to set but unused global variables.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">&lt;var&gt;</span> <span class="pre">[&lt;var&gt;]</span> <span class="pre">...</span></tt></td>
-<td>Filter out warnings related to variables named <tt class="docutils literal"><span class="pre">&lt;var&gt;</span></tt>.</td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--ignore</span> <span class="pre">|</span> <span class="pre">-i</span> <span class="pre">&lt;patt&gt;</span> <span class="pre">[&lt;patt&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Filter out warnings matching patterns.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--only</span> <span class="pre">&lt;var&gt;</span> <span class="pre">[&lt;var&gt;]</span> <span class="pre">...</span></tt></td>
-<td>Filter out warnings not related to variables named <tt class="docutils literal"><span class="pre">&lt;var&gt;</span></tt>.</td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--enable</span> <span class="pre">|</span> <span class="pre">-o</span> <span class="pre">&lt;patt&gt;</span> <span class="pre">[&lt;patt&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Do not filter out warnings matching patterns.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-l</span> <span class="pre">&lt;limit&gt;</span></tt> | <tt class="docutils literal"><span class="pre">--limit</span> <span class="pre">&lt;limit&gt;</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--only</span> <span class="pre">|</span> <span class="pre">-o</span> <span class="pre">&lt;patt&gt;</span> <span class="pre">[&lt;patt&gt;]</span> <span class="pre">...</span></tt></td>
+<td>Filter out warnings not matching patterns.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-l</span> <span class="pre">&lt;limit&gt;</span></tt> | <tt class="docutils literal"><span class="pre">--limit</span> <span class="pre">&lt;limit&gt;</span></tt></td>
 <td>Exit with 0 if there are <tt class="docutils literal"><span class="pre">&lt;limit&gt;</span></tt> or less warnings (default: <tt class="docutils literal"><span class="pre">0</span></tt>).</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--config</span> <span class="pre">&lt;config&gt;</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--config</span> <span class="pre">&lt;config&gt;</span></tt></td>
 <td>Path to custom configuration file (default: <tt class="docutils literal"><span class="pre">.luacheckrc</span></tt>).</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-config</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-config</span></tt></td>
 <td>Do not look up custom configuration file.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-q</span></tt> | <tt class="docutils literal"><span class="pre">--quiet</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-q</span></tt> | <tt class="docutils literal"><span class="pre">--quiet</span></tt></td>
 <td><p class="first">Suppress report output for files without warnings.</p>
 <ul class="last simple">
 <li><tt class="docutils literal"><span class="pre">-qq</span></tt> - Suppress output of warnings.</li>
@@ -252,11 +264,37 @@ Total: 14 warnings / 1 error in 4 files
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-color</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-color</span></tt></td>
 <td>Do not colorize output.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-h</span></tt> | <tt class="docutils literal"><span class="pre">--help</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-h</span></tt> | <tt class="docutils literal"><span class="pre">--help</span></tt></td>
 <td>Show help and exit.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="patterns">
+<span id="id1"></span><h2>Patterns<a class="headerlink" href="#patterns" title="Permalink to this headline">¶</a></h2>
+<p>CLI options <tt class="docutils literal"><span class="pre">--ignore</span></tt>, <tt class="docutils literal"><span class="pre">--enable</span></tt> and <tt class="docutils literal"><span class="pre">--only</span></tt> and corresponding config options allow filtering warnings using pattern matching on warning codes, variable names or both. If a pattern contains a slash, the part before slash matches warning code and the part after matches variable name. Otherwise, if a pattern contains a letter or underscore, it matches variable name. Otherwise, it matches warning code. E.g.:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="9%" />
+<col width="91%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Pattern</th>
+<th class="head">Matching warnings</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>4.2</td>
+<td>Shadowing declarations of arguments or redefining them.</td>
+</tr>
+<tr class="row-odd"><td>.*_</td>
+<td>Warnings related to variables with <tt class="docutils literal"><span class="pre">_</span></tt> suffix.</td>
+</tr>
+<tr class="row-even"><td>4.2/.*_</td>
+<td>Shadowing declarations of arguments with <tt class="docutils literal"><span class="pre">_</span></tt> suffix or redefining them.</td>
 </tr>
 </tbody>
 </table>
@@ -272,7 +310,7 @@ Total: 14 warnings / 1 error in 4 files
         <a href="config.html" class="btn btn-neutral float-right" title="Configuration file"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="warnings.html" class="btn btn-neutral" title="Types of warnings"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="warnings.html" class="btn btn-neutral" title="List of warnings"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -301,7 +339,7 @@ Total: 14 warnings / 1 error in 4 files
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.7.3',
+            VERSION:'0.8.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

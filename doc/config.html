@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Configuration file &mdash; luacheck 0.7.3 documentation</title>
+  <title>Configuration file &mdash; luacheck 0.8.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.7.3 documentation" href="index.html"/>
+    <link rel="top" title="luacheck 0.8.0 documentation" href="index.html"/>
         <link rel="next" title="Luacheck module" href="module.html"/>
         <link rel="prev" title="Command line interface" href="cli.html"/> 
 
@@ -58,23 +58,24 @@
         
         
             <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="warnings.html">Types of warnings</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="warnings.html">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables">Unused variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#redefined-variables">Redefined variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and  values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#shadowing-declarations">Shadowing declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Configuration file</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#config-format">Config format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#per-file-overrides">Per-file overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config-options">Config options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#per-prefix-overrides">Per-prefix overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module.html#options">Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
 </ul>
 </li>
@@ -115,39 +116,154 @@
   <div class="section" id="configuration-file">
 <h1>Configuration file<a class="headerlink" href="#configuration-file" title="Permalink to this headline">¶</a></h1>
 <p>By default, <tt class="docutils literal"><span class="pre">luacheck</span></tt> tries to load configuration from <tt class="docutils literal"><span class="pre">.luacheckrc</span></tt> file in the current directory. Path to config can be set using <tt class="docutils literal"><span class="pre">--config</span></tt> option. Config loading can be disabled using <tt class="docutils literal"><span class="pre">--no-config</span></tt> flag.</p>
-<div class="section" id="config-format">
-<h2>Config format<a class="headerlink" href="#config-format" title="Permalink to this headline">¶</a></h2>
-<p>Config is simply a Lua script executed by <tt class="docutils literal"><span class="pre">luacheck</span></tt>. It may set various options by assigning to globals. See <a class="reference internal" href="module.html#options"><em>Options</em></a>.</p>
-<p>An example of a config which makes <tt class="docutils literal"><span class="pre">luacheck</span></tt> ensure that only globals from the portable intersection of Lua 5.1, Lua 5.2 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:</p>
+<p>Config is simply a Lua script executed by <tt class="docutils literal"><span class="pre">luacheck</span></tt>. It may set various options by assigning to globals.</p>
+<div class="section" id="config-options">
+<span id="options"></span><h2>Config options<a class="headerlink" href="#config-options" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="49%" />
+<col width="23%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Option</th>
+<th class="head">Type</th>
+<th class="head">Default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">color</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">codes</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">limit</span></tt></td>
+<td>Number</td>
+<td><tt class="docutils literal"><span class="pre">0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">global</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">unused</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">redefined</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">unused_args</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">unused_values</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">unset</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">unused_secondaries</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">std</span></tt></td>
+<td>String or array of strings</td>
+<td><tt class="docutils literal"><span class="pre">&quot;_G&quot;</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">globals</span></tt></td>
+<td>Array of strings</td>
+<td><tt class="docutils literal"><span class="pre">{}</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">new_globals</span></tt></td>
+<td>Array of strings</td>
+<td>(Do not overwrite)</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">read_globals</span></tt></td>
+<td>Array of strings</td>
+<td><tt class="docutils literal"><span class="pre">{}</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">new_read_globals</span></tt></td>
+<td>Array of strings</td>
+<td>(Do not overwrite)</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">compat</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">allow_defined</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">allow_defined_top</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">module</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">unused_globals</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">ignore</span></tt></td>
+<td>Array of patterns (see <a class="reference internal" href="cli.html#patterns"><em>Patterns</em></a>)</td>
+<td><tt class="docutils literal"><span class="pre">{}</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">enable</span></tt></td>
+<td>Array of patterns</td>
+<td><tt class="docutils literal"><span class="pre">{}</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">only</span></tt></td>
+<td>Array of patterns</td>
+<td>(Do not filter)</td>
+</tr>
+</tbody>
+</table>
+<p>An example of a config which makes <tt class="docutils literal"><span class="pre">luacheck</span></tt> ensure that only globals from the portable intersection of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:</p>
 <div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
-<span class="n">unused_args</span> <span class="o">=</span> <span class="kc">false</span>
+<span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">211&quot;</span><span class="p">}</span>
 </pre></div>
 </td></tr></table></div>
 </div>
-<div class="section" id="per-file-overrides">
-<h2>Per-file overrides<a class="headerlink" href="#per-file-overrides" title="Permalink to this headline">¶</a></h2>
-<p>The environment in which <tt class="docutils literal"><span class="pre">luacheck</span></tt> loads the config contains a special global <tt class="docutils literal"><span class="pre">files</span></tt>. When checking a file <tt class="docutils literal"><span class="pre">&lt;path&gt;</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will override options from the main config with entries from <tt class="docutils literal"><span class="pre">files[&lt;path&gt;]</span></tt>. For example, the following config re-enables detection of unused arguments only for <tt class="docutils literal"><span class="pre">myfile.lua</span></tt>:</p>
-<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
-<span class="n">unused_args</span> <span class="o">=</span> <span class="kc">false</span>
+<div class="section" id="per-prefix-overrides">
+<h2>Per-prefix overrides<a class="headerlink" href="#per-prefix-overrides" title="Permalink to this headline">¶</a></h2>
+<p>The environment in which <tt class="docutils literal"><span class="pre">luacheck</span></tt> loads the config contains a special global <tt class="docutils literal"><span class="pre">files</span></tt>. When checking a file <tt class="docutils literal"><span class="pre">&lt;path&gt;</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will override options from the main config with entries from <tt class="docutils literal"><span class="pre">files[&lt;path_prefix&gt;]</span></tt>, applying entries for shorter prefixes first. This allows to override options for a specific file by setting <tt class="docutils literal"><span class="pre">files[&lt;path&gt;]</span></tt>, and for all files in a directory by setting <tt class="docutils literal"><span class="pre">files[&lt;dir&gt;/]</span></tt>. For example, the following config re-enables detection of unused arguments only for files in <tt class="docutils literal"><span class="pre">src/dir</span></tt>, but not for <tt class="docutils literal"><span class="pre">src/dir/myfile.lua</span></tt>:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
+<span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">211&quot;</span><span class="p">}</span>
 
-<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="n">unused_args</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">src/dir/&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="n">enable</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">211&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">src/dir/myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">211&quot;</span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </td></tr></table></div>
 <p>Note that <tt class="docutils literal"><span class="pre">files</span></tt> table supports autovivification, so that</p>
-<div class="highlight-lua"><div class="highlight"><pre><span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">].</span><span class="n">unused_args</span> <span class="o">=</span> <span class="kc">true</span>
+<div class="highlight-lua"><div class="highlight"><pre><span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">].</span><span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">211&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>and</p>
 <div class="highlight-lua"><div class="highlight"><pre><span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="n">unused_args</span> <span class="o">=</span> <span class="kc">true</span>
+   <span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">211&quot;</span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -193,7 +309,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.7.3',
+            VERSION:'0.8.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -1,64 +1,92 @@
-Types of warnings
-=================
+List of warnings
+================
 
-Luacheck generates warnings of three types:
+Warnings produced by Luacheck are categorized using three-digit warning codes. Warning codes can be displayed in CLI output using ``--codes`` CLI option or ``code`` config option.
 
-* warnings related to global variables;
-* warnings related to unused local variables and values;
-* warnings related to redefined local variables.
+==== =============================================
+Code Description
+==== =============================================
+111  Setting an undefined global variable.
+112  Mutating an undefined global variable.
+113  Accessing an undefined global variable.
+121  Setting a read-only global variable.
+122  Mutating a read-only global variable.
+131  Unused implicitly defined global variable.
+211  Unused local variable.
+212  Unused argument.
+213  Unused loop variable.
+221  Local variable is accessed but never set.
+231  Local variable is set but never accessed.
+232  An argument is set but never accessed.
+233  Loop variable is set but never accessed.
+311  Value assigned to a local variable is unused.
+312  Value of an argument is unused.
+313  Value of a loop variable is unused.
+321  Accessing uninitialized local variable.
+411  Redefining a local variable.
+412  Redefining an argument.
+413  Redefining a loop variable.
+421  Shadowing a local variable.
+422  Shadowing an argument.
+423  Shadowing a loop variable.
+511  Unreachable code.
+512  Loop can be executed at most once.
+521  Unused label.
+531  Left-hand side of an assignment is too short.
+532  Left-hand side of an assignment is too long.
+541  An empty ``do`` ``end`` block.
+542  An empty ``if`` branch.
+==== =============================================
 
 Global variables
 ----------------
 
-To determine whether an assignment to a global or accessing a global should produce a warning, Luacheck builds a list of defined globals for each file. Globals can be defined explicitly or implicitly. Accessing or setting an undefined global produces or warning of corresponding subtype. All warnings related to globals can be disabled using ``-g``/``--no-global`` CLI option or ``global`` config option.
+For each file, Luacheck builds list of defined globals which can be used there. By default only globals from Lua standard library are defined; custom globals can be added using ``--globals`` CLI option or ``globals`` config option, and version of standard library can be selected using ``--std`` CLI option or ``std`` config option. When an undefined global is set, mutated or accessed, Luacheck produces a warning.
 
-Explicitly defined globals
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Read-only globals
+^^^^^^^^^^^^^^^^^
 
-Explicitly defined globals consist of standard and custom globals. Standard globals are globals provided by Lua interpreter, and can be set using ``--std`` CLI option or ``std`` config option. Custom globals are globals accessible due to other reasons, and can be set using ``--globals`` CLI option or ``globals`` config option.
+By default, all standard globals except ``_G`` and ``package`` are marked as read-only, so that setting or mutating them produces a warning. Custom read-only globals can be added using ``--read-globals`` CLI option or ``read_globals`` config option.
 
 .. _implicitlydefinedglobals:
 
 Implicitly defined globals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Luacheck can be configured to consider globals assigned under some conditions to be defined implicitly. When ``-d``/``--allow_defined`` CLI option or ``allow_defined`` config option is used, all assignments to globals define them; when ``-t``/``--allow_defined_top`` CLI option or ``allow_defined_top`` config option is used, assignments to globals in the top level function scope (also known as main chunk) define them.
-
-If an implicitly defined global is not accessed anywhere, a warning is produced, unless ``--no-unused-globals`` CLI option or ``unused_globals`` config option is used.
+Luacheck can be configured to consider globals assigned under some conditions to be defined implicitly. When ``-d``/``--allow_defined`` CLI option or ``allow_defined`` config option is used, all assignments to globals define them; when ``-t``/``--allow_defined_top`` CLI option or ``allow_defined_top`` config option is used, assignments to globals in the top level function scope (also known as main chunk) define them. A warning is produced when an implicitly defined global is not accessed anywhere.
 
 .. _modules:
 
 Modules
 ^^^^^^^
 
-Files can be marked as modules using ``-m``/``--module`` CLI option or ``module`` config option to simulate semantics of the deprecated `module <http://www.lua.org/manual/5.1/manual.html#pdf-module>`_ function. Globals implicitly defined inside a module are not visible outside and are not reported as unused. Additionally, only assignments to implicitly defined globals are allowed.
+Files can be marked as modules using ``-m``/``--module`` CLI option or ``module`` config option to simulate semantics of the deprecated `module <http://www.lua.org/manual/5.1/manual.html#pdf-module>`_ function. Globals implicitly defined inside a module are considired part of its interface, are not visible outside and are not reported as unused. Assignments to other globals are not allowed, even to defined ones.
 
-Unused variables
-----------------
+Unused variables and  values
+----------------------------
 
-Luacheck generates warnings for all unused local variables except one named ``_``. These warnings can be disabled using ``-u``/``--no-unused`` CLI option or ``unused`` config option.
+Luacheck generates warnings for all unused local variables except one named ``_``. It also detects variables which are set but never accessed or accessed but never set.
 
-Detection of unused arguments and loop variables can be disabled using ``-a``/``--no-unused-args`` CLI option or ``unused_args`` config option.
+Unused values and uninitialized variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Unused values
-^^^^^^^^^^^^^
-
-Luacheck also detects unused values: redundant assignments to variables which are then not used before another assignment. As an example, in the following snippet value assigned to ``foo`` on line 1 is unused, as it is overwritten in both branches of ``if`` statement before being used:
+For each value assigned to a local variable, Luacheck computes set of expressions where it could be used. Warnings are produced for unused values (when a value can't be used anywhere) and for accessing uninitialized variables (when no values can reach an expression). E.g. in the following snippet value assigned to ``foo`` on line 1 is unused, and variable ``bar`` is uninitialized on line 9:
 
 .. code-block:: lua
    :linenos:
 
    local foo = expr1()
+   local bar
 
    if condition() then
       foo = expr2()
+      bar = expr3()
    else
-      foo = expr3()
+      foo = expr4()
+      print(bar)
    end
 
-   return foo
-
-Detection of unused values can be disabled using ``-v``/``--no-unused-values`` CLI option or ``unused_values`` config option.
+   return foo, bar
 
 .. _secondaryvaluesandvariables:
 
@@ -74,19 +102,14 @@ Unused value assigned to a local variable is secondary if its origin is the last
 
    return c
 
-Secondary variables are unused variables initialized with a secondary value. In the snippet above, ``b`` is a secondary variable.
+A variable is secondary if all values assigned to it are secondary. In the snippet above, ``b`` is a secondary variable.
 
 Warnings related to unused secondary values and variables can be removed using ``-s``/``--no-unused-secondaries`` CLI option or ``unused_secondaries`` config option.
 
-Unset variables
-^^^^^^^^^^^^^^^
+Shadowing declarations
+----------------------
 
-Luacheck generates warnings for local variables that are accessed but never set. These warnings can be removed using ``--no-unset`` CLI option or ``unset`` config option.
-
-Redefined variables
--------------------
-
-Luacheck detects declarations of local variables shadowing previous declarations in the same scope, unless the variable is named ``_``. This diagnostic can be disabled using ``-r``/``--no-redefined`` CLI option or ``redefined`` config option.
+Luacheck detects declarations of local variables shadowing previous declarations in the same closure, unless the variable is named ``_``. If the previous declaration is in the same scope as the new one, it is called redefining.
 
 Note that it is **not** necessary to define a new local variable when overwriting an argument:
 
@@ -100,3 +123,11 @@ Note that it is **not** necessary to define a new local variable when overwritin
    local function f(x)
       x = x or "default" -- good
    end
+
+Control flow and data flow issues
+---------------------------------
+
+* Unreachable code and loops that can be executed at most once (e.g. due to an unconditional break);
+* Unused labels;
+* Unbalanced assignments;
+* Empty blocks.
