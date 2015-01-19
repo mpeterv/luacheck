@@ -48,7 +48,7 @@ Documentation is available [online](http://luacheck.readthedocs.org). If Luachec
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.7.3. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.8.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 
