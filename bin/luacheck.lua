@@ -137,7 +137,6 @@ Otherwise, the pattern matches warning code.]]
       parser:option "--formatter"
          :description [[Use custom formatter. <formatter> must be a module name or one of:
    TAP - Test Anything Protocol formatter;
-   JUnit - JUnit XML formatter;
    plain - simple warning-per-line formatter;
    default - standard formatter. ]]
 
@@ -374,7 +373,13 @@ Otherwise, the pattern matches warning code.]]
    args.codes = args.codes or config and config.codes
    args.formatter = args.formatter or (config and config.formatter) or "default"
 
-   print(pformat(report, file_names, args))
+   local output = pformat(report, file_names, args)
+
+   if #output > 0 and output:sub(-1) ~= "\n" then
+      output = output .. "\n"
+   end
+
+   io.stdout:write(output)
 
    local exit_code
 

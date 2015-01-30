@@ -181,6 +181,22 @@ function formatters.TAP(report, file_names, codes)
    return table.concat(buf, "\n")
 end
 
+function formatters.plain(report, file_names, codes)
+   local buf = {}
+
+   for i, file_report in ipairs(report) do
+      if file_report.error then
+         table.insert(buf, ("%s: %s error"):format(file_names[i], file_report.error))
+      else
+         for _, warning in ipairs(file_report) do
+            table.insert(buf, format_warning(file_names[i], warning, codes))
+         end
+      end
+   end
+
+   return table.concat(buf, "\n")
+end
+
 --- Formats a report.
 -- Recognized options:
 --    `options.formatter`: name of used formatter. Default: "default".

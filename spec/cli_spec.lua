@@ -508,6 +508,24 @@ not ok 6 spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'he
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --std=lua52 --formatter TAP --codes")
    end)
 
+   it("has built-in simple warning-per-line formatter", function()
+      assert.equal("", get_output "spec/samples/good_code.lua --std=lua52 --formatter plain")
+
+      assert.equal([[spec/samples/bad_code.lua:3:16: unused function 'helper'
+spec/samples/bad_code.lua:3:23: unused variable length argument
+spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'
+spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7
+spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --std=lua52 --formatter plain")
+
+      assert.equal([[spec/samples/bad_code.lua:3:16: (W211) unused function 'helper'
+spec/samples/bad_code.lua:3:23: (W212) unused variable length argument
+spec/samples/bad_code.lua:7:10: (W111) setting non-standard global variable 'embrace'
+spec/samples/bad_code.lua:8:10: (W412) variable 'opt' was previously defined as an argument on line 7
+spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --std=lua52 --formatter plain --codes")
+   end)
+
    it("expands folders", function()
       local output = get_output "spec/samples -qqq"
       assert.truthy(output:match("Total: [%d]+ warnings / 1 error in 15 files\n"))
