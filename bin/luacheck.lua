@@ -319,6 +319,14 @@ Otherwise, the pattern matches warning code.]]
       end
    end
 
+   local function normalize_file_names(file_names)
+      for i, file_name in ipairs(file_names) do
+         if type(file_name) ~= "string" then
+            file_names[i] = "stdin"
+         end
+      end
+   end
+
    local builtin_formatters = utils.array_to_set({"TAP", "JUnit", "plain", "default"})
 
    local function pformat(report, file_names, args)
@@ -353,6 +361,7 @@ Otherwise, the pattern matches warning code.]]
    local files = remove_bad_rockspecs(file_names, bad_rockspecs)
    local report = luacheck(files, combine_config_and_options(config, args.config, opts, files))
    insert_bad_rockspecs(report, file_names, bad_rockspecs)
+   normalize_file_names(file_names)
 
    -- Apply cli options from config.
    if args.no_color then

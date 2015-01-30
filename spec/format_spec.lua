@@ -40,7 +40,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    {
       error = "syntax"
    }
-}, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {})))
+}, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {})))
    end)
 
    it("does not output OK messages with options.quiet >= 1", function()
@@ -77,7 +77,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    {
       error = "syntax"
    }
-}, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {quiet = 1})))
+}, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {quiet = 1})))
    end)
 
    it("does not output warnings with options.quiet >= 2", function()
@@ -108,7 +108,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    {
       error = "syntax"
    }
-}, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {quiet = 2})))
+}, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {quiet = 2})))
    end)
 
    it("does not output file info with options.quiet == 3", function()
@@ -135,7 +135,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    {
       error = "syntax"
    }
-}, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {quiet = 3})))
+}, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {quiet = 3})))
    end)
 
    it("does not color output if options.color == false", function()
@@ -173,6 +173,6 @@ Total: 2 warnings / 1 error in 4 files]], format({
    {
       error = "syntax"
    }
-}, {io.stdin, "foo.lua", "bar.lua", "baz.lua"}, {color = false}))
+}, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {color = false}))
    end)
 end)

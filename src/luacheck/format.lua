@@ -107,7 +107,18 @@ local function format_file_report_header(report, file_name, color)
    return label .. (" "):rep(math.max(50 - #label, 1)) .. status
 end
 
-local function format_file_report(report, file_name, color, codes)
+local function format_warning(warning, codes, color)
+   local message_format = get_message_format(warning)
+   local message = message_format:format(warning.name and format_name(warning.name, color), warning.prev_line)
+
+   if codes then
+      message = ("(W%s) %s"):format(warning.code, message)
+   end
+
+   return message
+end
+
+local function format_file_report(report, file_name, codes, color)
    local buf = {format_file_report_header(report, file_name, color)}
 
    if not report.error and #report > 0 then
@@ -115,18 +126,39 @@ local function format_file_report(report, file_name, color, codes)
 
       for _, warning in ipairs(report) do
          local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
-         local message_format = get_message_format(warning)
-         local message = message_format:format(warning.name and format_name(warning.name, color), warning.prev_line)
-
-         if codes then
-            message = ("(W%s) %s"):format(warning.code, message)
-         end
-
+         local message = format_warning(warning, codes, color)
          table.insert(buf, ("    %s: %s"):format(location, message))
       end
 
       table.insert(buf, "")
    end
+
+   return table.concat(buf, "\n")
+end
+
+local formatters = {}
+
+function formatters.default(report, file_names, codes, quiet, limit, color)
+   local buf = {}
+
+   if quiet <= 2 then
+      for i, file_report in ipairs(report) do
+         if quiet == 0 or file_report.error or #file_report > 0 then
+            table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
+               file_report, file_names[i], codes, color))
+         end
+      end
+
+      if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then
+         table.insert(buf, "")
+      end
+   end
+
+   table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
+      format_number(report.warnings, limit, color), plural(report.warnings),
+      format_number(report.errors, 0, color), plural(report.errors),
+      #report, plural(#report)
+   ))
 
    return table.concat(buf, "\n")
 end
@@ -143,29 +175,7 @@ local function format(report, file_names, options)
    local limit = options.limit or 0
    local color = (options.color ~= false) and color_support
    local codes = options.codes
-
-   local buf = {}
-
-   if quiet <= 2 then
-      for i, file_report in ipairs(report) do
-         if quiet == 0 or file_report.error or #file_report > 0 then
-            table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
-               file_report, type(file_names[i]) == "string" and file_names[i] or "stdin", color, codes))
-         end
-      end
-
-      if #buf > 0 and buf[#buf]:sub(-1) ~= "\n" then
-         table.insert(buf, "")
-      end
-   end
-
-   table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
-      format_number(report.warnings, limit, color), plural(report.warnings),
-      format_number(report.errors, 0, color), plural(report.errors),
-      #report, plural(#report)
-   ))
-
-   return table.concat(buf, "\n")
+   return formatters[options.formatter or "default"](report, file_names, codes, quiet, limit, color)
 end
 
 return format
