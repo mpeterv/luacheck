@@ -131,11 +131,12 @@ local function format_file_report(report, file_name, color, codes)
    return table.concat(buf, "\n")
 end
 
---- Formats a report. 
--- Recognized options: 
---    `options.quiet`: integer in range 0-3. See CLI. Default: 0. 
---    `options.limit`: See CLI. Default: 0. 
---    `options.color`: should use ansicolors? Default: true. 
+--- Formats a report.
+-- Recognized options:
+--    `options.formatter`: name of used formatter. Default: "default".
+--    `options.quiet`: integer in range 0-3. See CLI. Default: 0.
+--    `options.limit`: See CLI. Default: 0.
+--    `options.color`: should use ansicolors? Default: true.
 --    `options.codes`: should output warning codes? Default: false.
 local function format(report, file_names, options)
    local quiet = options.quiet or 0

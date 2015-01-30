@@ -22,7 +22,6 @@ local function main()
    local options = require "luacheck.options"
    local expand_rockspec = require "luacheck.expand_rockspec"
    local utils = require "luacheck.utils"
-   local format = require "luacheck.format"
 
    local default_config = ".luacheckrc"
 
@@ -134,6 +133,13 @@ Otherwise, the pattern matches warning code.]]
          :description "Do not look up configuration file. "
 
       parser:mutex(config_opt, no_config_opt)
+
+      parser:option "--formatter"
+         :description [[Use custom formatter. <formatter> must be a module name or one of:
+   TAP - Test Anything Protocol formatter;
+   JUnit - JUnit XML formatter;
+   plain - simple warning-per-line formatter;
+   default - standard formatter. ]]
 
       parser:flag "-q" "--quiet"
          :count "0-3"
@@ -313,6 +319,28 @@ Otherwise, the pattern matches warning code.]]
       end
    end
 
+   local builtin_formatters = utils.array_to_set({"TAP", "JUnit", "plain", "default"})
+
+   local function pformat(report, file_names, args)
+      if builtin_formatters[args.formatter] then
+         return (require "luacheck.format")(report, file_names, args)
+      end
+
+      local require_ok, formatter_module = pcall(require, args.formatter)
+
+      if not require_ok then
+         fatal(("Couldn't load custom formatter '%s': %s"):format(args.formatter, formatter_module))
+      end
+
+      local output_ok, output = pcall(formatter_module, report, file_names, args)
+
+      if not output_ok then
+         fatal(("Couldn't run custom formatter '%s': %s"):format(args.formatter, output))
+      end
+
+      return output
+   end
+
    local args = get_args()
    local opts = get_options(args)
    local config
@@ -335,8 +363,9 @@ Otherwise, the pattern matches warning code.]]
 
    args.limit = args.limit or (config and config.limit or 0)
    args.codes = args.codes or config and config.codes
+   args.formatter = args.formatter or (config and config.formatter) or "default"
 
-   print(format(report, file_names, args))
+   print(pformat(report, file_names, args))
 
    local exit_code
 

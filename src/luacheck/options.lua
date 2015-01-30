@@ -55,7 +55,8 @@ options.config_options = {
 options.top_config_options = {
    limit = number,
    color = boolean,
-   codes = boolean
+   codes = boolean,
+   formatter = string
 }
 utils.update(options.top_config_options, options.config_options)
 

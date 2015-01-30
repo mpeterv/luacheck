@@ -478,6 +478,16 @@ Total: 5 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/read_globals.lua --std=lua52 --globals foo --read-globals bar --codes")
    end)
 
+   it("allows using custom formatter", function()
+      assert.equal([[Files: 2
+Formatter: spec.formatters.custom_formatter
+Quiet: 1
+Limit: 0
+Color: false
+Codes: true
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --formatter spec.formatters.custom_formatter -q --codes --no-color")
+   end)
+
    it("expands folders", function()
       local output = get_output "spec/samples -qqq"
       assert.truthy(output:match("Total: [%d]+ warnings / 1 error in 15 files\n"))
