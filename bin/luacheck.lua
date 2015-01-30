@@ -284,7 +284,7 @@ Otherwise, the pattern matches warning code.]]
       for i, file in ipairs(files) do
          res[i] = {config}
 
-         if type(config.files) == "table" then
+         if type(config.files) == "table" and type(file) == "string" then
             local overriding_paths = {}
 
             for path in pairs(config.files) do
