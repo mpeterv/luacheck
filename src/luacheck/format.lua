@@ -107,7 +107,7 @@ local function format_file_report_header(report, file_name, color)
    return label .. (" "):rep(math.max(50 - #label, 1)) .. status
 end
 
-local function format_warning(warning, codes, color)
+local function format_warning(file_name, warning, codes, color)
    local message_format = get_message_format(warning)
    local message = message_format:format(warning.name and format_name(warning.name, color), warning.prev_line)
 
@@ -115,7 +115,8 @@ local function format_warning(warning, codes, color)
       message = ("(W%s) %s"):format(warning.code, message)
    end
 
-   return message
+   local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
+   return location .. ": " .. message
 end
 
 local function format_file_report(report, file_name, codes, color)
@@ -125,9 +126,7 @@ local function format_file_report(report, file_name, codes, color)
       table.insert(buf, "")
 
       for _, warning in ipairs(report) do
-         local location = ("%s:%d:%d"):format(file_name, warning.line, warning.column)
-         local message = format_warning(warning, codes, color)
-         table.insert(buf, ("    %s: %s"):format(location, message))
+         table.insert(buf, "    " .. format_warning(file_name, warning, codes, color))
       end
 
       table.insert(buf, "")
@@ -160,6 +159,25 @@ function formatters.default(report, file_names, codes, quiet, limit, color)
       #report, plural(#report)
    ))
 
+   return table.concat(buf, "\n")
+end
+
+function formatters.TAP(report, file_names, codes)
+   local buf = {}
+
+   for i, file_report in ipairs(report) do
+      if file_report.error then
+         table.insert(buf, ("not ok %d %s: %s error"):format(#buf + 1, file_names[i], file_report.error))
+      elseif #file_report == 0 then
+         table.insert(buf, ("ok %d %s"):format(#buf + 1, file_names[i]))
+      else
+         for _, warning in ipairs(file_report) do
+            table.insert(buf, ("not ok %d %s"):format(#buf + 1, format_warning(file_names[i], warning, codes)))
+         end
+      end
+   end
+
+   table.insert(buf, 1, "1.." .. tostring(#buf))
    return table.concat(buf, "\n")
 end
 
