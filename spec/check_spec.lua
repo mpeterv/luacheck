@@ -1,20 +1,14 @@
 local check = require "luacheck.check"
-local parse = require "luacheck.parser"
-
-local function get_report(source)
-   local ast = assert(parse(source))
-   return check(ast)
-end
 
 describe("check", function()
    it("does not find anything wrong in an empty block", function()
-      assert.same({}, get_report(""))
+      assert.same({}, check(""))
    end)
 
    it("does not find anything wrong in used locals", function()
       assert.same({
          {code = "113", name = "print", line = 5, column = 4}
-      }, get_report[[
+      }, check[[
 local a
 local b = 5
 a = 6
@@ -27,7 +21,7 @@ end
    it("detects global set", function()
       assert.same({
          {code = "111", name = "foo", line = 1, column = 1, top = true}
-      }, get_report[[
+      }, check[[
 foo = {}
       ]])
    end)
@@ -35,7 +29,7 @@ foo = {}
    it("detects global set in nested functions", function()
       assert.same({
          {code = "111", name = "foo", line = 2, column = 4}
-      }, get_report[[
+      }, check[[
 local function bar()
    foo = {}
 end
@@ -48,7 +42,7 @@ bar()
          {code = "532", line = 2, column = 1},
          {code = "111", name = "y", line = 2, column = 4, top = true},
          {code = "113", name = "print", line = 3, column = 1}
-      }, get_report[[
+      }, check[[
 local x
 x, y = 1
 print(x)
@@ -59,7 +53,7 @@ print(x)
       assert.same({
          {code = "113", name = "a", line = 1, column = 11},
          {code = "113", name = "print", line = 2, column = 1}
-      }, get_report[[
+      }, check[[
 local a = a
 print(a)
       ]])
@@ -68,7 +62,7 @@ print(a)
    it("detects global mutation", function()
       assert.same({
          {code = "112", name = "a", line = 1, column = 1}
-      }, get_report[[
+      }, check[[
 a[1] = 6
       ]])
    end)
@@ -77,7 +71,7 @@ a[1] = 6
       assert.same({
          {code = "211", name = "a", line = 1, column = 7},
          {code = "113", name = "print", line = 5, column = 4}
-      }, get_report[[
+      }, check[[
 local a = 4
 
 do
@@ -90,7 +84,7 @@ end
    it("detects unused locals from function arguments", function()
       assert.same({
          {code = "212", name = "foo", line = 1, column = 17}
-      }, get_report[[
+      }, check[[
 return function(foo, ...)
    return ...
 end
@@ -100,7 +94,7 @@ end
    it("detects unused implicit self", function()
       assert.same({
          {code = "212", name = "self", line = 2, column = 13}
-      }, get_report[[
+      }, check[[
 local a = {}
 function a:b()
    
@@ -113,7 +107,7 @@ end
          {code = "213", name = "i", line = 1, column = 5},
          {code = "213", name = "i", line = 2, column = 5},
          {code = "113", name = "pairs", line = 2, column = 10}
-      }, get_report[[
+      }, check[[
 for i=1, 2 do end
 for i in pairs{} do end
       ]])
@@ -124,7 +118,7 @@ for i in pairs{} do end
          {code = "311", name = "a", line = 3, column = 4},
          {code = "311", name = "a", line = 5, column = 4},
          {code = "113", name = "print", line = 9, column = 1}
-      }, get_report[[
+      }, check[[
 local a
 if true then
    a = 2
@@ -140,7 +134,7 @@ print(a)
    it("does not detect unused value when it and a closure using it can live together", function()
       assert.same({
          {code = "113", name = "escape", line = 3, column = 4}
-      }, get_report[[
+      }, check[[
 local a = 3
 if true then
    escape(function() return a end)
@@ -149,7 +143,7 @@ end
    end)
 
    it("does not consider value assigned to upvalue as unused if it is accessed in another closure", function()
-      assert.same({}, get_report[[
+      assert.same({}, check[[
 local a
 
 local function f(x) a = x end
@@ -159,7 +153,7 @@ return f, g
    end)
 
    it("does not consider a variable initialized if it can't get a value due to short rhs", function()
-      assert.same({}, get_report[[
+      assert.same({}, check[[
 local a, b = "foo"
 b = "bar"
 return a, b
@@ -169,7 +163,7 @@ return a, b
    it("considers a variable initialized if short rhs ends with potential multivalue", function()
       assert.same({
          {code = "311", name = "b", line = 2, column = 13, secondary = true}
-      }, get_report[[
+      }, check[[
 return function(...)
    local a, b = ...
    b = "bar"
@@ -181,7 +175,7 @@ end
    it("reports unused variable as secondary if it is assigned together with a used one", function()
       assert.same({
          {code = "211", name = "a", line = 2, column = 10, secondary = true}
-      }, get_report[[
+      }, check[[
 return function(f)
    local a, b = f()
    return b
@@ -192,7 +186,7 @@ end
    it("reports unused value as secondary if it is assigned together with a used one", function()
       assert.same({
          {code = "231", name = "a", line = 2, column = 10, secondary = true}
-      }, get_report[[
+      }, check[[
 return function(f)
    local a, b
    a, b = f()
@@ -202,7 +196,7 @@ end
 
       assert.same({
          {code = "231", name = "a", line = 2, column = 10, secondary = true}
-      }, get_report[[
+      }, check[[
 return function(f, t)
    local a
    a, t[1] = f()
@@ -215,7 +209,7 @@ end
          {code = "311", name = "a", line = 1, column = 7},
          {code = "311", name = "b", line = 1, column = 10},
          {code = "532", line = 2, column = 1}
-      }, get_report[[
+      }, check[[
 local a, b = "foo", "bar"
 a, b = "bar"
 return a, b
@@ -226,7 +220,7 @@ return a, b
       assert.same({
          {code = "312", name = "b", line = 1, column = 23},
          {code = "311", name = "a", line = 2, column = 4}
-      }, get_report[[
+      }, check[[
 local function foo(a, b)
    a = a or "default"
    a = 42
@@ -242,7 +236,7 @@ return foo
       assert.same({
          {code = "113", name = "print", line = 3, column = 4},
          {code = "113", name = "math", line = 4, column = 8}
-      }, get_report[[
+      }, check[[
 local a = 10
 while a > 0 do
    print(a)
@@ -256,7 +250,7 @@ end
          {code = "211", name = "foo", line = 1, column = 7},
          {code = "411", name = "foo", line = 2, column = 7, prev_line = 1, prev_column = 7},
          {code = "113", name = "print", line = 3, column = 1}
-      }, get_report[[
+      }, check[[
 local foo
 local foo = "bar"
 print(foo)
@@ -268,7 +262,7 @@ print(foo)
          {code = "212", name = "foo", line = 1, column = 17},
          {code = "212", name = "...", line = 1, column = 22, vararg = true},
          {code = "412", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
-      }, get_report[[
+      }, check[[
 return function(foo, ...)
    local foo = 1
    return foo
@@ -279,7 +273,7 @@ end
    it("detects shadowing definitions", function()
       assert.same({
          {code = "421", name = "a", line = 7, column = 13, prev_line = 4, prev_column = 10}
-      }, get_report[[
+      }, check[[
 local a = 46
 
 return a, function(foo, ...)
@@ -298,7 +292,7 @@ end
    it("detects unset variables", function()
       assert.same({
          {code = "221", name = "a", line = 1, column = 7}
-      }, get_report[[
+      }, check[[
 local a
 return a
       ]])
@@ -307,7 +301,7 @@ return a
    it("detects unused labels", function()
       assert.same({
          {code = "521", name = "fail", line = 2, column = 4}
-      }, get_report[[
+      }, check[[
 ::fail::
 do ::fail:: end
 goto fail
@@ -317,7 +311,7 @@ goto fail
    it("detects unreachable code", function()
       assert.same({
          {code = "511", line = 2, column = 1}
-      }, get_report[[
+      }, check[[
 do return end
 if true then return 6 end
 return 3
@@ -326,7 +320,7 @@ return 3
       assert.same({
          {code = "511", line = 7, column = 1},
          {code = "511", line = 13, column = 1}
-      }, get_report[[
+      }, check[[
 if false then
    return 4
 else
@@ -347,7 +341,7 @@ return 3
       assert.same({
          {code = "113", name = "get", line = 6, column = 8},
          {code = "321", name = "a", line = 6, column = 12}
-      }, get_report[[
+      }, check[[
 local a
 
 if true then
@@ -363,7 +357,7 @@ return a
    it("does not detect accessing unitialized variables incorrectly in loops", function()
       assert.same({
          {code = "113", name = "get", line = 4, column = 8}
-      }, get_report[[
+      }, check[[
 local a
 
 while not a do
@@ -378,7 +372,7 @@ return a
       assert.same({
          {code = "532", line = 4, column = 1},
          {code = "531", line = 5, column = 1}
-      }, get_report[[
+      }, check[[
 local a, b = 4; (...)(a)
 
 a, b = (...)(); (...)(a, b)
@@ -393,7 +387,7 @@ a, b = 1, 2, 3; (...)(a, b)
          {code = "542", line = 3, column = 9},
          {code = "542", line = 5, column = 14},
          {code = "542", line = 7, column = 1}
-      }, get_report[[
+      }, check[[
 do end
 
 if true then
@@ -410,6 +404,6 @@ repeat until true
    end)
 
    it("handles argparse sample", function()
-      assert.table(get_report(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
+      assert.table(check(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)
 end)

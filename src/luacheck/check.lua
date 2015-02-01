@@ -1,3 +1,4 @@
+local parse = require "luacheck.parser"
 local linearize = require "luacheck.linearize"
 local analyze = require "luacheck.analyze"
 local reachability = require "luacheck.reachability"
@@ -162,10 +163,11 @@ function ChState:get_report()
    return self.warnings
 end
 
---- Checks a Metalua AST.
+--- Checks source.
 -- Returns an array of warnings.
--- Raises {} if AST is invalid.
-local function check(ast)
+-- Raises {} on syntax errors.
+local function check(src)
+   local ast = parse(src)
    local chstate = ChState()
    local line = linearize(chstate, ast)
    analyze(chstate, line)

@@ -1,5 +1,4 @@
 local lexer = require "luacheck.lexer"
-local utils = require "luacheck.utils"
 
 local tinsert = table.insert
 
@@ -700,11 +699,7 @@ local function parse(src)
    skip_token(state)
    local ast = parse_block(state)
    check_token(state, "TK_EOS")
-   return ast
+   return ast, state.comments, state.code_lines
 end
 
-local function pparse(src)
-   return utils.pcall(parse, src)
-end
-
-return pparse
+return parse

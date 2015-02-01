@@ -1,5 +1,4 @@
 local check = require "luacheck.check"
-local parse = require "luacheck.parser"
 local filter = require "luacheck.filter"
 local options = require "luacheck.options"
 local utils = require "luacheck.utils"
@@ -13,8 +12,7 @@ local function get_report(file)
       return {error = "I/O"}
    end
 
-   local ast = parse(src)
-   return ast and utils.pcall(check, ast) or {error = "syntax"}
+   return utils.pcall(check, src) or {error = "syntax"}
 end
 
 local function validate_files(files)
