@@ -26,6 +26,14 @@ local function get_expr(src)
    return get_node("return " .. src)[1]
 end
 
+local function get_comments(src)
+   return (select(2, parser(src)))
+end
+
+local function get_code_lines(src)
+   return select(3, parser(src))
+end
+
 local function assert_syntax_error(src)
    assert.has_error(function() parser(src) end)
 end
@@ -879,5 +887,36 @@ function t:bar(arg)
 end
 ]])))
 
+   end)
+
+   describe("providing misc information", function()
+      it("provides comments correctly", function()
+         assert.same({
+            {comment = " ignore something", location = {line = 1, column = 1, offset = 1}},
+            {comment = " comments", location = {line = 2, column = 13, offset = 33}},
+            {comment = "long comment", location = {line = 3, column = 13, offset = 57}}
+         }, get_comments([[
+-- ignore something
+foo = bar() -- comments
+return true --[=[
+long comment]=]
+         ]]))
+      end)
+
+      it("provides lines with code correctly", function()
+         -- EOS is considered "code" (which does not matter w.r.t inline options).
+         assert.same({nil, true, true, true, true, true, nil, nil, true, true, true}, get_code_lines([[
+-- nothing here
+local foo = 2
++
+3
++
+{
+   --[=[empty]=]
+
+}
+::bar::
+]]))
+      end)
    end)
 end)
