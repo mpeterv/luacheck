@@ -4,13 +4,11 @@ local utils = require "luacheck.utils"
 local tinsert = table.insert
 
 local function new_state(src)
-   return {lexer = lexer.new_state(src)}
-end
-
-local function skip_token(state)
-   repeat
-      state.token, state.token_value, state.line, state.column, state.offset = lexer.next_token(state.lexer)
-   until state.token ~= "TK_COMMENT"
+   return {
+      lexer = lexer.new_state(src),
+      code_lines = {}, -- Set of line numbers containing code.
+      comments = {} -- Array of {comment = string, location = location}.
+   }
 end
 
 local function location(state)
@@ -19,6 +17,22 @@ local function location(state)
       column = state.column,
       offset = state.offset
    }
+end
+
+local function skip_token(state)
+   while true do
+      state.token, state.token_value, state.line, state.column, state.offset = lexer.next_token(state.lexer)
+
+      if state.token == "TK_COMMENT" then
+         tinsert(state.comments, {
+            comment = state.token_value,
+            location = location(state)
+         })
+      else
+         state.code_lines[state.line] = true
+         break
+      end
+   end
 end
 
 local function init_ast_node(node, location, tag)
@@ -188,7 +202,7 @@ local function parse_table(state)
 end
 
 -- Parses argument list and the statements.
-local function parse_function(state, location)
+local function parse_function(state, location_)
    check_and_skip_token(state, "(")
    local args = {}
 
@@ -207,8 +221,9 @@ local function parse_function(state, location)
 
    check_and_skip_token(state, ")")
    local body = parse_block(state)
+   local end_location = location(state)
    check_and_skip_token(state, "TK_END")
-   return init_ast_node({args, body}, location, "Function")
+   return init_ast_node({args, body, end_location = end_location}, location_, "Function")
 end
 
 local function parse_function_expression(state)

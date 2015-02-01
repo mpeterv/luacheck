@@ -2,6 +2,7 @@ local parser = require "luacheck.parser"
 
 local function strip_locations(ast)
    ast.location = nil
+   ast.end_location = nil
 
    for i=1, #ast do
       if type(ast[i]) == "table" then
@@ -802,6 +803,7 @@ end
                      {tag = "Localrec", location = {line = 1, column = 1, offset = 1},
                         {tag = "Id", "foo", location = {line = 1, column = 16, offset = 16}},
                         {tag = "Function", location = {line = 1, column = 7, offset = 7},
+                           end_location = {line = 4, column = 1, offset = 78},
                            {
                               {tag = "Id", "a", location = {line = 1, column = 20, offset = 20}},
                               {tag = "Id", "b", location = {line = 1, column = 23, offset = 23}},
@@ -841,6 +843,7 @@ end
                         },
                         {
                            {tag = "Function", location = {line = 6, column = 1, offset = 83},
+                              end_location = {line = 10, column = 1, offset = 142},
                               {
                                  {tag = "Id", "self", location = {line = 6, column = 15, offset = 97}},
                                  {tag = "Id", "arg", location = {line = 6, column = 16, offset = 98}}
