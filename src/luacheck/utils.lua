@@ -178,9 +178,9 @@ end
 
 local function error_handler(err)
    if type(err) == "table" then
-      return true
+      return false
    else
-      return false, err.."\n"..debug.traceback()
+      return tostring(err) .. "\n" .. debug.traceback()
    end
 end
 
@@ -192,14 +192,14 @@ function utils.pcall(f, arg)
       return f(arg)
    end
 
-   local ok, res, err = xpcall(task, error_handler)
+   local ok, res = xpcall(task, error_handler)
 
    if ok then
       return res
-   elseif res then
+   elseif not res then
       return nil
    else
-      error(err, 0)
+      error(res, 0)
    end
 end
 
