@@ -1,4 +1,4 @@
-local filter = require "luacheck.filter"
+local filter = require "luacheck.filter".filter
 
 describe("filter", function()
    it("filters warnings by name", function()

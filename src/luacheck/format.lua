@@ -42,6 +42,12 @@ local message_formats = {
 }
 
 local function get_message_format(warning)
+   if warning.invalid then
+      return "invalid inline option"
+   elseif warning.unpaired then
+      return "unpaired inline option"
+   end
+
    local message_format = message_formats[warning.code]
 
    if type(message_format) == "function" then
@@ -115,7 +121,7 @@ local function format_warning(file_name, warning, codes, color)
    local message_format = get_message_format(warning)
    local message = message_format:format(warning.name and format_name(warning.name, color), warning.prev_line)
 
-   if codes then
+   if warning.code and codes then
       message = ("(W%s) %s"):format(warning.code, message)
    end
 

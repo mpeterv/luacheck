@@ -88,7 +88,7 @@ local function luacheck(files, opts)
       table.insert(report, get_report(file))
    end
 
-   return add_stats(filter(report, opts))
+   return add_stats(filter.filter(report, opts))
 end
 
 return luacheck

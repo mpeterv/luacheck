@@ -478,6 +478,53 @@ Total: 5 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/read_globals.lua --std=lua52 --globals foo --read-globals bar --codes")
    end)
 
+   it("applies inline options", function()
+      assert.equal([[
+Checking spec/samples/inline_options.lua          Failure
+
+    spec/samples/inline_options.lua:12:4: accessing undefined variable qu
+    spec/samples/inline_options.lua:15:1: accessing undefined variable baz
+    spec/samples/inline_options.lua:24:10: unused variable g
+    spec/samples/inline_options.lua:26:7: unused variable f
+    spec/samples/inline_options.lua:26:10: unused variable g
+    spec/samples/inline_options.lua:28:1: unpaired inline option
+    spec/samples/inline_options.lua:30:4: unpaired inline option
+
+Total: 7 warnings / 0 errors in 1 file
+]], get_output "spec/samples/inline_options.lua --std=none")
+   end)
+
+   it("inline options can be disabled", function()
+      assert.equal([[
+Checking spec/samples/inline_options.lua          Failure
+
+    spec/samples/inline_options.lua:3:1: accessing undefined variable foo
+    spec/samples/inline_options.lua:4:1: accessing undefined variable bar
+    spec/samples/inline_options.lua:6:16: unused function f
+    spec/samples/inline_options.lua:8:4: accessing undefined variable foo
+    spec/samples/inline_options.lua:9:4: accessing undefined variable bar
+    spec/samples/inline_options.lua:10:4: accessing undefined variable baz
+    spec/samples/inline_options.lua:11:4: accessing undefined variable qu
+    spec/samples/inline_options.lua:12:4: accessing undefined variable qu
+    spec/samples/inline_options.lua:15:1: accessing undefined variable baz
+    spec/samples/inline_options.lua:19:7: variable f was previously defined on line 6
+    spec/samples/inline_options.lua:19:7: unused variable f
+    spec/samples/inline_options.lua:22:7: unused variable g
+    spec/samples/inline_options.lua:24:7: variable f was previously defined on line 19
+    spec/samples/inline_options.lua:24:7: unused variable f
+    spec/samples/inline_options.lua:24:10: variable g was previously defined on line 22
+    spec/samples/inline_options.lua:24:10: unused variable g
+    spec/samples/inline_options.lua:26:7: unused variable f
+    spec/samples/inline_options.lua:26:7: variable f was previously defined on line 24
+    spec/samples/inline_options.lua:26:10: variable g was previously defined on line 24
+    spec/samples/inline_options.lua:26:10: unused variable g
+    spec/samples/inline_options.lua:29:16: unused function f
+    spec/samples/inline_options.lua:29:16: variable f was previously defined on line 26
+
+Total: 22 warnings / 0 errors in 1 file
+]], get_output "spec/samples/inline_options.lua --std=none --no-inline")
+   end)
+
    it("allows using custom formatter", function()
       assert.equal([[Files: 2
 Formatter: spec.formatters.custom_formatter
@@ -543,6 +590,6 @@ spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
 
    it("expands folders", function()
       local output = get_output "spec/samples -qqq"
-      assert.truthy(output:match("Total: [%d]+ warnings / 1 error in 15 files\n"))
+      assert.truthy(output:match("Total: [%d]+ warnings / 1 error in 16 files\n"))
    end)
 end)

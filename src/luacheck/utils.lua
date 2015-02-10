@@ -136,6 +136,8 @@ function utils.update(t1, t2)
    for k, v in pairs(t2) do
       t1[k] = v
    end
+
+   return t1
 end
 
 local class_metatable = {}
@@ -214,6 +216,39 @@ end
 
 function utils.ripairs(array)
    return ripairs_iterator, array, #array + 1
+end
+
+function utils.after(str, pattern)
+   local _, last_matched_index = str:find(pattern)
+
+   if last_matched_index then
+      return str:sub(last_matched_index + 1)
+   end
+end
+
+function utils.strip(str)
+   local _, last_start_space = str:find("^%s*")
+   local first_end_space = str:find("%s*$")
+   return str:sub(last_start_space + 1, first_end_space - 1)
+end
+
+-- `sep` must be nil or a single character. Behaves like python's `str.split`.
+function utils.split(str, sep)
+   local parts = {}
+   local pattern
+
+   if sep then
+      pattern = sep .. "([^" .. sep .. "]*)"
+      str = sep .. str
+   else
+      pattern = "%S+"
+   end
+
+   for part in str:gmatch(pattern) do
+      table.insert(parts, part)
+   end
+
+   return parts
 end
 
 return utils

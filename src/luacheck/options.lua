@@ -29,6 +29,23 @@ local function std_or_array_of_strings(x)
    return stds[x] or array_of_strings(x)
 end
 
+options.single_inline_options = {
+   compat = boolean,
+   allow_defined = boolean,
+   allow_defined_top = boolean,
+   module = boolean
+}
+
+options.multi_inline_options = {
+   globals = array_of_strings,
+   read_globals = array_of_strings,
+   new_globals = array_of_strings,
+   new_read_globals = array_of_strings,
+   ignore = array_of_strings,
+   enable = array_of_strings,
+   only = array_of_strings
+}
+
 options.config_options = {
    global = boolean,
    unused = boolean,
@@ -38,19 +55,11 @@ options.config_options = {
    unused_secondaries = boolean,
    unset = boolean,
    unused_globals = boolean,
-   compat = boolean,
-   allow_defined = boolean,
-   allow_defined_top = boolean,
-   module = boolean,
-   globals = array_of_strings,
-   read_globals = array_of_strings,
-   new_globals = array_of_strings,
-   new_read_globals = array_of_strings,
    std = std_or_array_of_strings,
-   ignore = array_of_strings,
-   enable = array_of_strings,
-   only = array_of_strings
+   inline = boolean
 }
+utils.update(options.config_options, options.single_inline_options)
+utils.update(options.config_options, options.multi_inline_options)
 
 options.top_config_options = {
    limit = number,
@@ -268,11 +277,11 @@ function options.normalize(opts_stack)
 
    utils.update(res.globals, res.read_globals)
 
-   for _, option in ipairs {"unused_secondaries", "module", "allow_defined", "allow_defined_top"} do
+   for _, option in ipairs {"unused_secondaries", "module", "allow_defined", "allow_defined_top", "inline"} do
       local value = get_boolean_opt(opts_stack, option)
 
       if value == nil then
-         res[option] = option == "unused_secondaries" -- Default is true only for unused_secondaries.
+         res[option] = option == "unused_secondaries" or option == "inline"
       else
          res[option] = value
       end

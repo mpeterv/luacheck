@@ -24,7 +24,7 @@ local function skip_token(state)
 
       if state.token == "TK_COMMENT" then
          tinsert(state.comments, {
-            comment = state.token_value,
+            contents = state.token_value,
             location = location(state)
          })
       else

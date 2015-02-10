@@ -2,6 +2,8 @@ local parse = require "luacheck.parser"
 local linearize = require "luacheck.linearize"
 local analyze = require "luacheck.analyze"
 local reachability = require "luacheck.reachability"
+local handle_inline_options = require "luacheck.inline_options"
+local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
 
 local function is_secondary(value)
@@ -24,7 +26,7 @@ end
 
 local action_codes = {
    set = 1,
-   mutate = 2, -- NYI
+   mutate = 2,
    access = 3
 }
 
@@ -47,7 +49,7 @@ function ChState:warn_global(node, action, is_top)
    })
 end
 
--- W12* (read-only global) and W131 (unused global) are monkey-patched during filtering.
+-- W12* (read-only global) and W131 (unused global) are patched in during filtering.
 
 function ChState:warn_unused_variable(var)
    self:warn({
@@ -154,25 +156,18 @@ function ChState:warn_empty_block(location, do_end)
    })
 end
 
-function ChState:get_report()
-   table.sort(self.warnings, function(warning1, warning2)
-      return warning1.line < warning2.line or
-         warning1.line == warning2.line and warning1.column < warning2.column
-   end)
-
-   return self.warnings
-end
-
 --- Checks source.
 -- Returns an array of warnings.
 -- Raises {} on syntax errors.
 local function check(src)
-   local ast = parse(src)
+   local ast, comments, code_lines = parse(src)
    local chstate = ChState()
    local line = linearize(chstate, ast)
    analyze(chstate, line)
    reachability(chstate, line)
-   return chstate:get_report()
+   handle_inline_options(ast, comments, code_lines, chstate.warnings)
+   core_utils.sort_by_location(chstate.warnings)
+   return chstate.warnings
 end
 
 return check

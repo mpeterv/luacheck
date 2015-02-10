@@ -122,6 +122,9 @@ Otherwise, the pattern matches warning code.]]
          :count "*"
          :argname "<patt>"
 
+      parser:flag "--no-inline"
+         :description "Disable inline options. "
+
       parser:option "-l" "--limit"
          :description "Exit with 0 if there are <limit> or less warnings. (default: 0)"
          :convert(tonumber)
@@ -242,9 +245,10 @@ Otherwise, the pattern matches warning code.]]
             unused_values = "no_unused_values",
             unused_secondaries = "no_unused_secondaries",
             unset = "no_unset",
-            unused_globals = "no_unused_globals"} do
+            unused_globals = "no_unused_globals",
+            inline = "no_inline"} do
          if args[argname] then
-            res[optname] = not args[argname]
+            res[optname] = false
          end
       end
 

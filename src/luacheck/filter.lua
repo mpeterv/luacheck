@@ -1,5 +1,8 @@
 local options = require "luacheck.options"
+local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
+
+local filter = {}
 
 -- Returns array of normalized options, one for each file.
 local function get_normalized_opts(report, opts)
@@ -33,20 +36,19 @@ end
 --    from the module.
 -- Setting a global not defined in the module results in "setting non-module global variable" warning.
 
--- Given a "global set" warning, return whether it is an implicit definition.
-local function is_definition(opts, warning)
-   return opts.allow_defined or (opts.allow_defined_top and warning.top)
-end
-
--- Extracts sets of defined and used globals from a file report.
+-- Extracts sets of defined, exported and used globals from a file report.
 local function get_defined_and_used_globals(file_report, opts)
-   local defined, used = {}, {}
+   local defined, globally_defined, used = {}, {}, {}
 
    for _, warning in ipairs(file_report) do
-      if warning.code:match("11.") then
+      if warning.code and warning.code:match("11.") then
          if warning.code == "111" then
-            if is_definition(opts, warning) then
-               defined[warning.name] = true
+            if (opts.inline and warning.definition) or core_utils.is_definition(opts, warning) then
+               if (opts.inline and warning.in_module) or opts.module then
+                  defined[warning.name] = true
+               else
+                  globally_defined[warning.name] = true
+               end
             end
          else
             used[warning.name] = true
@@ -54,7 +56,7 @@ local function get_defined_and_used_globals(file_report, opts)
       end
    end
 
-   return defined, used
+   return defined, globally_defined, used
 end
 
 
@@ -70,12 +72,8 @@ local function get_implicit_defs_info(report, opts)
    }
 
    for i, file_report in ipairs(report) do
-      local defined, used = get_defined_and_used_globals(file_report, opts[i])
-
-      if not opts[i].module then
-         utils.update(info.globally_defined, defined)
-      end
-
+      local defined, globally_defined, used = get_defined_and_used_globals(file_report, opts[i])
+      utils.update(info.globally_defined, globally_defined)
       utils.update(info.globally_used, used)
       info.locally_defined[i] = defined
    end
@@ -88,15 +86,15 @@ local function filter_implicit_defs_file(file_report, opts, globally_defined, gl
    local res = {}
 
    for _, warning in ipairs(file_report) do
-      if warning.code:match("11.") then
+      if warning.code and warning.code:match("11.") then
          if warning.code == "111" then
-            if opts.module then
+            if (opts.inline and warning.in_module) or opts.module then
                if not locally_defined[warning.name] then
                   warning.module = true
                   table.insert(res, warning)
                end
             else
-               if is_definition(opts, warning) then
+               if (opts.inline and  warning.definition) or core_utils.is_definition(opts, warning) then
                   if not globally_used[warning.name] then
                      warning.code = "131"
                      warning.top = nil
@@ -235,20 +233,34 @@ local function is_enabled(rules, warning)
    return true
 end
 
+function filter.filters(opts, warning)
+   if warning.code:match("[234]..") and warning.name == "_" then
+      return true
+   end
+
+   if warning.code:match("11.") and not warning.module and opts.globals[warning.name] then
+      return true
+   end
+
+   if warning.secondary and not opts.unused_secondaries then
+      return true
+   end
+
+   return not is_enabled(opts.rules, warning)
+end
+
 local function filter_file_report(report, opts)
    local res = {}
 
    for _, warning in ipairs(report) do
-      if warning.code:match("11[12]") and not warning.module and opts.read_globals[warning.name] then
+      if warning.code and ((opts.inline and warning.read_only) or warning.code:match("11[12]")
+            and not warning.module and opts.read_globals[warning.name]) then
          warning.code = "12" .. warning.code:sub(3, 3)
       end
 
-      if (not warning.code:match("[234]..") or warning.name ~= "_") and
-            (not warning.code:match("11.") or warning.module or not opts.globals[warning.name]) and
-            (not warning.secondary or opts.unused_secondaries) then
-         if is_enabled(opts.rules, warning) then
-            table.insert(res, warning)
-         end
+      if (not warning.code and opts.inline) or (warning.code and (not warning.filtered and
+            not warning["filtered_" .. warning.code] or not opts.inline) and not filter.filters(opts, warning)) then
+         table.insert(res, warning)
       end
    end
 
@@ -273,7 +285,7 @@ end
 -- Removes warnings from report that do not match options. 
 -- `opts[i]`, if present, is used as options when processing `report[i]`
 -- together with options in its array part. 
-local function filter(report, opts)
+function filter.filter(report, opts)
    opts = get_normalized_opts(report, opts)
    report = filter_implicit_defs(report, opts)
    return filter_report(report, opts)
