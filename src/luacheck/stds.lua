@@ -280,7 +280,7 @@ for global in pairs(_G) do
 end
 
 local function has_env()
-   local _ENV = {}
+   local _ENV = {} -- luacheck: ignore
    return not _G
 end
 

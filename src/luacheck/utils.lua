@@ -76,6 +76,7 @@ end
 
 -- Parses rockspec-like source, returns data or nil. 
 local function capture_env(src, env)
+   -- luacheck: compat
    env = env or {}
    local func
 
