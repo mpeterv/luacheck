@@ -11,11 +11,11 @@ before_install:
   - bash .travis_setup_rocks.sh
 
 install:
-  - sudo luarocks make rockspecs/luacheck-scm-8.rockspec
+  - sudo luarocks make rockspecs/luacheck-scm-9.rockspec
   - sudo luarocks install busted
 
 script:
   - busted spec
   - sudo luarocks remove luafilesystem --force
-  - luacheck rockspecs/luacheck-scm-8.rockspec
+  - luacheck rockspecs/luacheck-scm-9.rockspec
   - luacheck src | grep 'I/O error'

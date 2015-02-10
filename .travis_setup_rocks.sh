@@ -7,6 +7,5 @@ if [ "$LUA" == "Lua 5.3" ]; then
   sudo luarocks make say-1.2-1.rockspec
   cd ..
 
-  sudo luarocks install luafilesystem cvs-3 --server=http://rocks.moonscript.org/manifests/luarocks
   sudo luarocks install dkjson --deps-mode=none
 fi
