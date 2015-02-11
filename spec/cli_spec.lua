@@ -508,6 +508,21 @@ not ok 6 spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'he
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --std=lua52 --formatter TAP --codes")
    end)
 
+   it("has built-in JUnit formatter", function()
+      assert.equal([[<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Luacheck report" tests="2">
+    <testcase name="spec/samples/good_code.lua" classname="spec/samples/good_code.lua"/>
+    <testcase name="spec/samples/bad_code.lua" classname="spec/samples/bad_code.lua">
+        <failure type="W211" message="spec/samples/bad_code.lua:3:16: unused function 'helper'"/>
+        <failure type="W212" message="spec/samples/bad_code.lua:3:23: unused variable length argument"/>
+        <failure type="W111" message="spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'"/>
+        <failure type="W412" message="spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7"/>
+        <failure type="W113" message="spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'"/>
+    </testcase>
+</testsuite>
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --std=lua52 --formatter JUnit")
+   end)
+
    it("has built-in simple warning-per-line formatter", function()
       assert.equal("", get_output "spec/samples/good_code.lua --std=lua52 --formatter plain")
 

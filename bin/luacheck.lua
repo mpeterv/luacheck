@@ -137,6 +137,7 @@ Otherwise, the pattern matches warning code.]]
       parser:option "--formatter"
          :description [[Use custom formatter. <formatter> must be a module name or one of:
    TAP - Test Anything Protocol formatter;
+   JUnit - JUnit XML formatter;
    plain - simple warning-per-line formatter;
    default - standard formatter. ]]
 

@@ -92,12 +92,16 @@ local function capitalize(str)
    return str:gsub("^.", string.upper)
 end
 
+local function error_type(file_report)
+   return capitalize(file_report.error) .. " error"
+end
+
 local function format_file_report_header(report, file_name, color)
    local label = "Checking " .. file_name
    local status
 
    if report.error then
-      status = format_color(capitalize(report.error) .. " error", color, "bright")
+      status = format_color(error_type(report), color, "bright")
    elseif #report == 0 then
       status = format_color("OK", color, "bright", "green")
    else
@@ -178,6 +182,42 @@ function formatters.TAP(report, file_names, codes)
    end
 
    table.insert(buf, 1, "1.." .. tostring(#buf))
+   return table.concat(buf, "\n")
+end
+
+function formatters.JUnit(report, file_names)
+   local buf = {[[<?xml version="1.0" encoding="UTF-8"?>]]}
+
+   table.insert(buf, ([[<testsuite name="Luacheck report" tests="%d">]]):format(#report))
+
+   for i, file_report in ipairs(report) do
+      if file_report.error or #file_report ~= 0 then
+         table.insert(buf, ([[    <testcase name="%s" classname="%s">]]):format(file_names[i], file_names[i]))
+
+         if file_report.error then
+            table.insert(buf, ([[        <error type="%s"/>]]):format(error_type(file_report)))
+         else
+            for _, warning in ipairs(file_report) do
+               local warning_type
+
+               if warning.code then
+                  warning_type = "W" .. warning.code
+               else
+                  warning_type = "Inline option"
+               end
+
+               table.insert(buf, ([[        <failure type="%s" message="%s"/>]]):format(
+                  warning_type, format_warning(file_names[i], warning)))
+            end
+         end
+
+         table.insert(buf, [[    </testcase>]])
+      else
+         table.insert(buf, ([[    <testcase name="%s" classname="%s"/>]]):format(file_names[i], file_names[i]))
+      end
+   end
+
+   table.insert(buf, [[</testsuite>]])
    return table.concat(buf, "\n")
 end
 
