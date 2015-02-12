@@ -156,6 +156,7 @@ local function apply_inline_options(option_stack, per_line_opts, warnings)
             if warning.code == "111" then
                if opts.module then
                   warning.in_module = true
+                  warning.filtered_111 = nil
                end
 
                if core_utils.is_definition(opts, warning) then

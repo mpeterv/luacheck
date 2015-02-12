@@ -1,0 +1,19 @@
+-- luacheck: allow_defined_top
+foo = 4
+print(foo)
+bar = 6 -- luacheck: ignore 131
+
+function f()
+   baz = 5
+   -- luacheck: allow_defined
+   qu = 4
+   print(qu)
+end
+
+-- luacheck: module, globals external
+quu = 7
+print(external)
+
+local function g() -- luacheck: ignore
+   external = 8
+end

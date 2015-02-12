@@ -492,6 +492,16 @@ Checking spec/samples/inline_options.lua          Failure
 
 Total: 7 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none")
+
+      assert.equal([[
+Checking spec/samples/global_inline_options.lua   Failure
+
+    spec/samples/global_inline_options.lua:6:10: unused global variable f
+    spec/samples/global_inline_options.lua:7:4: setting non-standard global variable baz
+    spec/samples/global_inline_options.lua:18:4: setting non-module global variable external
+
+Total: 3 warnings / 0 errors in 1 file
+]], get_output "spec/samples/global_inline_options.lua --std=lua52")
    end)
 
    it("inline options can be disabled", function()
@@ -590,6 +600,6 @@ spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
 
    it("expands folders", function()
       local output = get_output "spec/samples -qqq"
-      assert.truthy(output:match("Total: [%d]+ warnings / 1 error in 16 files\n"))
+      assert.truthy(output:match("Total: [%d]+ warnings / 1 error in 17 files\n"))
    end)
 end)
