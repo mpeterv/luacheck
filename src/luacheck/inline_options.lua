@@ -159,6 +159,10 @@ local function apply_inline_options(option_stack, per_line_opts, warnings)
                   warning.filtered_111 = nil
                end
 
+               if opts.globals[warning.name] and not opts.read_globals[warning.name] then
+                  warning.global = true
+               end
+
                if core_utils.is_definition(opts, warning) then
                   warning.definition = true
                end

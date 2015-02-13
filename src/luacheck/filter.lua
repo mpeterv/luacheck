@@ -254,7 +254,8 @@ local function filter_file_report(report, opts)
 
    for _, warning in ipairs(report) do
       if warning.code and ((opts.inline and warning.read_only) or warning.code:match("11[12]")
-            and not warning.module and opts.read_globals[warning.name]) then
+            and not warning.module and opts.read_globals[warning.name]) and not (
+               (opts.inline and warning.global) or (opts.globals[warning.name] and not opts.read_globals[warning.name])) then
          warning.code = "12" .. warning.code:sub(3, 3)
       end
 

@@ -29,3 +29,9 @@ local f, g
 local function f() --luacheck: ignore
    -- luacheck: pop
 end
+
+-- luacheck: ignore 5
+do end
+-- luacheck: enable 54
+do end
+if false then end
