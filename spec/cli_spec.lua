@@ -557,16 +557,16 @@ Checking spec/samples/inline_options.lua          Failure
     spec/samples/inline_options.lua:19:7: unused variable f
     spec/samples/inline_options.lua:19:7: variable f was previously defined on line 6
     spec/samples/inline_options.lua:22:7: unused variable g
-    spec/samples/inline_options.lua:24:7: variable f was previously defined on line 19
     spec/samples/inline_options.lua:24:7: unused variable f
-    spec/samples/inline_options.lua:24:10: variable g was previously defined on line 22
+    spec/samples/inline_options.lua:24:7: variable f was previously defined on line 19
     spec/samples/inline_options.lua:24:10: unused variable g
+    spec/samples/inline_options.lua:24:10: variable g was previously defined on line 22
     spec/samples/inline_options.lua:26:7: unused variable f
     spec/samples/inline_options.lua:26:7: variable f was previously defined on line 24
     spec/samples/inline_options.lua:26:10: unused variable g
     spec/samples/inline_options.lua:26:10: variable g was previously defined on line 24
-    spec/samples/inline_options.lua:29:16: variable f was previously defined on line 26
     spec/samples/inline_options.lua:29:16: unused function f
+    spec/samples/inline_options.lua:29:16: variable f was previously defined on line 26
     spec/samples/inline_options.lua:34:1: empty do..end block
     spec/samples/inline_options.lua:36:1: empty do..end block
     spec/samples/inline_options.lua:37:10: empty if branch

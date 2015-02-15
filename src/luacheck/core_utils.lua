@@ -33,8 +33,11 @@ function core_utils.is_definition(opts, warning)
 end
 
 local function location_comparator(event1, event2)
+   -- If two events share location, neither can be an invalid comment event.
+   -- However, they can be equal by identity due to the way table.sort is implemented.
    return event1.line < event2.line or
-      event1.line == event2.line and event1.column < event2.column
+      event1.line == event2.line and (event1.column < event2.column or
+      event1.column == event2.column and event1.code and event1.code < event2.code)
 end
 
 function core_utils.sort_by_location(array)
