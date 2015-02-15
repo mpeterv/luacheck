@@ -340,7 +340,7 @@ Otherwise, the pattern matches warning code.]]
 
       local require_ok, formatter_module = pcall(require, args.formatter)
 
-      if not require_ok then
+      if not require_ok or type(formatter_module) ~= "function" then
          fatal(("Couldn't load custom formatter '%s': %s"):format(args.formatter, formatter_module))
       end
 
