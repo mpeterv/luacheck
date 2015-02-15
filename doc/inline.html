@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Luacheck module &mdash; luacheck 0.9.0 documentation</title>
+  <title>Inline options &mdash; luacheck 0.9.0 documentation</title>
   
 
   
@@ -29,7 +29,8 @@
 
   
     <link rel="top" title="luacheck 0.9.0 documentation" href="index.html"/>
-        <link rel="prev" title="Inline options" href="inline.html"/> 
+        <link rel="next" title="Luacheck module" href="module.html"/>
+        <link rel="prev" title="Configuration file" href="config.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -75,9 +76,9 @@
 <li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="inline.html">Inline options</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Luacheck module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#report-format">Report format</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Inline options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
 </ul>
 </li>
 </ul>
@@ -103,10 +104,10 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>Luacheck module</li>
+    <li>Inline options</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="_sources/module.txt" rel="nofollow"> View page source</a>
+          <a href="_sources/inline.txt" rel="nofollow"> View page source</a>
         
       </li>
   </ul>
@@ -114,45 +115,92 @@
 </div>
           <div role="main">
             
-  <div class="section" id="luacheck-module">
-<h1>Luacheck module<a class="headerlink" href="#luacheck-module" title="Permalink to this headline">¶</a></h1>
-<p><tt class="docutils literal"><span class="pre">luacheck</span></tt> module is a single function. Use <tt class="docutils literal"><span class="pre">local</span> <span class="pre">luacheck</span> <span class="pre">=</span> <span class="pre">require</span> <span class="pre">&quot;luacheck&quot;</span></tt> to import it.</p>
-<p>The first argument of the function should be an array. Each element should be either a file name (string) or an open file handle, in which case <tt class="docutils literal"><span class="pre">luacheck</span></tt> will read it till EOF and close it.</p>
-<p>The second argument, if present, should be a table of options. See <a class="reference internal" href="config.html#options"><em>Config options</em></a>.</p>
-<p>When checking <tt class="docutils literal"><span class="pre">n</span></tt>-th file, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will try to combine <tt class="docutils literal"><span class="pre">options[n]</span></tt> and entries from its array part with general options, similarly to how per file config tables overwrite main config table.</p>
-<div class="section" id="report-format">
-<span id="report"></span><h2>Report format<a class="headerlink" href="#report-format" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">luacheck</span></tt> function returns a report. A report is an array of file reports plus fields <tt class="docutils literal"><span class="pre">warnings</span></tt> and <tt class="docutils literal"><span class="pre">errors</span></tt> containing total number of warnings and errors, correspondingly.</p>
-<p>A file report is an array of warnings. If an error occured while checking a file, its report will only have <tt class="docutils literal"><span class="pre">error</span></tt> field containing <tt class="docutils literal"><span class="pre">&quot;I/O&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;syntax&quot;</span></tt>.</p>
-<p>A warning is a table with field <tt class="docutils literal"><span class="pre">code</span></tt> indicating the type of warning (see <a class="reference internal" href="warnings.html"><em>List of warnings</em></a>), and fields <tt class="docutils literal"><span class="pre">line</span></tt> and <tt class="docutils literal"><span class="pre">column</span></tt> pointing to the source of the warning. Absence of <tt class="docutils literal"><span class="pre">code</span></tt> field indicates that the warning is related to a broken inline configuration comment; then, <tt class="docutils literal"><span class="pre">invalid</span></tt> field marks comments with invalid syntax, and <tt class="docutils literal"><span class="pre">unpaired</span></tt> field marks unpaired push/pop comments.</p>
-<p>Warnings of some types can also have additional fields:</p>
+  <div class="section" id="inline-options">
+<h1>Inline options<a class="headerlink" href="#inline-options" title="Permalink to this headline">¶</a></h1>
+<p>Luacheck supports setting some options directly in the checked files using inline configuration comments. An inline configuration comment starts with <tt class="docutils literal"><span class="pre">luacheck:</span></tt> label, possibly after some whitespace. The body of the comment should contain comma separated options, where option invocation consists of its name plus space separated arguments. The following options are supported:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="5%" />
-<col width="95%" />
+<col width="28%" />
+<col width="72%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Codes</th>
-<th class="head">Additional fields</th>
+<tr class="row-odd"><th class="head">Option</th>
+<th class="head">Number of arguments</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>111</td>
-<td><tt class="docutils literal"><span class="pre">module</span></tt> field indicates that assignment is to a non-module global variable.</td>
+<tr class="row-even"><td>compat</td>
+<td>0</td>
 </tr>
-<tr class="row-odd"><td>211</td>
-<td><tt class="docutils literal"><span class="pre">func</span></tt> field indicates that unused variable is a function.</td>
+<tr class="row-odd"><td>module</td>
+<td>0</td>
 </tr>
-<tr class="row-even"><td>212</td>
-<td><tt class="docutils literal"><span class="pre">vararg</span></tt> field indicated that variable length argument is unused.</td>
+<tr class="row-even"><td>allow_defined</td>
+<td>0</td>
 </tr>
-<tr class="row-odd"><td>4..</td>
-<td><tt class="docutils literal"><span class="pre">prev_line</span></tt> and <tt class="docutils literal"><span class="pre">prev_column</span></tt> fields contain location of the overwritten defintion.</td>
+<tr class="row-odd"><td>allow_defined_top</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>std</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td>globals</td>
+<td>0+</td>
+</tr>
+<tr class="row-even"><td>new_globals</td>
+<td>0+</td>
+</tr>
+<tr class="row-odd"><td>read_globals</td>
+<td>0+</td>
+</tr>
+<tr class="row-even"><td>new_read_globals</td>
+<td>0+</td>
+</tr>
+<tr class="row-odd"><td>ignore</td>
+<td>0+ (without arguments everything is ignored)</td>
+</tr>
+<tr class="row-even"><td>enable</td>
+<td>1+</td>
+</tr>
+<tr class="row-odd"><td>only</td>
+<td>1+</td>
 </tr>
 </tbody>
 </table>
-<p>Other fields may be present for internal reasons.</p>
-</div>
+<p>Part of the file affected by inline option dependes on where it is placed. If there is any code on the line with the option, only that line is affected; otherwise, everthing till the end of the current closure is. In particular, inline options at the top of the file affect all of it:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">-- luacheck: globals g1 g2, ignore foo</span>
+<span class="kd">local</span> <span class="n">foo</span> <span class="o">=</span> <span class="n">g1</span><span class="p">(</span><span class="n">g2</span><span class="p">)</span> <span class="c1">-- No warnings emitted.</span>
+
+<span class="c1">-- The following unused function is not reported.</span>
+<span class="kd">local</span> <span class="k">function</span> <span class="nf">f</span><span class="p">()</span> <span class="c1">-- luacheck: ignore</span>
+   <span class="c1">-- luacheck: globals g3</span>
+   <span class="n">g3</span><span class="p">()</span> <span class="c1">-- No warning.</span>
+<span class="k">end</span>
+
+<span class="n">g3</span><span class="p">()</span> <span class="c1">-- Warning is emitted as the inline option defining g3 only affected function f.</span>
+</pre></div>
+</td></tr></table></div>
+<p>For fine-grained control over inline option visibility use <tt class="docutils literal"><span class="pre">luacheck:</span> <span class="pre">push</span></tt> and <tt class="docutils literal"><span class="pre">luacheck:</span> <span class="pre">pop</span></tt> directives:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">-- luacheck: push</span>
+<span class="c1">-- luacheck: ignore foo</span>
+<span class="n">foo</span><span class="p">()</span> <span class="c1">-- No warning.</span>
+<span class="c1">-- luacheck: pop</span>
+<span class="n">foo</span><span class="p">()</span> <span class="c1">-- Warning is emitted.</span>
+</pre></div>
+</td></tr></table></div>
 </div>
 
 
@@ -161,8 +209,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="module.html" class="btn btn-neutral float-right" title="Luacheck module"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
-        <a href="inline.html" class="btn btn-neutral" title="Inline options"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+        <a href="config.html" class="btn btn-neutral" title="Configuration file"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

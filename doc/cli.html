@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Command line interface &mdash; luacheck 0.8.0 documentation</title>
+  <title>Command line interface &mdash; luacheck 0.9.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.8.0 documentation" href="index.html"/>
+    <link rel="top" title="luacheck 0.9.0 documentation" href="index.html"/>
         <link rel="next" title="Configuration file" href="config.html"/>
         <link rel="prev" title="List of warnings" href="warnings.html"/> 
 
@@ -68,6 +68,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#patterns">Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#formatters">Formatters</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
@@ -75,6 +76,7 @@
 <li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="inline.html">Inline options</a></li>
 <li class="toctree-l1"><a class="reference internal" href="module.html">Luacheck module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="module.html#report-format">Report format</a></li>
 </ul>
@@ -247,16 +249,32 @@ Total: 14 warnings / 1 error in 4 files
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--only</span> <span class="pre">|</span> <span class="pre">-o</span> <span class="pre">&lt;patt&gt;</span> <span class="pre">[&lt;patt&gt;]</span> <span class="pre">...</span></tt></td>
 <td>Filter out warnings not matching patterns.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-l</span> <span class="pre">&lt;limit&gt;</span></tt> | <tt class="docutils literal"><span class="pre">--limit</span> <span class="pre">&lt;limit&gt;</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-inline</span></tt></td>
+<td>Disable inline options.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-l</span> <span class="pre">&lt;limit&gt;</span></tt> | <tt class="docutils literal"><span class="pre">--limit</span> <span class="pre">&lt;limit&gt;</span></tt></td>
 <td>Exit with 0 if there are <tt class="docutils literal"><span class="pre">&lt;limit&gt;</span></tt> or less warnings (default: <tt class="docutils literal"><span class="pre">0</span></tt>).</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--config</span> <span class="pre">&lt;config&gt;</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--config</span> <span class="pre">&lt;config&gt;</span></tt></td>
 <td>Path to custom configuration file (default: <tt class="docutils literal"><span class="pre">.luacheckrc</span></tt>).</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-config</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-config</span></tt></td>
 <td>Do not look up custom configuration file.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-q</span></tt> | <tt class="docutils literal"><span class="pre">--quiet</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--formatter</span> <span class="pre">&lt;formatter&gt;</span></tt></td>
+<td><p class="first">Use custom formatter. <tt class="docutils literal"><span class="pre">&lt;formatter&gt;</span></tt> must be a module name or one of:</p>
+<ul class="last simple">
+<li><tt class="docutils literal"><span class="pre">TAP</span></tt> - Test Anything Protocol formatter;</li>
+<li><tt class="docutils literal"><span class="pre">JUnit</span></tt> - JUnit XML formatter;</li>
+<li><tt class="docutils literal"><span class="pre">plain</span></tt> - simple warning-per-line formatter;</li>
+<li><tt class="docutils literal"><span class="pre">default</span></tt> - standard formatter.</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--codes</span></tt></td>
+<td>Show warning codes.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-q</span></tt> | <tt class="docutils literal"><span class="pre">--quiet</span></tt></td>
 <td><p class="first">Suppress report output for files without warnings.</p>
 <ul class="last simple">
 <li><tt class="docutils literal"><span class="pre">-qq</span></tt> - Suppress output of warnings.</li>
@@ -264,10 +282,10 @@ Total: 14 warnings / 1 error in 4 files
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-color</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-color</span></tt></td>
 <td>Do not colorize output.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-h</span></tt> | <tt class="docutils literal"><span class="pre">--help</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-h</span></tt> | <tt class="docutils literal"><span class="pre">--help</span></tt></td>
 <td>Show help and exit.</td>
 </tr>
 </tbody>
@@ -298,6 +316,10 @@ Total: 14 warnings / 1 error in 4 files
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section" id="formatters">
+<h2>Formatters<a class="headerlink" href="#formatters" title="Permalink to this headline">¶</a></h2>
+<p>CLI option <tt class="docutils literal"><span class="pre">--formatter</span></tt> allows selecting a custom formatter for <tt class="docutils literal"><span class="pre">luacheck</span></tt> output. A custom formatter is a Lua module returning a function with three arguments: report as returned by <tt class="docutils literal"><span class="pre">luacheck</span></tt> module (see <a class="reference internal" href="module.html#report"><em>Report format</em></a>), array of file names and table of options. Options contain values assigned to <tt class="docutils literal"><span class="pre">quiet</span></tt>, <tt class="docutils literal"><span class="pre">color</span></tt>, <tt class="docutils literal"><span class="pre">limit</span></tt>, <tt class="docutils literal"><span class="pre">codes</span></tt> and <tt class="docutils literal"><span class="pre">formatter</span></tt> options in CLI or config. Formatter function must return a string.</p>
 </div>
 </div>
 
@@ -339,7 +361,7 @@ Total: 14 warnings / 1 error in 4 files
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.8.0',
+            VERSION:'0.9.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
