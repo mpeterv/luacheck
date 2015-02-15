@@ -90,9 +90,17 @@ Option                                Meaning
 ``--ignore | -i <patt> [<patt>] ...`` Filter out warnings matching patterns.
 ``--enable | -o <patt> [<patt>] ...`` Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``   Filter out warnings not matching patterns.
+``--no-inline``                       Disable inline options.
 ``-l <limit>`` | ``--limit <limit>``  Exit with 0 if there are ``<limit>`` or less warnings (default: ``0``).
 ``--config <config>``                 Path to custom configuration file (default: ``.luacheckrc``).
 ``--no-config``                       Do not look up custom configuration file.
+``--formatter <formatter>``           Use custom formatter. ``<formatter>`` must be a module name or one of:
+
+                                      * ``TAP`` - Test Anything Protocol formatter;
+                                      * ``JUnit`` - JUnit XML formatter;
+                                      * ``plain`` - simple warning-per-line formatter;
+                                      * ``default`` - standard formatter.
+``--codes``                           Show warning codes.
 ``-q`` | ``--quiet``                  Suppress report output for files without warnings.
 
                                       * ``-qq`` - Suppress output of warnings.
@@ -115,3 +123,8 @@ Pattern Matching warnings
 .*_     Warnings related to variables with ``_`` suffix.
 4.2/.*_ Shadowing declarations of arguments with ``_`` suffix or redefining them.
 ======= =========================================================================
+
+Formatters
+----------
+
+CLI option ``--formatter`` allows selecting a custom formatter for ``luacheck`` output. A custom formatter is a Lua module returning a function with three arguments: report as returned by ``luacheck`` module (see :ref:`report`), array of file names and table of options. Options contain values assigned to ``quiet``, ``color``, ``limit``, ``codes`` and ``formatter`` options in CLI or config. Formatter function must return a string.
