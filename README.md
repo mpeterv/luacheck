@@ -16,7 +16,7 @@ If it is not possible to install `luafilesystem` in your environment, use `luaro
 
 ### Manual installation
 
-1. Download and unpack latest release ([.zip](https://github.com/mpeterv/luacheck/archive/0.8.0.zip) [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.8.0.tar.gz)).
+1. Download and unpack latest release ([.zip](https://github.com/mpeterv/luacheck/archive/0.9.0.zip) [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.9.0.tar.gz)).
 2. Copy contents of `src` directory to a directory for Lua libraries. Run `lua -e 'print(package.path)'` to see where it could be.
 3. Copy `bin/luacheck.lua` to `PATH`. On Windows, also copy `bin/luacheck.bat`.
 
@@ -48,7 +48,7 @@ Documentation is available [online](http://luacheck.readthedocs.org). If Luachec
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.8.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.9.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 
