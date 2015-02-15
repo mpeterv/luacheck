@@ -152,15 +152,12 @@ local function apply_inline_options(option_stack, per_line_opts, warnings)
 
          if warning.code ~= "113" then
             warning.read_only = opts.read_globals[warning.name]
+            warning.global = opts.globals[warning.name] and not warning.read_only or nil
 
             if warning.code == "111" then
                if opts.module then
                   warning.in_module = true
                   warning.filtered_111 = nil
-               end
-
-               if opts.globals[warning.name] and not opts.read_globals[warning.name] then
-                  warning.global = true
                end
 
                if core_utils.is_definition(opts, warning) then
