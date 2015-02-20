@@ -1,5 +1,12 @@
 #!/usr/bin/env lua
-local version = "0.9.0"
+local luacheck = require "luacheck"
+local argparse = require "luacheck.argparse"
+local stds = require "luacheck.stds"
+local options = require "luacheck.options"
+local expand_rockspec = require "luacheck.expand_rockspec"
+local format = require "luacheck.format"
+local version = require "luacheck.version"
+local utils = require "luacheck.utils"
 
 local function fatal(msg)
    io.stderr:write("Fatal error: "..msg.."\n")
@@ -11,23 +18,16 @@ local function global_error_handler(err)
       fatal("Invalid pattern '" .. err.pattern .. "'")
    else
       fatal(debug.traceback(
-         ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(version, err), 2))
+         ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(version.luacheck, err), 2))
    end
 end
 
 local function main()
-   local luacheck = require "luacheck"
-   local argparse = require "luacheck.argparse"
-   local stds = require "luacheck.stds"
-   local options = require "luacheck.options"
-   local expand_rockspec = require "luacheck.expand_rockspec"
-   local utils = require "luacheck.utils"
-
    local default_config = ".luacheckrc"
 
    local function get_args()
       local parser = argparse "luacheck"
-         :description ("luacheck "..version..", a simple static analyzer for Lua. ")
+         :description ("luacheck " .. version.luacheck .. ", a simple static analyzer for Lua. ")
 
       parser:argument "files"
          :description "List of files to check. "
@@ -154,7 +154,14 @@ Otherwise, the pattern matches warning code.]]
          :description "Show warning codes. "
 
       parser:flag "--no-color"
-         :description "Do not color output"
+         :description "Do not color output. "
+
+      parser:flag "--version"
+         :description "Show version info and exit. "
+         :action(function()
+            print(version.string)
+            os.exit(0)
+         end)
 
       return parser:parse()
    end
@@ -335,7 +342,7 @@ Otherwise, the pattern matches warning code.]]
 
    local function pformat(report, file_names, args)
       if builtin_formatters[args.formatter] then
-         return (require "luacheck.format")(report, file_names, args)
+         return format(report, file_names, args)
       end
 
       local require_ok, formatter_module = pcall(require, args.formatter)
