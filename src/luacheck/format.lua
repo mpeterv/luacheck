@@ -90,8 +90,8 @@ local function format_name(name, color)
    return color and colorize(name, "bright") or ("'" .. name .. "'")
 end
 
-local function format_number(number, limit, color)
-   return format_color(tostring(number), color, "bright", (number > limit) and "red" or nil)
+local function format_number(number, color)
+   return format_color(tostring(number), color, "bright", (number > 0) and "red" or "reset")
 end
 
 local function capitalize(str)
@@ -147,7 +147,7 @@ end
 
 local formatters = {}
 
-function formatters.default(report, file_names, codes, quiet, limit, color)
+function formatters.default(report, file_names, codes, quiet, color)
    local buf = {}
 
    if quiet <= 2 then
@@ -164,8 +164,8 @@ function formatters.default(report, file_names, codes, quiet, limit, color)
    end
 
    table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
-      format_number(report.warnings, limit, color), plural(report.warnings),
-      format_number(report.errors, 0, color), plural(report.errors),
+      format_number(report.warnings, color), plural(report.warnings),
+      format_number(report.errors, color), plural(report.errors),
       #report, plural(#report)
    ))
 
@@ -247,15 +247,13 @@ end
 -- Recognized options:
 --    `options.formatter`: name of used formatter. Default: "default".
 --    `options.quiet`: integer in range 0-3. See CLI. Default: 0.
---    `options.limit`: See CLI. Default: 0.
 --    `options.color`: should use ansicolors? Default: true.
 --    `options.codes`: should output warning codes? Default: false.
 local function format(report, file_names, options)
    local quiet = options.quiet or 0
-   local limit = options.limit or 0
    local color = (options.color ~= false) and color_support
    local codes = options.codes
-   return formatters[options.formatter or "default"](report, file_names, codes, quiet, limit, color)
+   return formatters[options.formatter or "default"](report, file_names, codes, quiet, color)
 end
 
 return format

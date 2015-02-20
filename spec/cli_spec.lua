@@ -64,7 +64,7 @@ Checking spec/samples/bad_code.lua                ###Failure#
     spec/samples/bad_code.lua:8:10: variable ##opt# was previously defined as an argument on line 7
     spec/samples/bad_code.lua:9:11: accessing undefined variable ##hepler#
 
-Total: ###5# warnings / ##0# errors in 2 files
+Total: ###5# warnings / ###0# errors in 2 files
 ]], get_output ("spec/samples/good_code.lua spec/samples/bad_code.lua", true))
    end)
 
@@ -122,24 +122,6 @@ Total: 14 warnings / 0 errors in 3 files
    it("suppresses file info output with -qqq", function()
       assert.equal([[Total: 14 warnings / 0 errors in 3 files
 ]], get_output "-qqq spec/samples/*d_code.lua")
-   end)
-
-   it("allows to set warnings limit with -l", function()
-      assert.equal([[
-Checking spec/samples/bad_code.lua                Failure
-
-    spec/samples/bad_code.lua:3:16: unused function helper
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
-
-Total: 5 warnings / 0 errors in 1 file
-]], get_output "spec/samples/bad_code.lua -l5")
-      assert.equal(0, get_exitcode "spec/samples/bad_code.lua -l5")
-      assert.equal(0, get_exitcode "spec/samples/bad_code.lua --limit=10")
-      assert.equal(1, get_exitcode "spec/samples/bad_code.lua --limit=1")
-      assert.equal(2, get_exitcode "spec/samples/python_code.lua --limit=10")
    end)
 
    it("allows to ignore some types of warnings", function()
@@ -563,7 +545,6 @@ Total: 25 warnings / 0 errors in 1 file
       assert.equal([[Files: 2
 Formatter: spec.formatters.custom_formatter
 Quiet: 1
-Limit: 0
 Color: false
 Codes: true
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --formatter spec.formatters.custom_formatter -q --codes --no-color")

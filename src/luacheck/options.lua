@@ -7,10 +7,6 @@ local function boolean(x)
    return type(x) == "boolean"
 end
 
-local function number(x)
-   return type(x) == "number"
-end
-
 local function array_of_strings(x)
    if type(x) ~= "table" then
       return false
@@ -60,7 +56,6 @@ utils.update(options.config_options, options.single_inline_options)
 utils.update(options.config_options, options.multi_inline_options)
 
 options.top_config_options = {
-   limit = number,
    color = boolean,
    codes = boolean,
    formatter = string

@@ -119,10 +119,6 @@ Otherwise, the pattern matches warning code.]]
       parser:flag "--no-inline"
          :description "Disable inline options. "
 
-      parser:option "-l" "--limit"
-         :description "Exit with 0 if there are <limit> or less warnings. (default: 0)"
-         :convert(tonumber)
-
       local config_opt = parser:option "--config"
          :description ("Path to configuration file. (default: "..default_config..")")
 
@@ -373,7 +369,6 @@ Otherwise, the pattern matches warning code.]]
       args.color = not config or (config.color ~= false)
    end
 
-   args.limit = args.limit or (config and config.limit or 0)
    args.codes = args.codes or config and config.codes
    args.formatter = args.formatter or (config and config.formatter) or "default"
 
@@ -389,7 +384,7 @@ Otherwise, the pattern matches warning code.]]
 
    if report.errors > 0 then
       exit_code = 2
-   elseif report.warnings > args.limit then
+   elseif report.warnings > 0 then
       exit_code = 1
    else
       exit_code = 0
