@@ -51,9 +51,7 @@ options.config_options = {
    unused = boolean,
    redefined = boolean,
    unused_args = boolean,
-   unused_values = boolean,
    unused_secondaries = boolean,
-   unset = boolean,
    unused_globals = boolean,
    std = std_or_array_of_strings,
    inline = boolean
@@ -199,8 +197,6 @@ end
 local macros = {
    {"unused_globals", "13"},
    {"unused_args", "21[23]"},
-   {"unset", "22"},
-   {"unused_values", "31"},
    {"global", "1"},
    {"unused", "[23]"},
    {"redefined", "4"}

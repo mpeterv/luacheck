@@ -2,7 +2,7 @@ unused = false
 
 files["spec/samples/"] = {
    unused_args = true,
-   unused_values = true,
+   enable = {"31"},
    ignore = {"213"}
 }
 

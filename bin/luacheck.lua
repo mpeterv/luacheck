@@ -47,12 +47,6 @@ Equivalent to --ignore 4. ]]
       parser:flag "-a" "--no-unused-args"
          :description [[Filter out warnings related to unused arguments and loop variables. 
 Equivalent to --ignore 21[23]. ]]
-      parser:flag "-v" "--no-unused-values"
-         :description [[Filter out warnings related to unused values. 
-Equivalent to --ignore 31. ]]
-      parser:flag "--no-unset"
-         :description [[Filter out warnings related to unset variables. 
-Equivalent to --ignore 22. ]]
       parser:flag "-s" "--no-unused-secondaries"
          :description "Filter out warnings related to unused variables set together with used ones. "
 
@@ -249,9 +243,7 @@ Otherwise, the pattern matches warning code.]]
             redefined = "no_redefined",
             unused = "no_unused",
             unused_args = "no_unused_args",
-            unused_values = "no_unused_values",
             unused_secondaries = "no_unused_secondaries",
-            unset = "no_unset",
             unused_globals = "no_unused_globals",
             inline = "no_inline"} do
          if args[argname] then

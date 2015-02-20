@@ -116,7 +116,7 @@ describe("options", function()
       it("considers macros, ignore, enable and only", function()
          assert.same({
                {{{nil, "^foo$"}}, "only"},
-               {{{"^31", nil}}, "disable"},
+               {{{"^21[23]", nil}}, "disable"},
                {{{"^[23]", nil}}, "enable"},
                {{{"^511", nil}}, "enable"},
                {{{"^412", nil}, {"1$", "^bar$"}}, "disable"}
@@ -127,7 +127,7 @@ describe("options", function()
                ignore = {"412", "1$/bar"}
             }, {
                unused = true,
-               unused_values = false,
+               unused_args = false,
                enable = {"511"}
             }, {
                only = {"foo"}

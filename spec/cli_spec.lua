@@ -265,22 +265,6 @@ Total: 4 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/unused_code.lua --no-unused-args")
    end)
 
-   it("allows to ignore unused values", function()
-      assert.equal([[
-Checking spec/samples/unused_code.lua             Failure
-
-    spec/samples/unused_code.lua:3:18: unused argument baz
-    spec/samples/unused_code.lua:4:8: unused loop variable i
-    spec/samples/unused_code.lua:5:13: unused variable q
-    spec/samples/unused_code.lua:7:11: unused loop variable a
-    spec/samples/unused_code.lua:7:14: unused loop variable b
-    spec/samples/unused_code.lua:7:17: unused loop variable c
-    spec/samples/unused_code.lua:21:7: variable z is never accessed
-
-Total: 7 warnings / 0 errors in 1 file
-]], get_output "spec/samples/unused_code.lua --no-unused-values")
-   end)
-
    it("allows to ignore unused secondary values and variables", function()
       assert.equal([[
 Checking spec/samples/unused_secondaries.lua      Failure

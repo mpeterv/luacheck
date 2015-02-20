@@ -191,9 +191,8 @@ describe("filter", function()
             }
          }
       }, {
-         unused_values = false,
-         unused_args = false,
-         unset = false
+         ignore = {"22", "31"},
+         unused_args = false
       }))
    end)
 
