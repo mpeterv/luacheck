@@ -1,0 +1,129 @@
+local cache = require "luacheck.cache"
+local utils = require "luacheck.utils"
+
+describe("cache", function()
+   describe("serialize", function()
+      it("returns serialized result", function()
+         assert.same(
+            'return {{"111","foo",5,100,[22]=true,},{"211","bar",4,1,[7]=true,[10]=true,},{[3]=5,[4]=100000,[12]=true,},}',
+            cache.serialize({
+               {code = "111", name = "foo", line = 5, column = 100, in_module = true},
+               {code = "211", name = "bar", line = 4, column = 1, secondary = true, filtered = true},
+               {line = 5, column = 100000, unpaired = true}
+            })
+         )
+      end)
+   end)
+
+   describe("update", function()
+      local tmpname
+
+      before_each(function()
+         tmpname = os.tmpname()
+      end)
+
+      after_each(function()
+         os.remove(tmpname)
+      end)
+
+      it("creates new cache", function()
+         cache.update(tmpname, {"foo", "bar", "foo"}, {1, 2, 1}, {{{code="111"}}, {}, {{code="112"}}})
+         local data = utils.read_file(tmpname)
+         assert.equals([[
+foo
+1
+return {{"112",},}
+bar
+2
+return {}
+]], data)
+      end)
+
+      it("appends new entries", function()
+         cache.update(tmpname, {"foo", "bar", "foo"}, {1, 2, 1}, {{{code="111"}}, {}, {{code="112"}}})
+         local ok, appended = cache.update(tmpname, {"baz"}, {3}, {{{code="111"},{code="122"}}})
+         assert.is_true(ok)
+         assert.is_true(appended)
+         local data = utils.read_file(tmpname)
+         assert.equals([[
+foo
+1
+return {{"112",},}
+bar
+2
+return {}
+baz
+3
+return {{"111",},{"122",},}
+]], data)
+      end)
+
+      it("overwrites old entries", function()
+         cache.update(tmpname, {"foo", "bar", "foo"}, {1, 2, 1}, {{{code="111"}}, {}, {{code="112"}}})
+         local ok, appended = cache.update(tmpname, {"baz", "foo"}, {3, 4}, {{{code="111"},{code="122"}}, {}})
+         assert.is_true(ok)
+         assert.is_false(appended)
+         local data = utils.read_file(tmpname)
+         assert.equals([[
+foo
+4
+return {}
+bar
+2
+return {}
+baz
+3
+return {{"111",},{"122",},}
+]], data)
+      end)
+   end)
+
+   describe("load", function()
+      describe("error handling", function()
+         it("returns nil plus I/O on I/O error", function()
+            local ok, err = cache.load("non-existent.file", {"foo"})
+            assert.is_nil(ok)
+            assert.is_equal("I/O", err)
+         end)
+
+         it("returns nil plus syntax on cache with bad number of lines", function()
+            local ok, err = cache.load("spec/caches/bad_lines.cache", {"foo"})
+            assert.is_nil(ok)
+            assert.is_equal("syntax", err)
+         end)
+
+         it("returns nil plus syntax on cache with bad mtime", function()
+            local ok, err = cache.load("spec/caches/bad_mtime.cache", {"foo"})
+            assert.is_nil(ok)
+            assert.is_equal("syntax", err)
+         end)
+      end)
+
+      describe("loading", function()
+         local tmpname
+         local tmpname1
+         local tmpname2
+
+         before_each(function()
+            tmpname = os.tmpname()
+            cache.update(tmpname, {"foo", "bar"}, {1, 2}, {{{code="111"}}, {}})
+         end)
+
+         after_each(function()
+            os.remove(tmpname)
+         end)
+
+         it("loads cached results", function()
+            assert.same({foo = {{code="111"}}, bar = {}}, cache.load(tmpname, {"foo", "bar"}, {1, 2}))
+         end)
+
+         it("does not load results for missing files", function()
+            assert.same({foo = {{code="111"}}}, cache.load(tmpname, {"foo", "baz"}, {1, 2}))
+         end)
+
+         it("does not load outdated results", function()
+            assert.same({bar = {}}, cache.load(tmpname, {"foo", "bar", "baz"}, {2, 2}))
+         end)
+      end)
+   end)
+end)

@@ -249,6 +249,7 @@ end
 --    .definition is added to global set warnings (111) that are implicit definitions due to inline options;
 --    .in_module is added to 111 warnings that are in module due to inline options.
 --    .read_only is added to 111 and 112 warnings related to read only globals.
+--    .global is added to 111 and 112 related to regular globals.
 -- Invalid comments have same shape as warnings except they don't have .code field.
 -- Instead, they may have .invalid or .unpaired field for syntactically invalid inline options and unpaired
 --    push/pop options, correspondingly.

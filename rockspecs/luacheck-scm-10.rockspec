@@ -4,12 +4,12 @@ source = {
    url = "git://github.com/mpeterv/luacheck.git"
 }
 description = {
-   summary = "A simple static analyzer for Lua",
+   summary = "A static analyzer and a linter for Lua",
    detailed = [[
-Luacheck is a tool for linting and static analysis of Lua code. It is able to spot usage of undefined global variables, unused local variables and a few other typical problems within Lua programs.
+Luacheck is a command-line tool for linting and static analysis of Lua code. It is able to spot usage of undefined global variables, unused local variables and a few other typical problems within Lua programs.
 ]],
    homepage = "https://github.com/mpeterv/luacheck",
-   license = "MIT/X11"
+   license = "MIT <http://opensource.org/licenses/MIT>"
 }
 dependencies = {
    "lua >= 5.1, < 5.4",
@@ -31,6 +31,7 @@ build = {
       ["luacheck.inline_options"] = "src/luacheck/inline_options.lua",
       ["luacheck.stds"] = "src/luacheck/stds.lua",
       ["luacheck.expand_rockspec"] = "src/luacheck/expand_rockspec.lua",
+      ["luacheck.cache"] = "src/luacheck/cache.lua",
       ["luacheck.format"] = "src/luacheck/format.lua",
       ["luacheck.version"] = "src/luacheck/version.lua",
       ["luacheck.utils"] = "src/luacheck/utils.lua",

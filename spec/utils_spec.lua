@@ -83,7 +83,7 @@ describe("utils", function()
 
    describe("array_to_set", function()
       it("converts array to set and returns it", function()
-         assert.same({foo = true, bar = true}, utils.array_to_set({"foo", "bar", "foo"}))
+         assert.same({foo = 3, bar = 2}, utils.array_to_set({"foo", "bar", "foo"}))
       end)
    end)
 

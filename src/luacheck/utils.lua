@@ -39,6 +39,11 @@ if has_lfs then
       table.sort(res)
       return res
    end
+
+   -- Returns modification time for a file. 
+   function utils.mtime(path)
+      return lfs.attributes(path, "modification")
+   end
 else
    -- No luafilesystem. Effectively disable recursive directory checking.
    -- Using something like os.execute("ls") may be possible but is a hack.
@@ -61,6 +66,11 @@ else
    function utils.extract_files(_, _)
       return {}
    end
+
+   -- Returns modification time for a file. 
+   function utils.mtime(_)
+      return 0
+   end
 end
 
 -- Returns all contents of file(path or file handler) or nil. 
@@ -74,22 +84,29 @@ function utils.read_file(file)
    end) and res or nil
 end
 
--- Parses rockspec-like source, returns data or nil. 
-local function capture_env(src, env)
-   -- luacheck: compat
-   env = env or {}
-   local func
-
-   if _VERSION:find "5.1" then
-      func = loadstring(src)
+-- luacheck: push
+-- luacheck: compat
+if _VERSION:find "5.1" then
+   -- Loads Lua source string in an environment, returns function or nil.
+   function utils.load(src, env)
+      local func = loadstring(src)
 
       if func then
-         setfenv(func, env)
+         return setfenv(func, env)
       end
-   else
-      func = load(src, nil, "t", env)
    end
+else
+   -- Loads Lua source string in an environment, returns function or nil.
+   function utils.load(src, env)
+      return load(src, nil, "t", env)
+   end
+end
+-- luacheck: pop
 
+-- Parses rockspec-like source, returns data or nil. 
+local function capture_env(src, env)
+   env = env or {}
+   local func = utils.load(src, env)
    return func and pcall(func) and env
 end
 
@@ -114,8 +131,8 @@ end
 function utils.array_to_set(array)
    local set = {}
 
-   for _, item in ipairs(array) do
-      set[item] = true
+   for index, value in ipairs(array) do
+      set[value] = index
    end
 
    return set
