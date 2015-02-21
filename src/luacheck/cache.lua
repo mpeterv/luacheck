@@ -75,6 +75,10 @@ end
 
 -- Serializes check result into a string.
 function cache.serialize(events)
+   if not events then
+      return "return nil"
+   end
+
    local buffer = {"return {"}
 
    for _, event in ipairs(events) do

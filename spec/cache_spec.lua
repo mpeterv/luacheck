@@ -13,6 +13,10 @@ describe("cache", function()
             })
          )
       end)
+
+      it("handles error result", function()
+         assert.same('return nil', cache.serialize(nil))
+      end)
    end)
 
    describe("update", function()
@@ -101,8 +105,6 @@ return {{"111",},{"122",},}
 
       describe("loading", function()
          local tmpname
-         local tmpname1
-         local tmpname2
 
          before_each(function()
             tmpname = os.tmpname()
