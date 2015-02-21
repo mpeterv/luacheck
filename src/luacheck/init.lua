@@ -1,66 +1,70 @@
 local check = require "luacheck.check"
 local filter = require "luacheck.filter"
 local options = require "luacheck.options"
+local version = require "luacheck.version"
 local utils = require "luacheck.utils"
 
---- Checks a file. 
--- Returns a file report. 
-local function get_report(file)
-   local src = utils.read_file(file)
+local luacheck = {
+   _VERSION = version.luacheck
+}
 
-   if not src then
-      return {error = "I/O"}
-   end
-
-   return utils.pcall(check, src) or {error = "syntax"}
-end
-
-local function validate_files(files)
+local function validate_files(fname, files)
    assert(type(files) == "table", (
-      "bad argument #1 to 'luacheck' (table expected, got %s)"):format(type(files))
+      "bad argument #1 to '%s' (table expected, got %s)"):format(type(files))
    )
 
    for _, item in ipairs(files) do
       assert(type(item) == "string" or io.type(item) == "file", (
-         "bad argument #1 to 'luacheck' (array of paths or file handles expected, got %s)"):format(type(item))
+         "bad argument #1 to '%s' (array of paths or file handles expected, got %s)"):format(type(item))
       )
    end
 end
 
-local function raw_validate_options(opts)
+local function raw_validate_options(fname, opts)
    assert(opts == nil or type(opts) == "table",
-      ("bad argument #2 to 'luacheck' (table or nil expected, got %s)"):format(type(opts))
+      ("bad argument #2 to '%s' (table or nil expected, got %s)"):format(fname, type(opts))
    )
 
    local ok, invalid_field = options.validate(options.config_options, opts)
 
    if not ok then
       if invalid_field then
-         error(("bad argument #2 to 'luacheck' (invalid value of option '%s')"):format(invalid_field))
+         error(("bad argument #2 to '%s' (invalid value of option '%s')"):format(fname, invalid_field))
       else
-         error("bad argument #2 to 'luacheck'")
+         error(("bad argument #2 to '%s'"):format(fname))
       end
    end
 end
 
-local function validate_options(items, opts)
-   raw_validate_options(opts)
+local function validate_options(fname, items, opts)
+   raw_validate_options(fname, opts)
 
    if opts ~= nil then
       for i in ipairs(items) do
-         raw_validate_options(opts[i])
+         raw_validate_options(fname, opts[i])
 
          if opts[i] ~= nil then
             for _, nested_opts in ipairs(opts[i]) do
-               raw_validate_options(nested_opts)
+               raw_validate_options(fname, nested_opts)
             end
          end
       end
    end
 end
 
--- Adds .warnings and .errors fields to a report. 
-local function add_stats(report)
+-- Returns report for a string or nil in case of syntax error.
+function luacheck.get_report(src)
+   assert(type(src) == "string", ("bad argument #2 to 'luacheck.get_report (string expected, got %s)'"):format(type(src)))
+   return utils.pcall(check, src)
+end
+
+-- Applies options to reports. Reports with .error field are unchanged.
+-- Options are applied to reports[i] in order: options, options[i], options[i][1], options[i][2], ...
+-- Returns new array of reports, adds .warnings and .errors fields.
+function luacheck.process_reports(reports, options)
+   assert(type(reports) == "table", ("bad argument #1 to 'luacheck.process_reports' (table expected, got %s)'"):format(type(reports)))
+   validate_options("luacheck.process_reports", reports, options)
+   local report = filter.filter(reports, options)
    report.warnings = 0
    report.errors = 0
 
@@ -75,20 +79,54 @@ local function add_stats(report)
    return report
 end
 
---- Checks files with given options. 
--- `files` should be an array of paths or file handles. 
--- `options`, if not nil, should be a table containing options. 
-local function luacheck(files, opts)
-   validate_files(files)
-   validate_options(files, opts)
+-- Checks strings with options, returns report.
+-- Error reports are unchanged.
+function luacheck.check_strings(srcs, options)
+   assert(type(srcs) == "table", ("bad argument #1 to 'luacheck.check_strings' (table expected, got %s)'"):format(type(srcs)))
 
-   local report = {}
-
-   for _, file in ipairs(files) do
-      table.insert(report, get_report(file))
+   for _, item in ipairs(srcs) do
+      assert(type(item) == "string" or type(item) == "table", (
+         "bad argument #1 to 'luacheck.check_strings' (array of strings or tables expected, got %s)"):format(type(item))
+      )
    end
 
-   return add_stats(filter.filter(report, opts))
+   validate_options("luacheck.check_strings", srcs, options)
+
+   local reports = {}
+
+   for i, src in ipairs(srcs) do
+      if type(src) == "table" and src.error then
+         reports[i] = src
+      else
+         reports[i] = luacheck.get_report(src) or {error = "syntax"}
+      end
+   end
+
+   return luacheck.process_reports(reports, options)
 end
+
+function luacheck.check_files(files, options)
+   assert(type(files) == "table", ("bad argument #1 to 'luacheck.check_files' (table expected, got %s)'"):format(type(files)))
+
+   for _, item in ipairs(files) do
+      assert(type(item) == "string" or io.type(item) == "file", (
+         "bad argument #1 to 'luacheck.check_files' (array of paths or file handles expected, got %s)"):format(type(item))
+      )
+   end
+
+   validate_options("luacheck.check_files", files, options)
+
+   local srcs = {}
+
+   for i, file in ipairs(files) do
+      srcs[i] = utils.read_file(file) or {error = "I/O"}
+   end
+
+   return luacheck.check_strings(srcs, options)
+end
+
+setmetatable(luacheck, {__call = function(_, ...)
+   return luacheck.check_files(...)
+end})
 
 return luacheck

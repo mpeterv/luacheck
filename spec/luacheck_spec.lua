@@ -4,18 +4,18 @@ describe("luacheck", function()
    describe("type checking", function()
       it("panics on bad files", function()
          assert.has_error(function() luacheck("foo") end,
-            "bad argument #1 to 'luacheck' (table expected, got string)")
+            "bad argument #1 to 'luacheck.check_files' (table expected, got string)")
          assert.has_error(function() luacheck({123}) end,
-            "bad argument #1 to 'luacheck' (array of paths or file handles expected, got number)")
+            "bad argument #1 to 'luacheck.check_files' (array of paths or file handles expected, got number)")
       end)
 
       it("panics on bad options", function()
          assert.has_error(function() luacheck({"foo"}, "bar") end,
-            "bad argument #2 to 'luacheck' (table or nil expected, got string)")
+            "bad argument #2 to 'luacheck.check_files' (table or nil expected, got string)")
          assert.has_error(function() luacheck({"foo"}, {globals = "bar"}) end,
-            "bad argument #2 to 'luacheck' (invalid value of option 'globals')")
+            "bad argument #2 to 'luacheck.check_files' (invalid value of option 'globals')")
          assert.has_error(function() luacheck({"foo"}, {{unused = 123}}) end,
-            "bad argument #2 to 'luacheck' (invalid value of option 'unused')")
+            "bad argument #2 to 'luacheck.check_files' (invalid value of option 'unused')")
       end)
    end)
 
