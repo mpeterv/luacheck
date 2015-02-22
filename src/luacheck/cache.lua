@@ -257,13 +257,16 @@ function cache.update(cache_filename, filenames, mtimes, results)
    end
 
    if can_append then
-      fh = io.open(cache_filename, "ab")
+      if #new_triplets > 0 then
+         fh = io.open(cache_filename, "ab")
 
-      if not fh then
-         return false
+         if not fh then
+            return false
+         end
+
+         write_triplets(fh, new_triplets)
+         fh:close()
       end
-
-      write_triplets(fh, new_triplets)
    else
       fh = io.open(cache_filename, "wb")
 
@@ -273,9 +276,9 @@ function cache.update(cache_filename, filenames, mtimes, results)
 
       write_triplets(fh, old_triplets)
       write_triplets(fh, new_triplets)
+      fh:close()
    end
 
-   fh:close()
    return true, can_append
 end
 
