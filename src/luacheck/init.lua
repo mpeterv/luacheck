@@ -8,18 +8,6 @@ local luacheck = {
    _VERSION = version.luacheck
 }
 
-local function validate_files(fname, files)
-   assert(type(files) == "table", (
-      "bad argument #1 to '%s' (table expected, got %s)"):format(type(files))
-   )
-
-   for _, item in ipairs(files) do
-      assert(type(item) == "string" or io.type(item) == "file", (
-         "bad argument #1 to '%s' (array of paths or file handles expected, got %s)"):format(type(item))
-      )
-   end
-end
-
 local function raw_validate_options(fname, opts)
    assert(opts == nil or type(opts) == "table",
       ("bad argument #2 to '%s' (table or nil expected, got %s)"):format(fname, type(opts))
