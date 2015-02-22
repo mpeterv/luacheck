@@ -5,11 +5,64 @@ describe("cache", function()
    describe("serialize", function()
       it("returns serialized result", function()
          assert.same(
-            'return {{"111","foo",5,100,[22]=true,},{"211","bar",4,1,[7]=true,[10]=true,},{[3]=5,[4]=100000,[12]=true,},}',
+            'return {{"111","foo",5,100,[22]=true},{"211","bar",4,1,[7]=true,[10]=true},{[3]=5,[4]=100000,[12]=true}}',
             cache.serialize({
                {code = "111", name = "foo", line = 5, column = 100, in_module = true},
                {code = "211", name = "bar", line = 4, column = 1, secondary = true, filtered = true},
                {line = 5, column = 100000, unpaired = true}
+            })
+         )
+      end)
+
+      it("puts repeating string values into locals", function()
+         assert.same(
+            'local A,B="111","foo";return {{A,B,5,100,[22]=true},{A,B,6,100,[7]=true,[10]=true},{[3]=5,[4]=100000,[12]=true}}',
+            cache.serialize({
+               {code = "111", name = "foo", line = 5, column = 100, in_module = true},
+               {code = "111", name = "foo", line = 6, column = 100, secondary = true, filtered = true},
+               {line = 5, column = 100000, unpaired = true}
+            })
+         )
+      end)
+
+      it("uses at most 52 locals", function()
+         assert.same(
+            'local A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z=' ..
+            '"111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127","128",' ..
+            '"129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145","146",' ..
+            '"147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162";' ..
+            'return {{A,A},{B,B},{C,C},{D,D},{E,E},{F,F},{G,G},{H,H},{I,I},{J,J},{K,K},{L,L},{M,M},{N,N},{O,O},' ..
+            '{P,P},{Q,Q},{R,R},{S,S},{T,T},{U,U},{V,V},{W,W},{X,X},{Y,Y},{Z,Z},' ..
+            '{a,a},{b,b},{c,c},{d,d},{e,e},{f,f},{g,g},{h,h},{i,i},{j,j},{k,k},{l,l},{m,m},{n,n},{o,o},' .. 
+            '{p,p},{q,q},{r,r},{s,s},{t,t},{u,u},{v,v},{w,w},{x,x},{y,y},{z,z},{"163","163"},{"164","164"}}',
+            cache.serialize({
+               {code = "111", name = "111"}, {code = "112", name = "112"},
+               {code = "113", name = "113"}, {code = "114", name = "114"},
+               {code = "115", name = "115"}, {code = "116", name = "116"},
+               {code = "117", name = "117"}, {code = "118", name = "118"},
+               {code = "119", name = "119"}, {code = "120", name = "120"},
+               {code = "121", name = "121"}, {code = "122", name = "122"},
+               {code = "123", name = "123"}, {code = "124", name = "124"},
+               {code = "125", name = "125"}, {code = "126", name = "126"},
+               {code = "127", name = "127"}, {code = "128", name = "128"},
+               {code = "129", name = "129"}, {code = "130", name = "130"},
+               {code = "131", name = "131"}, {code = "132", name = "132"},
+               {code = "133", name = "133"}, {code = "134", name = "134"},
+               {code = "135", name = "135"}, {code = "136", name = "136"},
+               {code = "137", name = "137"}, {code = "138", name = "138"},
+               {code = "139", name = "139"}, {code = "140", name = "140"},
+               {code = "141", name = "141"}, {code = "142", name = "142"},
+               {code = "143", name = "143"}, {code = "144", name = "144"},
+               {code = "145", name = "145"}, {code = "146", name = "146"},
+               {code = "147", name = "147"}, {code = "148", name = "148"},
+               {code = "149", name = "149"}, {code = "150", name = "150"},
+               {code = "151", name = "151"}, {code = "152", name = "152"},
+               {code = "153", name = "153"}, {code = "154", name = "154"},
+               {code = "155", name = "155"}, {code = "156", name = "156"},
+               {code = "157", name = "157"}, {code = "158", name = "158"},
+               {code = "159", name = "159"}, {code = "160", name = "160"},
+               {code = "161", name = "161"}, {code = "162", name = "162"},
+               {code = "163", name = "163"}, {code = "164", name = "164"}
             })
          )
       end)
@@ -36,7 +89,7 @@ describe("cache", function()
          assert.equals([[
 foo
 1
-return {{"112",},}
+return {{"112"}}
 bar
 2
 return {}
@@ -52,13 +105,13 @@ return {}
          assert.equals([[
 foo
 1
-return {{"112",},}
+return {{"112"}}
 bar
 2
 return {}
 baz
 3
-return {{"111",},{"122",},}
+return {{"111"},{"122"}}
 ]], data)
       end)
 
@@ -77,7 +130,7 @@ bar
 return {}
 baz
 3
-return {{"111",},{"122",},}
+return {{"111"},{"122"}}
 ]], data)
       end)
    end)

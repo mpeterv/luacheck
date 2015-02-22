@@ -43,11 +43,19 @@ local function compress(t)
    return res
 end
 
--- Serializes event into a string.
-local function serialize_event(event)
+local function get_local_name(index)
+   return string.char(index + (index > 26 and 70 or 64))
+end
+
+-- Serializes event into buffer.
+-- strings is a table mapping string values to where they first occured or to name of local
+-- variable used to represent it.
+-- Array part contains representations of values saved into locals.
+local function serialize_event(buffer, strings, event)
    event = compress(event)
-   local buffer = {"{"}
+   table.insert(buffer, "{")
    local is_sparse
+   local put_one
 
    for i = 1, #fields do
       local value = event[i]
@@ -55,22 +63,40 @@ local function serialize_event(event)
       if not value then
          is_sparse = true
       else
+         if put_one then
+            table.insert(buffer, ",")
+         end
+
+         put_one = true
+
          if is_sparse then
             table.insert(buffer, ("[%d]="):format(i))
          end
 
          if type(value) == "string" then
-            table.insert(buffer, ("%q"):format(value))
+            local prev = strings[value]
+
+            if type(prev) == "string" then
+               -- There is a local with such value.
+               table.insert(buffer, prev)
+            elseif type(prev) == "number" and #strings < 52 then
+               -- Value is used second time, put it into a local.
+               table.insert(strings, ("%q"):format(value))
+               local local_name = get_local_name(#strings)
+               buffer[prev] = local_name
+               table.insert(buffer, local_name)
+               strings[value] = local_name
+            else
+               table.insert(buffer, ("%q"):format(value))
+               strings[value] = #buffer
+            end
          else
             table.insert(buffer, tostring(value))
          end
-
-         table.insert(buffer, ",")
       end
    end
 
    table.insert(buffer, "}")
-   return table.concat(buffer)
 end
 
 -- Serializes check result into a string.
@@ -79,14 +105,44 @@ function cache.serialize(events)
       return "return false"
    end
 
-   local buffer = {"return {"}
+   local strings = {}
+   local buffer = {"", "return {"}
 
-   for _, event in ipairs(events) do
-      table.insert(buffer, serialize_event(event))
-      table.insert(buffer, ",")
+   for i, event in ipairs(events) do
+      if i > 1 then
+         table.insert(buffer, ",")
+      end
+
+      serialize_event(buffer, strings, event)
    end
 
    table.insert(buffer, "}")
+
+   if strings[1] then
+      local locals = {"local "}
+
+      for index in ipairs(strings) do
+         if index > 1 then
+            table.insert(locals, ",")
+         end
+
+         table.insert(locals, get_local_name(index))
+      end
+
+      table.insert(locals, "=")
+
+      for index, value in ipairs(strings) do
+         if index > 1 then
+            table.insert(locals, ",")
+         end
+
+         table.insert(locals, value)
+      end
+
+      table.insert(locals, ";")
+      buffer[1] = table.concat(locals)
+   end
+
    return table.concat(buffer)
 end
 
