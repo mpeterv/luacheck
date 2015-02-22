@@ -84,22 +84,17 @@ return {{"111",},{"122",},}
 
    describe("load", function()
       describe("error handling", function()
-         it("returns nil plus I/O on I/O error", function()
-            local ok, err = cache.load("non-existent.file", {"foo"})
-            assert.is_nil(ok)
-            assert.is_equal("I/O", err)
+         it("returns nil on cache with bad number of lines", function()
+            assert.is_nil(cache.load("spec/caches/bad_lines.cache", {"foo"}, {123}))
          end)
 
-         it("returns nil plus syntax on cache with bad number of lines", function()
-            local ok, err = cache.load("spec/caches/bad_lines.cache", {"foo"})
-            assert.is_nil(ok)
-            assert.is_equal("syntax", err)
+         it("returns nil on cache with bad mtime", function()
+            assert.is_nil(cache.load("spec/caches/bad_mtime.cache", {"foo"}, {123}))
          end)
 
-         it("returns nil plus syntax on cache with bad mtime", function()
-            local ok, err = cache.load("spec/caches/bad_mtime.cache", {"foo"})
-            assert.is_nil(ok)
-            assert.is_equal("syntax", err)
+         it("returns nil on cache with bad result", function()
+            assert.is_nil(cache.load("spec/caches/bad_result.cache", {"foo"}, {123}))
+            assert.is_nil(cache.load("spec/caches/bad_result2.cache", {"foo"}, {123}))
          end)
       end)
 
@@ -113,6 +108,10 @@ return {{"111",},{"122",},}
 
          after_each(function()
             os.remove(tmpname)
+         end)
+
+         it("loads {} from non-existent cache", function()
+            assert.same({}, cache.load("non-existent.file", {"foo"}))
          end)
 
          it("loads cached results", function()

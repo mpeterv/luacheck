@@ -158,21 +158,23 @@ end
 
 -- Loads cache for filenames given mtimes from cache cache_filename.
 -- Returns table mapping filenames to cached check results.
--- On error returns nil + "I/O" or "syntax"
+-- On corrupted cache returns nil.
 function cache.load(cache_filename, filenames, mtimes)
    local fh = io.open(cache_filename, "rb")
 
    if not fh then
-      return nil, "I/O"
+      return {}
    end
 
    local result = {}
    local not_yet_found = utils.array_to_set(filenames)
+   not_yet_found[io.stdin] = nil
 
    while next(not_yet_found) do
       local filename = fh:read()
 
       if not filename then
+         fh:close()
          return result
       end
 
@@ -180,13 +182,15 @@ function cache.load(cache_filename, filenames, mtimes)
       local cached = fh:read()
 
       if not mtime or not cached then
-         return nil, "syntax"
+         fh:close()
+         return
       end
 
       mtime = tonumber(mtime)
 
       if not mtime then
-         return nil, "syntax"
+         fh:close()
+         return
       end
 
       if not_yet_found[filename] then
@@ -194,7 +198,8 @@ function cache.load(cache_filename, filenames, mtimes)
             result[filename] = load_cached(cached)
 
             if not result[filename] then
-               return nil, "syntax"
+               fh:close()
+               return
             end
          end
 
