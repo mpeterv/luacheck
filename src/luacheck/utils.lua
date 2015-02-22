@@ -9,12 +9,12 @@ utils.has_lfs, utils.lfs = pcall(require, "lfs")
 if utils.has_lfs then
    -- Returns whether path points to a directory. 
    function utils.is_dir(path)
-      return lfs.attributes(path, "mode") == "directory"
+      return utils.lfs.attributes(path, "mode") == "directory"
    end
 
    -- Returns whether path points to a file. 
    function utils.is_file(path)
-      return lfs.attributes(path, "mode") == "file"
+      return utils.lfs.attributes(path, "mode") == "file"
    end
 
    -- Returns list of all files in directory matching pattern. 
@@ -22,7 +22,7 @@ if utils.has_lfs then
       local res = {}
 
       local function scan(dir_path)
-         for path in lfs.dir(dir_path) do
+         for path in utils.lfs.dir(dir_path) do
             if path ~= "." and path ~= ".." then
                local full_path = dir_path .. dir_sep .. path
 
@@ -42,7 +42,7 @@ if utils.has_lfs then
 
    -- Returns modification time for a file. 
    function utils.mtime(path)
-      return lfs.attributes(path, "modification")
+      return utils.lfs.attributes(path, "modification")
    end
 else
    -- No luafilesystem. Effectively disable recursive directory checking.
