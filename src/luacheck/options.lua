@@ -21,6 +21,10 @@ local function array_of_strings(x)
    return true
 end
 
+local function boolean_or_string(x)
+   return type(x) == "boolean" or type(x) == "string"
+end
+
 local function std_or_array_of_strings(x)
    return stds[x] or array_of_strings(x)
 end
@@ -58,7 +62,8 @@ utils.update(options.config_options, options.multi_inline_options)
 options.top_config_options = {
    color = boolean,
    codes = boolean,
-   formatter = string
+   formatter = string,
+   cache = boolean_or_string
 }
 utils.update(options.top_config_options, options.config_options)
 

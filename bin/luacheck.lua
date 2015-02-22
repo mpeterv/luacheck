@@ -4,6 +4,7 @@ local argparse = require "luacheck.argparse"
 local stds = require "luacheck.stds"
 local options = require "luacheck.options"
 local expand_rockspec = require "luacheck.expand_rockspec"
+local cache = require "luacheck.cache"
 local format = require "luacheck.format"
 local version = require "luacheck.version"
 local utils = require "luacheck.utils"
@@ -24,6 +25,7 @@ end
 
 local function main()
    local default_config = ".luacheckrc"
+   local default_cache_path = ".luacheckcache"
 
    local function get_args()
       local parser = argparse "luacheck"
@@ -129,6 +131,18 @@ Otherwise, the pattern matches warning code.]]
 
       parser:mutex(config_opt, no_config_opt)
 
+      if utils.has_lfs then
+         local cache_opt = parser:option "--cache"
+            :description "Path to cache file. "
+            :default (default_cache_path)
+            :defmode "arg"
+
+         local no_cache_opt = parser:flag "--no-cache"
+            :description "Do not use cache. "
+
+         parser:mutex(cache_opt, no_cache_opt)
+      end
+
       parser:option "--formatter"
          :description [[Use custom formatter. <formatter> must be a module name or one of:
    TAP - Test Anything Protocol formatter;
@@ -155,11 +169,17 @@ Otherwise, the pattern matches warning code.]]
             os.exit(0)
          end)
 
-      return parser:parse()
+      local args = parser:parse()
+
+      if not utils.has_lfs then
+         args.no_cache = true
+      end
+
+      return args
    end
 
    -- Expands folders, rockspecs, -
-   -- Returns new array of file names and table mapping indexes of "bad" rockspecs to error messages. 
+   -- Returns new array of filenames and table mapping indexes of bad rockspecs to error messages. 
    -- Removes "./" in the beginnings of file names. 
    local function expand_files(files)
       local res, bad_rockspecs = {}, {}
@@ -192,18 +212,6 @@ Otherwise, the pattern matches warning code.]]
       end
 
       return res, bad_rockspecs
-   end
-
-   local function remove_bad_rockspecs(files, bad_rockspecs)
-      local res = {}
-
-      for i, file in ipairs(files) do
-         if not bad_rockspecs[i] then
-            table.insert(res, file)
-         end
-      end
-
-      return res
    end
 
    local function get_config(config_path)
@@ -253,6 +261,139 @@ Otherwise, the pattern matches warning code.]]
             "ignore", "enable", "only"} do
          if #args[argname] > 0 then
             res[argname] = utils.concat_arrays(args[argname])
+         end
+      end
+
+      return res
+   end
+
+   -- Applies cli-specific options from config to args.
+   local function combine_config_and_args(config, args)
+      if args.no_color then
+         args.color = false
+      else
+         args.color = not config or (config.color ~= false)
+      end
+
+      args.codes = args.codes or config and config.codes
+      args.formatter = args.formatter or (config and config.formatter) or "default"
+
+      if args.no_cache then
+         args.cache = false
+      else
+         args.cache = args.cache or (config and config.cache)
+      end
+
+      if args.cache == true then
+         args.cache = default_cache_path
+      end
+   end
+
+   -- Returns sparse array of mtimes and map of filenames to cached reports.
+   local function get_mtimes_and_cached_reports(cache_filename, files, bad_files)
+      local cache_files = {}
+      local cache_mtimes = {}
+      local sparse_mtimes = {}
+
+      for i, file in ipairs(files) do
+         if not bad_files[i] and file ~= io.stdin then
+            table.insert(cache_files, file)
+            local mtime = utils.mtime(file)
+            table.insert(cache_mtimes, mtime)
+            sparse_mtimes[i] = mtime
+         end
+      end
+
+      return sparse_mtimes, cache.load(cache_filename, cache_files, cache_mtimes) or fatal(
+         ("Couldn't load cache from %s: data corrupted"):format(cache_filename))
+   end
+
+   -- Returns sparse array of sources of files that need to be checked, updates bad_files with files that had I/O issues.
+   local function get_srcs_to_check(cached_reports, files, bad_files)
+      local res = {}
+
+      for i, file in ipairs(files) do
+         if not bad_files[i] and cached_reports[file] == nil then
+            local src = utils.read_file(file)
+
+            if src then
+               res[i] = src
+            else
+               bad_files[i] = "I/O"
+            end
+         end
+      end
+
+      return res
+   end
+
+   -- Returns sparse array of new reports. Updates bad_files with syntax errors.
+   local function get_new_reports(files, bad_files, srcs)
+      local res = {}
+
+      for i in ipairs(files) do
+         if srcs[i] then
+            res[i] = luacheck.get_report(srcs[i])
+
+            if not res[i] then
+               bad_files[i] = "syntax"
+            end
+         end
+      end
+
+      return res
+   end
+
+   -- Updates cache with new_reports. Updates bad_files for which mtime is absent.
+   local function update_cache(cache_filename, files, bad_files, srcs, mtimes, new_reports)
+      local cache_files = {}
+      local cache_mtimes = {}
+      local cache_reports = {}
+
+      for i, file in ipairs(files) do
+         if srcs[i] and file ~= io.stdin then
+            if not mtimes[i] then
+               bad_files[i] = "I/O"
+            else
+               table.insert(cache_files, file)
+               table.insert(cache_mtimes, mtimes[i])
+               table.insert(cache_reports, new_reports[i])
+            end
+         end
+      end
+
+      return cache.update(cache_filename, cache_files, cache_mtimes, cache_reports) or fatal(
+         ("Couldn't save cache to %s: I/O error"):format(cache_filename))
+   end
+
+   -- Returns array of reports for files.
+   local function get_reports(cache_filename, files, bad_rockspecs)
+      local bad_files = utils.update({}, bad_rockspecs)
+      local mtimes
+      local cached_reports
+
+      if cache_filename then
+         mtimes, cached_reports = get_mtimes_and_cached_reports(cache_filename, files, bad_files)
+      else
+         cached_reports = {}
+      end
+
+      local srcs = get_srcs_to_check(cached_reports, files, bad_files)
+      local new_reports = get_new_reports(files, bad_files, srcs)
+
+      if cache_filename then
+         update_cache(cache_filename, files, bad_files, srcs, mtimes, new_reports)
+      end
+
+      local res = {}
+
+      for i, file in ipairs(files) do
+         if bad_files[i] then
+            res[i] = {error = bad_files[i]}
+         elseif cached_reports[file] ~= nil then
+            res[i] = cached_reports[file] or {error = "syntax"}
+         else
+            res[i] = new_reports[i]
          end
       end
 
@@ -311,19 +452,10 @@ Otherwise, the pattern matches warning code.]]
       return res
    end
 
-   local function insert_bad_rockspecs(report, file_names, bad_rockspecs)
-      for i in ipairs(file_names) do
-         if bad_rockspecs[i] then
-            table.insert(report, i, {error = bad_rockspecs[i]})
-            report.errors = report.errors + 1
-         end
-      end
-   end
-
-   local function normalize_file_names(file_names)
-      for i, file_name in ipairs(file_names) do
-         if type(file_name) ~= "string" then
-            file_names[i] = "stdin"
+   local function normalize_filenames(files)
+      for i, file in ipairs(files) do
+         if type(file) ~= "string" then
+            files[i] = "stdin"
          end
       end
    end
@@ -358,23 +490,14 @@ Otherwise, the pattern matches warning code.]]
       config = get_config(args.config)
    end
 
-   local file_names, bad_rockspecs = expand_files(args.files)
-   local files = remove_bad_rockspecs(file_names, bad_rockspecs)
-   local report = luacheck(files, combine_config_and_options(config, args.config, opts, files))
-   insert_bad_rockspecs(report, file_names, bad_rockspecs)
-   normalize_file_names(file_names)
+   combine_config_and_args(config, args)
 
-   -- Apply cli options from config.
-   if args.no_color then
-      args.color = false
-   else
-      args.color = not config or (config.color ~= false)
-   end
+   local files, bad_rockspecs = expand_files(args.files)
+   local reports = get_reports(args.cache, files, bad_rockspecs)
+   local report = luacheck.process_reports(reports, combine_config_and_options(config, args.config, opts, files))
+   normalize_filenames(files)
 
-   args.codes = args.codes or config and config.codes
-   args.formatter = args.formatter or (config and config.formatter) or "default"
-
-   local output = pformat(report, file_names, args)
+   local output = pformat(report, files, args)
 
    if #output > 0 and output:sub(-1) ~= "\n" then
       output = output .. "\n"

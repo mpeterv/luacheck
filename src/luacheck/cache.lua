@@ -76,7 +76,7 @@ end
 -- Serializes check result into a string.
 function cache.serialize(events)
    if not events then
-      return "return nil"
+      return "return false"
    end
 
    local buffer = {"return {"}
@@ -168,7 +168,6 @@ function cache.load(cache_filename, filenames, mtimes)
 
    local result = {}
    local not_yet_found = utils.array_to_set(filenames)
-   not_yet_found[io.stdin] = nil
 
    while next(not_yet_found) do
       local filename = fh:read()

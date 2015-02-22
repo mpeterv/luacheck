@@ -15,7 +15,7 @@ describe("cache", function()
       end)
 
       it("handles error result", function()
-         assert.same('return nil', cache.serialize(nil))
+         assert.same('return false', cache.serialize(nil))
       end)
    end)
 

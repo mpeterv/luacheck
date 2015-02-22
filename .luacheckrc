@@ -1,1 +1,2 @@
 std = "min"
+cache = true
