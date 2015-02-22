@@ -4,9 +4,9 @@ local dir_sep = package.config:sub(1,1)
 
 utils.is_windows = dir_sep == "\\"
 
-local has_lfs, lfs = pcall(require, "lfs")
+utils.has_lfs, utils.lfs = pcall(require, "lfs")
 
-if has_lfs then
+if utils.has_lfs then
    -- Returns whether path points to a directory. 
    function utils.is_dir(path)
       return lfs.attributes(path, "mode") == "directory"

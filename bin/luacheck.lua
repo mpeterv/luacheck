@@ -30,7 +30,9 @@ local function main()
          :description ("luacheck " .. version.luacheck .. ", a simple static analyzer for Lua. ")
 
       parser:argument "files"
-         :description "List of files to check. "
+         :description (utils.has_lfs and [[List of files, directories and rockspecs to check. 
+Pass "-" to check stdin. ]] or [[List of files and rockspecs to check. 
+Pass "-" to check stdin. ]])
          :args "+"
          :argname "<file>"
 

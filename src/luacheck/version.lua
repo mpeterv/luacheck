@@ -1,3 +1,5 @@
+local utils = require "luacheck.utils"
+
 local version = {}
 
 version.luacheck = "0.9.0"
@@ -8,10 +10,8 @@ else
    version.lua = _VERSION
 end
 
-local has_lfs, lfs = pcall(require, "lfs")
-
-if has_lfs then
-   version.lfs = lfs._VERSION
+if utils.has_lfs then
+   version.lfs = utils.lfs._VERSION
 else
    version.lfs = "Not found"
 end
