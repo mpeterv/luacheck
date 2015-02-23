@@ -18,5 +18,6 @@ script:
   - busted spec
   - sudo luarocks remove luafilesystem --force
   - luacheck rockspecs/luacheck-scm-10.rockspec
+  - luacheck spec/*.lua
   - luacheck src | grep 'I/O error'
   - luacheck --version | grep 'Not found'

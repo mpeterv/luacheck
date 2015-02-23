@@ -49,7 +49,7 @@ describe("options", function()
 
    describe("normalize", function()
       it("applies default values", function()
-         opts = options.normalize({})
+         local opts = options.normalize({})
          assert.same(opts, options.normalize({{}}))
 
          assert.is_true(opts.unused_secondaries)

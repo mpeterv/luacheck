@@ -5,37 +5,17 @@ local utils = require "luacheck.utils"
 
 local ChState = utils.class()
 
-function ChState:__init()
-   
-end
-
-function ChState:syntax_error()
+function ChState.syntax_error()
    error({})
 end
 
-function ChState:warn_redefined(var, prev_var)
-   
-end
-
-function ChState:warn_global()
-   
-end
-
-function ChState:warn_unused_label()
-   
-end
-
-function ChState:warn_unused_variable()
-   
-end
-
-function ChState:warn_unused_value()
-   
-end
-
-function ChState:warn_unset()
-   
-end
+function ChState.__init() end
+function ChState.warn_redefined() end
+function ChState.warn_global() end
+function ChState.warn_unused_label() end
+function ChState.warn_unused_variable() end
+function ChState.warn_unused_value() end
+function ChState.warn_unset() end
 
 local function get_line_(src)
    local ast = parser(src)
