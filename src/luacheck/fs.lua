@@ -27,6 +27,8 @@ if not fs.has_lfs then
    function fs.mtime(_)
       return 0
    end
+
+   return fs
 end
 
 -- Returns whether path points to a directory. 
