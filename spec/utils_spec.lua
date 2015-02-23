@@ -1,44 +1,6 @@
 local utils = require "luacheck.utils"
 
 describe("utils", function()
-   describe("is_dir", function()
-      it("returns true for directories", function()
-         assert.is_true(utils.is_dir("spec/folder"))
-      end)
-
-      it("returns false for files", function()
-         assert.is_false(utils.is_dir("spec/folder/foo"))
-      end)
-
-      it("returns false for non-existent paths", function()
-         assert.is_false(utils.is_dir("spec/folder/non-existent"))
-      end)
-   end)
-
-   describe("is_file", function()
-      it("returns true for files", function()
-         assert.is_true(utils.is_file("spec/folder/foo"))
-      end)
-
-      it("returns false for directories", function()
-         assert.is_false(utils.is_file("spec/folder"))
-      end)
-
-      it("returns false for non-existent paths", function()
-         assert.is_false(utils.is_file("spec/folder/non-existent"))
-      end)
-   end)
-
-   describe("extract_files", function()
-      it("returns sorted list of files in a directory matching pattern", function()
-         assert.same({
-            "spec/folder/folder1/fail",
-            "spec/folder/folder1/file",
-            "spec/folder/foo"
-         }, utils.extract_files("spec/folder", "^f"))
-      end)
-   end)
-
    describe("read_file", function()
       it("returns contents of a file", function()
          assert.equal("contents\n", utils.read_file("spec/folder/foo"))

@@ -7,6 +7,7 @@ local expand_rockspec = require "luacheck.expand_rockspec"
 local cache = require "luacheck.cache"
 local format = require "luacheck.format"
 local version = require "luacheck.version"
+local fs = require "luacheck.fs"
 local utils = require "luacheck.utils"
 
 local function fatal(msg)
@@ -32,7 +33,7 @@ local function main()
          :description ("luacheck " .. version.luacheck .. ", a simple static analyzer for Lua. ")
 
       parser:argument "files"
-         :description (utils.has_lfs and [[List of files, directories and rockspecs to check. 
+         :description (fs.has_lfs and [[List of files, directories and rockspecs to check. 
 Pass "-" to check stdin. ]] or [[List of files and rockspecs to check. 
 Pass "-" to check stdin. ]])
          :args "+"
@@ -131,7 +132,7 @@ Otherwise, the pattern matches warning code.]]
 
       parser:mutex(config_opt, no_config_opt)
 
-      if utils.has_lfs then
+      if fs.has_lfs then
          local cache_opt = parser:option "--cache"
             :description "Path to cache file. "
             :default (default_cache_path)
@@ -171,7 +172,7 @@ Otherwise, the pattern matches warning code.]]
 
       local args = parser:parse()
 
-      if not utils.has_lfs then
+      if not fs.has_lfs then
          args.no_cache = true
       end
 
@@ -191,8 +192,8 @@ Otherwise, the pattern matches warning code.]]
       for _, file in ipairs(files) do
          if file == "-" then
             table.insert(res, io.stdin)
-         elseif utils.is_dir(file) then
-            for _, nested_file in ipairs(utils.extract_files(file, "%.lua$")) do
+         elseif fs.is_dir(file) then
+            for _, nested_file in ipairs(fs.extract_files(file, "%.lua$")) do
                add(nested_file)
             end
          elseif file:sub(-#".rockspec") == ".rockspec" then
@@ -217,7 +218,7 @@ Otherwise, the pattern matches warning code.]]
    local function get_config(config_path)
       local res
 
-      if config_path or utils.is_file(default_config) then
+      if config_path or fs.is_file(default_config) then
          config_path = config_path or default_config
          local err
          -- Autovivification-enabled table mapping file names to configs, provided to config as global `files`. 
@@ -298,7 +299,7 @@ Otherwise, the pattern matches warning code.]]
       for i, file in ipairs(files) do
          if not bad_files[i] and file ~= io.stdin then
             table.insert(cache_files, file)
-            local mtime = utils.mtime(file)
+            local mtime = fs.mtime(file)
             table.insert(cache_mtimes, mtime)
             sparse_mtimes[i] = mtime
          end

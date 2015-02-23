@@ -1,4 +1,4 @@
-local utils = require "luacheck.utils"
+local fs = require "luacheck.fs"
 
 local version = {}
 
@@ -10,8 +10,8 @@ else
    version.lua = _VERSION
 end
 
-if utils.has_lfs then
-   version.lfs = utils.lfs._VERSION
+if fs.has_lfs then
+   version.lfs = fs.lfs._VERSION
 else
    version.lfs = "Not found"
 end

@@ -34,6 +34,7 @@ build = {
       ["luacheck.cache"] = "src/luacheck/cache.lua",
       ["luacheck.format"] = "src/luacheck/format.lua",
       ["luacheck.version"] = "src/luacheck/version.lua",
+      ["luacheck.fs"] = "src/luacheck/fs.lua",
       ["luacheck.utils"] = "src/luacheck/utils.lua",
       ["luacheck.argparse"] = "src/luacheck/argparse.lua"
    },
