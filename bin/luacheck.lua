@@ -357,7 +357,7 @@ Otherwise, the pattern matches warning code.]]
             else
                table.insert(cache_files, file)
                table.insert(cache_mtimes, mtimes[i])
-               table.insert(cache_reports, new_reports[i])
+               table.insert(cache_reports, new_reports[i] or false)
             end
          end
       end
