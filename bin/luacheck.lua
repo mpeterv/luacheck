@@ -1,9 +1,19 @@
 #!/usr/bin/env lua
+
+-- For some reason having LuaRocks loader breaks LuaLanes.
+-- Remove it (it should be at index 1), but only if LuaLanes is actually installed.
+local loaders = package.loaders or package.searchers
+
+if #loaders == 5 and pcall(require, "lanes") then
+   table.remove(loaders, 1)
+end
+
 local luacheck = require "luacheck"
 local argparse = require "luacheck.argparse"
 local stds = require "luacheck.stds"
 local options = require "luacheck.options"
 local expand_rockspec = require "luacheck.expand_rockspec"
+local multithreading = require "luacheck.multithreading"
 local cache = require "luacheck.cache"
 local format = require "luacheck.format"
 local version = require "luacheck.version"
@@ -144,6 +154,12 @@ Otherwise, the pattern matches warning code.]]
          parser:mutex(cache_opt, no_cache_opt)
       end
 
+      if multithreading.has_lanes then
+         parser:option "--jobs"
+            :description "Check <jobs> files in parallel. "
+            :convert(tonumber)
+      end
+
       parser:option "--formatter"
          :description [[Use custom formatter. <formatter> must be a module name or one of:
    TAP - Test Anything Protocol formatter;
@@ -174,6 +190,10 @@ Otherwise, the pattern matches warning code.]]
 
       if not fs.has_lfs then
          args.no_cache = true
+      end
+
+      if args.jobs and args.jobs < 1 then
+         parser:error("<jobs> must be at least 1")
       end
 
       return args
@@ -288,6 +308,8 @@ Otherwise, the pattern matches warning code.]]
       if args.cache == true then
          args.cache = default_cache_path
       end
+
+      args.jobs = args.jobs or (config and config.jobs)
    end
 
    -- Returns sparse array of mtimes and map of filenames to cached reports.
@@ -329,16 +351,27 @@ Otherwise, the pattern matches warning code.]]
    end
 
    -- Returns sparse array of new reports. Updates bad_files with syntax errors.
-   local function get_new_reports(files, bad_files, srcs)
-      local res = {}
+   local function get_new_reports(files, bad_files, srcs, jobs)
+      local dense_srcs = {}
+      local dense_to_sparse = {}
 
       for i in ipairs(files) do
          if srcs[i] then
-            res[i] = luacheck.get_report(srcs[i])
+            table.insert(dense_srcs, srcs[i])
+            dense_to_sparse[#dense_srcs] = i
+         end
+      end
 
-            if not res[i] then
-               bad_files[i] = "syntax"
-            end
+      local map = jobs and multithreading.has_lanes and multithreading.pmap or utils.map
+      local dense_res = map(luacheck.get_report, dense_srcs, jobs)
+
+      local res = {}
+
+      for i in ipairs(dense_srcs) do
+         if dense_res[i] then
+            res[dense_to_sparse[i]] = dense_res[i]
+         else
+            bad_files[dense_to_sparse[i]] = "syntax"
          end
       end
 
@@ -367,8 +400,19 @@ Otherwise, the pattern matches warning code.]]
          ("Couldn't save cache to %s: I/O error"):format(cache_filename))
    end
 
+   -- LuaLanes does not like lfs, and the checker does not need it anyway.
+   local function purge_lfs()
+      fs = nil
+      package.loaded["luacheck.fs"] = nil
+      package.loaded.lfs = nil
+
+      if rawget(_G, "lfs") then
+         rawset(_G, "lfs", nil)
+      end
+   end
+
    -- Returns array of reports for files.
-   local function get_reports(cache_filename, files, bad_rockspecs)
+   local function get_reports(cache_filename, files, bad_rockspecs, jobs)
       local bad_files = utils.update({}, bad_rockspecs)
       local mtimes
       local cached_reports
@@ -379,8 +423,13 @@ Otherwise, the pattern matches warning code.]]
          cached_reports = {}
       end
 
+      -- lfs is not needed anymore.
+      if fs.has_lfs then
+         purge_lfs()
+      end
+
       local srcs = get_srcs_to_check(cached_reports, files, bad_files)
-      local new_reports = get_new_reports(files, bad_files, srcs)
+      local new_reports = get_new_reports(files, bad_files, srcs, jobs)
 
       if cache_filename then
          update_cache(cache_filename, files, bad_files, srcs, mtimes, new_reports)
@@ -494,7 +543,7 @@ Otherwise, the pattern matches warning code.]]
    combine_config_and_args(config, args)
 
    local files, bad_rockspecs = expand_files(args.files)
-   local reports = get_reports(args.cache, files, bad_rockspecs)
+   local reports = get_reports(args.cache, files, bad_rockspecs, args.jobs)
    local report = luacheck.process_reports(reports, combine_config_and_options(config, args.config, opts, files))
    normalize_filenames(files)
 

@@ -605,11 +605,11 @@ spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
 
    it("provides version info", function()
       local output = get_output "--version"
-      assert.truthy(output:match("Luacheck: [%w%p ]+\nLua: [%w%p ]+\nLuaFileSystem: [%w%p ]+\n"))
+      assert.truthy(output:match("^Luacheck: [%w%p ]+\nLua: [%w%p ]+\nLuaFileSystem: [%w%p ]+\nLuaLanes: [%w%p ]+\n$"))
    end)
 
    it("expands folders", function()
       local output = get_output "spec/samples -qqq"
-      assert.truthy(output:match("Total: %d+ warnings / 1 error in 18 files\n"))
+      assert.truthy(output:match("^Total: %d+ warnings / 1 error in 18 files\n$"))
    end)
 end)

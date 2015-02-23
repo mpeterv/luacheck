@@ -1,11 +1,10 @@
 local check = require "luacheck.check"
 local filter = require "luacheck.filter"
 local options = require "luacheck.options"
-local version = require "luacheck.version"
 local utils = require "luacheck.utils"
 
 local luacheck = {
-   _VERSION = version.luacheck
+   _VERSION = "0.9.0"
 }
 
 local function raw_validate_options(fname, opts)

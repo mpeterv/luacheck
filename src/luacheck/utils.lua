@@ -199,4 +199,15 @@ function utils.split(str, sep)
    return parts
 end
 
+-- Maps func over array.
+function utils.map(func, array)
+   local res = {}
+
+   for i, item in ipairs(array) do
+      res[i] = func(item)
+   end
+
+   return res
+end
+
 return utils

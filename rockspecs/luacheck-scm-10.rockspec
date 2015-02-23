@@ -31,6 +31,7 @@ build = {
       ["luacheck.inline_options"] = "src/luacheck/inline_options.lua",
       ["luacheck.stds"] = "src/luacheck/stds.lua",
       ["luacheck.expand_rockspec"] = "src/luacheck/expand_rockspec.lua",
+      ["luacheck.multithreading"] = "src/luacheck/multithreading.lua",
       ["luacheck.cache"] = "src/luacheck/cache.lua",
       ["luacheck.format"] = "src/luacheck/format.lua",
       ["luacheck.version"] = "src/luacheck/version.lua",

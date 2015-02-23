@@ -1,8 +1,10 @@
+local luacheck = require "luacheck"
 local fs = require "luacheck.fs"
+local multithreading = require "luacheck.multithreading"
 
 local version = {}
 
-version.luacheck = "0.9.0"
+version.luacheck = luacheck._VERSION
 
 if rawget(_G, "jit") then
    version.lua = "LuaJIT"
@@ -16,9 +18,16 @@ else
    version.lfs = "Not found"
 end
 
+if multithreading.has_lanes then
+   version.lanes = multithreading.lanes.ABOUT.version
+else
+   version.lanes = "Not found"
+end
+
 version.string = ([[
 Luacheck: %s
 Lua: %s
-LuaFileSystem: %s]]):format(version.luacheck, version.lua, version.lfs)
+LuaFileSystem: %s
+LuaLanes: %s]]):format(version.luacheck, version.lua, version.lfs, version.lanes)
 
 return version

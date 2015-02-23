@@ -7,6 +7,10 @@ local function boolean(x)
    return type(x) == "boolean"
 end
 
+local function natural(x)
+   return type(x) == "number" and x >= 1
+end
+
 local function array_of_strings(x)
    if type(x) ~= "table" then
       return false
@@ -63,7 +67,8 @@ options.top_config_options = {
    color = boolean,
    codes = boolean,
    formatter = string,
-   cache = boolean_or_string
+   cache = boolean_or_string,
+   jobs = natural
 }
 utils.update(options.top_config_options, options.config_options)
 
