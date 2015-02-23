@@ -156,7 +156,7 @@ return {{"111"},{"122"}}
 
          before_each(function()
             tmpname = os.tmpname()
-            cache.update(tmpname, {"foo", "bar"}, {1, 2}, {{{code="111"}}, {}})
+            cache.update(tmpname, {"foo", "bar"}, {1, 2}, {{{code="111"}}, nil})
          end)
 
          after_each(function()
@@ -168,7 +168,7 @@ return {{"111"},{"122"}}
          end)
 
          it("loads cached results", function()
-            assert.same({foo = {{code="111"}}, bar = {}}, cache.load(tmpname, {"foo", "bar"}, {1, 2}))
+            assert.same({foo = {{code="111"}}, bar = false}, cache.load(tmpname, {"foo", "bar"}, {1, 2}))
          end)
 
          it("does not load results for missing files", function()
@@ -176,7 +176,7 @@ return {{"111"},{"122"}}
          end)
 
          it("does not load outdated results", function()
-            assert.same({bar = {}}, cache.load(tmpname, {"foo", "bar", "baz"}, {2, 2}))
+            assert.same({bar = false}, cache.load(tmpname, {"foo", "bar", "baz"}, {2, 2}))
          end)
       end)
    end)

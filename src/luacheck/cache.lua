@@ -195,8 +195,16 @@ local function load_cached(cached)
 
    local ok, res = pcall(func)
 
-   if not ok or type(res) ~= "table" then
+   if not ok then
       return
+   end
+
+   if type(res) ~= "table" then
+      if res == false then
+         return res
+      else
+         return
+      end
    end
 
    local decompressed = {}
@@ -252,7 +260,7 @@ function cache.load(cache_filename, filenames, mtimes)
          if mtimes[not_yet_found[filename]] == mtime then
             result[filename] = load_cached(cached)
 
-            if not result[filename] then
+            if result[filename] == nil then
                fh:close()
                return
             end
