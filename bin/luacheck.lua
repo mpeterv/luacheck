@@ -155,7 +155,7 @@ Otherwise, the pattern matches warning code.]]
       end
 
       if multithreading.has_lanes then
-         parser:option "--jobs"
+         parser:option "-j" "--jobs"
             :description "Check <jobs> files in parallel. "
             :convert(tonumber)
       end
@@ -179,7 +179,7 @@ Otherwise, the pattern matches warning code.]]
       parser:flag "--no-color"
          :description "Do not color output. "
 
-      parser:flag "--version"
+      parser:flag "-v" "--version"
          :description "Show version info and exit. "
          :action(function()
             print(version.string)
