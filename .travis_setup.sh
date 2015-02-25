@@ -5,8 +5,8 @@
 set -e
 
 if [ "$LUA" == "LuaJIT 2.0" ]; then
-  wget -O - http://luajit.org/download/LuaJIT-2.0.2.tar.gz | tar xz
-  cd LuaJIT-2.0.2
+  wget -O - http://luajit.org/download/LuaJIT-2.0.3.tar.gz | tar xz
+  cd LuaJIT-2.0.3
   make && sudo make install INSTALL_TSYMNAME=lua;
 else
   if [ "$LUA" == "Lua 5.1" ]; then
