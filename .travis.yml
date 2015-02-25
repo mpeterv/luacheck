@@ -16,8 +16,8 @@ install:
 
 script:
   - busted spec
+  - luacheck rockspecs/luacheck-scm-10.rockspec -j2
   - sudo luarocks remove luafilesystem --force
-  - luacheck rockspecs/luacheck-scm-10.rockspec
-  - luacheck spec/*.lua
+  - luacheck spec/*.lua -j2
   - luacheck src | grep 'I/O error'
   - luacheck --version | grep 'Not found'

@@ -1,7 +1,7 @@
 local multithreading = {}
 
 local ok, lanes = pcall(require, "lanes")
-ok = ok and pcall(lanes.configure, {demote_full_userdata = true})
+ok = ok and pcall(lanes.configure)
 multithreading.has_lanes = ok
 multithreading.lanes = lanes
 
