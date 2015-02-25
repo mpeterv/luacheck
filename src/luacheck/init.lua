@@ -41,7 +41,7 @@ end
 
 -- Returns report for a string or nil in case of syntax error.
 function luacheck.get_report(src)
-   assert(type(src) == "string", ("bad argument #2 to 'luacheck.get_report (string expected, got %s)'"):format(type(src)))
+   assert(type(src) == "string", ("bad argument #1 to 'luacheck.get_report' (string expected, got %s)'"):format(type(src)))
    return utils.pcall(check, src)
 end
 
@@ -82,7 +82,7 @@ function luacheck.check_strings(srcs, options)
    local reports = {}
 
    for i, src in ipairs(srcs) do
-      if type(src) == "table" and src.error then
+      if type(src) == "table" then
          reports[i] = src
       else
          reports[i] = luacheck.get_report(src) or {error = "syntax"}
