@@ -1,4 +1,4 @@
 std = "min"
 cache = true
 
-files["spec/"].read_globals = {"before_each", "describe", "it", "after_each"}
+files["spec/"].read_globals = {"describe", "it", "before_each", "after_each", "spy"}
