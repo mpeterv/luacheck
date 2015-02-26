@@ -7,7 +7,7 @@ local version = {}
 version.luacheck = luacheck._VERSION
 
 if rawget(_G, "jit") then
-   version.lua = "LuaJIT"
+   version.lua = rawget(_G, "jit").version
 else
    version.lua = _VERSION
 end
