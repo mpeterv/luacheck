@@ -1,13 +1,4 @@
 #!/usr/bin/env lua
-
--- For some reason having LuaRocks loader breaks LuaLanes.
--- Remove it (it should be at index 1), but only if LuaLanes is actually installed.
-local loaders = package.loaders or package.searchers
-
-if #loaders == 5 and pcall(require, "lanes") then
-   table.remove(loaders, 1)
-end
-
 local luacheck = require "luacheck"
 local argparse = require "luacheck.argparse"
 local stds = require "luacheck.stds"
@@ -400,17 +391,6 @@ Otherwise, the pattern matches warning code.]]
          ("Couldn't save cache to %s: I/O error"):format(cache_filename))
    end
 
-   -- LuaLanes does not like lfs, and the checker does not need it anyway.
-   local function purge_lfs()
-      fs = nil
-      package.loaded["luacheck.fs"] = nil
-      package.loaded.lfs = nil
-
-      if rawget(_G, "lfs") then
-         rawset(_G, "lfs", nil)
-      end
-   end
-
    -- Returns array of reports for files.
    local function get_reports(cache_filename, files, bad_rockspecs, jobs)
       local bad_files = utils.update({}, bad_rockspecs)
@@ -421,11 +401,6 @@ Otherwise, the pattern matches warning code.]]
          mtimes, cached_reports = get_mtimes_and_cached_reports(cache_filename, files, bad_files)
       else
          cached_reports = {}
-      end
-
-      -- lfs is not needed anymore.
-      if fs.has_lfs then
-         purge_lfs()
       end
 
       local srcs = get_srcs_to_check(cached_reports, files, bad_files)
