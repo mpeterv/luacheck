@@ -54,13 +54,7 @@ Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questio
 
 ## Building and testing
 
-After the Luacheck repo is cloned and changes are made, run the following command (optionally prepended with `sudo`) from its root directory to install dev version of Luacheck. Replace `x` with the number of the latest scm rockspec in the `rockspecs` directory:
-
-```
-$ luarocks make rockspecs/luacheck-scm-x.rockspec
-```
-
-To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted) installed and run `busted spec`.
+After the Luacheck repo is cloned and changes are made, run `luarocks make` (optionally prepended with `sudo`) from its root directory to install dev version of Luacheck. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted) installed and run `busted spec`.
 
 ## License
 
