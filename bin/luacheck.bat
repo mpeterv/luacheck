@@ -1,2 +1,2 @@
 @echo off
-lua.exe %~dp0\luacheck.lua %*
+lua.exe "%~dp0\luacheck.lua" %*
