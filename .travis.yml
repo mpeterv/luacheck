@@ -12,7 +12,6 @@ before_install:
 
 install:
   - sudo luarocks make
-  - sudo luarocks install busted
 
 script:
   - busted spec
