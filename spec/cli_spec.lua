@@ -416,6 +416,21 @@ Total: 6 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/bad_flow.lua")
    end)
 
+   it("detects redefinitions", function()
+      assert.equal([[
+Checking spec/samples/redefined.lua               Failure
+
+    spec/samples/redefined.lua:3:13: unused argument self
+    spec/samples/redefined.lua:4:10: shadowing upvalue a on line 1
+    spec/samples/redefined.lua:4:13: variable self is never set
+    spec/samples/redefined.lua:4:13: variable self was previously defined as an argument on line 3
+    spec/samples/redefined.lua:7:13: shadowing definition of variable a on line 4
+    spec/samples/redefined.lua:8:32: shadowing upvalue self on line 4
+
+Total: 6 warnings / 0 errors in 1 file
+]], get_output "spec/samples/redefined.lua --globals each")
+   end)
+
    it("detects issues related to read-only globals", function()
       assert.equal([[
 Checking spec/samples/read_globals.lua            Failure
@@ -610,6 +625,6 @@ spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
 
    it("expands folders", function()
       local output = get_output "spec/samples -qqq"
-      assert.truthy(output:match("^Total: %d+ warnings / 1 error in 18 files\n$"))
+      assert.truthy(output:match("^Total: %d+ warnings / 1 error in 19 files\n$"))
    end)
 end)

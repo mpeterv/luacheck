@@ -272,6 +272,7 @@ end
 
    it("detects shadowing definitions", function()
       assert.same({
+         {code = "431", name = "a", line = 4, column = 10, prev_line = 1, prev_column = 7},
          {code = "421", name = "a", line = 7, column = 13, prev_line = 4, prev_column = 10}
       }, check[[
 local a = 46

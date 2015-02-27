@@ -156,7 +156,7 @@ function LinState:register_var(node, type_)
    local var = new_var(self.lines.top, node, type_)
    local prev_var = self:resolve_var(var.name)
 
-   if prev_var and prev_var.line == var.line then
+   if prev_var then
       local same_scope = self.scopes.top.vars[var.name]
       self.chstate:warn_redefined(var, prev_var, same_scope)
 
