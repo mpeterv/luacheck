@@ -45,10 +45,10 @@ end
 function fs.extract_files(dir_path, pattern)
    local res = {}
 
-   local function scan(dir_path)
-      for path in fs.lfs.dir(dir_path) do
+   local function scan(dir)
+      for path in fs.lfs.dir(dir) do
          if path ~= "." and path ~= ".." then
-            local full_path = dir_path .. utils.dir_sep .. path
+            local full_path = dir .. utils.dir_sep .. path
 
             if fs.is_dir(full_path) then
                scan(full_path)

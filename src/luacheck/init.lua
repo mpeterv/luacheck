@@ -48,10 +48,10 @@ end
 -- Applies options to reports. Reports with .error field are unchanged.
 -- Options are applied to reports[i] in order: options, options[i], options[i][1], options[i][2], ...
 -- Returns new array of reports, adds .warnings and .errors fields.
-function luacheck.process_reports(reports, options)
+function luacheck.process_reports(reports, opts)
    assert(type(reports) == "table", ("bad argument #1 to 'luacheck.process_reports' (table expected, got %s)'"):format(type(reports)))
-   validate_options("luacheck.process_reports", reports, options)
-   local report = filter.filter(reports, options)
+   validate_options("luacheck.process_reports", reports, opts)
+   local report = filter.filter(reports, opts)
    report.warnings = 0
    report.errors = 0
 
@@ -68,7 +68,7 @@ end
 
 -- Checks strings with options, returns report.
 -- Error reports are unchanged.
-function luacheck.check_strings(srcs, options)
+function luacheck.check_strings(srcs, opts)
    assert(type(srcs) == "table", ("bad argument #1 to 'luacheck.check_strings' (table expected, got %s)'"):format(type(srcs)))
 
    for _, item in ipairs(srcs) do
@@ -77,7 +77,7 @@ function luacheck.check_strings(srcs, options)
       )
    end
 
-   validate_options("luacheck.check_strings", srcs, options)
+   validate_options("luacheck.check_strings", srcs, opts)
 
    local reports = {}
 
@@ -89,10 +89,10 @@ function luacheck.check_strings(srcs, options)
       end
    end
 
-   return luacheck.process_reports(reports, options)
+   return luacheck.process_reports(reports, opts)
 end
 
-function luacheck.check_files(files, options)
+function luacheck.check_files(files, opts)
    assert(type(files) == "table", ("bad argument #1 to 'luacheck.check_files' (table expected, got %s)'"):format(type(files)))
 
    for _, item in ipairs(files) do
@@ -101,7 +101,7 @@ function luacheck.check_files(files, options)
       )
    end
 
-   validate_options("luacheck.check_files", files, options)
+   validate_options("luacheck.check_files", files, opts)
 
    local srcs = {}
 
@@ -109,7 +109,7 @@ function luacheck.check_files(files, options)
       srcs[i] = utils.read_file(file) or {error = "I/O"}
    end
 
-   return luacheck.check_strings(srcs, options)
+   return luacheck.check_strings(srcs, opts)
 end
 
 setmetatable(luacheck, {__call = function(_, ...)

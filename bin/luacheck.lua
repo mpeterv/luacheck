@@ -425,9 +425,9 @@ Otherwise, the pattern matches warning code.]]
       return res
    end
 
-   local function combine_config_and_options(config, config_path, opts, files)
+   local function combine_config_and_options(config, config_path, cli_opts, files)
       if not config then
-         return opts
+         return cli_opts
       end
 
       config_path = config_path or default_config
@@ -471,7 +471,7 @@ Otherwise, the pattern matches warning code.]]
             end
          end
 
-         table.insert(res[i], opts)
+         table.insert(res[i], cli_opts)
       end
 
       return res

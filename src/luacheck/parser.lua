@@ -34,8 +34,8 @@ local function skip_token(state)
    end
 end
 
-local function init_ast_node(node, location, tag)
-   node.location = location
+local function init_ast_node(node, loc, tag)
+   node.location = loc
    node.tag = tag
    return node
 end
@@ -668,8 +668,8 @@ local function parse_statement(state)
    return (statements[state.token] or parse_expression_statement)(state)
 end
 
-function parse_block(state, location)
-   local block = {location = location}
+function parse_block(state, loc)
+   local block = {location = loc}
 
    while not closing_tokens[state.token] do
       local first_token = state.token

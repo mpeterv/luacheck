@@ -83,9 +83,9 @@ local function add_inline_option(events, per_line_opts, body, location, is_code_
       return true
    end
 
-   local options = get_options(body)
+   local opts = get_options(body)
 
-   if not options then
+   if not opts then
       return false
    end
 
@@ -94,9 +94,9 @@ local function add_inline_option(events, per_line_opts, body, location, is_code_
          per_line_opts[location.line] = {}
       end
 
-      table.insert(per_line_opts[location.line], options)
+      table.insert(per_line_opts[location.line], opts)
    else
-      table.insert(events, {options = options, line = location.line, column = location.column})
+      table.insert(events, {options = opts, line = location.line, column = location.column})
    end
 
    return true

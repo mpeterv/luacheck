@@ -12,7 +12,7 @@ end
 -- Worker thread reads pairs {outkey, arg} from inkey channel of linda,
 -- applies func to arg and sends result to outkey channel of linda
 -- until arg is nil.
-local function worker(linda, inkey, func)
+local function worker_task(linda, inkey, func)
    while true do
       local _, pair = linda:receive(nil, inkey)
       local outkey, arg = pair[1], pair[2]
@@ -25,7 +25,7 @@ local function worker(linda, inkey, func)
    end
 end
 
-local worker_gen = lanes.gen("*", worker)
+local worker_gen = lanes.gen("*", worker_task)
 
 -- Maps func over array, performing at most jobs calls in parallel.
 function multithreading.pmap(func, array, jobs)
