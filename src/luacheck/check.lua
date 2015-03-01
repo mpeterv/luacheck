@@ -16,10 +16,6 @@ function ChState:__init()
    self.warnings = {}
 end
 
-function ChState.syntax_error()
-   error({})
-end
-
 function ChState:warn(warning)
    table.insert(self.warnings, warning)
 end
@@ -160,7 +156,7 @@ end
 
 --- Checks source.
 -- Returns an array of warnings.
--- Raises {} on syntax errors.
+-- Raises {line = line, column = column, offset = offset, msg = msg} on syntax errors.
 local function check(src)
    local ast, comments, code_lines = parse(src)
    local chstate = ChState()

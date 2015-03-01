@@ -4,10 +4,6 @@ local utils = require "luacheck.utils"
 
 local ChState = utils.class()
 
-function ChState.syntax_error()
-   error({})
-end
-
 function ChState.__init() end
 function ChState.warn_redefined() end
 function ChState.warn_global() end
@@ -24,10 +20,8 @@ end
 local function get_line(src)
    local ok, res = pcall(get_line_, src)
 
-   if ok then
+   if ok or type(res) == "table" then
       return res
-   elseif type(res) == "table" then
-      return nil
    else
       error(res, 0)
    end
@@ -92,6 +86,32 @@ local function get_value_info_as_string(src)
 end
 
 describe("linearize", function()
+   describe("when handling post-parse syntax errors", function()
+      it("detects gotos without labels", function()
+         assert.same({line = 1, column = 1, offset = 1, msg = "no visible label 'fail'"},
+            get_line("goto fail"))
+      end)
+
+      it("detects break outside loops", function()
+         assert.same({line = 1, column = 1, offset = 1, msg = "'break' is not inside a loop"},
+            get_line("break"))
+         assert.same({line = 1, column = 28, offset = 28, msg = "'break' is not inside a loop"},
+            get_line("while true do function f() break end end"))
+      end)
+
+      it("detects duplicate labels", function()
+         assert.same({line = 2, column = 1, offset = 10, msg = "label 'fail' already defined on line 1"},
+            get_line("::fail::\n::fail::"))
+      end)
+
+      it("detects varargs outside vararg functions", function()
+         assert.same({line = 1, column = 21, offset = 21, msg = "cannot use '...' outside a vararg function"},
+            get_line("function f() return ... end"))
+         assert.same({line = 1, column = 42, offset = 42, msg = "cannot use '...' outside a vararg function"},
+            get_line("function f(...) return function() return ... end end"))
+      end)
+   end)
+
    describe("when linearizing flow", function()
       it("linearizes empty source correctly", function()
          assert.equal("1: Local ... (2..1)", get_line_as_string(""))

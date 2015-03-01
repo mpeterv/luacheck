@@ -5,10 +5,6 @@ local utils = require "luacheck.utils"
 
 local ChState = utils.class()
 
-function ChState.syntax_error()
-   error({})
-end
-
 function ChState.__init() end
 function ChState.warn_redefined() end
 function ChState.warn_global() end

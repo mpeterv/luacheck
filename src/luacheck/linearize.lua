@@ -1,3 +1,4 @@
+local lexer = require "luacheck.lexer"
 local utils = require "luacheck.utils"
 
 local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"})
@@ -50,10 +51,11 @@ local function new_label(line, name, location)
    }
 end
 
-local function new_goto(name, jump)
+local function new_goto(name, jump, location)
    return {
       name = name,
-      jump = jump
+      jump = jump,
+      location = location
    }
 end
 
@@ -134,7 +136,9 @@ function LinState:leave_scope()
          label.used = true
       else
          if not prev_scope or prev_scope.line ~= self.lines.top then
-            self.chstate:syntax_error()
+            local err_msg = (goto_.name == "break" and "'break' is not inside a loop" or
+               "no visible label '%s'"):format(goto_.name)
+            lexer.syntax_error(goto_.location.line, goto_.location.column, goto_.location.offset, err_msg)
          end
 
          table.insert(prev_scope.gotos, goto_)
@@ -201,7 +205,8 @@ end
 function LinState:register_label(name, location)
    if self.scopes.top.labels[name] then
       assert(not pseudo_labels[name])
-      self.chstate:syntax_error()
+      lexer.syntax_error(location.line, location.column, location.offset,
+         ("label '%s' already defined on line %d"):format(name, self.scopes.top.labels[name].location.line))
    end
 
    self.scopes.top.labels[name] = new_label(self.lines.top, name, location)
@@ -228,10 +233,10 @@ function LinState:emit(item)
    self.lines.top.items:push(item)
 end
 
-function LinState:emit_goto(name, is_conditional)
+function LinState:emit_goto(name, is_conditional, location)
    local jump = new_jump_item(is_conditional)
    self:emit(jump)
-   table.insert(self.scopes.top.gotos, new_goto(name, jump))
+   table.insert(self.scopes.top.gotos, new_goto(name, jump, location))
 end
 
 function LinState:emit_noop(location, loop_end)
@@ -356,11 +361,11 @@ end
 
 function LinState:emit_stmt_Goto(node)
    self:emit_noop(node.location)
-   self:emit_goto(node[1])
+   self:emit_goto(node[1], false, node.location)
 end
 
-function LinState:emit_stmt_Break(_)
-   self:emit_goto("break")
+function LinState:emit_stmt_Break(node)
+   self:emit_goto("break", false, node.location)
 end
 
 function LinState:emit_stmt_Return(node)
@@ -484,7 +489,8 @@ function LinState:scan_expr_Dots(item, node)
    local dots = self:check_var(node, "access")
 
    if not dots or dots.line ~= self.lines.top then
-      self.chstate:syntax_error()
+      lexer.syntax_error(node.location.line, node.location.column, node.location.offset,
+         "cannot use '...' outside a vararg function")
    end
 
    self:mark_access(item, node)
