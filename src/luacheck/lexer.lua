@@ -197,8 +197,7 @@ local function lex_long_string(state, opening_long_bracket, token)
             break
          end
       elseif b == nil then
-         -- Unfinished long string.
-         error({})
+         return nil, token == "TK_STRING" and "unfinished long string" or "unfinished long comment"
       else
          b = next_byte(state)
       end
@@ -250,24 +249,29 @@ local function lex_short_string(state, quote)
 
             if b then
                c1 = to_hex(b)
-               b = next_byte(state)
-
-               if b then
-                  c2 = to_hex(b)
-                  b = next_byte(state)
-               end
             end
 
-            if c1 and c2 then
-               s = schar(c1*16 + c2)
-            else
-               error({})
+            if not c1 then
+               return nil, "invalid hexadecimal escape sequence", -2
             end
+
+            b = next_byte(state)
+
+            if b then
+               c2 = to_hex(b)
+            end
+
+            if not c2 then
+               return nil, "invalid hexadecimal escape sequence", -3
+            end
+
+            b = next_byte(state)
+            s = schar(c1*16 + c2)
          elseif b == BYTE_u then
             b = next_byte(state)  -- Skip "u".
 
             if b ~= BYTE_OBRACE then
-               error({})
+               return nil, "invalid UTF-8 escape sequence", -2
             end
 
             b = next_byte(state)  -- Skip "{".
@@ -275,19 +279,26 @@ local function lex_short_string(state, quote)
             local codepoint = to_hex(b)  -- There should be at least one digit.
 
             if not codepoint then
-               error({})
+               return nil, "invalid UTF-8 escape sequence", -3
             end
+
+            local hexdigits = 0
 
             while true do
                b = next_byte(state)
-               local hex = to_hex(b)
+               local hex
+
+               if b then
+                  hex = to_hex(b)
+               end
 
                if hex then
+                  hexdigits = hexdigits + 1
                   codepoint = codepoint*16 + hex
 
                   if codepoint > 0x10FFFF then
                      -- UTF-8 value too large.
-                     error({})
+                     return nil, "invalid UTF-8 escape sequence", -hexdigits-3
                   end
                else
                   break
@@ -295,7 +306,7 @@ local function lex_short_string(state, quote)
             end
 
             if b ~= BYTE_CBRACE then
-               error({})
+               return nil, "invalid UTF-8 escape sequence", -hexdigits-4
             end
 
             b = next_byte(state)  -- Skip "}".
@@ -308,8 +319,7 @@ local function lex_short_string(state, quote)
             local cb = to_dec(b)
 
             if not cb then
-               -- Unknown escape sequence.
-               error({})
+               return nil, "invalid escape sequence", -1
             end
 
             -- Up to three decimal digits.
@@ -327,14 +337,15 @@ local function lex_short_string(state, quote)
 
                      if c3 then
                         cb = 10*cb + c3
+
+                        if cb > 255 then
+                           return nil, "invalid decimal escape sequence", -3
+                        end
+
                         b = next_byte(state)
                      end
                   end
                end
-            end
-
-            if cb > 255 then
-               error({})
             end
 
             s = schar(cb)
@@ -347,8 +358,7 @@ local function lex_short_string(state, quote)
          -- Next chunk starts after escape sequence.
          chunk_start = state.offset
       elseif b == nil or is_newline(b) then
-         -- Unfinished short string.
-         error({})
+         return nil, "unfinished string"
       else
          b = next_byte(state)
       end
@@ -425,7 +435,7 @@ local function lex_number(state, b)
 
       -- Exponent consists of one or more decimal digits.
       if b == nil or not to_dec(b) then
-         error({})
+         return nil, "malformed number"
       end
 
       repeat
@@ -434,7 +444,7 @@ local function lex_number(state, b)
    end
 
    if not has_digits then
-      error({})
+      return nil, "malformed number"
    end
 
    -- Is it cdata literal?
@@ -528,7 +538,7 @@ local function lex_bracket(state)
    elseif long_bracket == 0 then
       return "["
    else
-      error({})
+      return nil, "invalid long string delimiter"
    end
 end
 
@@ -633,6 +643,7 @@ end
 -- Each handler takes the first byte as an argument.
 -- Each handler stops at the character after the token and returns the token and,
 --    optionally, a value associated with the token.
+-- On error handler returns nil, error message and, optionally, start of reported location as negative offset.
 local byte_handlers = {
    [BYTE_DOT] = lex_dot,
    [BYTE_COLON] = lex_colon,
@@ -660,6 +671,15 @@ for b=BYTE_A, BYTE_Z do
    byte_handlers[b] = lex_ident
 end
 
+local function decimal_escaper(char)
+   return "\\" .. tostring(sbyte(char))
+end
+
+-- Returns quoted printable representation of s.
+function lexer.quote(s)
+   return "'" .. s:gsub("[^\32-\126]", decimal_escaper) .. "'"
+end
+
 -- Creates and returns lexer state for source.
 function lexer.new_state(src)
    local state = {
@@ -685,18 +705,28 @@ function lexer.next_token(state)
 
    -- Save location of token start.
    local token_line = state.line
-   local token_column = state.offset-state.line_offset+1
+   local token_column = state.offset - state.line_offset + 1
    local token_offset = state.offset
 
-   local token, token_value
+   local token, token_value, err_offset
 
    if b == nil then
       token = "TK_EOS"
    else
-      token, token_value = (byte_handlers[b] or lex_any)(state, b)
+      token, token_value, err_offset = (byte_handlers[b] or lex_any)(state, b)
    end
 
-   return token, token_value, token_line, token_column, token_offset
+   if token then
+      return token, token_value, token_line, token_column, token_offset
+   else
+      if err_offset then
+         token_value = token_value .. " " .. lexer.quote(ssub(state.src, state.offset + err_offset, state.offset))
+         token_offset = state.offset + err_offset
+         token_column = state.offset - state.line_offset + 1 + err_offset
+      end
+
+      error({line = token_line, column = token_column, offset = token_offset, msg = token_value})
+   end
 end
 
 return lexer
