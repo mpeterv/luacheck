@@ -39,7 +39,7 @@ local function validate_options(fname, items, opts)
    end
 end
 
--- Returns report for a string or nil in case of syntax error.
+-- Returns report for a string or nil, {line = line, column = column, offset = offset, msg = msg} in case of syntax error.
 function luacheck.get_report(src)
    assert(type(src) == "string", ("bad argument #1 to 'luacheck.get_report' (string expected, got %s)'"):format(type(src)))
    return utils.pcall(check, src)

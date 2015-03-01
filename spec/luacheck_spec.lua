@@ -249,8 +249,10 @@ describe("get_report", function()
       assert.is_table(luacheck.get_report("return foo"))
    end)
 
-   it("returns nil on syntax error", function()
-      assert.is_nil(luacheck.get_report("return return"))
+   it("returns nil, error on syntax error", function()
+      local res, err = luacheck.get_report("return return")
+      assert.is_nil(res)
+      assert.same({line = 1, column = 8, offset = 8, msg = "unexpected symbol near 'return'"}, err)
    end)
 end)
 

@@ -129,14 +129,17 @@ describe("utils", function()
          assert.equal(3, utils.pcall(math.sqrt, 9))
       end)
 
-      it("returns nil if f throws a table", function()
-         assert.is_nil(utils.pcall(function(x)
+      it("returns nil, table if f throws a table", function()
+         local t = {"foo"}
+         local res, err = utils.pcall(function(x)
             if x == 9 then
-               error({})
+               error(t)
             else
                return true
             end
-         end, 9))
+         end, 9)
+         assert.is_nil(res)
+         assert.is_equal(t, err)
       end)
 
       it("rethrows if f crashes (throws not a table)", function()
