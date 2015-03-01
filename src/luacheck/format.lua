@@ -105,7 +105,7 @@ local function error_type(file_report)
    return capitalize(file_report.error) .. " error"
 end
 
-local function format_file_report_header(report, file_name, color)
+local function format_file_report_header(report, file_name, _, color)
    local label = "Checking " .. file_name
    local status
 
@@ -133,7 +133,7 @@ local function format_warning(file_name, warning, codes, color)
 end
 
 local function format_file_report(report, file_name, codes, color)
-   local buf = {format_file_report_header(report, file_name, color)}
+   local buf = {format_file_report_header(report, file_name, codes, color)}
 
    if not report.error and #report > 0 then
       table.insert(buf, "")
