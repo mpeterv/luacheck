@@ -697,6 +697,10 @@ function lexer.new_state(src)
    return state
 end
 
+function lexer.syntax_error(line, column, offset, msg)
+   error({line = line, column = column, offset = offset, msg = msg})
+end
+
 -- Looks for next token starting from state.line, state.line_offset, state.offset.
 -- Returns next token, its value and its location(line, column, offset).
 -- Sets state.line, state.line_offset, state.offset to token end location + 1.
@@ -725,7 +729,7 @@ function lexer.next_token(state)
          token_column = state.offset - state.line_offset + 1 + err_offset
       end
 
-      error({line = token_line, column = token_column, offset = token_offset, msg = token_value})
+      lexer.syntax_error(token_line, token_column, token_offset, token_value)
    end
 end
 
