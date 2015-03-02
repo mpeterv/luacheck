@@ -327,7 +327,7 @@ Otherwise, the pattern matches warning code.]]
       local res = {}
 
       for i, file in ipairs(files) do
-         if not bad_files[i] and cached_reports[file] == nil then
+         if not bad_files[i] and not cached_reports[file] then
             local src = utils.read_file(file)
 
             if src then
@@ -341,8 +341,19 @@ Otherwise, the pattern matches warning code.]]
       return res
    end
 
-   -- Returns sparse array of new reports. Updates bad_files with syntax errors.
-   local function get_new_reports(files, bad_files, srcs, jobs)
+   local function get_report(source)
+      local report, err = luacheck.get_report(source)
+
+      if report then
+         return report
+      else
+         err.error = "syntax"
+         return err
+      end
+   end
+
+   -- Returns sparse array of new reports.
+   local function get_new_reports(files, srcs, jobs)
       local dense_srcs = {}
       local dense_to_sparse = {}
 
@@ -354,16 +365,12 @@ Otherwise, the pattern matches warning code.]]
       end
 
       local map = jobs and multithreading.has_lanes and multithreading.pmap or utils.map
-      local dense_res = map(luacheck.get_report, dense_srcs, jobs)
+      local dense_res = map(get_report, dense_srcs, jobs)
 
       local res = {}
 
       for i in ipairs(dense_srcs) do
-         if dense_res[i] then
-            res[dense_to_sparse[i]] = dense_res[i]
-         else
-            bad_files[dense_to_sparse[i]] = "syntax"
-         end
+         res[dense_to_sparse[i]] = dense_res[i]
       end
 
       return res
@@ -404,7 +411,7 @@ Otherwise, the pattern matches warning code.]]
       end
 
       local srcs = get_srcs_to_check(cached_reports, files, bad_files)
-      local new_reports = get_new_reports(files, bad_files, srcs, jobs)
+      local new_reports = get_new_reports(files, srcs, jobs)
 
       if cache_filename then
          update_cache(cache_filename, files, bad_files, srcs, mtimes, new_reports)
@@ -415,10 +422,8 @@ Otherwise, the pattern matches warning code.]]
       for i, file in ipairs(files) do
          if bad_files[i] then
             res[i] = {error = bad_files[i]}
-         elseif cached_reports[file] ~= nil then
-            res[i] = cached_reports[file] or {error = "syntax"}
          else
-            res[i] = new_reports[i]
+            res[i] = cached_reports[file] or new_reports[i]
          end
       end
 

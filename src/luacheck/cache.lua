@@ -18,6 +18,7 @@ local fields = {
    "func",
    "vararg",
    "filtered",
+   "top",
    "invalid",
    "unpaired",
    "read_only",
@@ -101,8 +102,8 @@ end
 
 -- Serializes check result into a string.
 function cache.serialize(events)
-   if not events then
-      return "return false"
+   if events.error then
+      return ("return {%d,%d,%d,%s}"):format(events.line, events.column, events.offset, ("%q"):format(events.msg))
    end
 
    local strings = {}
@@ -200,11 +201,18 @@ local function load_cached(cached)
    end
 
    if type(res) ~= "table" then
-      if res == false then
-         return res
-      else
-         return
-      end
+      return
+   end
+
+   -- Is it a syntax error message?
+   if type(res[1]) == "number" then
+      return {
+         error = "syntax",
+         line = res[1],
+         column = res[2],
+         offset = res[3],
+         msg = res[4]
+      }
    end
 
    local decompressed = {}

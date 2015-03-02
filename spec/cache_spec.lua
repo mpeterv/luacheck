@@ -5,7 +5,7 @@ describe("cache", function()
    describe("serialize", function()
       it("returns serialized result", function()
          assert.same(
-            'return {{"111","foo",5,100,[22]=true},{"211","bar",4,1,[7]=true,[10]=true},{[3]=5,[4]=100000,[12]=true}}',
+            'return {{"111","foo",5,100,[23]=true},{"211","bar",4,1,[7]=true,[10]=true},{[3]=5,[4]=100000,[13]=true}}',
             cache.serialize({
                {code = "111", name = "foo", line = 5, column = 100, in_module = true},
                {code = "211", name = "bar", line = 4, column = 1, secondary = true, filtered = true},
@@ -16,7 +16,7 @@ describe("cache", function()
 
       it("puts repeating string values into locals", function()
          assert.same(
-            'local A,B="111","foo";return {{A,B,5,100,[22]=true},{A,B,6,100,[7]=true,[10]=true},{[3]=5,[4]=100000,[12]=true}}',
+            'local A,B="111","foo";return {{A,B,5,100,[23]=true},{A,B,6,100,[7]=true,[10]=true},{[3]=5,[4]=100000,[13]=true}}',
             cache.serialize({
                {code = "111", name = "foo", line = 5, column = 100, in_module = true},
                {code = "111", name = "foo", line = 6, column = 100, secondary = true, filtered = true},
@@ -68,7 +68,7 @@ describe("cache", function()
       end)
 
       it("handles error result", function()
-         assert.same('return false', cache.serialize(nil))
+         assert.same('return {2,4,10,"message"}', cache.serialize({error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}))
       end)
    end)
 
@@ -156,7 +156,10 @@ return {{"111"},{"122"}}
 
          before_each(function()
             tmpname = os.tmpname()
-            cache.update(tmpname, {"foo", "bar"}, {1, 2}, {{{code="111"}}, nil})
+            cache.update(tmpname,
+               {"foo", "bar"},
+               {1, 2},
+               {{{code="111"}}, {error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}})
          end)
 
          after_each(function()
@@ -168,7 +171,10 @@ return {{"111"},{"122"}}
          end)
 
          it("loads cached results", function()
-            assert.same({foo = {{code="111"}}, bar = false}, cache.load(tmpname, {"foo", "bar"}, {1, 2}))
+            assert.same({
+               foo = {{code="111"}},
+               bar = {error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}
+            }, cache.load(tmpname, {"foo", "bar"}, {1, 2}))
          end)
 
          it("does not load results for missing files", function()
@@ -176,7 +182,9 @@ return {{"111"},{"122"}}
          end)
 
          it("does not load outdated results", function()
-            assert.same({bar = false}, cache.load(tmpname, {"foo", "bar", "baz"}, {2, 2}))
+            assert.same(
+               {bar = {error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}},
+               cache.load(tmpname, {"foo", "bar", "baz"}, {2, 2}))
          end)
       end)
    end)
