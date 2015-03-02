@@ -17,6 +17,8 @@ Checking foo.lua                                  Failure
 Checking bar.lua                                  OK
 Checking baz.lua                                  Syntax error
 
+    baz.lua:4:3: something went wrong
+
 Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    warnings = 2,
    errors = 1,
@@ -38,7 +40,11 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {},
    {
-      error = "syntax"
+      error = "syntax",
+      line = 4,
+      column = 3,
+      offset = 20,
+      msg = "something went wrong"
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {})))
    end)
