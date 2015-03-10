@@ -1,3 +1,4 @@
+bin/luacheck
 *.luac
 docsrc/_build
 docsrc/_static
