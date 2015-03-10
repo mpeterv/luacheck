@@ -1,10 +1,11 @@
-local has_luacheck, luacheck = pcall(require, "src.luacheck.init")
+local dirsep = package.config:sub(1, 1)
+local is_windows = dirsep == "\\"
+package.path = "src" .. dirsep .. "?.lua"
+local has_luacheck, luacheck = pcall(require, "luacheck.init")
 assert(has_luacheck, "couldn't find luacheck module")
 local lua_executable = assert(arg[-1], "couldn't detect Lua executable")
 local install_executable = assert(arg[0], "couldn't detect installer executable")
 local install_path = arg[1]
-local dirsep = package.config:sub(1, 1)
-local is_windows = dirsep == "\\"
 
 if not install_path then
    print(([[Luacheck %s installer.

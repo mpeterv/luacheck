@@ -19,7 +19,8 @@ script:
   - sudo luarocks remove luafilesystem --force
   - sudo luarocks remove lanes --force
   - sudo luarocks remove luacheck --force
-  - lua install.lua path/to/luacheck && cd path/to/luacheck
-  - bin/luacheck spec/*.lua
-  - bin/luacheck src | grep 'I/O error'
-  - bin/luacheck --version | grep 'Not found'
+  - lua install.lua path/to/luacheck
+  - rm -r bin src
+  - path/to/luacheck/bin/luacheck spec/*.lua
+  - path/to/luacheck/bin/luacheck src | grep 'I/O error'
+  - path/to/luacheck/bin/luacheck --version | grep 'Not found'
