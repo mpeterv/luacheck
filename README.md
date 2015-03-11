@@ -1,6 +1,6 @@
 # Luacheck
 
-[![Build Status](https://travis-ci.org/mpeterv/luacheck.png?branch=master)](https://travis-ci.org/mpeterv/luacheck)
+[![Build Status](https://travis-ci.org/mpeterv/luacheck.png?branch=master)](https://travis-ci.org/mpeterv/luacheck) [![Windows build status](https://ci.appveyor.com/api/projects/status/pgox2vvelagw1fux/branch/master?svg=true&passingText=Windows%20build%20passing&failingText=Windows%20build%20failing)](https://ci.appveyor.com/project/mpeterv/luacheck/branch/master)
 
 Luacheck is a static analyzer and a linter for [Lua](http://www.lua.org) which detects issues such as usage of undefined global variables, unused variables and values, etc. It is fairly configurable and can be used as a part of automated testing, manually from the command line or [inside an editor](#editor-support). There is also a Lua module which can be used by other programs.
 
