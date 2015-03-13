@@ -167,9 +167,9 @@ do
 
       if param then
          local help = self:flag()
-            :description "Show this help message and exit. "
+            :description "Show this help message and exit."
             :action(function()
-               io.stdout:write(self:get_help() .. "\r\n")
+               io.stdout:write(self:get_help() .. "\n")
                os.exit(0)
             end)(param)
 
@@ -548,7 +548,7 @@ function Parser:get_usage()
       add("...")
    end
 
-   return table.concat(lines, "\r\n")
+   return table.concat(lines, "\n")
 end
 
 local margin_len = 3
@@ -561,18 +561,12 @@ local function make_two_columns(s1, s2)
       return margin .. s1
    end
 
-   s2 = s2:gsub("[\r\n][\r\n]?", function(sub)
-      if #sub == 1 or sub == "\r\n" then
-         return "\r\n" .. margin2
-      else
-         return "\r\n\r\n" .. margin2
-      end
-   end)
+   s2 = s2:gsub("\n", "\n" .. margin2)
 
    if #s1 < (margin_len2-margin_len) then
       return margin .. s1 .. (" "):rep(margin_len2-margin_len-#s1) .. s2
    else
-      return margin .. s1 .. "\r\n" .. margin2 .. s2
+      return margin .. s1 .. "\n" .. margin2 .. s2
    end
 end
 
@@ -587,7 +581,7 @@ function Parser:get_help()
       table.insert(blocks, self._description)
    end
 
-   local labels = {"Arguments: ", "Options: ", "Commands: "}
+   local labels = {"Arguments:", "Options:", "Commands:"}
 
    for i, elements in ipairs{self._arguments, self._options, self._commands} do
       if #elements > 0 then
@@ -597,7 +591,7 @@ function Parser:get_help()
             table.insert(buf, make_two_columns(element:_get_label(), element:_get_description()))
          end
 
-         table.insert(blocks, table.concat(buf, "\r\n"))
+         table.insert(blocks, table.concat(buf, "\n"))
       end
    end
 
@@ -605,7 +599,7 @@ function Parser:get_help()
       table.insert(blocks, self._epilog)
    end
 
-   return table.concat(blocks, "\r\n\r\n")
+   return table.concat(blocks, "\n\n")
 end
 
 local function get_tip(context, wrong_name)
@@ -647,9 +641,9 @@ local function get_tip(context, wrong_name)
          end
 
          table.sort(possible_names_arr)
-         return "\r\nDid you mean one of these: " .. table.concat(possible_names_arr, " ") .. "?"
+         return "\nDid you mean one of these: " .. table.concat(possible_names_arr, " ") .. "?"
       else
-         return "\r\nDid you mean '" .. first .. "'?"
+         return "\nDid you mean '" .. first .. "'?"
       end
    else
       return ""
@@ -1002,7 +996,7 @@ function Parser:_parse(args, errhandler)
 end
 
 function Parser:error(msg)
-   io.stderr:write(("%s\r\n\r\nError: %s\r\n"):format(self:get_usage(), msg))
+   io.stderr:write(("%s\n\nError: %s\n"):format(self:get_usage(), msg))
    os.exit(1)
 end
 
