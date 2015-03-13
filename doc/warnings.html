@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>List of warnings &mdash; luacheck 0.9.0 documentation</title>
+  <title>List of warnings &mdash; luacheck 0.10.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.9.0 documentation" href="index.html"/>
+    <link rel="top" title="luacheck 0.10.0 documentation" href="index.html"/>
         <link rel="next" title="Command line interface" href="cli.html"/>
         <link rel="prev" title="Luacheck documentation" href="index.html"/> 
 
@@ -60,7 +60,7 @@
             <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#global-variables">Global variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#unused-variables-and-values">Unused variables and  values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unused-variables-and-values">Unused variables and values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#shadowing-declarations">Shadowing declarations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
@@ -69,6 +69,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#formatters">Formatters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#caching">Caching</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
@@ -198,25 +199,34 @@
 <tr class="row-even"><td>423</td>
 <td>Shadowing a loop variable.</td>
 </tr>
-<tr class="row-odd"><td>511</td>
+<tr class="row-odd"><td>431</td>
+<td>Shadowing an upvalue.</td>
+</tr>
+<tr class="row-even"><td>432</td>
+<td>Shadowing an upvalue argument.</td>
+</tr>
+<tr class="row-odd"><td>433</td>
+<td>Shadowing an upvalue loop variable.</td>
+</tr>
+<tr class="row-even"><td>511</td>
 <td>Unreachable code.</td>
 </tr>
-<tr class="row-even"><td>512</td>
+<tr class="row-odd"><td>512</td>
 <td>Loop can be executed at most once.</td>
 </tr>
-<tr class="row-odd"><td>521</td>
+<tr class="row-even"><td>521</td>
 <td>Unused label.</td>
 </tr>
-<tr class="row-even"><td>531</td>
+<tr class="row-odd"><td>531</td>
 <td>Left-hand side of an assignment is too short.</td>
 </tr>
-<tr class="row-odd"><td>532</td>
+<tr class="row-even"><td>532</td>
 <td>Left-hand side of an assignment is too long.</td>
 </tr>
-<tr class="row-even"><td>541</td>
+<tr class="row-odd"><td>541</td>
 <td>An empty <tt class="docutils literal"><span class="pre">do</span></tt> <tt class="docutils literal"><span class="pre">end</span></tt> block.</td>
 </tr>
-<tr class="row-odd"><td>542</td>
+<tr class="row-even"><td>542</td>
 <td>An empty <tt class="docutils literal"><span class="pre">if</span></tt> branch.</td>
 </tr>
 </tbody>
@@ -238,7 +248,7 @@
 </div>
 </div>
 <div class="section" id="unused-variables-and-values">
-<h2>Unused variables and  values<a class="headerlink" href="#unused-variables-and-values" title="Permalink to this headline">¶</a></h2>
+<h2>Unused variables and values<a class="headerlink" href="#unused-variables-and-values" title="Permalink to this headline">¶</a></h2>
 <p>Luacheck generates warnings for all unused local variables except one named <tt class="docutils literal"><span class="pre">_</span></tt>. It also detects variables which are set but never accessed or accessed but never set.</p>
 <div class="section" id="unused-values-and-uninitialized-variables">
 <h3>Unused values and uninitialized variables<a class="headerlink" href="#unused-values-and-uninitialized-variables" title="Permalink to this headline">¶</a></h3>
@@ -285,7 +295,7 @@
 </div>
 <div class="section" id="shadowing-declarations">
 <h2>Shadowing declarations<a class="headerlink" href="#shadowing-declarations" title="Permalink to this headline">¶</a></h2>
-<p>Luacheck detects declarations of local variables shadowing previous declarations in the same closure, unless the variable is named <tt class="docutils literal"><span class="pre">_</span></tt>. If the previous declaration is in the same scope as the new one, it is called redefining.</p>
+<p>Luacheck detects declarations of local variables shadowing previous declarations, unless the variable is named <tt class="docutils literal"><span class="pre">_</span></tt>. If the previous declaration is in the same scope as the new one, it is called redefining.</p>
 <p>Note that it is <strong>not</strong> necessary to define a new local variable when overwriting an argument:</p>
 <div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
@@ -305,6 +315,7 @@
 </div>
 <div class="section" id="control-flow-and-data-flow-issues">
 <h2>Control flow and data flow issues<a class="headerlink" href="#control-flow-and-data-flow-issues" title="Permalink to this headline">¶</a></h2>
+<p>The following control flow and data flow issues are detected:</p>
 <ul class="simple">
 <li>Unreachable code and loops that can be executed at most once (e.g. due to an unconditional break);</li>
 <li>Unused labels;</li>
@@ -352,7 +363,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.9.0',
+            VERSION:'0.10.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

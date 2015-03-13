@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Luacheck module &mdash; luacheck 0.9.0 documentation</title>
+  <title>Luacheck module &mdash; luacheck 0.10.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.9.0 documentation" href="index.html"/>
+    <link rel="top" title="luacheck 0.10.0 documentation" href="index.html"/>
         <link rel="prev" title="Inline options" href="inline.html"/> 
 
   
@@ -59,7 +59,7 @@
             <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="warnings.html">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and  values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#shadowing-declarations">Shadowing declarations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
@@ -68,6 +68,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#formatters">Formatters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#caching">Caching</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
@@ -116,14 +117,19 @@
             
   <div class="section" id="luacheck-module">
 <h1>Luacheck module<a class="headerlink" href="#luacheck-module" title="Permalink to this headline">¶</a></h1>
-<p><tt class="docutils literal"><span class="pre">luacheck</span></tt> module is a single function. Use <tt class="docutils literal"><span class="pre">local</span> <span class="pre">luacheck</span> <span class="pre">=</span> <span class="pre">require</span> <span class="pre">&quot;luacheck&quot;</span></tt> to import it.</p>
-<p>The first argument of the function should be an array. Each element should be either a file name (string) or an open file handle, in which case <tt class="docutils literal"><span class="pre">luacheck</span></tt> will read it till EOF and close it.</p>
-<p>The second argument, if present, should be a table of options. See <a class="reference internal" href="config.html#options"><em>Config options</em></a>.</p>
-<p>When checking <tt class="docutils literal"><span class="pre">n</span></tt>-th file, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will try to combine <tt class="docutils literal"><span class="pre">options[n]</span></tt> and entries from its array part with general options, similarly to how per file config tables overwrite main config table.</p>
+<p>Use <tt class="docutils literal"><span class="pre">local</span> <span class="pre">luacheck</span> <span class="pre">=</span> <span class="pre">require</span> <span class="pre">&quot;luacheck&quot;</span></tt> to import <tt class="docutils literal"><span class="pre">luacheck</span></tt> module. It contains the following functions:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">luacheck.get_report(source)</span></tt>: Given source string, returns analysis data (an array) or nil and syntax error table (table with fields <tt class="docutils literal"><span class="pre">line</span></tt>, <tt class="docutils literal"><span class="pre">column</span></tt>, <tt class="docutils literal"><span class="pre">offset</span></tt>, <tt class="docutils literal"><span class="pre">msg</span></tt>).</li>
+<li><tt class="docutils literal"><span class="pre">luacheck.process_reports(reports,</span> <span class="pre">options)</span></tt>: Processes array of analysis reports and applies options. <tt class="docutils literal"><span class="pre">reports[i]</span></tt> uses <tt class="docutils literal"><span class="pre">options</span></tt>, <tt class="docutils literal"><span class="pre">options[i]</span></tt>, <tt class="docutils literal"><span class="pre">options[i][1]</span></tt>, <tt class="docutils literal"><span class="pre">options[i][2]</span></tt>, ... as options, overriding each other in that order. Options table is a table with fields similar to config options; see <a class="reference internal" href="config.html#options"><em>Config options</em></a>. Analysis reports with field <tt class="docutils literal"><span class="pre">error</span></tt> are ignored. <tt class="docutils literal"><span class="pre">process_reports</span></tt> returns final report, see <a class="reference internal" href="#report"><em>Report format</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">luacheck.check_strings(sources,</span> <span class="pre">options)</span></tt>: Checks array of sources using options, returns final report. Tables in <tt class="docutils literal"><span class="pre">sources</span></tt> array are ignored.</li>
+<li><tt class="docutils literal"><span class="pre">luacheck.check_files(files,</span> <span class="pre">options)</span></tt>: Checks array of files using options, returns final report. Open file handles can passed instead of filenames, in which case they will be read till EOF and closed.</li>
+</ul>
+<p><tt class="docutils literal"><span class="pre">luacheck._VERSION</span></tt> contains Luacheck version as a string in <tt class="docutils literal"><span class="pre">MAJOR.MINOR.PATCH</span></tt> format.</p>
+<p>Using <tt class="docutils literal"><span class="pre">luacheck</span></tt> as a function is equivalent to calling <tt class="docutils literal"><span class="pre">luacheck.check_files</span></tt>.</p>
 <div class="section" id="report-format">
 <span id="report"></span><h2>Report format<a class="headerlink" href="#report-format" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">luacheck</span></tt> function returns a report. A report is an array of file reports plus fields <tt class="docutils literal"><span class="pre">warnings</span></tt> and <tt class="docutils literal"><span class="pre">errors</span></tt> containing total number of warnings and errors, correspondingly.</p>
-<p>A file report is an array of warnings. If an error occured while checking a file, its report will only have <tt class="docutils literal"><span class="pre">error</span></tt> field containing <tt class="docutils literal"><span class="pre">&quot;I/O&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;syntax&quot;</span></tt>.</p>
+<p>A final report is an array of file reports plus fields <tt class="docutils literal"><span class="pre">warnings</span></tt> and <tt class="docutils literal"><span class="pre">errors</span></tt> containing total number of warnings and errors, correspondingly.</p>
+<p>A file report is an array of warnings. If an error occured while checking a file, its report will have <tt class="docutils literal"><span class="pre">error</span></tt> field containing <tt class="docutils literal"><span class="pre">&quot;I/O&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;syntax&quot;</span></tt>. In case of syntax error, <tt class="docutils literal"><span class="pre">line</span></tt> (number), <tt class="docutils literal"><span class="pre">colunmn</span></tt> (number), <tt class="docutils literal"><span class="pre">offset</span></tt> (number) and <tt class="docutils literal"><span class="pre">msg</span></tt> (string) fields are also present.</p>
 <p>A warning is a table with field <tt class="docutils literal"><span class="pre">code</span></tt> indicating the type of warning (see <a class="reference internal" href="warnings.html"><em>List of warnings</em></a>), and fields <tt class="docutils literal"><span class="pre">line</span></tt> and <tt class="docutils literal"><span class="pre">column</span></tt> pointing to the source of the warning. Absence of <tt class="docutils literal"><span class="pre">code</span></tt> field indicates that the warning is related to a broken inline configuration comment; then, <tt class="docutils literal"><span class="pre">invalid</span></tt> field marks comments with invalid syntax, and <tt class="docutils literal"><span class="pre">unpaired</span></tt> field marks unpaired push/pop comments.</p>
 <p>Warnings of some types can also have additional fields:</p>
 <table border="1" class="docutils">
@@ -191,7 +197,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.9.0',
+            VERSION:'0.10.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

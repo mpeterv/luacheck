@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Configuration file &mdash; luacheck 0.9.0 documentation</title>
+  <title>Configuration file &mdash; luacheck 0.10.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.9.0 documentation" href="index.html"/>
+    <link rel="top" title="luacheck 0.10.0 documentation" href="index.html"/>
         <link rel="next" title="Inline options" href="inline.html"/>
         <link rel="prev" title="Command line interface" href="cli.html"/> 
 
@@ -60,7 +60,7 @@
             <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="warnings.html">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and  values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#shadowing-declarations">Shadowing declarations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
@@ -69,6 +69,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#formatters">Formatters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#caching">Caching</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Configuration file</a><ul>
@@ -142,9 +143,17 @@
 <td>Boolean</td>
 <td><tt class="docutils literal"><span class="pre">false</span></tt></td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">limit</span></tt></td>
-<td>Number</td>
-<td><tt class="docutils literal"><span class="pre">0</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">formatter</span></tt></td>
+<td>String</td>
+<td><tt class="docutils literal"><span class="pre">&quot;default&quot;</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">cache</span></tt></td>
+<td>Boolean or string</td>
+<td><tt class="docutils literal"><span class="pre">false</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">jobs</span></tt></td>
+<td>Positive integer</td>
+<td><tt class="docutils literal"><span class="pre">1</span></tt></td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">global</span></tt></td>
 <td>Boolean</td>
@@ -159,14 +168,6 @@
 <td><tt class="docutils literal"><span class="pre">true</span></tt></td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">unused_args</span></tt></td>
-<td>Boolean</td>
-<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
-</tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">unused_values</span></tt></td>
-<td>Boolean</td>
-<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
-</tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">unset</span></tt></td>
 <td>Boolean</td>
 <td><tt class="docutils literal"><span class="pre">true</span></tt></td>
 </tr>
@@ -225,6 +226,10 @@
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">only</span></tt></td>
 <td>Array of patterns</td>
 <td>(Do not filter)</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">inline</span></tt></td>
+<td>Boolean</td>
+<td><tt class="docutils literal"><span class="pre">true</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -311,7 +316,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.9.0',
+            VERSION:'0.10.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

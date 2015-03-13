@@ -5,7 +5,7 @@ Command line interface
 
 * Given a file, ``luacheck`` will check it.
 * Given ``-``, ``luacheck`` will check stdin.
-* Given a directory, ``luacheck`` will check all files with ``.lua`` extension within it. This feature requires `luafilesystem <http://keplerproject.github.io/luafilesystem/>`_ (installed automatically if LuaRocks was used to install Luacheck).
+* Given a directory, ``luacheck`` will check all files with ``.lua`` extension within it. This feature requires `LuaFileSystem <http://keplerproject.github.io/luafilesystem/>`_ (installed automatically if LuaRocks was used to install Luacheck).
 * Given a rockspec (a file with ``.rockspec`` extension), ``luacheck`` will check all files with ``.lua`` extension mentioned in the rockspec in ``build.install.lua``, ``build.install.bin`` and ``build.modules`` tables.
 
 The output of ``luacheck`` consists of separate reports for each checked file and ends with a summary::
@@ -21,6 +21,9 @@ The output of ``luacheck`` consists of separate reports for each checked file an
 
    Checking src/good_code.lua                        OK
    Checking src/python_code.lua                      Syntax error
+
+       spec/samples/python_code.lua:1:6: expected '=' near '__future__'
+
    Checking src/unused_code.lua                      Failure
 
        src/unused_code.lua:3:18: unused argument baz
@@ -55,8 +58,6 @@ Option                                Meaning
 ``-u`` | ``--no-unused``              Filter out warnings related to unused variables and values.
 ``-r`` | ``--no-redefined``           Filter out warnings related to redefined variables.
 ``-a`` | ``--no-unused-args``         Filter out warnings related to unused arguments and loop variables.
-``-v`` | ``--no-unused-values``       Filter out warnings related to unused values.
-``--no-unset``                        Filter out warnings related to unset variables.
 ``-s`` | ``--no-unused-secondaries``  Filter out warnings related to unused variables set together with used ones.
 
                                       See :ref:`secondaryvaluesandvariables`
@@ -91,21 +92,24 @@ Option                                Meaning
 ``--enable | -o <patt> [<patt>] ...`` Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``   Filter out warnings not matching patterns.
 ``--no-inline``                       Disable inline options.
-``-l <limit>`` | ``--limit <limit>``  Exit with 0 if there are ``<limit>`` or less warnings (default: ``0``).
 ``--config <config>``                 Path to custom configuration file (default: ``.luacheckrc``).
 ``--no-config``                       Do not look up custom configuration file.
+``--cache [<cache>]``                 Path to cache file. (default: ``.luacheckcache``). See :ref:`cache`
+``--no-cache``                        Do not use cache.
+``-j`` | ``--jobs``                   Check ``<jobs>`` files in parallel. Requires `LuaLanes <http://cmr.github.io/lanes/>`_.
 ``--formatter <formatter>``           Use custom formatter. ``<formatter>`` must be a module name or one of:
 
                                       * ``TAP`` - Test Anything Protocol formatter;
                                       * ``JUnit`` - JUnit XML formatter;
                                       * ``plain`` - simple warning-per-line formatter;
                                       * ``default`` - standard formatter.
-``--codes``                           Show warning codes.
 ``-q`` | ``--quiet``                  Suppress report output for files without warnings.
 
                                       * ``-qq`` - Suppress output of warnings.
                                       * ``-qqq`` - Only output summary.
+``--codes``                           Show warning codes.
 ``--no-color``                        Do not colorize output.
+``-v`` | ``--version``                Show version of luacheck and its dependencies and exit.
 ``-h`` | ``--help``                   Show help and exit.
 ===================================== ============================================================================
 
@@ -124,7 +128,16 @@ Pattern Matching warnings
 4.2/.*_ Shadowing declarations of arguments with ``_`` suffix or redefining them.
 ======= =========================================================================
 
+Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows to filter warnings by category (e.g. ``--only 1`` focuses ``luacheck`` on global-related warnings).
+
 Formatters
 ----------
 
 CLI option ``--formatter`` allows selecting a custom formatter for ``luacheck`` output. A custom formatter is a Lua module returning a function with three arguments: report as returned by ``luacheck`` module (see :ref:`report`), array of file names and table of options. Options contain values assigned to ``quiet``, ``color``, ``limit``, ``codes`` and ``formatter`` options in CLI or config. Formatter function must return a string.
+
+.. _cache:
+
+Caching
+-------
+
+If LuaFileSystem is available, Luacheck can cache results of checking files. On subsequent checks, only files which have changed since the last check will be rechecked, improving run time significantly. Changing options (e.g. defining additional globals) does not invalidate cache. Caching can be enabled by using ``--cache <cache>`` option or ``cache`` config option. Using ``--cache`` without an argument or setting ``cache`` config option to ``true`` sets ``.luacheckcache`` as the cache file. Note that ``--cache`` must be used every time ``luacheck`` is run, not on the first run only.

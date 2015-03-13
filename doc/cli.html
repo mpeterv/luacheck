@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Command line interface &mdash; luacheck 0.9.0 documentation</title>
+  <title>Command line interface &mdash; luacheck 0.10.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.9.0 documentation" href="index.html"/>
+    <link rel="top" title="luacheck 0.10.0 documentation" href="index.html"/>
         <link rel="next" title="Configuration file" href="config.html"/>
         <link rel="prev" title="List of warnings" href="warnings.html"/> 
 
@@ -60,7 +60,7 @@
             <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="warnings.html">List of warnings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#global-variables">Global variables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and  values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="warnings.html#unused-variables-and-values">Unused variables and values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#shadowing-declarations">Shadowing declarations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="warnings.html#control-flow-and-data-flow-issues">Control flow and data flow issues</a></li>
 </ul>
@@ -69,6 +69,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#patterns">Patterns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#formatters">Formatters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#caching">Caching</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
@@ -121,7 +122,7 @@
 <ul class="simple">
 <li>Given a file, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check it.</li>
 <li>Given <tt class="docutils literal"><span class="pre">-</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check stdin.</li>
-<li>Given a directory, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension within it. This feature requires <a class="reference external" href="http://keplerproject.github.io/luafilesystem/">luafilesystem</a> (installed automatically if LuaRocks was used to install Luacheck).</li>
+<li>Given a directory, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension within it. This feature requires <a class="reference external" href="http://keplerproject.github.io/luafilesystem/">LuaFileSystem</a> (installed automatically if LuaRocks was used to install Luacheck).</li>
 <li>Given a rockspec (a file with <tt class="docutils literal"><span class="pre">.rockspec</span></tt> extension), <tt class="docutils literal"><span class="pre">luacheck</span></tt> will check all files with <tt class="docutils literal"><span class="pre">.lua</span></tt> extension mentioned in the rockspec in <tt class="docutils literal"><span class="pre">build.install.lua</span></tt>, <tt class="docutils literal"><span class="pre">build.install.bin</span></tt> and <tt class="docutils literal"><span class="pre">build.modules</span></tt> tables.</li>
 </ul>
 <p>The output of <tt class="docutils literal"><span class="pre">luacheck</span></tt> consists of separate reports for each checked file and ends with a summary:</p>
@@ -136,6 +137,9 @@ Checking src/bad_code.lua                         Failure
 
 Checking src/good_code.lua                        OK
 Checking src/python_code.lua                      Syntax error
+
+    spec/samples/python_code.lua:1:6: expected &#39;=&#39; near &#39;__future__&#39;
+
 Checking src/unused_code.lua                      Failure
 
     src/unused_code.lua:3:18: unused argument baz
@@ -159,8 +163,8 @@ Total: 14 warnings / 1 error in 4 files
 <p>Note that options that may take several arguments, such as <tt class="docutils literal"><span class="pre">--globals</span></tt>, should not be used immediately before positional arguments; given <tt class="docutils literal"><span class="pre">--globals</span> <span class="pre">foo</span> <span class="pre">bar</span> <span class="pre">file.lua</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will consider all <tt class="docutils literal"><span class="pre">foo</span></tt>, <tt class="docutils literal"><span class="pre">bar</span></tt> and <tt class="docutils literal"><span class="pre">file.lua</span></tt> global and then panic as there are no file names left.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="33%" />
-<col width="67%" />
+<col width="30%" />
+<col width="70%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Option</th>
@@ -179,12 +183,6 @@ Total: 14 warnings / 1 error in 4 files
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-a</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-args</span></tt></td>
 <td>Filter out warnings related to unused arguments and loop variables.</td>
-</tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-v</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-values</span></tt></td>
-<td>Filter out warnings related to unused values.</td>
-</tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-unset</span></tt></td>
-<td>Filter out warnings related to unset variables.</td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">-s</span></tt> | <tt class="docutils literal"><span class="pre">--no-unused-secondaries</span></tt></td>
 <td><p class="first">Filter out warnings related to unused variables set together with used ones.</p>
@@ -252,14 +250,20 @@ Total: 14 warnings / 1 error in 4 files
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-inline</span></tt></td>
 <td>Disable inline options.</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-l</span> <span class="pre">&lt;limit&gt;</span></tt> | <tt class="docutils literal"><span class="pre">--limit</span> <span class="pre">&lt;limit&gt;</span></tt></td>
-<td>Exit with 0 if there are <tt class="docutils literal"><span class="pre">&lt;limit&gt;</span></tt> or less warnings (default: <tt class="docutils literal"><span class="pre">0</span></tt>).</td>
-</tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--config</span> <span class="pre">&lt;config&gt;</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--config</span> <span class="pre">&lt;config&gt;</span></tt></td>
 <td>Path to custom configuration file (default: <tt class="docutils literal"><span class="pre">.luacheckrc</span></tt>).</td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-config</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-config</span></tt></td>
 <td>Do not look up custom configuration file.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--cache</span> <span class="pre">[&lt;cache&gt;]</span></tt></td>
+<td>Path to cache file. (default: <tt class="docutils literal"><span class="pre">.luacheckcache</span></tt>). See <a class="reference internal" href="#cache"><em>Caching</em></a></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--no-cache</span></tt></td>
+<td>Do not use cache.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-j</span></tt> | <tt class="docutils literal"><span class="pre">--jobs</span></tt></td>
+<td>Check <tt class="docutils literal"><span class="pre">&lt;jobs&gt;</span></tt> files in parallel. Requires <a class="reference external" href="http://cmr.github.io/lanes/">LuaLanes</a>.</td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">--formatter</span> <span class="pre">&lt;formatter&gt;</span></tt></td>
 <td><p class="first">Use custom formatter. <tt class="docutils literal"><span class="pre">&lt;formatter&gt;</span></tt> must be a module name or one of:</p>
@@ -271,10 +275,7 @@ Total: 14 warnings / 1 error in 4 files
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--codes</span></tt></td>
-<td>Show warning codes.</td>
-</tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-q</span></tt> | <tt class="docutils literal"><span class="pre">--quiet</span></tt></td>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-q</span></tt> | <tt class="docutils literal"><span class="pre">--quiet</span></tt></td>
 <td><p class="first">Suppress report output for files without warnings.</p>
 <ul class="last simple">
 <li><tt class="docutils literal"><span class="pre">-qq</span></tt> - Suppress output of warnings.</li>
@@ -282,10 +283,16 @@ Total: 14 warnings / 1 error in 4 files
 </ul>
 </td>
 </tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">--codes</span></tt></td>
+<td>Show warning codes.</td>
+</tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">--no-color</span></tt></td>
 <td>Do not colorize output.</td>
 </tr>
-<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-h</span></tt> | <tt class="docutils literal"><span class="pre">--help</span></tt></td>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">-v</span></tt> | <tt class="docutils literal"><span class="pre">--version</span></tt></td>
+<td>Show version of luacheck and its dependencies and exit.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">-h</span></tt> | <tt class="docutils literal"><span class="pre">--help</span></tt></td>
 <td>Show help and exit.</td>
 </tr>
 </tbody>
@@ -316,10 +323,15 @@ Total: 14 warnings / 1 error in 4 files
 </tr>
 </tbody>
 </table>
+<p>Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows to filter warnings by category (e.g. <tt class="docutils literal"><span class="pre">--only</span> <span class="pre">1</span></tt> focuses <tt class="docutils literal"><span class="pre">luacheck</span></tt> on global-related warnings).</p>
 </div>
 <div class="section" id="formatters">
 <h2>Formatters<a class="headerlink" href="#formatters" title="Permalink to this headline">¶</a></h2>
 <p>CLI option <tt class="docutils literal"><span class="pre">--formatter</span></tt> allows selecting a custom formatter for <tt class="docutils literal"><span class="pre">luacheck</span></tt> output. A custom formatter is a Lua module returning a function with three arguments: report as returned by <tt class="docutils literal"><span class="pre">luacheck</span></tt> module (see <a class="reference internal" href="module.html#report"><em>Report format</em></a>), array of file names and table of options. Options contain values assigned to <tt class="docutils literal"><span class="pre">quiet</span></tt>, <tt class="docutils literal"><span class="pre">color</span></tt>, <tt class="docutils literal"><span class="pre">limit</span></tt>, <tt class="docutils literal"><span class="pre">codes</span></tt> and <tt class="docutils literal"><span class="pre">formatter</span></tt> options in CLI or config. Formatter function must return a string.</p>
+</div>
+<div class="section" id="caching">
+<span id="cache"></span><h2>Caching<a class="headerlink" href="#caching" title="Permalink to this headline">¶</a></h2>
+<p>If LuaFileSystem is available, Luacheck can cache results of checking files. On subsequent checks, only files which have changed since the last check will be rechecked, improving run time significantly. Changing options (e.g. defining additional globals) does not invalidate cache. Caching can be enabled by using <tt class="docutils literal"><span class="pre">--cache</span> <span class="pre">&lt;cache&gt;</span></tt> option or <tt class="docutils literal"><span class="pre">cache</span></tt> config option. Using <tt class="docutils literal"><span class="pre">--cache</span></tt> without an argument or setting <tt class="docutils literal"><span class="pre">cache</span></tt> config option to <tt class="docutils literal"><span class="pre">true</span></tt> sets <tt class="docutils literal"><span class="pre">.luacheckcache</span></tt> as the cache file. Note that <tt class="docutils literal"><span class="pre">--cache</span></tt> must be used every time <tt class="docutils literal"><span class="pre">luacheck</span></tt> is run, not on the first run only.</p>
 </div>
 </div>
 
@@ -361,7 +373,7 @@ Total: 14 warnings / 1 error in 4 files
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.9.0',
+            VERSION:'0.10.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -29,6 +29,9 @@ Code Description
 421  Shadowing a local variable.
 422  Shadowing an argument.
 423  Shadowing a loop variable.
+431  Shadowing an upvalue.
+432  Shadowing an upvalue argument.
+433  Shadowing an upvalue loop variable.
 511  Unreachable code.
 512  Loop can be executed at most once.
 521  Unused label.
@@ -62,8 +65,8 @@ Modules
 
 Files can be marked as modules using ``-m``/``--module`` CLI option or ``module`` config option to simulate semantics of the deprecated `module <http://www.lua.org/manual/5.1/manual.html#pdf-module>`_ function. Globals implicitly defined inside a module are considired part of its interface, are not visible outside and are not reported as unused. Assignments to other globals are not allowed, even to defined ones.
 
-Unused variables and  values
-----------------------------
+Unused variables and values
+---------------------------
 
 Luacheck generates warnings for all unused local variables except one named ``_``. It also detects variables which are set but never accessed or accessed but never set.
 
@@ -109,7 +112,7 @@ Warnings related to unused secondary values and variables can be removed using `
 Shadowing declarations
 ----------------------
 
-Luacheck detects declarations of local variables shadowing previous declarations in the same closure, unless the variable is named ``_``. If the previous declaration is in the same scope as the new one, it is called redefining.
+Luacheck detects declarations of local variables shadowing previous declarations, unless the variable is named ``_``. If the previous declaration is in the same scope as the new one, it is called redefining.
 
 Note that it is **not** necessary to define a new local variable when overwriting an argument:
 
@@ -126,6 +129,8 @@ Note that it is **not** necessary to define a new local variable when overwritin
 
 Control flow and data flow issues
 ---------------------------------
+
+The following control flow and data flow issues are detected:
 
 * Unreachable code and loops that can be executed at most once (e.g. due to an unconditional break);
 * Unused labels;
