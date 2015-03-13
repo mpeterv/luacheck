@@ -46,3 +46,5 @@ For fine-grained control over inline option visibility use ``luacheck: push`` an
    foo() -- No warning.
    -- luacheck: pop
    foo() -- Warning is emitted.
+
+Inline options can be completely disabled using ``--no-inline`` CLI option or ``inline`` config option.
