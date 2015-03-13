@@ -77,7 +77,11 @@ describe("luacheck", function()
             }
          },
          {
-            error = "syntax"
+            error = "syntax",
+            line = 1,
+            column = 6,
+            offset = 6,
+            msg = "expected '=' near '__future__'"
          },
          warnings = 5,
          errors = 1
@@ -115,7 +119,11 @@ describe("luacheck", function()
             }
          },
          {
-            error = "syntax"
+            error = "syntax",
+            line = 1,
+            column = 6,
+            offset = 6,
+            msg = "expected '=' near '__future__'"
          },
          warnings = 3,
          errors = 1
@@ -147,7 +155,11 @@ describe("luacheck", function()
             }
          },
          {
-            error = "syntax"
+            error = "syntax",
+            line = 1,
+            column = 6,
+            offset = 6,
+            msg = "expected '=' near '__future__'"
          },
          warnings = 2,
          errors = 1
@@ -202,7 +214,11 @@ describe("check_strings", function()
             }
          },
          {
-            error = "syntax"
+            error = "syntax",
+            line = 1,
+            column = 8,
+            offset = 8,
+            msg = "unexpected symbol near 'return'"
          },
          warnings = 1,
          errors = 1
@@ -213,7 +229,11 @@ describe("check_strings", function()
       assert.same({
          {},
          {
-            error = "syntax"
+            error = "syntax",
+            line = 1,
+            column = 8,
+            offset = 8,
+            msg = "unexpected symbol near 'return'"
          },
          warnings = 0,
          errors = 1

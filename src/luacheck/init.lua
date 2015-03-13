@@ -85,7 +85,14 @@ function luacheck.check_strings(srcs, opts)
       if type(src) == "table" then
          reports[i] = src
       else
-         reports[i] = luacheck.get_report(src) or {error = "syntax"}
+         local report, err = luacheck.get_report(src)
+
+         if report then
+            reports[i] = report
+         else
+            err.error = "syntax"
+            reports[i] = err
+         end
       end
    end
 
