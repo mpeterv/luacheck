@@ -1,4 +1,5 @@
 local utils = require "luacheck.utils"
+local multithreading = require "luacheck.multithreading"
 
 local function get_output(command, color)
    local handler = io.popen("luacheck --no-config " .. command .. " 2>&1")
@@ -670,6 +671,29 @@ Total: 16 warnings / 1 error in 4 files
 ]], get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --cache "..tmpname))
       end)
    end)
+
+   if not multithreading.has_lanes then
+      pending("uses multithreading")
+   else
+      it("uses multithreading", function()
+         assert.equal([[
+Checking spec/samples/good_code.lua               OK
+Checking spec/samples/bad_code.lua                Failure
+
+    spec/samples/bad_code.lua:3:16: unused function helper
+    spec/samples/bad_code.lua:3:23: unused variable length argument
+    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
+    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
+
+Checking spec/samples/python_code.lua             Syntax error
+
+    spec/samples/python_code.lua:1:6: expected '=' near '__future__'
+
+Total: 5 warnings / 1 error in 3 files
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 -j2")
+      end)
+   end
 
    it("allows using custom formatter", function()
       assert.equal([[Files: 2
