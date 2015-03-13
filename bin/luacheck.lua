@@ -32,6 +32,11 @@ local function main()
    local function get_args()
       local parser = argparse "luacheck"
          :description ("luacheck " .. luacheck._VERSION .. ", a simple static analyzer for Lua.")
+         :epilog [[
+Links:
+
+   Luacheck on GitHub: https://github.com/mpeterv/luacheck
+   Luacheck documentation: http://luacheck.readthedocs.org]]
 
       parser:argument "files"
          :description (fs.has_lfs and [[List of files, directories and rockspecs to check.
