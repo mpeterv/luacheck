@@ -21,7 +21,7 @@ local function global_error_handler(err)
       fatal("Invalid pattern '" .. err.pattern .. "'")
    else
       fatal(debug.traceback(
-         ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(version.luacheck, err), 2))
+         ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(luacheck._VERSION, err), 2))
    end
 end
 
@@ -31,7 +31,7 @@ local function main()
 
    local function get_args()
       local parser = argparse "luacheck"
-         :description ("luacheck " .. version.luacheck .. ", a simple static analyzer for Lua. ")
+         :description ("luacheck " .. luacheck._VERSION .. ", a simple static analyzer for Lua. ")
 
       parser:argument "files"
          :description (fs.has_lfs and [[List of files, directories and rockspecs to check. 
