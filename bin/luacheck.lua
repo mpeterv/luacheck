@@ -231,25 +231,38 @@ Otherwise, the pattern matches warning code.]]
       return res, bad_rockspecs
    end
 
+   -- Returns nil or config, config_path, optional relative path from config to current directory.
    local function get_config(config_path)
-      local res
+      local rel_path
 
-      if config_path or fs.is_file(default_config) then
-         config_path = config_path or default_config
-         local err
-         -- Autovivification-enabled table mapping file names to configs, provided to config as global `files`. 
-         local files_config = setmetatable({}, {__index = function(self, key)
-            self[key] = {}
-            return self[key]
-         end})
-         res, err = utils.load_config(config_path, {files = files_config})
+      if not config_path then
+         local current_dir = fs.current_dir()
+         local config_dir = fs.find_file(current_dir, default_config)
 
-         if err then
-            fatal(("Couldn't load configuration from %s: %s error"):format(config_path, err))
+         if not config_dir then
+            return
+         end
+
+         if config_dir == current_dir then
+            config_path = default_config
+         else
+            config_path = config_dir .. default_config
+            rel_path = current_dir:sub(#config_dir + 1)
          end
       end
 
-      return res
+      -- Autovivification-enabled table mapping file names to configs, provided to config as global `files`.
+      local files_config = setmetatable({}, {__index = function(self, key)
+         self[key] = {}
+         return self[key]
+      end})
+      local res, err = utils.load_config(config_path, {files = files_config})
+
+      if err then
+         fatal(("Couldn't load configuration from %s: %s error"):format(config_path, err))
+      end
+
+      return res, config_path, rel_path
    end
 
    local function get_options(args)
@@ -435,12 +448,12 @@ Otherwise, the pattern matches warning code.]]
       return res
    end
 
-   local function combine_config_and_options(config, config_path, cli_opts, files)
+   local function combine_config_and_options(config, config_path, config_rel_path, cli_opts, files)
       if not config then
          return cli_opts
       end
 
-      config_path = config_path or default_config
+      config_rel_path = config_rel_path or ""
 
       local function validate(option_set, opts)
          local ok, invalid_field = options.validate(option_set, opts)
@@ -459,6 +472,7 @@ Otherwise, the pattern matches warning code.]]
       local res = {}
 
       for i, file in ipairs(files) do
+         file = config_rel_path .. file
          res[i] = {config}
 
          if type(config.files) == "table" and type(file) == "string" then
@@ -520,16 +534,18 @@ Otherwise, the pattern matches warning code.]]
    local args = get_args()
    local opts = get_options(args)
    local config
+   local config_path
+   local config_rel_path
 
    if not args.no_config then
-      config = get_config(args.config)
+      config, config_path, config_rel_path = get_config(args.config)
    end
 
    combine_config_and_args(config, args)
 
    local files, bad_rockspecs = expand_files(args.files)
    local reports = get_reports(args.cache, files, bad_rockspecs, args.jobs)
-   local report = luacheck.process_reports(reports, combine_config_and_options(config, args.config, opts, files))
+   local report = luacheck.process_reports(reports, combine_config_and_options(config, config_path, config_rel_path, opts, files))
    normalize_filenames(files)
 
    local output = pformat(report, files, args)

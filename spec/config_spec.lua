@@ -1,6 +1,12 @@
-local function get_output(command, color)
-   local handler = io.popen("luacheck " .. command .. " 2>&1")
-   local output = handler:read("*a"):gsub("\27.-\109", color and "#" or "")
+local function get_output(command, wd)
+   command = ("luacheck %s 2>&1"):format(command)
+
+   if wd then
+      command = ("cd %s && %s"):format(wd, command)
+   end
+
+   local handler = io.popen(command)
+   local output = handler:read("*a"):gsub("\27.-\109", "")
    handler:close()
    return output
 end
@@ -12,23 +18,51 @@ end
 
 describe("config", function()
    describe("loading", function()
-      it("does not use config with compat=true in the project root with --no-config", function()
-         local output = get_output "spec/samples/compat.lua --no-config"
-         assert.is_true([[
-Checking spec/samples/compat.lua                  Failure
+      it("uses .luacheckrc in current directory if possible", function()
+         assert.equal([[
+Checking nested/ab.lua                            Failure
 
-    spec/samples/compat.lua:1:2: accessing undefined variable setfenv
-    spec/samples/compat.lua:1:22: accessing undefined variable setfenv
+    nested/ab.lua:1:10: accessing undefined variable b
 
-Total: 2 warnings / 0 errors in 1 file
-]] == output or output == [[
-Checking spec/samples/compat.lua                  Failure
+Checking nested/nested/abc.lua                    Failure
 
-    spec/samples/compat.lua:1:14: accessing undefined variable rawlen
-    spec/samples/compat.lua:1:34: accessing undefined variable rawlen
+    nested/nested/abc.lua:1:7: accessing undefined variable a
+    nested/nested/abc.lua:1:13: accessing undefined variable c
 
-Total: 2 warnings / 0 errors in 1 file
-]])
+Total: 3 warnings / 0 errors in 2 files
+]], get_output("nested", "spec/configs/project"))
+      end)
+
+      it("does not use .luacheckrc in current directory with --no-config", function()
+         assert.equal([[
+Checking nested/ab.lua                            Failure
+
+    nested/ab.lua:1:7: accessing undefined variable a
+    nested/ab.lua:1:10: accessing undefined variable b
+
+Checking nested/nested/abc.lua                    Failure
+
+    nested/nested/abc.lua:1:7: accessing undefined variable a
+    nested/nested/abc.lua:1:10: accessing undefined variable b
+    nested/nested/abc.lua:1:13: accessing undefined variable c
+
+Total: 5 warnings / 0 errors in 2 files
+]], get_output("nested --no-config", "spec/configs/project"))
+      end)
+
+      it("uses .luacheckrc in upper directory", function()
+         assert.equal([[
+Checking ab.lua                                   Failure
+
+    ab.lua:1:10: accessing undefined variable b
+
+Checking nested/abc.lua                           Failure
+
+    nested/abc.lua:1:7: accessing undefined variable a
+    nested/abc.lua:1:13: accessing undefined variable c
+
+Total: 3 warnings / 0 errors in 2 files
+]], get_output("ab.lua nested", "spec/configs/project/nested"))
       end)
 
       it("uses config provided with --config=path", function()
