@@ -4,6 +4,26 @@ local utils = require "luacheck.utils"
 
 fs.has_lfs, fs.lfs = pcall(require, "lfs")
 
+local function ensure_dir_sep(path)
+   if path:sub(-1) ~= utils.dir_sep then
+      return path .. utils.dir_sep
+   end
+
+   return path
+end
+
+-- Searches for file starting from path, going up until the file
+-- is found or root directory is reached.
+-- Path must be absolute.
+-- Returns absolute path to directory containing file or nil.
+function fs.find_file(path, file)
+   while path and not fs.is_file(path .. file) do
+      path = path:match(("^(.*%s).*%s$"):format(utils.dir_sep, utils.dir_sep))
+   end
+
+   return path
+end
+
 if not fs.has_lfs then
    function fs.is_dir(_)
       return false
@@ -26,6 +46,16 @@ if not fs.has_lfs then
 
    function fs.mtime(_)
       return 0
+   end
+
+   local pwd_command = utils.is_windows and "cd" or "pwd"
+
+   function fs.current_dir()
+      local fh = io.popen(pwd_command)
+      local current_dir = fh:read("*a")
+      fh:close()
+      -- Remove extra newline at the end.
+      return ensure_dir_sep(current_dir:sub(1, -2))
    end
 
    return fs
@@ -67,6 +97,11 @@ end
 -- Returns modification time for a file. 
 function fs.mtime(path)
    return fs.lfs.attributes(path, "modification")
+end
+
+-- Returns absolute path to current working directory.
+function fs.current_dir()
+   return ensure_dir_sep(assert(fs.lfs.currentdir()))
 end
 
 return fs
