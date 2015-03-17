@@ -23,15 +23,8 @@ else
 fi
 
 cd ..
-
-if [ "$LUA" == "Lua 5.3" ]; then
-  git clone https://github.com/keplerproject/luarocks
-  cd luarocks
-  git checkout 0f1c93774669468c5165be2711325224388aed41;
-else
-  wget -O - http://luarocks.org/releases/luarocks-2.2.0.tar.gz | tar xz
-  cd luarocks-2.2.0;
-fi
+wget -O - http://luarocks.org/releases/luarocks-2.2.1.tar.gz | tar xz
+cd luarocks-2.2.1;
 
 if [ "$LUA" == "LuaJIT 2.0" ]; then
   ./configure --with-lua-include=/usr/local/include/luajit-2.0;

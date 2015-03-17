@@ -2,13 +2,14 @@
 
 sudo luarocks install dkjson --deps-mode=none
 
-git clone https://github.com/mpeterv/lanes
+mkdir lanes
+wget -O - https://api.github.com/repos/mpeterv/lanes/tarball/lua53-fixes | tar xz -C lanes --strip-components=1
 cd lanes
-git checkout lua53-fixes
 sudo luarocks make lanes-3.9.6-1.rockspec
 cd ..
 
-git clone https://github.com/Olivine-Labs/busted
+mkdir busted
+wget -O - https://api.github.com/repos/Olivine-Labs/busted/tarball/master | tar xz -C busted --strip-components=1
 cd busted
 sudo luarocks make busted-scm-0.rockspec
 cd ..
