@@ -22,7 +22,7 @@ The output of ``luacheck`` consists of separate reports for each checked file an
    Checking src/good_code.lua                        OK
    Checking src/python_code.lua                      Syntax error
 
-       spec/samples/python_code.lua:1:6: expected '=' near '__future__'
+       src/python_code.lua:1:6: expected '=' near '__future__'
 
    Checking src/unused_code.lua                      Failure
 
@@ -89,7 +89,7 @@ Option                                Meaning
                                       See :ref:`modules`
 ``--no-unused-globals``               Filter out warnings related to set but unused global variables.
 ``--ignore | -i <patt> [<patt>] ...`` Filter out warnings matching patterns.
-``--enable | -o <patt> [<patt>] ...`` Do not filter out warnings matching patterns.
+``--enable | -e <patt> [<patt>] ...`` Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``   Filter out warnings not matching patterns.
 ``--no-inline``                       Disable inline options.
 ``--config <config>``                 Path to custom configuration file (default: ``.luacheckrc``).
@@ -109,7 +109,7 @@ Option                                Meaning
                                       * ``-qqq`` - Only output summary.
 ``--codes``                           Show warning codes.
 ``--no-color``                        Do not colorize output.
-``-v`` | ``--version``                Show version of luacheck and its dependencies and exit.
+``-v`` | ``--version``                Show version of Luacheck and its dependencies and exit.
 ``-h`` | ``--help``                   Show help and exit.
 ===================================== ============================================================================
 

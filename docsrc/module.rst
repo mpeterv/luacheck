@@ -19,19 +19,19 @@ Report format
 
 A final report is an array of file reports plus fields ``warnings`` and ``errors`` containing total number of warnings and errors, correspondingly.
 
-A file report is an array of warnings. If an error occured while checking a file, its report will have ``error`` field containing ``"I/O"`` or ``"syntax"``. In case of syntax error, ``line`` (number), ``colunmn`` (number), ``offset`` (number) and ``msg`` (string) fields are also present.
+A file report is an array of warnings. If an error occured while checking a file, its report will have ``error`` field containing ``"I/O"`` or ``"syntax"``. In case of syntax error, ``line`` (number), ``column`` (number), ``offset`` (number) and ``msg`` (string) fields may be present.
 
-A warning is a table with field ``code`` indicating the type of warning (see :doc:`warnings`), and fields ``line`` and ``column`` pointing to the source of the warning. Absence of ``code`` field indicates that the warning is related to a broken inline configuration comment; then, ``invalid`` field marks comments with invalid syntax, and ``unpaired`` field marks unpaired push/pop comments.
+A warning is a table with field ``code`` indicating the type of warning (see :doc:`warnings`), and fields ``line`` and ``column`` pointing to the source of the warning. Absence of ``code`` field indicates that the warning is related to a broken inline configuration comment; then, ``invalid`` field marks comments with invalid syntax, and ``unpaired`` field marks unpaired push/pop directives.
 
 Warnings of some types can also have additional fields:
 
-===== =======================================================================================
+===== ========================================================================================
 Codes Additional fields
-===== =======================================================================================
+===== ========================================================================================
 111   ``module`` field indicates that assignment is to a non-module global variable.
 211   ``func`` field indicates that unused variable is a function.
-212   ``vararg`` field indicated that variable length argument is unused.
-4..   ``prev_line`` and ``prev_column`` fields contain location of the overwritten defintion.
-===== =======================================================================================
+212   ``vararg`` field indicates that variable length argument is unused.
+4..   ``prev_line`` and ``prev_column`` fields contain location of the overwritten definition.
+===== ========================================================================================
 
 Other fields may be present for internal reasons.
