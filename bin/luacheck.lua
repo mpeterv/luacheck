@@ -460,10 +460,10 @@ Otherwise, the pattern matches warning code.]]
 
          if not ok then
             if invalid_field then
-               fatal(("Couldn't load configuration from %s: invalid value of option '%s'\n"):format(
+               fatal(("Couldn't load configuration from %s: invalid value of option '%s'"):format(
                   config_path, invalid_field))
             else
-               fatal(("Couldn't load configuration from %s: validation error\n"):format(config_path))
+               fatal(("Couldn't load configuration from %s: validation error"):format(config_path))
             end
          end
       end

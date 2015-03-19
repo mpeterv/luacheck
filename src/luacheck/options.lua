@@ -7,6 +7,10 @@ local function boolean(x)
    return type(x) == "boolean"
 end
 
+local function string_(x)
+   return type(x) == "string"
+end
+
 local function natural(x)
    return type(x) == "number" and x >= 1
 end
@@ -66,7 +70,7 @@ utils.update(options.config_options, options.multi_inline_options)
 options.top_config_options = {
    color = boolean,
    codes = boolean,
-   formatter = string,
+   formatter = string_,
    cache = boolean_or_string,
    jobs = natural
 }
