@@ -270,7 +270,7 @@ describe("parser", function()
          assert.same({tag = "Set", {
                            {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}}
                         }, {
-                           {tag = "Function", {{tag = "Id", "self"}}, {}}
+                           {tag = "Function", {{tag = "Id", "self", implicit = true}}, {}}
                         }
                      }, get_node("function a:b() end"))
          assert.same({tag = "Set", {
@@ -279,7 +279,7 @@ describe("parser", function()
                               {tag = "String", "c"}
                            }
                         }, {
-                           {tag = "Function", {{tag = "Id", "self"}}, {}}
+                           {tag = "Function", {{tag = "Id", "self", implicit = true}}, {}}
                         }
                      }, get_node("function a.b:c() end"))
          assert.same({line = 1, column = 13, offset = 13, msg = "expected '(' near '.'"}, get_error("function a:b.c() end"))
@@ -859,7 +859,7 @@ end
                            {tag = "Function", location = {line = 6, column = 1, offset = 83},
                               end_location = {line = 10, column = 1, offset = 142},
                               {
-                                 {tag = "Id", "self", location = {line = 6, column = 15, offset = 97}},
+                                 {tag = "Id", "self", implicit = true, location = {line = 6, column = 15, offset = 97}},
                                  {tag = "Id", "arg", location = {line = 6, column = 16, offset = 98}}
                               },
                               {

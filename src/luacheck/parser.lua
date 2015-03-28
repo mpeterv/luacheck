@@ -521,7 +521,7 @@ statements["function"] = function(state)
 
    if is_method then
       -- Insert implicit "self" argument.
-      local self_arg = init_ast_node({"self"}, arg_location, "Id")
+      local self_arg = init_ast_node({"self", implicit = true}, arg_location, "Id")
       table.insert(function_node[1], 1, self_arg)
    end
 
