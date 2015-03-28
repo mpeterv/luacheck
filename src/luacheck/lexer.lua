@@ -1,3 +1,5 @@
+local utils = require "luacheck.utils"
+
 -- Lexer should support syntax of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT(64bit and complex cdata literals).
 local lexer = {}
 
@@ -77,30 +79,9 @@ local function is_space(b)
       (b == BYTE_TAB) or (b == BYTE_VTAB)
 end
 
-local keywords = {
-   ["and"] = "TK_AND",
-   ["break"] = "TK_BREAK",
-   ["do"] = "TK_DO",
-   ["else"] = "TK_ELSE",
-   ["elseif"] = "TK_ELSEIF",
-   ["end"] = "TK_END",
-   ["false"] = "TK_FALSE",
-   ["for"] = "TK_FOR",
-   ["function"] = "TK_FUNCTION",
-   ["goto"] = "TK_GOTO",
-   ["if"] = "TK_IF",
-   ["in"] = "TK_IN",
-   ["local"] = "TK_LOCAL",
-   ["nil"] = "TK_NIL",
-   ["not"] = "TK_NOT",
-   ["or"] = "TK_OR",
-   ["repeat"] = "TK_REPEAT",
-   ["return"] = "TK_RETURN",
-   ["then"] = "TK_THEN",
-   ["true"] = "TK_TRUE",
-   ["until"] = "TK_UNTIL",
-   ["while"] = "TK_WHILE"
-}
+local keywords = utils.array_to_set({
+   "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in",
+   "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"})
 
 local simple_escapes = {
    [sbyte("a")] = sbyte("\a"),
@@ -197,7 +178,7 @@ local function lex_long_string(state, opening_long_bracket, token)
             break
          end
       elseif b == nil then
-         return nil, token == "TK_STRING" and "unfinished long string" or "unfinished long comment"
+         return nil, token == "string" and "unfinished long string" or "unfinished long comment"
       else
          b = next_byte(state)
       end
@@ -380,7 +361,7 @@ local function lex_short_string(state, quote)
    end
 
    next_byte(state)  -- Skip the closing quote.
-   return "TK_STRING", string_value
+   return "string", string_value
 end
 
 -- Payload for a number is simply a substring.
@@ -479,7 +460,7 @@ local function lex_number(state, b)
       end
    end
 
-   return "TK_NUMBER", ssub(state.src, start, state.offset-1)
+   return "number", ssub(state.src, start, state.offset-1)
 end
 
 local function lex_ident(state)
@@ -491,12 +472,11 @@ local function lex_ident(state)
    end
 
    local ident = ssub(state.src, start, state.offset-1)
-   local keyword = keywords[ident]
 
-   if keyword then
-      return keyword
+   if keywords[ident] then
+      return ident
    else
-      return "TK_NAME", ident
+      return "name", ident
    end
 end
 
@@ -517,7 +497,7 @@ local function lex_dash(state)
          b, long_bracket = skip_long_bracket(state)
 
          if b == BYTE_OBRACK then
-            return lex_long_string(state, long_bracket, "TK_COMMENT")
+            return lex_long_string(state, long_bracket, "comment")
          end
       end
 
@@ -525,7 +505,7 @@ local function lex_dash(state)
       b = skip_till_newline(state, b)
       local comment_value = ssub(state.src, start, state.offset-1)
       skip_newline(state, b)
-      return "TK_COMMENT", comment_value
+      return "comment", comment_value
    end
 end
 
@@ -534,7 +514,7 @@ local function lex_bracket(state)
    local b, long_bracket = skip_long_bracket(state)
 
    if b == BYTE_OBRACK then
-      return lex_long_string(state, long_bracket, "TK_STRING")
+      return lex_long_string(state, long_bracket, "string")
    elseif long_bracket == 0 then
       return "["
    else
@@ -547,7 +527,7 @@ local function lex_eq(state)
 
    if b == BYTE_EQ then
       next_byte(state)
-      return "TK_EQ"
+      return "=="
    else
       return "="
    end
@@ -558,10 +538,10 @@ local function lex_lt(state)
 
    if b == BYTE_EQ then
       next_byte(state)
-      return "TK_LE"
+      return "<="
    elseif b == BYTE_LT then
       next_byte(state)
-      return "TK_SHL"
+      return "<<"
    else
       return "<"
    end
@@ -572,10 +552,10 @@ local function lex_gt(state)
 
    if b == BYTE_EQ then
       next_byte(state)
-      return "TK_GE"
+      return ">="
    elseif b == BYTE_GT then
       next_byte(state)
-      return "TK_SHR"
+      return ">>"
    else
       return ">"
    end
@@ -586,7 +566,7 @@ local function lex_div(state)
 
    if b == BYTE_SLASH then
       next_byte(state)
-      return "TK_IDIV"
+      return "//"
    else
       return "/"
    end
@@ -597,7 +577,7 @@ local function lex_ne(state)
 
    if b == BYTE_EQ then
       next_byte(state)
-      return "TK_NE"
+      return "~="
    else
       return "~"
    end
@@ -608,7 +588,7 @@ local function lex_colon(state)
 
    if b == BYTE_COLON then
       next_byte(state)
-      return "TK_DBCOLON"
+      return "::"
    else
       return ":"
    end
@@ -622,9 +602,9 @@ local function lex_dot(state)
 
       if b == BYTE_DOT then
          next_byte(state)
-         return "TK_DOTS"
+         return "...", "..."
       else
-         return "TK_CONCAT"
+         return ".."
       end
    elseif to_dec(b) then
       -- Backtrack to dot.
@@ -715,7 +695,7 @@ function lexer.next_token(state)
    local token, token_value, err_offset
 
    if b == nil then
-      token = "TK_EOS"
+      token = "eof"
    else
       token, token_value, err_offset = (byte_handlers[b] or lex_any)(state, b)
    end
