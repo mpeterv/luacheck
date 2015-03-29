@@ -93,7 +93,7 @@ end
 
    it("detects unused implicit self", function()
       assert.same({
-         {code = "212", name = "self", line = 2, column = 13}
+         {code = "212", name = "self", self = true, line = 2, column = 13}
       }, check[[
 local a = {}
 function a:b()
@@ -266,6 +266,44 @@ print(foo)
 return function(foo, ...)
    local foo = 1
    return foo
+end
+      ]])
+   end)
+
+   it("marks redefinition of implicit self", function()
+      assert.same({
+         {code = "112", name = "t", line = 1, column = 10},
+         {code = "212", name = "self", line = 1, column = 13, self = true},
+         {code = "212", name = "self", line = 3, column = 16, self = true},
+         {code = "432", name = "self", line = 3, column = 16, self = true, prev_line = 1, prev_column = 13}
+      }, check[[
+function t:f()
+   local o = {}
+   function o:g() end
+end
+      ]])
+
+      assert.same({
+         {code = "112", name = "t", line = 1, column = 10},
+         {code = "212", name = "self", line = 1, column = 14},
+         {code = "212", name = "self", line = 3, column = 16, self = true},
+         {code = "432", name = "self", line = 3, column = 16, prev_line = 1, prev_column = 14}
+      }, check[[
+function t.f(self)
+   local o = {}
+   function o:g() end
+end
+      ]])
+
+      assert.same({
+         {code = "112", name = "t", line = 1, column = 10},
+         {code = "212", name = "self", line = 1, column = 13, self = true},
+         {code = "212", name = "self", line = 3, column = 17},
+         {code = "432", name = "self", line = 3, column = 17, prev_line = 1, prev_column = 13}
+      }, check[[
+function t:f()
+   local o = {}
+   function o.g(self) end
 end
       ]])
    end)

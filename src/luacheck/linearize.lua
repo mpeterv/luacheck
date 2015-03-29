@@ -27,6 +27,7 @@ local function new_var(line, node, type_)
       name = node[1],
       location = node.location,
       type = (node[1] == "...") and "vararg" or type_,
+      self = node.implicit,
       line = line,
       scope_start = line.items.size + 1,
       values = {}

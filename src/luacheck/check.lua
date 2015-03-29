@@ -55,6 +55,7 @@ function ChState:warn_unused_variable(var)
       column = var.location.column,
       secondary = is_secondary(var.values[1]) or nil,
       func = (var.values[1].type == "func") or nil,
+      self = var.self,
       vararg = (var.type == "vararg") or nil
    })
 end
@@ -115,6 +116,7 @@ function ChState:warn_redefined(var, prev_var, same_scope)
          name = var.name,
          line = var.location.line,
          column = var.location.column,
+         self = var.self and prev_var.self,
          prev_line = prev_var.location.line,
          prev_column = prev_var.location.column
       })
