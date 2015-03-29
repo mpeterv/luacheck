@@ -44,7 +44,6 @@ options.nullary_inline_options = {
    unused_args = boolean,
    unused_secondaries = boolean,
    self = boolean,
-   unused_globals = boolean,
    compat = boolean,
    allow_defined = boolean,
    allow_defined_top = boolean,
@@ -205,7 +204,6 @@ end
 -- and get sensible results when intersecting macros are used.
 -- E.g. unused = false, unused_args = true should leave unused args enabled.
 local macros = {
-   {"unused_globals", "13"},
    {"unused_args", "21[23]"},
    {"global", "1"},
    {"unused", "[23]"},

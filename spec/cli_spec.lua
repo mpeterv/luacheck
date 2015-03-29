@@ -411,14 +411,14 @@ Total: 1 warning / 0 errors in 2 files
 Checking spec/samples/defined3.lua                OK
 
 Total: 0 warnings / 0 errors in 1 file
-]], get_output "spec/samples/defined3.lua -d --no-unused-globals")
+]], get_output "spec/samples/defined3.lua -d --ignore 13")
 
       assert.equal([[
 Checking spec/samples/defined3.lua                OK
 Checking spec/samples/defined2.lua                OK
 
 Total: 0 warnings / 0 errors in 2 files
-]], get_output "spec/samples/defined3.lua spec/samples/defined2.lua -d --no-unused-globals")
+]], get_output "spec/samples/defined3.lua spec/samples/defined2.lua -d --ignore 13")
    end)
 
    it("detects flow issues", function()

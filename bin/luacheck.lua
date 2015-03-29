@@ -104,9 +104,6 @@ Equivalent to --ignore 21[23].]]
          :description "Allow defining globals implicitly by setting them in the top level scope."
       parser:flag "-m" "--module"
          :description "Limit visibility of implicitly defined globals to their files."
-      parser:flag "--no-unused-globals"
-         :description [[Filter out warnings related to set but unused global variables.
-Equivalent to --ignore 13.]]
 
       parser:option "--ignore" "-i"
          :description [[Filter out warnings matching these patterns.
@@ -277,7 +274,7 @@ Otherwise, the pattern matches warning code.]]
       end
 
       for _, argname in ipairs {"global", "unused", "redefined", "unused", "unused_args",
-            "unused_secondaries", "self", "unused_globals", "inline"} do
+            "unused_secondaries", "self", "inline"} do
          if args["no_"..argname] then
             res[argname] = false
          end

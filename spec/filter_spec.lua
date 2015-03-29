@@ -454,7 +454,7 @@ describe("filter", function()
       }, {
             {
                allow_defined = true,
-               unused_globals = false
+               ignore = {"13"}
             },
             {
                allow_defined_top = true,
@@ -492,39 +492,6 @@ describe("filter", function()
                allow_defined = true,
                module = true
             }
-      }))
-   end)
-
-   it("removes unused global warnings with unused_globals = false", function()
-      assert.same({
-         {
-            {
-               code = "113",
-               name = "baz"
-            }
-         }
-      }, filter({
-         {
-            {
-               code = "113",
-               name = "foo"
-            },
-            {
-               code = "111",
-               name = "foo"
-            },
-            {
-               code = "111",
-               name = "bar"
-            },
-            {
-               code = "113",
-               name = "baz"
-            }
-         }
-      }, {
-         allow_defined = true,
-         unused_globals = false
       }))
    end)
 end)
