@@ -509,16 +509,21 @@ Otherwise, the pattern matches warning code.]]
          return format(report, file_names, args)
       end
 
-      local require_ok, formatter_module = pcall(require, args.formatter)
+      local formatter = args.formatter
+      local ok, output
 
-      if not require_ok or type(formatter_module) ~= "function" then
-         fatal(("Couldn't load custom formatter '%s': %s"):format(args.formatter, formatter_module))
+      if type(formatter) == "string" then
+         ok, formatter = pcall(require, formatter)
+
+         if not ok then
+            fatal(("Couldn't load custom formatter '%s': %s"):format(args.formatter, formatter))
+         end
       end
 
-      local output_ok, output = pcall(formatter_module, report, file_names, args)
+      ok, output = pcall(formatter, report, file_names, args)
 
-      if not output_ok then
-         fatal(("Couldn't run custom formatter '%s': %s"):format(args.formatter, output))
+      if not ok then
+         fatal(("Couldn't run custom formatter '%s': %s"):format(tostring(args.formatter), output))
       end
 
       return output

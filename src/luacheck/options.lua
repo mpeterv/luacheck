@@ -7,8 +7,8 @@ local function boolean(x)
    return type(x) == "boolean"
 end
 
-local function string_(x)
-   return type(x) == "string"
+local function string_or_function(x)
+   return type(x) == "string" or type(x) == "function"
 end
 
 local function natural(x)
@@ -70,7 +70,7 @@ utils.update(options.config_options, options.variadic_inline_options)
 options.top_config_options = {
    color = boolean,
    codes = boolean,
-   formatter = string_,
+   formatter = string_or_function,
    cache = boolean_or_string,
    jobs = natural
 }
