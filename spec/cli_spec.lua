@@ -469,6 +469,7 @@ Total: 5 warnings / 0 errors in 1 file
       assert.equal([[
 Checking spec/samples/inline_options.lua          Failure
 
+    spec/samples/inline_options.lua:6:16: unused function f
     spec/samples/inline_options.lua:12:4: accessing undefined variable qu
     spec/samples/inline_options.lua:15:1: accessing undefined variable baz
     spec/samples/inline_options.lua:24:10: unused variable g
@@ -479,12 +480,13 @@ Checking spec/samples/inline_options.lua          Failure
     spec/samples/inline_options.lua:36:1: empty do..end block
     spec/samples/inline_options.lua:37:10: empty if branch
 
-Total: 9 warnings / 0 errors in 1 file
+Total: 10 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none")
 
       assert.equal([[
 Checking spec/samples/inline_options.lua          Failure
 
+    spec/samples/inline_options.lua:6:16: unused function f
     spec/samples/inline_options.lua:12:4: accessing undefined variable qu
     spec/samples/inline_options.lua:15:1: accessing undefined variable baz
     spec/samples/inline_options.lua:24:10: unused variable g
@@ -494,7 +496,7 @@ Checking spec/samples/inline_options.lua          Failure
     spec/samples/inline_options.lua:30:4: unpaired inline option
     spec/samples/inline_options.lua:36:1: empty do..end block
 
-Total: 8 warnings / 0 errors in 1 file
+Total: 9 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none --ignore=542")
 
       assert.equal([[
@@ -535,6 +537,7 @@ Checking spec/samples/inline_options.lua          Failure
     spec/samples/inline_options.lua:3:1: accessing undefined variable foo
     spec/samples/inline_options.lua:4:1: accessing undefined variable bar
     spec/samples/inline_options.lua:6:16: unused function f
+    spec/samples/inline_options.lua:6:18: unused argument a
     spec/samples/inline_options.lua:8:4: accessing undefined variable foo
     spec/samples/inline_options.lua:9:4: accessing undefined variable bar
     spec/samples/inline_options.lua:10:4: accessing undefined variable baz
@@ -558,7 +561,7 @@ Checking spec/samples/inline_options.lua          Failure
     spec/samples/inline_options.lua:36:1: empty do..end block
     spec/samples/inline_options.lua:37:10: empty if branch
 
-Total: 25 warnings / 0 errors in 1 file
+Total: 26 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none --no-inline")
    end)
 

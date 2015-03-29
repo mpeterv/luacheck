@@ -57,16 +57,22 @@ local function get_options(body)
             args[1] = ".*/.*"
          end
 
-         if options.single_inline_options[name] then
-            if #args ~= 0 then
-               return
-            end
-
-            opts[name] = true
-         elseif options.multi_inline_options[name] then
+         if options.variadic_inline_options[name] then
             opts[name] = args
          else
-            return
+            local actual_name = utils.after(name, "^no_")
+            name = actual_name or name
+            local flag = not actual_name
+
+            if options.nullary_inline_options[name] then
+               if #args ~= 0 then
+                  return
+               end
+
+               opts[name] = flag
+            else
+               return
+            end
          end
       end
    end

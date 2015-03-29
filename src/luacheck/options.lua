@@ -37,14 +37,20 @@ local function std_or_array_of_strings(x)
    return stds[x] or array_of_strings(x)
 end
 
-options.single_inline_options = {
+options.nullary_inline_options = {
+   global = boolean,
+   unused = boolean,
+   redefined = boolean,
+   unused_args = boolean,
+   unused_secondaries = boolean,
+   unused_globals = boolean,
    compat = boolean,
    allow_defined = boolean,
    allow_defined_top = boolean,
    module = boolean
 }
 
-options.multi_inline_options = {
+options.variadic_inline_options = {
    globals = array_of_strings,
    read_globals = array_of_strings,
    new_globals = array_of_strings,
@@ -55,17 +61,11 @@ options.multi_inline_options = {
 }
 
 options.config_options = {
-   global = boolean,
-   unused = boolean,
-   redefined = boolean,
-   unused_args = boolean,
-   unused_secondaries = boolean,
-   unused_globals = boolean,
    std = std_or_array_of_strings,
    inline = boolean
 }
-utils.update(options.config_options, options.single_inline_options)
-utils.update(options.config_options, options.multi_inline_options)
+utils.update(options.config_options, options.nullary_inline_options)
+utils.update(options.config_options, options.variadic_inline_options)
 
 options.top_config_options = {
    color = boolean,
