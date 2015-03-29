@@ -60,6 +60,8 @@ Equivalent to --ignore 4.]]
 Equivalent to --ignore 21[23].]]
       parser:flag "-s" "--no-unused-secondaries"
          :description "Filter out warnings related to unused variables set together with used ones."
+      parser:flag "--no-self"
+         :description "Filter out warnings related to implicit self argument."
 
       parser:option "--std"
          :description [[Set standard globals. <std> must be one of:
@@ -274,16 +276,10 @@ Otherwise, the pattern matches warning code.]]
          end
       end
 
-      for optname, argname in pairs {
-            global = "no_global",
-            redefined = "no_redefined",
-            unused = "no_unused",
-            unused_args = "no_unused_args",
-            unused_secondaries = "no_unused_secondaries",
-            unused_globals = "no_unused_globals",
-            inline = "no_inline"} do
-         if args[argname] then
-            res[optname] = false
+      for _, argname in ipairs {"global", "unused", "redefined", "unused", "unused_args",
+            "unused_secondaries", "self", "unused_globals", "inline"} do
+         if args["no_"..argname] then
+            res[argname] = false
          end
       end
 

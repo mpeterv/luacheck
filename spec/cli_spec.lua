@@ -271,6 +271,20 @@ Total: 1 warning / 0 errors in 1 file
 ]], get_output "spec/samples/unused_secondaries.lua -s")
    end)
 
+   it("allows to ignore warnings related to implicit self", function()
+      assert.equal([[
+Checking spec/samples/redefined.lua               Failure
+
+    spec/samples/redefined.lua:4:10: shadowing upvalue a on line 1
+    spec/samples/redefined.lua:4:13: variable self is never set
+    spec/samples/redefined.lua:4:13: variable self was previously defined as an argument on line 3
+    spec/samples/redefined.lua:7:13: shadowing definition of variable a on line 4
+    spec/samples/redefined.lua:8:32: shadowing upvalue self on line 4
+
+Total: 5 warnings / 0 errors in 1 file
+]], get_output "spec/samples/redefined.lua --no-self --globals each")
+   end)
+
    it("handles errors gracefully", function()
       assert.equal([[
 Checking spec/samples/python_code.lua             Syntax error
