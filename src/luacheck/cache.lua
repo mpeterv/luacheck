@@ -15,6 +15,7 @@ local fields = {
    "prev_line",
    "prev_column",
    "secondary",
+   "self",
    "func",
    "vararg",
    "filtered",

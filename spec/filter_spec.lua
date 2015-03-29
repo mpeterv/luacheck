@@ -226,6 +226,36 @@ describe("filter", function()
       }))
    end)
 
+   it("filters unused and redefined warnings related to implicit self", function()
+      assert.same({
+         {
+            {
+               code = "212",
+               name = "self"
+            }
+         }
+      }, filter({
+         {
+            {
+               code = "212",
+               name = "self",
+               self = true
+            },
+            {
+               code = "432",
+               name = "self",
+               self = true
+            },
+            {
+               code = "212",
+               name = "self"
+            }
+         }
+      }, {
+         self = false
+      }))
+   end)
+
    it("filters defined globals", function()
       assert.same({
          {

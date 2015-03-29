@@ -43,6 +43,7 @@ options.nullary_inline_options = {
    redefined = boolean,
    unused_args = boolean,
    unused_secondaries = boolean,
+   self = boolean,
    unused_globals = boolean,
    compat = boolean,
    allow_defined = boolean,
@@ -282,11 +283,11 @@ function options.normalize(opts_stack)
 
    utils.update(res.globals, res.read_globals)
 
-   for _, option in ipairs {"unused_secondaries", "module", "allow_defined", "allow_defined_top", "inline"} do
+   for i, option in ipairs {"unused_secondaries", "self", "inline", "module", "allow_defined", "allow_defined_top"} do
       local value = get_boolean_opt(opts_stack, option)
 
       if value == nil then
-         res[option] = option == "unused_secondaries" or option == "inline"
+         res[option] = i < 4
       else
          res[option] = value
       end

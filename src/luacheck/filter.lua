@@ -246,6 +246,10 @@ function filter.filters(opts, warning)
       return true
    end
 
+   if warning.self and not opts.self then
+      return true
+   end
+
    return not is_enabled(opts.rules, warning)
 end
 

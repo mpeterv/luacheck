@@ -601,7 +601,7 @@ Total: 5 warnings / 1 error in 3 files
 return {}
 spec/samples/bad_code.lua
 (%d+)
-local A="113";return {{A,"package",1,1},{"211","helper",3,16,%[8%]=true},{"212","...",3,23,%[9%]=true},{"111","embrace",7,10,%[11%]=true},{"412","opt",8,10,7,18},{A,"hepler",9,11}}
+local A="113";return {{A,"package",1,1},{"211","helper",3,16,%[9%]=true},{"212","...",3,23,%[10%]=true},{"111","embrace",7,10,%[12%]=true},{"412","opt",8,10,7,18},{A,"hepler",9,11}}
 spec/samples/python_code.lua
 (%d+)
 return {1,6,6,"expected '=' near '__future__'"}
