@@ -465,10 +465,10 @@ Otherwise, the pattern matches warning code.]]
       local res = {}
 
       for i, file in ipairs(files) do
-         file = config_rel_path .. file
          res[i] = {config}
 
          if type(config.files) == "table" and type(file) == "string" then
+            file = config_rel_path .. file
             local overriding_paths = {}
 
             for path in pairs(config.files) do

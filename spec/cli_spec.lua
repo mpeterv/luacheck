@@ -1,8 +1,8 @@
 local utils = require "luacheck.utils"
 local multithreading = require "luacheck.multithreading"
 
-local function get_output(command, color)
-   local handler = io.popen("luacheck --no-config " .. command .. " 2>&1")
+local function get_output(command, color, config)
+   local handler = io.popen("luacheck "..(config or "--no-config").." "..command.." 2>&1")
    local output = handler:read("*a"):gsub("\27.-\109", color and "#" or "")
    handler:close()
    return output
@@ -54,6 +54,20 @@ Total: 5 warnings / 0 errors in 1 file
       assert.equal([[
 Fatal error: Invalid pattern '^%1foo$'
 ]], get_output "spec/samples/bad_code.lua --ignore %1foo")
+   end)
+
+   it("checks stdin when given -", function()
+      assert.equal([[
+Checking stdin                                    Failure
+
+    stdin:3:16: unused function helper
+    stdin:3:23: unused variable length argument
+    stdin:7:10: setting non-standard global variable embrace
+    stdin:8:10: variable opt was previously defined as an argument on line 7
+    stdin:9:11: accessing undefined variable hepler
+
+Total: 5 warnings / 0 errors in 1 file
+]], get_output("- < spec/samples/bad_code.lua", false, "--config=spec/configs/override_config.luacheckrc"))
    end)
 
    it("colors output", function()
