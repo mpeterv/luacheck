@@ -33,8 +33,27 @@ local function boolean_or_string(x)
    return type(x) == "boolean" or type(x) == "string"
 end
 
+local function split_std(std)
+   local parts = utils.split(std, "+")
+
+   if parts[1]:match("^%s*$") then
+      parts.add = true
+      table.remove(parts, 1)
+   end
+
+   for i, part in ipairs(parts) do
+      parts[i] = utils.strip(part)
+
+      if not stds[parts[i]] then
+         return
+      end
+   end
+
+   return parts
+end
+
 local function std_or_array_of_strings(x)
-   return stds[x] or array_of_strings(x)
+   return array_of_strings(x) or (type(x) == "string" and split_std(x))
 end
 
 options.nullary_inline_options = {
@@ -103,36 +122,59 @@ end
 -- Option stack is an array of options with options closer to end
 -- overriding options closer to beginning.
 
-local function get_std(opts_stack)
-   local std
+-- Returns sets of std globals and read-only std globals from option stack.
+-- Std globals can be set using compat option (sets std to stds.max) or std option.
+-- If std is a table, array part contains read-only globals, hash part - regular globals as keys.
+-- If it is a string, it must contain names of standard sets separated by +.
+-- If prefixed with +, standard sets will be added on top of existing ones.
+local function get_std_sets(opts_stack)
+   local base_std
+   local add_stds = {}
    local no_compat = false
 
    for _, opts in utils.ripairs(opts_stack) do
       if opts.compat and not no_compat then
-         std = "max"
+         base_std = "max"
          break
       elseif opts.compat == false then
          no_compat = true
       end
 
       if opts.std then
-         std = opts.std
-         break
+         if type(opts.std) == "table" then
+            base_std = opts.std
+            break
+         else
+            local parts = split_std(opts.std)
+
+            for _, part in ipairs(parts) do
+               table.insert(add_stds, part)
+            end
+
+            if not parts.add then
+               base_std = {}
+               break
+            end
+         end
       end
    end
 
-   return std and (stds[std] or std) or stds._G
-end
+   table.insert(add_stds, base_std or "_G")
 
--- Takes std as table, returns sets of std globals and read-only std globals.
--- Array part of std table contains read-only globals, hash part - regular globals as keys.
-local function std_to_globals(std)
    local std_globals = {}
-   local std_read_globals = utils.array_to_set(std)
+   local std_read_globals = {}
 
-   for k in pairs(std) do
-      if type(k) == "string" then
-         std_globals[k] = true
+   for _, add_std in ipairs(add_stds) do
+      add_std = stds[add_std] or add_std
+
+      for _, read_global in ipairs(add_std) do
+         std_read_globals[read_global] = true
+      end
+
+      for global in pairs(add_std) do
+         if type(global) == "string" then
+            std_globals[global] = true
+         end
       end
    end
 
@@ -271,7 +313,7 @@ function options.normalize(opts_stack)
 
    res.globals = utils.array_to_set(get_globals(opts_stack, "globals"))
    res.read_globals = utils.array_to_set(get_globals(opts_stack, "read_globals"))
-   local std_globals, std_read_globals = std_to_globals(get_std(opts_stack))
+   local std_globals, std_read_globals = get_std_sets(opts_stack)
    utils.update(res.globals, std_globals)
    utils.update(res.read_globals, std_read_globals)
 

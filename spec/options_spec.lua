@@ -90,6 +90,36 @@ describe("options", function()
          }).globals)
       end)
 
+      it("allows compound std unions", function()
+         assert.same(options.normalize({
+            {
+               std = "max"
+            },
+         }).globals, options.normalize({
+            {
+               std = "lua51+lua52+lua53+luajit"
+            },
+         }).globals)
+      end)
+
+      it("allows std addition", function()
+         assert.same(options.normalize({
+            {
+               std = "lua52 + busted"
+            },
+         }).globals, options.normalize({
+            {
+               std = "max"
+            },
+            {
+               std = "none"
+            },
+            {
+               std = "+lua52+busted"
+            }
+         }).globals)
+      end)
+
       it("considers read-only and regular globals", function()
          local opts = options.normalize({
             {
