@@ -33,7 +33,7 @@ local function boolean_or_string(x)
    return type(x) == "boolean" or type(x) == "string"
 end
 
-local function split_std(std)
+function options.split_std(std)
    local parts = utils.split(std, "+")
 
    if parts[1]:match("^%s*$") then
@@ -53,7 +53,7 @@ local function split_std(std)
 end
 
 local function std_or_array_of_strings(x)
-   return array_of_strings(x) or (type(x) == "string" and split_std(x))
+   return array_of_strings(x) or (type(x) == "string" and options.split_std(x))
 end
 
 options.nullary_inline_options = {
@@ -145,7 +145,7 @@ local function get_std_sets(opts_stack)
             base_std = opts.std
             break
          else
-            local parts = split_std(opts.std)
+            local parts = options.split_std(opts.std)
 
             for _, part in ipairs(parts) do
                table.insert(add_stds, part)

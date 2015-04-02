@@ -29,7 +29,7 @@ local function main()
    local default_config = ".luacheckrc"
    local default_cache_path = ".luacheckcache"
 
-   local function get_args()
+   local function get_parser()
       local parser = argparse "luacheck"
          :description ("luacheck " .. luacheck._VERSION .. ", a simple static analyzer for Lua.")
          :epilog [[
@@ -75,7 +75,6 @@ Equivalent to --ignore 21[23].]]
    min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
    max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
    none - no standard globals.]]
-         :convert(stds)
       parser:option "--globals"
          :description "Add custom globals on top of standard ones."
          :args "*"
@@ -181,17 +180,7 @@ Otherwise, the pattern matches warning code.]]
             os.exit(0)
          end)
 
-      local args = parser:parse()
-
-      if not fs.has_lfs then
-         args.no_cache = true
-      end
-
-      if args.jobs and args.jobs < 1 then
-         parser:error("<jobs> must be at least 1")
-      end
-
-      return args
+      return parser
    end
 
    -- Expands folders, rockspecs, -
@@ -230,6 +219,39 @@ Otherwise, the pattern matches warning code.]]
       return res, bad_rockspecs
    end
 
+   -- Config must support special metatables for some keys:
+   -- autovivification for `files`, fallback to built-in stds for `stds`.
+   -- Save values assigned to these globals to hidden keys.
+   local special_keys = {stds = {}, files = {}}
+   local special_mts = {stds = {__index = stds}, files = {__index = function(self, k)
+      self[k] = {}
+      return self[k]
+   end}}
+   local config_env_mt = {__newindex = function(self, k, v)
+      if special_keys[k] then
+         if type(v) == "table" then
+            setmetatable(v, special_mts[k])
+         end
+
+         k = special_keys[k]
+      end
+
+      rawset(self, k, v)
+   end, __index = function(self, k)
+      if special_keys[k] then
+         return self[special_keys[k]]
+      end
+   end}
+
+   local function make_config_env()
+      local env = setmetatable({}, config_env_mt)
+      env.files = {}
+      env.stds = {}
+      -- Expose `require` so that custom stds or configuration could be loaded from modules.
+      env.require = require
+      return env
+   end
+
    -- Returns nil or config, config_path, optional relative path from config to current directory.
    local function get_config(config_path)
       local rel_path
@@ -250,18 +272,34 @@ Otherwise, the pattern matches warning code.]]
          end
       end
 
-      -- Autovivification-enabled table mapping file names to configs, provided to config as global `files`.
-      local files_config = setmetatable({}, {__index = function(self, key)
-         self[key] = {}
-         return self[key]
-      end})
-      local res, err = utils.load_config(config_path, {files = files_config})
+      local env = make_config_env()
+      local ok, ret = utils.load_config(config_path, env)
 
-      if err then
-         fatal(("Couldn't load configuration from %s: %s error"):format(config_path, err))
+      if not ok then
+         fatal(("Couldn't load configuration from %s: %s error"):format(config_path, ret))
       end
 
-      return res, config_path, rel_path
+      if type(ret) == "table" then
+         utils.update(env, ret)
+      end
+
+      rawset(env, "files", env[special_keys.files])
+
+      if type(env[special_keys.stds]) == "table" then
+         utils.update(stds, env[special_keys.stds])
+      end
+
+      return env, config_path, rel_path
+   end
+
+   local function validate_args(args, parser)
+      if args.jobs and args.jobs < 1 then
+         parser:error("<jobs> must be at least 1")
+      end
+
+      if args.std and not options.split_std(args.std) then
+         parser:error("<std> must name a standard library")
+      end
    end
 
    local function get_options(args)
@@ -301,7 +339,7 @@ Otherwise, the pattern matches warning code.]]
       args.codes = args.codes or config and config.codes
       args.formatter = args.formatter or (config and config.formatter) or "default"
 
-      if args.no_cache then
+      if args.no_cache or not fs.has_lfs then
          args.cache = false
       else
          args.cache = args.cache or (config and config.cache)
@@ -529,7 +567,8 @@ Otherwise, the pattern matches warning code.]]
       return output
    end
 
-   local args = get_args()
+   local parser = get_parser()
+   local args = parser:parse()
    local opts = get_options(args)
    local config
    local config_path
@@ -539,6 +578,7 @@ Otherwise, the pattern matches warning code.]]
       config, config_path, config_rel_path = get_config(args.config)
    end
 
+   validate_args(args, parser)
    combine_config_and_args(config, args)
 
    local files, bad_rockspecs = expand_files(args.files)

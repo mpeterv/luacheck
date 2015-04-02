@@ -208,7 +208,7 @@ Checking spec/samples/bad_code.lua                Failure
     spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
 
 Total: 5 warnings / 0 errors in 1 file
-]], get_output "--std max spec/samples/bad_code.lua")
+]], get_output "--std lua51+lua52+lua53 spec/samples/bad_code.lua")
    end)
 
    it("allows to ignore some variables", function()

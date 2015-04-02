@@ -25,7 +25,7 @@ describe("utils", function()
 
    describe("load_config", function()
       it("loads config from a file and returns it", function()
-         assert.same({foo = "bar"}, utils.load_config("spec/folder/config"))
+         assert.same({foo = "bar"}, (utils.load_config("spec/folder/config")))
       end)
 
       it("passes second argument as environment", function()
@@ -33,7 +33,7 @@ describe("utils", function()
          assert.same({
             foo = "bar",
             bar = bar
-         }, utils.load_config("spec/folder/env_config", {bar = bar}))
+         }, (utils.load_config("spec/folder/env_config", {bar = bar})))
       end)
 
       it("returns nil, \"I/O\" for non-existent paths", function()
@@ -48,10 +48,10 @@ describe("utils", function()
          assert.equal("syntax", err)
       end)
 
-      it("returns nil, \"syntax\" for configs with run-time errors", function()
+      it("returns nil, \"runtime\" for configs with run-time errors", function()
          local ok, err = utils.load_config("spec/folder/env_config")
          assert.is_nil(ok)
-         assert.equal("syntax", err)
+         assert.equal("runtime", err)
       end)
    end)
 

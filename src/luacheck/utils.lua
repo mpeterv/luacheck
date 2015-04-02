@@ -33,29 +33,30 @@ else
 end
 -- luacheck: pop
 
--- Parses rockspec-like source, returns data or nil. 
-local function capture_env(src, env)
-   env = env or {}
-   local func = utils.load(src, env)
-   return func and pcall(func) and env
-end
-
 -- Loads config containing assignments to global variables from path. 
--- Returns config table or nil and error message("I/O" or "syntax"). 
+-- Returns config table and return value of config or nil and error message
+-- ("I/O" or "syntax" or "runtime"). 
 function utils.load_config(path, env)
+   env = env or {}
    local src = utils.read_file(path)
 
    if not src then
       return nil, "I/O"
    end
 
-   local cfg = capture_env(src, env)
+   local func = utils.load(src, env)
 
-   if not cfg then
+   if not func then
       return nil, "syntax"
    end
 
-   return cfg
+   local ok, res = pcall(func)
+
+   if not ok then
+      return nil, "runtime"
+   end
+
+   return env, res
 end
 
 function utils.array_to_set(array)

@@ -134,6 +134,52 @@ Color: false
 Codes: true
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/cli_specific_config.luacheckrc --std=lua52")
       end)
+
+      it("allows defining custom stds", function()
+         assert.equal([[
+Checking spec/samples/globals.lua                 Failure
+
+    spec/samples/globals.lua:1:15: accessing undefined variable rawlen
+    spec/samples/globals.lua:1:22: accessing undefined variable tostring
+
+Total: 2 warnings / 0 errors in 1 file
+]], get_output "spec/samples/globals.lua --config=spec/configs/custom_stds_config.luacheckrc")
+
+         assert.equal([[
+Checking spec/samples/globals.lua                 Failure
+
+    spec/samples/globals.lua:1:1: accessing undefined variable print
+    spec/samples/globals.lua:1:15: accessing undefined variable rawlen
+
+Total: 2 warnings / 0 errors in 1 file
+]], get_output "spec/samples/globals.lua --config=spec/configs/custom_stds_config.luacheckrc --std=other_std")
+
+         assert.equal([[
+Checking spec/samples/globals.lua                 Failure
+
+    spec/samples/globals.lua:1:15: accessing undefined variable rawlen
+
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/samples/globals.lua --config=spec/configs/custom_stds_config.luacheckrc --std=+other_std")
+
+         assert.equal([[
+Checking spec/samples/globals.lua                 Failure
+
+    spec/samples/globals.lua:1:7: accessing undefined variable setfenv
+
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/samples/globals.lua --config=spec/configs/custom_stds_config.luacheckrc --std=lua52")
+      end)
+
+      it("allows importing options with require", function()
+         assert.equal([[
+Checking spec/samples/globals.lua                 Failure
+
+    spec/samples/globals.lua:1:7: (W113) accessing undefined variable setfenv
+
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/samples/globals.lua --config=spec/configs/import_config.luacheckrc")
+      end)
    end)
 
    describe("error handling", function()
