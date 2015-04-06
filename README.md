@@ -69,6 +69,7 @@ There are a few plugins which allow using Luacheck directly inside an editor, sh
 * For Vim, [Syntastic](https://github.com/scrooloose/syntastic/) contains [luacheck checker](https://github.com/scrooloose/syntastic/wiki/Lua%3A---luacheck);
 * For Sublime Text 3 there is [SublimeLinter-luacheck](https://sublime.wbond.net/packages/SublimeLinter-luacheck) which requires [SublimeLinter](http://sublimelinter.readthedocs.org/en/latest/);
 * For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/AtomLinter/Linter).
+* For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/manual/latest/Supported-languages.html#Lua);
 
 ## Documentation
 
