@@ -28,12 +28,11 @@ $ luarocks install luacheck # prepend with sudo if necessary
 
 If it is not possible to install [LuaFileSystem](http://keplerproject.github.io/luafilesystem/) in your environment, use `luarocks install luacheck --deps-mode=none`.
 
-For parallel checking Luacheck requires [LuaLanes](http://cmr.github.io/lanes/), which can be installed using LuaRocks as well. On Lua 5.3, install from a Lua 5.3-compatible fork:
+For parallel checking Luacheck requires [LuaLanes](https://github.com/LuaLanes/lanes), which can be installed using LuaRocks as well. On Lua 5.3, install bleeding edge version:
 
 ```bash
-$ git clone https://github.com/mpeterv/lanes
+$ git clone https://github.com/LuaLanes/lanes
 $ cd lanes
-$ git checkout lua53-fixes
 $ luarocks make lanes-3.9.6-1.rockspec # prepend with sudo if necessary
 $ cd ..
 ```
@@ -48,16 +47,35 @@ For manual installation, only a Lua interpreter binary is required.
 
 ## Basic usage
 
-After Luacheck is installed, run `luacheck` program from the command line. Pass a list of files or directories to be checked:
+After Luacheck is installed, run `luacheck` program from the command line. Pass a list of files, [rockspecs](https://github.com/keplerproject/luarocks/wiki/Rockspec-format) or directories (requires LuaFileSystem) to be checked:
 
 ```
-$ luacheck myfile.lua
-Checking myfile.lua                               Failure
+$ luacheck src extra_file.lua another_file.lua
+Checking src/good_code.lua               OK
+Checking src/bad_code.lua                Failure
 
-   myfile.lua:2:7: unused variable height
-   myfile.lua:3:7: accessing undefined variable heigth
+    src/bad_code.lua:3:23: unused variable length argument
+    src/bad_code.lua:7:10: setting non-standard global variable embrace
+    src/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
 
-Total: 2 warnings / 0 errors in 1 file
+Checking src/python_code.lua             Syntax error
+
+    src/python_code.lua:1:6: expected '=' near '__future__'
+
+Checking extra_file.lua                  Failure
+
+    extra_file.lua:3:18: unused argument baz
+    extra_file.lua:4:8: unused loop variable i
+    extra_file.lua:13:7: accessing uninitialized variable a
+    extra_file.lua:14:1: value assigned to variable x is unused
+    extra_file.lua:21:7: variable z is never accessed
+
+Checking another_file.lua                Failure
+
+    another_file.lua:2:7: unused variable height
+    another_file.lua:3:7: accessing undefined variable heigth
+
+Total: 10 warnings / 1 error in 5 files
 ```
 
 For more info, see [documentation](#documentation).
@@ -68,8 +86,8 @@ There are a few plugins which allow using Luacheck directly inside an editor, sh
 
 * For Vim, [Syntastic](https://github.com/scrooloose/syntastic/) contains [luacheck checker](https://github.com/scrooloose/syntastic/wiki/Lua%3A---luacheck);
 * For Sublime Text 3 there is [SublimeLinter-luacheck](https://sublime.wbond.net/packages/SublimeLinter-luacheck) which requires [SublimeLinter](http://sublimelinter.readthedocs.org/en/latest/);
-* For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/AtomLinter/Linter).
-* For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/manual/latest/Supported-languages.html#Lua);
+* For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/AtomLinter/Linter);
+* For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/manual/latest/Supported-languages.html#Lua).
 
 ## Documentation
 
