@@ -707,8 +707,9 @@ function lexer.next_token(state)
 
    if err_offset then
       token_value = token_value .. " " .. lexer.quote(ssub(state.src, state.offset + err_offset, state.offset))
-      token_offset = state.offset + err_offset
+      token_line = state.line
       token_column = state.offset - state.line_offset + 1 + err_offset
+      token_offset = state.offset + err_offset
    end
 
    return token, token_value, token_line, token_column, token_offset

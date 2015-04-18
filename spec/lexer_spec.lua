@@ -343,6 +343,18 @@ print "1\g
        3\n"
 ]]))
 
+      assert.same({line = 8, column = 9, offset = 89, msg = "invalid decimal escape sequence '\\300'"}, get_last_error([[
+local function foo(bar)
+   return bar:get_foo[=[
+long string
+]=]
+end
+
+print "1\
+       2\300
+       3\n"
+]]))
+
       assert.same({line = 8, column = 1, offset = 79, msg = "malformed number"}, get_last_error([[
 local function foo(bar)
    return bar:get_foo[=[
