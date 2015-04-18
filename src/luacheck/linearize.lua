@@ -137,9 +137,8 @@ function LinState:leave_scope()
          label.used = true
       else
          if not prev_scope or prev_scope.line ~= self.lines.top then
-            local err_msg = (goto_.name == "break" and "'break' is not inside a loop" or
-               "no visible label '%s'"):format(goto_.name)
-            lexer.syntax_error(goto_.location.line, goto_.location.column, goto_.location.offset, err_msg)
+            lexer.syntax_error(goto_.location, goto_.name == "break" and
+               "'break' is not inside a loop" or ("no visible label '%s'"):format(goto_.name))
          end
 
          table.insert(prev_scope.gotos, goto_)
@@ -206,8 +205,8 @@ end
 function LinState:register_label(name, location)
    if self.scopes.top.labels[name] then
       assert(not pseudo_labels[name])
-      lexer.syntax_error(location.line, location.column, location.offset,
-         ("label '%s' already defined on line %d"):format(name, self.scopes.top.labels[name].location.line))
+      lexer.syntax_error(location, ("label '%s' already defined on line %d"):format(
+         name, self.scopes.top.labels[name].location.line))
    end
 
    self.scopes.top.labels[name] = new_label(self.lines.top, name, location)
@@ -490,8 +489,7 @@ function LinState:scan_expr_Dots(item, node)
    local dots = self:check_var(node, "access")
 
    if not dots or dots.line ~= self.lines.top then
-      lexer.syntax_error(node.location.line, node.location.column, node.location.offset,
-         "cannot use '...' outside a vararg function")
+      lexer.syntax_error(node.location, "cannot use '...' outside a vararg function")
    end
 
    self:mark_access(item, node)

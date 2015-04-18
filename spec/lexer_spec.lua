@@ -20,21 +20,22 @@ local function get_token(source)
    return token
 end
 
+local function maybe_error(lexer_state)
+   local ok, err, line, column, offset = lexer.next_token(lexer_state)
+   return not ok and {msg = err, line = line, column = column, offset = offset}
+end
+
 local function get_error(source)
-   local lexer_state = lexer.new_state(source)
-   local ok, err = pcall(lexer.next_token, lexer_state)
-   assert.is_false(ok)
-   return err
+   return maybe_error(lexer.new_state(source))
 end
 
 local function get_last_error(source)
    local lexer_state = lexer.new_state(source)
-   local ok = true
    local err
 
-   while ok do
-      ok, err = pcall(lexer.next_token, lexer_state)
-   end
+   repeat
+      err = maybe_error(lexer_state)
+   until err
 
    return err
 end

@@ -21,7 +21,9 @@ local function skip_token(state)
    while true do
       state.token, state.token_value, state.line, state.column, state.offset = lexer.next_token(state.lexer)
 
-      if state.token == "comment" then
+      if not state.token then
+         lexer.syntax_error(state, state.token_value)
+      elseif state.token == "comment" then
          state.comments[#state.comments+1] = {
             contents = state.token_value,
             location = location(state)
@@ -69,9 +71,7 @@ local function token_repr(state)
 end
 
 local function parse_error(state, msg)
-   lexer.syntax_error(state.line, state.column, state.offset,
-      (msg or "syntax error") .. " near " .. token_repr(state)
-   )
+   lexer.syntax_error(state, (msg or "syntax error") .. " near " .. token_repr(state))
 end
 
 local function check_token(state, token)
