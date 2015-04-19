@@ -99,6 +99,7 @@ print("    Installing luacheck modules into " .. luacheck_src_dir)
 mkdir(luacheck_lib_dir)
 
 for _, filename in ipairs {
+      "main.lua",
       "init.lua",
       "linearize.lua",
       "analyze.lua",
