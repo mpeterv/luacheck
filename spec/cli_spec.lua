@@ -1,15 +1,20 @@
 local utils = require "luacheck.utils"
 local multithreading = require "luacheck.multithreading"
+local helper = require "spec.helper"
+local luacheck_cmd = helper.luacheck_command()
+
+setup(helper.before_command)
+teardown(helper.after_command)
 
 local function get_output(command, color, config)
-   local handler = io.popen("luacheck "..(config or "--no-config").." "..command.." 2>&1")
+   local handler = io.popen(luacheck_cmd.." "..(config or "--no-config").." "..command.." 2>&1")
    local output = handler:read("*a"):gsub("\27.-\109", color and "#" or "")
    handler:close()
    return output
 end
 
 local function get_exitcode(command)
-   local code51, _, code52 = os.execute("luacheck --no-config "..command.." > /dev/null 2>&1")
+   local code51, _, code52 = os.execute(luacheck_cmd.." --no-config "..command.." > /dev/null 2>&1")
    return _VERSION:find "5.1" and code51/256 or code52
 end
 

@@ -4,3 +4,5 @@ docsrc/_build
 docsrc/_static
 docsrc/_templates
 .luacheckcache
+luacov.stats.out
+luacov.report.out

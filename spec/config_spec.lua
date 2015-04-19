@@ -1,9 +1,11 @@
-local function get_output(command, wd)
-   command = ("luacheck %s 2>&1"):format(command)
+local helper = require "spec.helper"
+local luacheck_cmd = helper.luacheck_command()
 
-   if wd then
-      command = ("cd %s && %s"):format(wd, command)
-   end
+setup(helper.before_command)
+teardown(helper.after_command)
+
+local function get_output(command, wd)
+   command = ("%s %s 2>&1"):format(helper.luacheck_command(wd), command)
 
    local handler = io.popen(command)
    local output = handler:read("*a"):gsub("\27.-\109", "")
@@ -12,7 +14,7 @@ local function get_output(command, wd)
 end
 
 local function get_exitcode(command)
-   local code51, _, code52 = os.execute("luacheck "..command.." > /dev/null 2>&1")
+   local code51, _, code52 = os.execute(luacheck_cmd.." "..command.." > /dev/null 2>&1")
    return _VERSION:find "5.1" and code51/256 or code52
 end
 
@@ -30,7 +32,7 @@ Checking nested/nested/abc.lua                    Failure
     nested/nested/abc.lua:1:13: accessing undefined variable c
 
 Total: 3 warnings / 0 errors in 2 files
-]], get_output("nested", "spec/configs/project"))
+]], get_output("nested", "spec/configs/project/"))
       end)
 
       it("does not use .luacheckrc in current directory with --no-config", function()
@@ -47,7 +49,7 @@ Checking nested/nested/abc.lua                    Failure
     nested/nested/abc.lua:1:13: accessing undefined variable c
 
 Total: 5 warnings / 0 errors in 2 files
-]], get_output("nested --no-config", "spec/configs/project"))
+]], get_output("nested --no-config", "spec/configs/project/"))
       end)
 
       it("uses .luacheckrc in upper directory", function()
@@ -62,7 +64,7 @@ Checking nested/abc.lua                           Failure
     nested/abc.lua:1:13: accessing undefined variable c
 
 Total: 3 warnings / 0 errors in 2 files
-]], get_output("ab.lua nested", "spec/configs/project/nested"))
+]], get_output("ab.lua nested", "spec/configs/project/nested/"))
       end)
 
       it("uses config provided with --config=path", function()
