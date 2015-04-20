@@ -1,6 +1,5 @@
 local options = require "luacheck.options"
 local filter = require "luacheck.filter"
-local stds = require "luacheck.stds"
 local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
 
@@ -47,7 +46,7 @@ local function get_options(body)
       table.remove(args, 1)
 
       if name == "std" then
-         if #args ~= 1 or not stds[args[1]] then
+         if #args ~= 1 or not options.split_std(args[1]) then
             return
          end
 

@@ -563,6 +563,17 @@ Total: 1 warning / 0 errors in 1 file
 ]], get_output "spec/samples/read_globals_inline_options.lua --std=lua52 --read-globals baz --globals foo")
    end)
 
+   it("inline options can use extended stds", function()
+      assert.equal([[
+Checking spec/samples/custom_std_inline_options.lua Failure
+
+    spec/samples/custom_std_inline_options.lua:3:1: accessing undefined variable tostring
+    spec/samples/custom_std_inline_options.lua:6:25: accessing undefined variable it
+
+Total: 2 warnings / 0 errors in 1 file
+]], get_output("spec/samples/custom_std_inline_options.lua", nil, "--config=spec/configs/custom_stds_config.luacheckrc"))
+   end)
+
    it("inline options can be disabled", function()
       assert.equal([[
 Checking spec/samples/inline_options.lua          Failure
@@ -812,6 +823,6 @@ spec/samples/python_code.lua:1:6: expected '=' near '__future__'
 
    it("expands folders", function()
       local output = get_output "spec/samples -qqq"
-      assert.truthy(output:match("^Total: %d+ warnings / 1 error in 19 files\n$"))
+      assert.truthy(output:match("^Total: %d+ warnings / 1 error in 20 files\n$"))
    end)
 end)
