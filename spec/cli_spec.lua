@@ -459,7 +459,7 @@ Total: 6 warnings / 0 errors in 1 file
       assert.equal([[
 Checking spec/samples/redefined.lua               Failure
 
-    spec/samples/redefined.lua:3:13: unused argument self
+    spec/samples/redefined.lua:3:11: unused argument self
     spec/samples/redefined.lua:4:10: shadowing upvalue a on line 1
     spec/samples/redefined.lua:4:13: variable self is never set
     spec/samples/redefined.lua:4:13: variable self was previously defined as an argument on line 3

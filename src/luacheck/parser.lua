@@ -504,24 +504,19 @@ statements["function"] = function(state)
    skip_token(state)  -- Skip "function".
    local lhs_location = location(state)
    local lhs = parse_id(state)
-   local is_method = false
+   local self_location
 
-   while (not is_method) and (state.token == "." or state.token == ":") do
-      is_method = state.token == ":"
+   while (not self_location) and (state.token == "." or state.token == ":") do
+      self_location = state.token == ":" and location(state)
       skip_token(state)  -- Skip "." or ":".
       lhs = init_ast_node({lhs, parse_id(state, "String")}, lhs_location, "Index")
    end
 
-   local arg_location  -- Location of implicit "self" argument.
-   if is_method then
-      arg_location = location(state)
-   end
-
    local function_node = parse_function(state, function_location)
 
-   if is_method then
+   if self_location then
       -- Insert implicit "self" argument.
-      local self_arg = init_ast_node({"self", implicit = true}, arg_location, "Id")
+      local self_arg = init_ast_node({"self", implicit = true}, self_location, "Id")
       table.insert(function_node[1], 1, self_arg)
    end
 

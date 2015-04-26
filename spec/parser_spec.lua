@@ -859,7 +859,7 @@ end
                            {tag = "Function", location = {line = 6, column = 1, offset = 83},
                               end_location = {line = 10, column = 1, offset = 142},
                               {
-                                 {tag = "Id", "self", implicit = true, location = {line = 6, column = 15, offset = 97}},
+                                 {tag = "Id", "self", implicit = true, location = {line = 6, column = 11, offset = 93}},
                                  {tag = "Id", "arg", location = {line = 6, column = 16, offset = 98}}
                               },
                               {
