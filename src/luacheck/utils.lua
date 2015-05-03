@@ -2,6 +2,7 @@ local utils = {}
 
 utils.dir_sep = package.config:sub(1,1)
 utils.is_windows = utils.dir_sep == "\\"
+local bom_header = {239, 187, 191}
 
 -- Returns all contents of file(path or file handler) or nil. 
 function utils.read_file(file)
@@ -10,6 +11,20 @@ function utils.read_file(file)
    return pcall(function()
       local handler = type(file) == "string" and io.open(file, "rb") or file
       res = assert(handler:read("*a"))
+      local bom_header_len = #bom_header
+      if #res >= bom_header_len then
+         local not_bom_header
+         local bom_h
+         for i = 1, bom_header_len do
+            if bom_header[i] ~= string.byte(res, i) then
+               not_bom_header = true
+               break
+            end
+         end
+         if not not_bom_header then
+            res = string.sub(res, bom_header_len + 1)
+         end
+      end
       handler:close()
    end) and res or nil
 end
