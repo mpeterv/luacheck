@@ -22,7 +22,7 @@ function utils.read_file(file)
    local res = handler:read("*a")
    handler:close()
 
-   if res:sub(1, #bom) == bom then
+   if res and res:sub(1, #bom) == bom then
       res = res:sub(#bom + 1)
    end
 

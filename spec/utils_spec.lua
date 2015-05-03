@@ -13,6 +13,10 @@ describe("utils", function()
       it("returns nil for non-existent paths", function()
          assert.is_nil(utils.read_file("spec/folder/non-existent"))
       end)
+
+      it("returns nil for directories", function()
+         assert.is_nil(utils.read_file("spec/folder"))
+      end)
    end)
 
    describe("load", function()
