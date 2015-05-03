@@ -29,16 +29,7 @@ The easiest way to install Luacheck is to use [LuaRocks](http://luarocks.org). F
 $ luarocks install luacheck # prepend with sudo if necessary
 ```
 
-If it is not possible to install [LuaFileSystem](http://keplerproject.github.io/luafilesystem/) in your environment, use `luarocks install luacheck --deps-mode=none`.
-
-For parallel checking Luacheck requires [LuaLanes](https://github.com/LuaLanes/lanes), which can be installed using LuaRocks as well. On Lua 5.3, install bleeding edge version:
-
-```bash
-$ git clone https://github.com/LuaLanes/lanes
-$ cd lanes
-$ luarocks make lanes-3.9.6-1.rockspec # prepend with sudo if necessary
-$ cd ..
-```
+If it is not possible to install [LuaFileSystem](http://keplerproject.github.io/luafilesystem/) in your environment, use `luarocks install luacheck --deps-mode=none`. For parallel checking Luacheck additionally requires [LuaLanes](https://github.com/LuaLanes/lanes), which can be installed using LuaRocks as well.
 
 ### Manual installation
 
