@@ -6,6 +6,10 @@ describe("utils", function()
          assert.equal("contents\n", utils.read_file("spec/folder/foo"))
       end)
 
+      it("removes UTF-8 BOM", function()
+         assert.equal("foo\nbar\n", utils.read_file("spec/folder/bom"))
+      end)
+
       it("returns nil for non-existent paths", function()
          assert.is_nil(utils.read_file("spec/folder/non-existent"))
       end)
