@@ -50,7 +50,7 @@ An example of a config which makes ``luacheck`` ensure that only globals from th
 Per-prefix overrides
 --------------------
 
-The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<path_prefix>]``, applying entries for shorter prefixes first. This allows to override options for a specific file by setting ``files[<path>]``, and for all files in a directory by setting ``files[<dir>/]``. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for ``src/dir/myfile.lua``:
+The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<path_prefix>]``, applying entries for shorter prefixes first. This allows one to override options for a specific file by setting ``files[<path>]``, and for all files in a directory by setting ``files[<dir>/]``. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for ``src/dir/myfile.lua``:
 
 .. code-block:: lua
    :linenos:
