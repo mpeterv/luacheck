@@ -128,7 +128,7 @@ Pattern Matching warnings
 4.2/.*_ Shadowing declarations of arguments with ``_`` suffix or redefining them.
 ======= =========================================================================
 
-Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows to filter warnings by category (e.g. ``--only 1`` focuses ``luacheck`` on global-related warnings).
+Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows one to filter warnings by category (e.g. ``--only 1`` focuses ``luacheck`` on global-related warnings).
 
 Formatters
 ----------
