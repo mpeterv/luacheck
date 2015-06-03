@@ -151,7 +151,9 @@ describe("utils", function()
       end)
 
       it("rethrows if f crashes (throws not a table)", function()
-         assert.has_error(function() utils.pcall(error, "msg") end, "msg\nstack traceback:")
+         local ok, err = pcall(utils.pcall, error, "msg")
+         assert.is_false(ok)
+         assert.matches("msg\nstack traceback:", err)
       end)
    end)
 
