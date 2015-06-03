@@ -5,8 +5,8 @@
 set -e
 
 if [ "$LUA" == "LuaJIT 2.0" ]; then
-  wget -O - http://luajit.org/download/LuaJIT-2.0.3.tar.gz | tar xz
-  cd LuaJIT-2.0.3
+  wget -O - http://luajit.org/download/LuaJIT-2.0.4.tar.gz | tar xz
+  cd LuaJIT-2.0.4
   make && sudo make install INSTALL_TSYMNAME=lua;
 else
   if [ "$LUA" == "Lua 5.1" ]; then
@@ -23,8 +23,8 @@ else
 fi
 
 cd ..
-wget -O - http://luarocks.org/releases/luarocks-2.2.1.tar.gz | tar xz
-cd luarocks-2.2.1;
+wget -O - http://luarocks.org/releases/luarocks-2.2.2.tar.gz | tar xz
+cd luarocks-2.2.2;
 
 if [ "$LUA" == "LuaJIT 2.0" ]; then
   ./configure --with-lua-include=/usr/local/include/luajit-2.0;
