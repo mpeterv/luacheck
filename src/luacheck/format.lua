@@ -211,20 +211,38 @@ end
 
 function formatters.JUnit(report, file_names)
    local buf = {[[<?xml version="1.0" encoding="UTF-8"?>]]}
+   local num_tests = 0
+   local num_test = 0
 
-   table.insert(buf, ([[<testsuite name="Luacheck report" tests="%d">]]):format(#report))
+   for _, file_report in ipairs(report) do
+      if file_report.error or file_report ~= 0 then
+         if file_report.error then
+            num_tests = num_tests + 1
+         else
+            for _ in ipairs(file_report) do
+               num_tests = num_tests + 1
+            end
+         end
+      else
+         num_tests = num_tests + 1
+      end
+   end
+
+   table.insert(buf, ([[<testsuite name="Luacheck report" tests="%d">]]):format(num_tests))
 
    for i, file_report in ipairs(report) do
       if file_report.error or #file_report ~= 0 then
-         table.insert(buf, ([[    <testcase name="%s" classname="%s">]]):format(file_names[i], file_names[i]))
-
          if file_report.error then
+            num_test = num_test + 1
+            table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(
+               file_names[i], num_test, file_names[i]))
             if file_report.msg then
                table.insert(buf, ([[        <error type="%s" message=%q/>]]):format(
                   error_type(file_report), format_error_msg(file_names[i], file_report)))
             else
                table.insert(buf, ([[        <error type="%s"/>]]):format(error_type(file_report), file_report.msg))
             end
+            table.insert(buf, [[    </testcase>]])
          else
             for _, warning in ipairs(file_report) do
                local warning_type
@@ -234,15 +252,18 @@ function formatters.JUnit(report, file_names)
                else
                   warning_type = "Inline option"
                end
-
+               num_test = num_test + 1
+               table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(
+                  file_names[i], num_test, file_names[i]))
                table.insert(buf, ([[        <failure type="%s" message="%s"/>]]):format(
                   warning_type, format_warning(file_names[i], warning)))
+               table.insert(buf, [[    </testcase>]])
             end
          end
-
-         table.insert(buf, [[    </testcase>]])
       else
-         table.insert(buf, ([[    <testcase name="%s" classname="%s"/>]]):format(file_names[i], file_names[i]))
+         num_test = num_test + 1
+         table.insert(buf, ([[    <testcase name="%s:%d" classname="%s"/>]]):format(
+            file_names[i], num_test, file_names[i]))
       end
    end
 
