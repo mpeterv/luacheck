@@ -29,13 +29,11 @@ local function main()
    local default_cache_path = ".luacheckcache"
 
    local function get_parser()
-      local parser = argparse "luacheck"
-         :description ("luacheck " .. luacheck._VERSION .. ", a simple static analyzer for Lua.")
-         :epilog [[
+      local parser = argparse("luacheck", "luacheck " .. luacheck._VERSION .. ", a simple static analyzer for Lua.", [[
 Links:
 
    Luacheck on GitHub: https://github.com/mpeterv/luacheck
-   Luacheck documentation: http://luacheck.readthedocs.org]]
+   Luacheck documentation: http://luacheck.readthedocs.org]])
 
       parser:argument "files"
          :description (fs.has_lfs and [[List of files, directories and rockspecs to check.
@@ -44,26 +42,21 @@ Pass "-" to check stdin.]])
          :args "+"
          :argname "<file>"
 
-      parser:flag "-g" "--no-global"
-         :description [[Filter out warnings related to global variables.
-Equivalent to --ignore 1.]]
-      parser:flag "-u" "--no-unused"
-         :description [[Filter out warnings related to unused variables and values.
-Equivalent to --ignore [23].]]
-      parser:flag "-r" "--no-redefined"
-         :description [[Filter out warnings related to redefined variables.
-Equivalent to --ignore 4.]]
+      parser:flag("-g --no-global", [[Filter out warnings related to global variables.
+Equivalent to --ignore 1.]])
+      parser:flag("-u --no-unused", [[Filter out warnings related to unused variables and values.
+Equivalent to --ignore [23].]])
+      parser:flag("-r --no-redefined", [[Filter out warnings related to redefined variables.
+Equivalent to --ignore 4.]])
 
-      parser:flag "-a" "--no-unused-args"
-         :description [[Filter out warnings related to unused arguments and loop variables.
-Equivalent to --ignore 21[23].]]
-      parser:flag "-s" "--no-unused-secondaries"
-         :description "Filter out warnings related to unused variables set together with used ones."
-      parser:flag "--no-self"
-         :description "Filter out warnings related to implicit self argument."
+      parser:flag("-a --no-unused-args", [[Filter out warnings related to unused arguments and loop variables.
+Equivalent to --ignore 21[23].]])
+      parser:flag("-s --no-unused-secondaries",
+         "Filter out warnings related to unused variables set together with used ones.")
+      parser:flag("--no-self",
+         "Filter out warnings related to implicit self argument.")
 
-      parser:option "--std"
-         :description [[Set standard globals. <std> must be one of:
+      parser:option("--std", [[Set standard globals. <std> must be one of:
    _G - globals of the current Lua interpreter (default);
    lua51 - globals of Lua 5.1;
    lua52 - globals of Lua 5.2;
@@ -73,111 +66,83 @@ Equivalent to --ignore 21[23].]]
    luajit - globals of LuaJIT 2.0;
    min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
    max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
-   none - no standard globals.]]
-      parser:option "--globals"
-         :description "Add custom globals on top of standard ones."
+   none - no standard globals.]])
+      parser:option("--globals", "Add custom globals on top of standard ones.")
          :args "*"
          :count "*"
          :argname "<global>"
-      parser:option "--read-globals"
-         :description "Add read-only globals."
+      parser:option("--read-globals", "Add read-only globals.")
          :args "*"
          :count "*"
          :argname "<global>"
-      parser:option "--new-globals"
-         :description "Set custom globals. Removes custom globals added previously."
+      parser:option("--new-globals", "Set custom globals. Removes custom globals added previously.")
          :args "*"
          :count "*"
          :argname "<global>"
-      parser:option "--new-read-globals"
-         :description "Set read-only globals. Removes read-only globals added previously."
+      parser:option("--new-read-globals", "Set read-only globals. Removes read-only globals added previously.")
          :args "*"
          :count "*"
          :argname "<global>"
-      parser:flag "-c" "--compat"
-         :description "Equivalent to --std max."
-      parser:flag "-d" "--allow-defined"
-         :description "Allow defining globals implicitly by setting them."
-      parser:flag "-t" "--allow-defined-top"
-         :description "Allow defining globals implicitly by setting them in the top level scope."
-      parser:flag "-m" "--module"
-         :description "Limit visibility of implicitly defined globals to their files."
+      parser:flag("-c --compat", "Equivalent to --std max.")
+      parser:flag("-d --allow-defined", "Allow defining globals implicitly by setting them.")
+      parser:flag("-t --allow-defined-top", "Allow defining globals implicitly by setting them in the top level scope.")
+      parser:flag("-m --module", "Limit visibility of implicitly defined globals to their files.")
 
-      parser:option "--ignore" "-i"
-         :description [[Filter out warnings matching these patterns.
+      parser:option("--ignore -i", [[Filter out warnings matching these patterns.
 If a pattern contains slash, part before slash matches warning code
    and part after it matches name of related variable.
 Otherwise, if the pattern contains letters or underscore,
    it matches name of related variable.
-Otherwise, the pattern matches warning code.]]
+Otherwise, the pattern matches warning code.]])
          :args "+"
          :count "*"
          :argname "<patt>"
-      parser:option "--enable" "-e"
-         :description "Do not filter out warnings matching these patterns."
+      parser:option("--enable -e", "Do not filter out warnings matching these patterns.")
          :args "+"
          :count "*"
          :argname "<patt>"
-      parser:option "--only" "-o"
-         :description "Filter out warnings not matching these patterns."
+      parser:option("--only -o", "Filter out warnings not matching these patterns.")
          :args "+"
          :count "*"
          :argname "<patt>"
 
-      parser:flag "--no-inline"
-         :description "Disable inline options."
+      parser:flag("--no-inline", "Disable inline options.")
 
-      local config_opt = parser:option "--config"
-         :description ("Path to configuration file. (default: "..default_config..")")
-
-      local no_config_opt = parser:flag "--no-config"
-         :description "Do not look up configuration file."
-
-      parser:mutex(config_opt, no_config_opt)
+      parser:mutex(
+         parser:option("--config", "Path to configuration file. (default: "..default_config..")"),
+         parser:flag("--no-config", "Do not look up configuration file.")
+      )
 
       if fs.has_lfs then
-         local cache_opt = parser:option "--cache"
-            :description "Path to cache file."
-            :default (default_cache_path)
-            :defmode "arg"
-
-         local no_cache_opt = parser:flag "--no-cache"
-            :description "Do not use cache."
-
-         parser:mutex(cache_opt, no_cache_opt)
+         parser:mutex(
+            parser:option("--cache", "Path to cache file.", default_cache_path)
+               :defmode "arg",
+            parser:flag("--no-cache", "Do not use cache.")
+         )
       end
 
       if multithreading.has_lanes then
-         parser:option "-j" "--jobs"
-            :description "Check <jobs> files in parallel."
+         parser:option("-j --jobs", "Check <jobs> files in parallel.")
             :convert(tonumber)
       end
 
-      parser:option "--formatter"
-         :description [[Use custom formatter. <formatter> must be a module name or one of:
+      parser:option("--formatter" , [[Use custom formatter. <formatter> must be a module name or one of:
    TAP - Test Anything Protocol formatter;
    JUnit - JUnit XML formatter;
    plain - simple warning-per-line formatter;
-   default - standard formatter.]]
+   default - standard formatter.]])
 
-      parser:flag "-q" "--quiet"
-         :count "0-3"
-         :description [[Suppress output for files without warnings.
+      parser:flag("-q --quiet", [[Suppress output for files without warnings.
    -qq: Suppress output of warnings.
-   -qqq: Only print total number of warnings and errors.]]
+   -qqq: Only print total number of warnings and errors.]])
+         :count "0-3"
 
-      parser:flag "--codes"
-         :description "Show warning codes."
+      parser:flag("--codes", "Show warning codes.")
 
-      parser:flag "--no-color"
-         :description "Do not color output."
+      parser:flag("--no-color", "Do not color output.")
 
-      parser:flag "-v" "--version"
-         :description "Show version info and exit."
-         :action(function()
-            print(version.string)
-            os.exit(0)
-         end)
+      parser:flag("-v --version", "Show version info and exit.")
+         :action(function() print(version.string) os.exit(0) end)
 
       return parser
    end

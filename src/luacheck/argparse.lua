@@ -1,256 +1,261 @@
-local Parser, Command, Argument, Option
-
--- Create classes with setters
-do
-   local function deep_update(t1, t2)
-      for k, v in pairs(t2) do
-         if type(v) == "table" then
-            v = deep_update({}, v)
-         end
-
-         t1[k] = v
+local function deep_update(t1, t2)
+   for k, v in pairs(t2) do
+      if type(v) == "table" then
+         v = deep_update({}, v)
       end
 
-      return t1
+      t1[k] = v
    end
 
-   local class_metatable = {}
+   return t1
+end
 
-   function class_metatable.__call(cls, ...)
-      return setmetatable(deep_update({}, cls.__proto), cls)(...)
+-- A property is a tuple {name, callback}.
+-- properties.args is number of properties that can be set as arguments
+-- when calling an object.
+local function new_class(prototype, properties, parent)
+   -- Class is the metatable of its instances.
+   local class = {}
+   class.__index = class
+
+   if parent then
+      class.__prototype = deep_update(deep_update({}, parent.__prototype), prototype)
+   else
+      class.__prototype = prototype
    end
 
-   function class_metatable.__index(cls, key)
-      return cls.__parent and cls.__parent[key]
-   end
+   local names = {}
 
-   local function class(proto)
-      local cls = setmetatable({__proto = proto, __parent = {}}, class_metatable)
-      cls.__index = cls
-      return cls
-   end
+   -- Create setter methods and fill set of property names. 
+   for _, property in ipairs(properties) do
+      local name, callback = property[1], property[2]
 
-   local function extend(cls, proto)
-      local new_cls = class(deep_update(deep_update({}, cls.__proto), proto))
-      new_cls.__parent = cls
-      return new_cls
-   end
-
-   local function add_setters(cl, fields)
-      for field, setter in pairs(fields) do
-         cl[field] = function(self, value)
-            setter(self, value)
-            self["_"..field] = value
-            return self
-         end
-      end
-
-      cl.__call = function(self, ...)
-         local name_or_options
-
-         for i=1, select("#", ...) do
-            name_or_options = select(i, ...)
-
-            if type(name_or_options) == "string" then
-               if self._aliases then
-                  table.insert(self._aliases, name_or_options)
-               end
-
-               if not self._aliases or not self._name then
-                  self._name = name_or_options
-               end
-            elseif type(name_or_options) == "table" then
-               for field in pairs(fields) do
-                  if name_or_options[field] ~= nil then
-                     self[field](self, name_or_options[field])
-                  end
-               end
-            end
+      class[name] = function(self, value)
+         if not callback(self, value) then
+            self["_" .. name] = value
          end
 
          return self
       end
 
-      return cl
+      names[name] = true
    end
 
-   local typecheck = setmetatable({}, {
-      __index = function(self, type_)
-         local typechecker_factory = function(field)
-            return function(_, value)
-               if type(value) ~= type_ then
-                  error(("bad field '%s' (%s expected, got %s)"):format(field, type_, type(value)))
-               end
+   function class.__call(self, ...)
+      -- When calling an object, if the first argument is a table,
+      -- interpret keys as property names, else delegate arguments
+      -- to corresponding setters in order.
+      if type((...)) == "table" then
+         for name, value in pairs((...)) do
+            if names[name] then
+               self[name](self, value)
             end
          end
+      else
+         local nargs = select("#", ...)
 
-         self[type_] = typechecker_factory
-         return typechecker_factory
-      end
-   })
+         for i, property in ipairs(properties) do
+            if i > nargs or i > properties.args then
+               break
+            end
 
-   local function aliased_name(self, name)
-      typecheck.string "name" (self, name)
+            local arg = select(i, ...)
 
-      table.insert(self._aliases, name)
-   end
-
-   local function aliased_aliases(self, aliases)
-      typecheck.table "aliases" (self, aliases)
-
-      if not self._name then
-         self._name = aliases[1]
-      end
-   end
-
-   local function parse_boundaries(boundaries)
-      if tonumber(boundaries) then
-         return tonumber(boundaries), tonumber(boundaries)
-      end
-
-      if boundaries == "*" then
-         return 0, math.huge
-      end
-
-      if boundaries == "+" then
-         return 1, math.huge
-      end
-
-      if boundaries == "?" then
-         return 0, 1
-      end
-
-      if boundaries:match "^%d+%-%d+$" then
-         local min, max = boundaries:match "^(%d+)%-(%d+)$"
-         return tonumber(min), tonumber(max)
-      end
-
-      if boundaries:match "^%d+%+$" then
-         local min = boundaries:match "^(%d+)%+$"
-         return tonumber(min), math.huge
-      end
-   end
-
-   local function boundaries(field)
-      return function(self, value)
-         local min, max = parse_boundaries(value)
-
-         if not min then
-            error(("bad field '%s'"):format(field))
-         end
-
-         self["_min"..field], self["_max"..field] = min, max
-      end
-   end
-
-   local function convert(_, value)
-      if type(value) ~= "function" then
-         if type(value) ~= "table" then
-            error(("bad field 'convert' (function or table expected, got %s)"):format(type(value)))
+            if arg ~= nil then
+               self[property[1]](self, arg)
+            end
          end
       end
+
+      return self
    end
 
-   local function argname(_, value)
-      if type(value) ~= "string" then
-         if type(value) ~= "table" then
-            error(("bad field 'argname' (string or table expected, got %s)"):format(type(value)))
-         end
-      end
+   -- If indexing class fails, fallback to its parent.
+   local class_metatable = {}
+   class_metatable.__index = parent
+
+   function class_metatable.__call(self, ...)
+      -- Calling a class returns its instance.
+      -- Arguments are delegated to the instance.
+      local object = deep_update({}, self.__prototype)
+      setmetatable(object, self)
+      return object(...)
    end
 
-   local function add_help(self, param)
-      if self._has_help then
-         table.remove(self._options)
-         self._has_help = false
-      end
-
-      if param then
-         local help = self:flag()
-            :description "Show this help message and exit."
-            :action(function()
-               io.stdout:write(self:get_help() .. "\n")
-               os.exit(0)
-            end)(param)
-
-         if not help._name then
-            help "-h" "--help"
-         end
-
-         self._has_help = true
-      end
-   end
-
-   Parser = add_setters(class {
-      _arguments = {},
-      _options = {},
-      _commands = {},
-      _mutexes = {},
-      _require_command = true
-   }, {
-      name = typecheck.string "name",
-      description = typecheck.string "description",
-      epilog = typecheck.string "epilog",
-      require_command = typecheck.boolean "require_command",
-      usage = typecheck.string "usage",
-      help = typecheck.string "help",
-      add_help = add_help
-   })
-
-   Command = add_setters(extend(Parser, {
-      _aliases = {}
-   }), {
-      name = aliased_name,
-      aliases = aliased_aliases,
-      description = typecheck.string "description",
-      epilog = typecheck.string "epilog",
-      target = typecheck.string "target",
-      require_command = typecheck.boolean "require_command",
-      action = typecheck["function"] "action",
-      usage = typecheck.string "usage",
-      help = typecheck.string "help",
-      add_help = add_help
-   })
-
-   Argument = add_setters(class {
-      _minargs = 1,
-      _maxargs = 1,
-      _mincount = 1,
-      _maxcount = 1,
-      _defmode = "unused",
-      _show_default = true
-   }, {
-      name = typecheck.string "name",
-      description = typecheck.string "description",
-      target = typecheck.string "target",
-      args = boundaries "args",
-      default = typecheck.string "default",
-      defmode = typecheck.string "defmode",
-      convert = convert,
-      argname = argname,
-      show_default = typecheck.boolean "show_default"
-   })
-
-   Option = add_setters(extend(Argument, {
-      _aliases = {},
-      _mincount = 0,
-      _overwrite = true
-   }), {
-      name = aliased_name,
-      aliases = aliased_aliases,
-      description = typecheck.string "description",
-      target = typecheck.string "target",
-      args = boundaries "args",
-      count = boundaries "count",
-      default = typecheck.string "default",
-      defmode = typecheck.string "defmode",
-      convert = convert,
-      overwrite = typecheck.boolean "overwrite",
-      action = typecheck["function"] "action",
-      argname = argname,
-      show_default = typecheck.boolean "show_default"
-   })
+   return setmetatable(class, class_metatable)
 end
+
+local function typecheck(name, types, value)
+   for _, type_ in ipairs(types) do
+      if type(value) == type_ then
+         return true
+      end
+   end
+
+   error(("bad property '%s' (%s expected, got %s)"):format(name, table.concat(types, " or "), type(value)))
+end
+
+local function typechecked(name, ...)
+   local types = {...}
+   return {name, function(_, value) typecheck(name, types, value) end}
+end
+
+local multiname = {"name", function(self, value)
+   typecheck("name", {"string"}, value)
+
+   for alias in value:gmatch("%S+") do
+      self._name = self._name or alias
+      table.insert(self._aliases, alias)
+   end
+
+   -- Do not set _name as with other properties.
+   return true
+end}
+
+local function parse_boundaries(str)
+   if tonumber(str) then
+      return tonumber(str), tonumber(str)
+   end
+
+   if str == "*" then
+      return 0, math.huge
+   end
+
+   if str == "+" then
+      return 1, math.huge
+   end
+
+   if str == "?" then
+      return 0, 1
+   end
+
+   if str:match "^%d+%-%d+$" then
+      local min, max = str:match "^(%d+)%-(%d+)$"
+      return tonumber(min), tonumber(max)
+   end
+
+   if str:match "^%d+%+$" then
+      local min = str:match "^(%d+)%+$"
+      return tonumber(min), math.huge
+   end
+end
+
+local function boundaries(name)
+   return {name, function(self, value)
+      typecheck(name, {"number", "string"}, value)
+
+      local min, max = parse_boundaries(value)
+
+      if not min then
+         error(("bad property '%s'"):format(name))
+      end
+
+      self["_min" .. name], self["_max" .. name] = min, max
+   end}
+end
+
+local add_help = {"add_help", function(self, value)
+   typecheck("add_help", {"boolean", "string", "table"}, value)
+
+   if self._has_help then
+      table.remove(self._options)
+      self._has_help = false
+   end
+
+   if value then
+      local help = self:flag()
+         :description "Show this help message and exit."
+         :action(function()
+            print(self:get_help())
+            os.exit(0)
+         end)
+
+      if value ~= true then
+         help = help(value)
+      end
+
+      if not help._name then
+         help "-h" "--help"
+      end
+
+      self._has_help = true
+   end
+end}
+
+local Parser = new_class({
+   _arguments = {},
+   _options = {},
+   _commands = {},
+   _mutexes = {},
+   _require_command = true,
+   _handle_options = true
+}, {
+   args = 3,
+   typechecked("name", "string"),
+   typechecked("description", "string"),
+   typechecked("epilog", "string"),
+   typechecked("usage", "string"),
+   typechecked("help", "string"),
+   typechecked("require_command", "boolean"),
+   typechecked("handle_options", "boolean"),
+   add_help
+})
+
+local Command = new_class({
+   _aliases = {}
+}, {
+   args = 3,
+   multiname,
+   typechecked("description", "string"),
+   typechecked("epilog", "string"),
+   typechecked("target", "string"),
+   typechecked("usage", "string"),
+   typechecked("help", "string"),
+   typechecked("require_command", "boolean"),
+   typechecked("handle_options", "boolean"),
+   typechecked("action", "function"),
+   add_help
+}, Parser)
+
+local Argument = new_class({
+   _minargs = 1,
+   _maxargs = 1,
+   _mincount = 1,
+   _maxcount = 1,
+   _defmode = "unused",
+   _show_default = true
+}, {
+   args = 5,
+   typechecked("name", "string"),
+   typechecked("description", "string"),
+   typechecked("default", "string"),
+   typechecked("convert", "function", "table"),
+   boundaries("args"),
+   typechecked("target", "string"),
+   typechecked("defmode", "string"),
+   typechecked("show_default", "boolean"),
+   typechecked("argname", "string", "table")
+})
+
+local Option = new_class({
+   _aliases = {},
+   _mincount = 0,
+   _overwrite = true
+}, {
+   args = 6,
+   multiname,
+   typechecked("description", "string"),
+   typechecked("default", "string"),
+   typechecked("convert", "function", "table"),
+   boundaries("args"),
+   boundaries("count"),
+   typechecked("target", "string"),
+   typechecked("defmode", "string"),
+   typechecked("show_default", "boolean"),
+   typechecked("overwrite", "boolean"),
+   typechecked("argname", "string", "table"),
+   typechecked("action", "function")
+}, Argument)
 
 function Argument:_get_argument_list()
    local buf = {}
@@ -679,6 +684,7 @@ function Parser:_parse(args, errhandler)
    local cur_arg_i = 1
    local cur_arg
    local targets = {}
+   local handle_options = true
 
    local function error_(fmt, ...)
       return errhandler(parser, fmt:format(...))
@@ -830,6 +836,7 @@ function Parser:_parse(args, errhandler)
          invoke(argument)
       end
 
+      handle_options = parser._handle_options
       cur_arg = arguments[cur_arg_i]
       commands = parser._commands
       com_context = {}
@@ -897,7 +904,6 @@ function Parser:_parse(args, errhandler)
    end
 
    local function mainloop()
-      local handle_options = true
 
       for _, data in ipairs(args) do
          local plain = true
