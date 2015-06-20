@@ -778,13 +778,21 @@ not ok 7 spec/samples/python_code.lua:1:6: expected '=' near '__future__'
    it("has built-in JUnit formatter", function()
       assert.equal([[
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Luacheck report" tests="3">
+<testsuite name="Luacheck report" tests="7">
     <testcase name="spec/samples/good_code.lua" classname="spec/samples/good_code.lua"/>
-    <testcase name="spec/samples/bad_code.lua" classname="spec/samples/bad_code.lua">
+    <testcase name="spec/samples/bad_code.lua:1" classname="spec/samples/bad_code.lua">
         <failure type="W211" message="spec/samples/bad_code.lua:3:16: unused function 'helper'"/>
+    </testcase>
+    <testcase name="spec/samples/bad_code.lua:2" classname="spec/samples/bad_code.lua">
         <failure type="W212" message="spec/samples/bad_code.lua:3:23: unused variable length argument"/>
+    </testcase>
+    <testcase name="spec/samples/bad_code.lua:3" classname="spec/samples/bad_code.lua">
         <failure type="W111" message="spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'"/>
+    </testcase>
+    <testcase name="spec/samples/bad_code.lua:4" classname="spec/samples/bad_code.lua">
         <failure type="W412" message="spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7"/>
+    </testcase>
+    <testcase name="spec/samples/bad_code.lua:5" classname="spec/samples/bad_code.lua">
         <failure type="W113" message="spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'"/>
     </testcase>
     <testcase name="spec/samples/python_code.lua" classname="spec/samples/python_code.lua">
