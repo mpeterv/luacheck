@@ -45,7 +45,7 @@ An example of a config which makes ``luacheck`` ensure that only globals from th
    :linenos:
 
    std = "min"
-   ignore = {"211"}
+   ignore = {"212"}
 
 Per-prefix overrides
 --------------------
@@ -56,28 +56,28 @@ The environment in which ``luacheck`` loads the config contains a special global
    :linenos:
 
    std = "min"
-   ignore = {"211"}
+   ignore = {"212"}
 
    files["src/dir/"] = {
-      enable = {"211"}
+      enable = {"212"}
    }
 
    files["src/dir/myfile.lua"] = {
-      ignore = {"211"}
+      ignore = {"212"}
    }
 
 Note that ``files`` table supports autovivification, so that
 
 .. code-block:: lua
 
-   files["myfile.lua"].ignore = {"211"}
+   files["myfile.lua"].ignore = {"212"}
 
 and
 
 .. code-block:: lua
 
    files["myfile.lua"] = {
-      ignore = {"211"}
+      ignore = {"212"}
    }
 
 are equivalent.
