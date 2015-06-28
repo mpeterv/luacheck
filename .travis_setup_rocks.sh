@@ -10,7 +10,7 @@ sudo luarocks make busted-scm-0.rockspec
 cd ..
 
 mkdir luacov
-wget -O - https://api.github.com/repos/keplerproject/luacov/tarball/master | tar xz -C luacov --strip-components=1
+wget -O - https://api.github.com/repos/mpeterv/luacov/tarball/simplify-lines | tar xz -C luacov --strip-components=1
 cd luacov
 sudo luarocks make rockspecs/luacov-scm-1.rockspec
 cd ..
