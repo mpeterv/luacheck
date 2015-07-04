@@ -12,16 +12,46 @@ local function ensure_dir_sep(path)
    return path
 end
 
+local function is_absolute(_)
+   -- TODO
+   return false
+end
+
+function fs.normalize(path)
+   -- TODO
+   return path
+end
+
+function fs.join(base, path)
+   if base == "" or is_absolute(path) then
+      return path
+   else
+      -- TODO
+      return ensure_dir_sep(base)..path
+   end
+end
+
+function fs.is_subpath(path, subpath)
+   -- TODO
+   return subpath:sub(1, #path) == path
+end
+
 -- Searches for file starting from path, going up until the file
 -- is found or root directory is reached.
 -- Path must be absolute.
--- Returns absolute path to directory containing file or nil.
+-- Returns absolute and relative paths to directory containing file or nil.
 function fs.find_file(path, file)
-   while path and not fs.is_file(path .. file) do
-      path = path:match(("^(.*%s).*%s$"):format(utils.dir_sep, utils.dir_sep))
+   if is_absolute(file) then
+      return fs.is_file(file) and path, ""
    end
 
-   return path
+   local rel_path = ""
+   while path and not fs.is_file(fs.join(path, file)) do
+      path = path:match(("^(.*%s).*%s$"):format(utils.dir_sep, utils.dir_sep))
+      rel_path = rel_path.."../"
+   end
+
+   return path, rel_path
 end
 
 if not fs.has_lfs then

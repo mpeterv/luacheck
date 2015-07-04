@@ -101,6 +101,7 @@ mkdir(luacheck_lib_dir)
 for _, filename in ipairs {
       "main.lua",
       "init.lua",
+      "config.lua",
       "linearize.lua",
       "analyze.lua",
       "reachability.lua",

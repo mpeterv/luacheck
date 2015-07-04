@@ -1,6 +1,6 @@
 local luacheck = require "luacheck"
 local argparse = require "luacheck.argparse"
-local stds = require "luacheck.stds"
+local config = require "luacheck.config"
 local options = require "luacheck.options"
 local expand_rockspec = require "luacheck.expand_rockspec"
 local multithreading = require "luacheck.multithreading"
@@ -183,79 +183,6 @@ Otherwise, the pattern matches warning code.]])
       return res, bad_rockspecs
    end
 
-   -- Config must support special metatables for some keys:
-   -- autovivification for `files`, fallback to built-in stds for `stds`.
-   -- Save values assigned to these globals to hidden keys.
-   local special_keys = {stds = {}, files = {}}
-   local special_mts = {stds = {__index = stds}, files = {__index = function(self, k)
-      self[k] = {}
-      return self[k]
-   end}}
-   local config_env_mt = {__newindex = function(self, k, v)
-      if special_keys[k] then
-         if type(v) == "table" then
-            setmetatable(v, special_mts[k])
-         end
-
-         k = special_keys[k]
-      end
-
-      rawset(self, k, v)
-   end, __index = function(self, k)
-      if special_keys[k] then
-         return self[special_keys[k]]
-      end
-   end}
-
-   local function make_config_env()
-      local env = setmetatable({}, config_env_mt)
-      env.files = {}
-      env.stds = {}
-      -- Expose `require` so that custom stds or configuration could be loaded from modules.
-      env.require = require
-      return env
-   end
-
-   -- Returns nil or config, config_path, optional relative path from config to current directory.
-   local function get_config(config_path)
-      local rel_path
-
-      if not config_path then
-         local current_dir = fs.current_dir()
-         local config_dir = fs.find_file(current_dir, default_config)
-
-         if not config_dir then
-            return
-         end
-
-         if config_dir == current_dir then
-            config_path = default_config
-         else
-            config_path = config_dir .. default_config
-            rel_path = current_dir:sub(#config_dir + 1)
-         end
-      end
-
-      local env = make_config_env()
-      local ok, ret = utils.load_config(config_path, env)
-
-      if not ok then
-         fatal(("Couldn't load configuration from %s: %s error"):format(config_path, ret))
-      end
-
-      if type(ret) == "table" then
-         utils.update(env, ret)
-      end
-
-      rawset(env, "files", env[special_keys.files])
-
-      if type(env[special_keys.stds]) == "table" then
-         utils.update(stds, env[special_keys.stds])
-      end
-
-      return env, config_path, rel_path
-   end
-
    local function validate_args(args, parser)
       if args.jobs and args.jobs < 1 then
          parser:error("<jobs> must be at least 1")
@@ -293,27 +220,33 @@ Otherwise, the pattern matches warning code.]])
    end
 
    -- Applies cli-specific options from config to args.
-   local function combine_config_and_args(config, args)
+   local function combine_config_and_args(conf, args)
+      local conf_opts = config.get_top_options(conf)
+
       if args.no_color then
          args.color = false
       else
-         args.color = not config or (config.color ~= false)
+         args.color = conf_opts.color ~= false
       end
 
-      args.codes = args.codes or config and config.codes
-      args.formatter = args.formatter or (config and config.formatter) or "default"
+      args.codes = args.codes or conf_opts.codes
+      args.formatter = args.formatter or conf_opts.formatter or "default"
 
       if args.no_cache or not fs.has_lfs then
          args.cache = false
-      else
-         args.cache = args.cache or (config and config.cache)
+      elseif not args.cache then
+         if type(conf_opts.cache) == "string" then
+            args.cache = config.relative_path(conf, conf_opts.cache)
+         else
+            args.cache = conf_opts.cache
+         end
       end
 
       if args.cache == true then
-         args.cache = default_cache_path
+         args.cache = config.relative_path(conf, default_cache_path)
       end
 
-      args.jobs = args.jobs or (config and config.jobs)
+      args.jobs = args.jobs or conf_opts.jobs
    end
 
    -- Returns sparse array of mtimes and map of filenames to cached reports.
@@ -443,54 +376,16 @@ Otherwise, the pattern matches warning code.]])
       return res
    end
 
-   local function combine_config_and_options(config, config_path, config_rel_path, cli_opts, files)
-      if not config then
-         return cli_opts
-      end
-
-      config_rel_path = config_rel_path or ""
-
-      local function validate(option_set, opts)
-         local ok, invalid_field = options.validate(option_set, opts)
-
-         if not ok then
-            if invalid_field then
-               fatal(("Couldn't load configuration from %s: invalid value of option '%s'"):format(
-                  config_path, invalid_field))
-            else
-               fatal(("Couldn't load configuration from %s: validation error"):format(config_path))
-            end
-         end
-      end
-
-      validate(options.top_config_options, config)
+   local function combine_config_and_options(conf, cli_opts, files)
       local res = {}
 
       for i, file in ipairs(files) do
-         res[i] = {config}
-
-         if type(config.files) == "table" and type(file) == "string" then
-            file = config_rel_path .. file
-            local overriding_paths = {}
-
-            for path in pairs(config.files) do
-               if file:sub(1, #path) == path then
-                  table.insert(overriding_paths, path)
-               end
-            end
-
-            -- Since all paths are prefixes of path, sorting by len is equivalent to regular sorting.
-            table.sort(overriding_paths)
-
-            -- Apply overrides from less specific (shorter prefixes) to more specific (longer prefixes).
-            for _, path in ipairs(overriding_paths) do
-               local overriding_config = config.files[path]
-               validate(options.config_options, overriding_config)
-               table.insert(res[i], overriding_config)
-            end
+         if type(file) == "string" then
+            res[i] = config.get_options(conf, file)
+            table.insert(res[i], cli_opts)
+         else
+            res[i] = cli_opts
          end
-
-         table.insert(res[i], cli_opts)
       end
 
       return res
@@ -506,7 +401,7 @@ Otherwise, the pattern matches warning code.]])
 
    local builtin_formatters = utils.array_to_set({"TAP", "JUnit", "plain", "default"})
 
-   local function pformat(report, file_names, args)
+   local function pformat(report, file_names, conf, args)
       if builtin_formatters[args.formatter] then
          return format(report, file_names, args)
       end
@@ -515,7 +410,7 @@ Otherwise, the pattern matches warning code.]])
       local ok, output
 
       if type(formatter) == "string" then
-         ok, formatter = pcall(require, formatter)
+         ok, formatter = config.relative_require(conf, formatter)
 
          if not ok then
             fatal(("Couldn't load custom formatter '%s': %s"):format(args.formatter, formatter))
@@ -534,23 +429,29 @@ Otherwise, the pattern matches warning code.]])
    local parser = get_parser()
    local args = parser:parse()
    local opts = get_options(args)
-   local config
-   local config_path
-   local config_rel_path
+   local conf
 
-   if not args.no_config then
-      config, config_path, config_rel_path = get_config(args.config)
+   if args.no_config then
+      conf = config.empty_config
+   else
+      local err
+      conf, err = config.load_config(args.config)
+
+      if not conf then
+         fatal(err)
+      end
    end
 
+   -- Validate args only after loading config so that custom stds are already in place.
    validate_args(args, parser)
-   combine_config_and_args(config, args)
+   combine_config_and_args(conf, args)
 
    local files, bad_rockspecs = expand_files(args.files)
    local reports = get_reports(args.cache, files, bad_rockspecs, args.jobs)
-   local report = luacheck.process_reports(reports, combine_config_and_options(config, config_path, config_rel_path, opts, files))
+   local report = luacheck.process_reports(reports, combine_config_and_options(conf, opts, files))
    normalize_filenames(files)
 
-   local output = pformat(report, files, args)
+   local output = pformat(report, files, conf, args)
 
    if #output > 0 and output:sub(-1) ~= "\n" then
       output = output .. "\n"

@@ -3,11 +3,11 @@ local options = require "luacheck.options"
 describe("options", function()
    describe("validate", function()
       it("returns true if options are empty", function()
-         assert.is_true(options.validate(options.config_options))
+         assert.is_true(options.validate(options.all_options))
       end)
 
       it("returns true if options are valid", function()
-         assert.is_true(options.validate(options.config_options, {
+         assert.is_true(options.validate(options.all_options, {
             globals = {"foo"},
             compat = false,
             unrelated = function() end
@@ -15,33 +15,33 @@ describe("options", function()
       end)
 
       it("returns false if options are invalid", function()
-         assert.is_false(options.validate(options.config_options, {
+         assert.is_false(options.validate(options.all_options, {
             globals = 3,
             redefined = false
          }))
 
-         assert.is_false(options.validate(options.config_options, {
+         assert.is_false(options.validate(options.all_options, {
             globals = {3}
          }))
 
-         assert.is_false(options.validate(options.config_options, function() end))
+         assert.is_false(options.validate(options.all_options, function() end))
 
-         assert.is_false(options.validate(options.config_options, {
+         assert.is_false(options.validate(options.all_options, {
             unused = 0
          }))
       end)
 
       it("additionally returns name of the problematic field", function()
-         assert.equal("globals", select(2, options.validate(options.config_options, {
+         assert.equal("globals", select(2, options.validate(options.all_options, {
             globals = 3,
             redefined = false
          })))
 
-         assert.equal("globals", select(2, options.validate(options.config_options, {
+         assert.equal("globals", select(2, options.validate(options.all_options, {
             globals = {3}
          })))
 
-         assert.equal("unused", select(2, options.validate(options.config_options, {
+         assert.equal("unused", select(2, options.validate(options.all_options, {
             unused = 0
          })))
       end)

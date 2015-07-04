@@ -194,7 +194,7 @@ Fatal error: Couldn't load configuration from spec/configs/bad_config.luacheckrc
 
       it("raises fatal error on non-existent config", function()
          assert.equal([[
-Fatal error: Couldn't load configuration from spec/configs/config_404.luacheckrc: I/O error
+Fatal error: Couldn't find configuration file spec/configs/config_404.luacheckrc
 ]], get_output "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
          assert.equal(3, get_exitcode "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
       end)

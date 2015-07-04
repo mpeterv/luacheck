@@ -32,18 +32,24 @@ end
 -- luacheck: push
 -- luacheck: compat
 if _VERSION:find "5.1" then
-   -- Loads Lua source string in an environment, returns function or nil.
-   function utils.load(src, env)
-      local func = loadstring(src)
+   -- Loads Lua source string in an environment, returns function or nil, error.
+   function utils.load(src, env, chunkname)
+      local func, err = loadstring(src, chunkname)
 
       if func then
-         return setfenv(func, env)
+         if env then
+            setfenv(func, env)
+         end
+
+         return func
+      else
+         return nil, err
       end
    end
 else
-   -- Loads Lua source string in an environment, returns function or nil.
-   function utils.load(src, env)
-      return load(src, nil, "t", env)
+   -- Loads Lua source string in an environment, returns function or nil, error.
+   function utils.load(src, env, chunkname)
+      return load(src, chunkname, "t", env)
    end
 end
 -- luacheck: pop
@@ -223,6 +229,38 @@ function utils.map(func, array)
    end
 
    return res
+end
+
+-- Returns predicate checking type.
+function utils.has_type(type_)
+   return function(x)
+      return type(x) == type_
+   end
+end
+
+-- Returns predicate checking that value is an array with
+-- elements of type.
+function utils.array_of(type_)
+   return function(x)
+      if type(x) ~= "table" then
+         return false
+      end
+
+      for _, item in ipairs(x) do
+         if type(item) ~= type_ then
+            return false
+         end
+      end
+
+      return true
+   end
+end
+
+-- Returns predicate chacking if value satisfies on of predicates.
+function utils.either(pred1, pred2)
+   return function(x)
+      return pred1(x) or pred2(x)
+   end
 end
 
 return utils

@@ -12,7 +12,7 @@ local function raw_validate_options(fname, opts)
       ("bad argument #2 to '%s' (table or nil expected, got %s)"):format(fname, type(opts))
    )
 
-   local ok, invalid_field = options.validate(options.config_options, opts)
+   local ok, invalid_field = options.validate(options.all_options, opts)
 
    if not ok then
       if invalid_field then

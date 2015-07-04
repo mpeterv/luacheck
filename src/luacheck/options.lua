@@ -3,35 +3,8 @@ local options = {}
 local utils = require "luacheck.utils"
 local stds = require "luacheck.stds"
 
-local function boolean(x)
-   return type(x) == "boolean"
-end
-
-local function string_or_function(x)
-   return type(x) == "string" or type(x) == "function"
-end
-
-local function natural(x)
-   return type(x) == "number" and x >= 1
-end
-
-local function array_of_strings(x)
-   if type(x) ~= "table" then
-      return false
-   end
-
-   for _, item in ipairs(x) do
-      if type(item) ~= "string" then
-         return false
-      end
-   end
-
-   return true
-end
-
-local function boolean_or_string(x)
-   return type(x) == "boolean" or type(x) == "string"
-end
+local boolean = utils.has_type("boolean")
+local array_of_strings = utils.array_of("string")
 
 function options.split_std(std)
    local parts = utils.split(std, "+")
@@ -54,6 +27,19 @@ end
 
 local function std_or_array_of_strings(x)
    return array_of_strings(x) or (type(x) == "string" and options.split_std(x))
+end
+
+function options.add_order(option_set)
+   local opts = {}
+
+   for option in pairs(option_set) do
+      if type(option) == "string" then
+         table.insert(opts, option)
+      end
+   end
+
+   table.sort(opts)
+   utils.update(option_set, opts)
 end
 
 options.nullary_inline_options = {
@@ -79,21 +65,14 @@ options.variadic_inline_options = {
    only = array_of_strings
 }
 
-options.config_options = {
+options.all_options = {
    std = std_or_array_of_strings,
    inline = boolean
 }
-utils.update(options.config_options, options.nullary_inline_options)
-utils.update(options.config_options, options.variadic_inline_options)
 
-options.top_config_options = {
-   color = boolean,
-   codes = boolean,
-   formatter = string_or_function,
-   cache = boolean_or_string,
-   jobs = natural
-}
-utils.update(options.top_config_options, options.config_options)
+utils.update(options.all_options, options.nullary_inline_options)
+utils.update(options.all_options, options.variadic_inline_options)
+options.add_order(options.all_options)
 
 -- Returns true if opts is valid option_set.
 -- Otherwise returns false and, optionally, name of the problematic option.
@@ -105,9 +84,9 @@ function options.validate(option_set, opts)
    local ok, is_valid, invalid_opt = pcall(function()
       assert(type(opts) == "table")
 
-      for option, validator in pairs(option_set) do
+      for _, option in ipairs(option_set) do
          if opts[option] ~= nil then
-            if not validator(opts[option]) then
+            if not option_set[option](opts[option]) then
                return false, option
             end
          end
