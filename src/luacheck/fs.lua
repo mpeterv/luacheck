@@ -48,7 +48,7 @@ function fs.find_file(path, file)
    local rel_path = ""
    while path and not fs.is_file(fs.join(path, file)) do
       path = path:match(("^(.*%s).*%s$"):format(utils.dir_sep, utils.dir_sep))
-      rel_path = rel_path.."../"
+      rel_path = rel_path..".."..utils.dir_sep
    end
 
    return path, rel_path

@@ -147,6 +147,7 @@ local function add_relative_loader(conf)
    end
 
    table.insert(package.loaders or package.searchers, 1, loader)
+   return loader
 end
 
 local function remove_relative_loader(loader)
@@ -219,7 +220,7 @@ function config.load_config(path)
    return conf
 end
 
--- Adjusts path starting from config dir to start from curent directory.
+-- Adjusts path starting from config dir to start from current directory.
 function config.relative_path(conf, path)
    if conf.empty then
       return path
