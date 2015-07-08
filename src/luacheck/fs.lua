@@ -96,13 +96,20 @@ function fs.find_file(path, file)
       return fs.is_file(file) and path, ""
    end
 
+   path = fs.normalize(path)
+   local base, rest = split_base(path)
    local rel_path = ""
-   while path and not fs.is_file(fs.join(path, file)) do
-      path = path:match(("^(.*%s).*%s$"):format(utils.dir_sep, utils.dir_sep))
+
+   while true do
+      if fs.is_file(fs.join(base..rest, file)) then
+         return base..rest, rel_path
+      elseif rest == "" then
+         break
+      end
+
+      rest = rest:match("^(.*)"..utils.dir_sep..".*$") or ""
       rel_path = rel_path..".."..utils.dir_sep
    end
-
-   return path, rel_path
 end
 
 if not fs.has_lfs then

@@ -60,13 +60,13 @@ describe("fs", function()
 
    describe("find_file", function()
       it("finds file in a directory", function()
-         local path = fs.current_dir() .. "spec/folder/"
+         local path = fs.current_dir() .. "spec/folder"
          assert.equal(path, fs.find_file(path, "foo"))
       end)
 
       it("finds file in a parent directory", function()
-         local path = fs.current_dir() .. "spec/folder/"
-         assert.equal(path, fs.find_file(path .. "folder1/", "foo"))
+         local path = fs.current_dir() .. "spec/folder"
+         assert.equal(path, fs.find_file(path .. "/folder1", "foo"))
       end)
 
       it("returns nil if can't find file", function()
