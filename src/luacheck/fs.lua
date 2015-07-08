@@ -12,28 +12,79 @@ local function ensure_dir_sep(path)
    return path
 end
 
-local function is_absolute(_)
-   -- TODO
-   return false
+local split_base
+
+if utils.is_windows then
+   function split_base(path)
+      if path:match("^%a:\\") then
+         return path:sub(1, 3), path:sub(4)
+      else
+         -- Disregard UNC stuff for now.
+         return "", path
+      end
+   end
+else
+   function split_base(path)
+      if path:match("^/") then
+         if path:match("^//") then
+            return "//", path:sub(3)
+         else
+            return "/", path:sub(2)
+         end
+      else
+         return "", path
+      end
+   end
+end
+
+local function is_absolute(path)
+   return split_base(path) ~= ""
 end
 
 function fs.normalize(path)
-   -- TODO
-   return path
+   local base, rest = split_base(path)
+   rest = rest:gsub("[/\\]", utils.dir_sep)
+
+   local parts = {}
+
+   for part in rest:gmatch("[^"..utils.dir_sep.."]+") do
+      if part ~= "." then
+         if part == ".." and #parts > 0 and parts[#parts] ~= ".." then
+            parts[#parts] = nil
+         else
+            parts[#parts + 1] = part
+         end
+      end
+   end
+
+   if base == "" and #parts == 0 then
+      return "."
+   else
+      return base..table.concat(parts, utils.dir_sep)
+   end
 end
 
 function fs.join(base, path)
    if base == "" or is_absolute(path) then
       return path
    else
-      -- TODO
       return ensure_dir_sep(base)..path
    end
 end
 
 function fs.is_subpath(path, subpath)
-   -- TODO
-   return subpath:sub(1, #path) == path
+   local base1, rest1 = split_base(path)
+   local base2, rest2 = split_base(subpath)
+
+   if base1 ~= base2 then
+      return false
+   end
+
+   if rest2:sub(1, #rest1) ~= rest1 then
+      return false
+   end
+
+   return rest1 == rest2 or rest2:sub(#rest1 + 1, #rest1 + 1) == utils.dir_sep
 end
 
 -- Searches for file starting from path, going up until the file
