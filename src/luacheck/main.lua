@@ -41,6 +41,9 @@ Pass "-" to check stdin.]])
          :args "+"
          :argname "<file>"
 
+
+      parser:option("--filename", "Use another filename in output and for selecting configuration overrides.")
+
       parser:flag("-g --no-global", [[Filter out warnings related to global variables.
 Equivalent to --ignore 1.]])
       parser:flag("-u --no-unused", [[Filter out warnings related to unused variables and values.
@@ -390,7 +393,15 @@ Otherwise, the pattern matches warning code.]])
       return res
    end
 
-   local function normalize_filenames(files)
+   local function substitute_filename(new_filename, files)
+      if new_filename then
+         for i = 1, #files do
+            files[i] = new_filename
+         end
+      end
+   end
+
+   local function normalize_stdin_in_filenames(files)
       for i, file in ipairs(files) do
          if type(file) ~= "string" then
             files[i] = "stdin"
@@ -447,8 +458,9 @@ Otherwise, the pattern matches warning code.]])
 
    local files, bad_rockspecs = expand_files(args.files)
    local reports = get_reports(args.cache, files, bad_rockspecs, args.jobs)
+   substitute_filename(args.filename, files)
    local report = luacheck.process_reports(reports, combine_config_and_options(conf, opts, files))
-   normalize_filenames(files)
+   normalize_stdin_in_filenames(files)
 
    local output = pformat(report, files, conf, args)
 

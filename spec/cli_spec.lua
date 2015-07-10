@@ -41,6 +41,14 @@ Total: 0 warnings / 0 errors in 1 file
 ]], get_output "./spec/samples/good_code.lua --no-config")
    end)
 
+   it("allows setting new filename", function()
+      assert.equal([[
+Checking new.lua                                  OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "spec/samples/good_code.lua --no-config --filename new.lua")
+   end)
+
    it("works for incorrect files", function()
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
@@ -914,6 +922,14 @@ Checking spec/samples/unused_code.lua             OK
 
 Total: 4 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/override_config.luacheckrc")
+         end)
+
+         it("uses new filename when selecting per-file overrides", function()
+            assert.equal([[
+Checking spec/samples/unused_code.lua             OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "- --config=spec/configs/override_config.luacheckrc --filename spec/samples/unused_code.lua < spec/samples/unused_code.lua")
          end)
 
          it("uses all overrides prefixing file name", function()
