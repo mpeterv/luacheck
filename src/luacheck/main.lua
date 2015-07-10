@@ -25,7 +25,6 @@ local function global_error_handler(err)
 end
 
 local function main()
-   local default_config = ".luacheckrc"
    local default_cache_path = ".luacheckcache"
 
    local function get_parser()
@@ -109,7 +108,7 @@ Otherwise, the pattern matches warning code.]])
       parser:flag("--no-inline", "Disable inline options.")
 
       parser:mutex(
-         parser:option("--config", "Path to configuration file. (default: "..default_config..")"),
+         parser:option("--config", "Path to configuration file. (default: "..config.default_path..")"),
          parser:flag("--no-config", "Do not look up configuration file.")
       )
 
