@@ -752,6 +752,15 @@ Codes: true
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --formatter spec.formatters.custom_formatter -q --codes --no-color --no-config")
    end)
 
+   it("loads custom formatters relatively to project root", function()
+      assert.equal([[Files: 2
+Formatter: spec.formatters.custom_formatter
+Quiet: 1
+Color: false
+Codes: true
+]], get_output("samples/good_code.lua samples/bad_code.lua --formatter spec.formatters.custom_formatter -q --codes --no-color", "spec/"))
+   end)
+
    it("has built-in TAP formatter", function()
       assert.equal([[
 1..7
