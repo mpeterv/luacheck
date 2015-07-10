@@ -5,7 +5,7 @@ local stds = {}
 stds.busted = {
    "describe", "insulate", "expose", "it", "pending", "before_each", "after_each",
    "lazy_setup", "lazy_teardown", "strict_setup", "strict_teardown", "setup", "teardown",
-   "context", "spec", "test", "assert", "spy", "mock", "stub"}
+   "context", "spec", "test", "assert", "spy", "mock", "stub", "finally"}
 
 stds.lua51 = {
    _G = true, package = true, "_VERSION", "arg", "assert", "collectgarbage", "coroutine",
