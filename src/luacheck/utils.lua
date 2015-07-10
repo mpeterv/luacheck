@@ -49,7 +49,7 @@ if _VERSION:find "5.1" then
 else
    -- Loads Lua source string in an environment, returns function or nil, error.
    function utils.load(src, env, chunkname)
-      return load(src, chunkname, "t", env)
+      return load(src, chunkname, "t", env or _ENV)
    end
 end
 -- luacheck: pop
