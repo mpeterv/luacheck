@@ -59,15 +59,14 @@ local function get_options(body)
          if options.variadic_inline_options[name] then
             opts[name] = args
          else
-            local actual_name = utils.after(name, "^no_")
-            name = actual_name or name
-            local flag = not actual_name
+            local flag = true
 
-            if options.nullary_inline_options[name] then
-               if #args ~= 0 then
-                  return
-               end
+            if name == "no" then
+               name = table.remove(args, 1)
+               flag = false
+            end
 
+            if options.nullary_inline_options[name] and #args == 0 then
                opts[name] = flag
             else
                return

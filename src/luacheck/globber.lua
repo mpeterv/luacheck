@@ -115,7 +115,7 @@ function Globber:match(glob, path)
 end
 
 -- Returns array of all paths matching a globbing pattern.
-function Globber:find(glob) -- luacheck: no_self
+function Globber:find(glob) -- luacheck: no self
    glob = fs.normalize(glob)
 
    if is_regular_path(glob) then
