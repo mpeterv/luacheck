@@ -12,10 +12,8 @@ local function ensure_dir_sep(path)
    return path
 end
 
-local split_base
-
 if utils.is_windows then
-   function split_base(path)
+   function fs.split_base(path)
       if path:match("^%a:\\") then
          return path:sub(1, 3), path:sub(4)
       else
@@ -24,7 +22,7 @@ if utils.is_windows then
       end
    end
 else
-   function split_base(path)
+   function fs.split_base(path)
       if path:match("^/") then
          if path:match("^//") then
             return "//", path:sub(3)
@@ -38,11 +36,11 @@ else
 end
 
 local function is_absolute(path)
-   return split_base(path) ~= ""
+   return fs.split_base(path) ~= ""
 end
 
 function fs.normalize(path)
-   local base, rest = split_base(path)
+   local base, rest = fs.split_base(path)
    rest = rest:gsub("[/\\]", utils.dir_sep)
 
    local parts = {}
@@ -73,8 +71,8 @@ function fs.join(base, path)
 end
 
 function fs.is_subpath(path, subpath)
-   local base1, rest1 = split_base(path)
-   local base2, rest2 = split_base(subpath)
+   local base1, rest1 = fs.split_base(path)
+   local base2, rest2 = fs.split_base(subpath)
 
    if base1 ~= base2 then
       return false
@@ -97,7 +95,7 @@ function fs.find_file(path, file)
    end
 
    path = fs.normalize(path)
-   local base, rest = split_base(path)
+   local base, rest = fs.split_base(path)
    local rel_path = ""
 
    while true do
