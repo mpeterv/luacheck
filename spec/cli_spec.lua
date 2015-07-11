@@ -49,6 +49,14 @@ Total: 0 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/good_code.lua --no-config --filename new.lua")
    end)
 
+   it("filters files using --exclude-files", function()
+      assert.equal([[
+Checking spec/samples/good_code.lua               OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --exclude-files '**/??d_code.lua'")
+   end)
+
    it("works for incorrect files", function()
       assert.equal([[
 Checking spec/samples/bad_code.lua                Failure
@@ -977,6 +985,61 @@ Quiet: 0
 Color: false
 Codes: true
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/cli_specific_config.luacheckrc --std=lua52")
+         end)
+
+         it("uses exclude_files option", function()
+            assert.equal([[
+Checking spec/samples/argparse.lua                Failure
+Checking spec/samples/compat.lua                  Failure
+Checking spec/samples/custom_std_inline_options.lua Failure
+Checking spec/samples/global_inline_options.lua   Failure
+Checking spec/samples/globals.lua                 Failure
+Checking spec/samples/inline_options.lua          Failure
+Checking spec/samples/python_code.lua             Syntax error
+Checking spec/samples/read_globals.lua            Failure
+Checking spec/samples/read_globals_inline_options.lua Failure
+Checking spec/samples/redefined.lua               Failure
+Checking spec/samples/unused_code.lua             Failure
+Checking spec/samples/unused_secondaries.lua      Failure
+
+Total: 56 warnings / 1 error in 14 files
+]], get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
+         end)
+
+         it("loads exclude_files option correctly from upper directory", function()
+            assert.equal([[
+Checking argparse.lua                             Failure
+Checking compat.lua                               Failure
+Checking custom_std_inline_options.lua            Failure
+Checking global_inline_options.lua                Failure
+Checking globals.lua                              Failure
+Checking inline_options.lua                       Failure
+Checking python_code.lua                          Syntax error
+Checking read_globals.lua                         Failure
+Checking read_globals_inline_options.lua          Failure
+Checking redefined.lua                            Failure
+Checking unused_code.lua                          Failure
+Checking unused_secondaries.lua                   Failure
+
+Total: 56 warnings / 1 error in 14 files
+]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq", "spec/samples/"))
+         end)
+
+         it("combines excluded files from config and cli", function()
+            assert.equal([[
+Checking argparse.lua                             Failure
+Checking compat.lua                               Failure
+Checking custom_std_inline_options.lua            Failure
+Checking global_inline_options.lua                Failure
+Checking globals.lua                              Failure
+Checking inline_options.lua                       Failure
+Checking python_code.lua                          Syntax error
+Checking redefined.lua                            Failure
+Checking unused_code.lua                          Failure
+Checking unused_secondaries.lua                   Failure
+
+Total: 48 warnings / 1 error in 12 files
+]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files './read*'", "spec/samples/"))
          end)
 
          it("allows defining custom stds", function()

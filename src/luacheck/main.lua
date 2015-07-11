@@ -8,6 +8,7 @@ local cache = require "luacheck.cache"
 local format = require "luacheck.format"
 local version = require "luacheck.version"
 local fs = require "luacheck.fs"
+local Globber = require "luacheck.globber"
 local utils = require "luacheck.utils"
 
 local function fatal(msg)
@@ -115,6 +116,11 @@ Otherwise, the pattern matches warning code.]])
          parser:flag("--no-config", "Do not look up configuration file.")
       )
 
+      parser:option("--exclude-files", "Do not check files matching these globbing patterns.")
+         :args "+"
+         :count "*"
+         :argname "<glob>"
+
       if fs.has_lfs then
          parser:mutex(
             parser:option("--cache", "Path to cache file.", default_cache_path)
@@ -150,18 +156,35 @@ Otherwise, the pattern matches warning code.]])
    end
 
    -- Expands folders, rockspecs, -
-   -- Returns new array of filenames and table mapping indexes of bad rockspecs to error messages. 
-   -- Removes "./" in the beginnings of file names. 
-   local function expand_files(files)
+   -- Returns new array of filenames and table mapping indexes of bad rockspecs to error messages.
+   -- Removes "./" in the beginnings of file names.
+   -- Filters filenames using args.exclude_files.
+   local function expand_files(args)
       local res, bad_rockspecs = {}, {}
+      local globber = Globber()
 
       local function add(file)
-         table.insert(res, (file:gsub("^./", "")))
+         if type(file) == "string" then
+            file = file:gsub("^./", "")
+         end
+
+         local name = args.filename or file
+
+         if type(name) == "string" then
+            for _, glob in ipairs(args.exclude_files) do
+               if globber:match(glob, name) then
+                  return false
+               end
+            end
+         end
+
+         table.insert(res, file)
+         return true
       end
 
-      for _, file in ipairs(files) do
+      for _, file in ipairs(args.files) do
          if file == "-" then
-            table.insert(res, io.stdin)
+            add(io.stdin)
          elseif fs.is_dir(file) then
             for _, nested_file in ipairs(fs.extract_files(file, "%.lua$")) do
                add(nested_file)
@@ -174,8 +197,9 @@ Otherwise, the pattern matches warning code.]])
                   add(related_file)
                end
             else
-               add(file)
-               bad_rockspecs[#res] = err
+               if add(file) then
+                  bad_rockspecs[#res] = err
+               end
             end
          else
             add(file)
@@ -249,6 +273,16 @@ Otherwise, the pattern matches warning code.]])
       end
 
       args.jobs = args.jobs or conf_opts.jobs
+
+      if conf_opts.exclude_files then
+         for i, glob in ipairs(conf_opts.exclude_files) do
+            conf_opts.exclude_files[i] = config.relative_path(conf, glob)
+         end
+
+         table.insert(args.exclude_files, conf_opts.exclude_files)
+      end
+
+      args.exclude_files = utils.concat_arrays(args.exclude_files)
    end
 
    -- Returns sparse array of mtimes and map of filenames to cached reports.
@@ -456,7 +490,7 @@ Otherwise, the pattern matches warning code.]])
    validate_args(args, parser)
    combine_config_and_args(conf, args)
 
-   local files, bad_rockspecs = expand_files(args.files)
+   local files, bad_rockspecs = expand_files(args)
    local reports = get_reports(args.cache, files, bad_rockspecs, args.jobs)
    substitute_filename(args.filename, files)
    local report = luacheck.process_reports(reports, combine_config_and_options(conf, opts, files))
