@@ -917,6 +917,14 @@ Total: 0 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/compat.lua --config=spec/configs/global_config.luacheckrc")
          end)
 
+         it("uses config when checking stdin", function()
+            assert.equal([[
+Checking stdin                                    OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "- --config=spec/configs/global_config.luacheckrc < spec/samples/compat.lua")
+         end)
+
          it("uses per-file overrides", function()
             assert.equal([[
 Checking spec/samples/bad_code.lua                Failure

@@ -416,12 +416,8 @@ Otherwise, the pattern matches warning code.]])
       local res = {}
 
       for i, file in ipairs(files) do
-         if type(file) == "string" then
-            res[i] = config.get_options(conf, file)
-            table.insert(res[i], cli_opts)
-         else
-            res[i] = cli_opts
-         end
+         res[i] = config.get_options(conf, file)
+         table.insert(res[i], cli_opts)
       end
 
       return res

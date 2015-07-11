@@ -253,14 +253,19 @@ function config.get_top_options(conf)
    return conf.empty and {} or conf.options
 end
 
--- Returns array of options for a path.
-function config.get_options(conf, path)
+-- Returns array of options for a file.
+function config.get_options(conf, file)
    if conf.empty then
       return {}
    end
 
-   path = fs.normalize(fs.join(conf.cur_dir, path))
    local res = {conf.options}
+
+   if type(file) ~= "string" then
+      return res
+   end
+
+   local path = fs.normalize(fs.join(conf.cur_dir, file))
 
    for _, override_path in ipairs(conf.overrides.paths) do
       if fs.is_subpath(override_path, path) then
