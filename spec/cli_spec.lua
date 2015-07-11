@@ -774,7 +774,7 @@ Formatter: spec.formatters.custom_formatter
 Quiet: 1
 Color: false
 Codes: true
-]], get_output("samples/good_code.lua samples/bad_code.lua --formatter spec.formatters.custom_formatter -q --codes --no-color", "spec/"))
+]], get_output("samples/good_code.lua samples/bad_code.lua --formatter spec.formatters.custom_formatter -q --codes --no-color --no-config", "spec/"))
    end)
 
    it("has built-in TAP formatter", function()
