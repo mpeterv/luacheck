@@ -260,7 +260,7 @@ print(foo)
    it("detects redefinition of function arguments", function()
       assert.same({
          {code = "212", name = "foo", line = 1, column = 17},
-         {code = "212", name = "...", line = 1, column = 22, vararg = true},
+         {code = "212", name = "...", line = 1, column = 22},
          {code = "412", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
       }, check[[
 return function(foo, ...)

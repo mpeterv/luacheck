@@ -5,7 +5,7 @@ describe("cache", function()
    describe("serialize", function()
       it("returns serialized result", function()
          assert.same(
-            'return {{"111","foo",5,100,[24]=true},{"211","bar",4,1,[7]=true,[11]=true},{[3]=5,[4]=100000,[14]=true}}',
+            'return {{"111","foo",5,100,[23]=true},{"211","bar",4,1,[7]=true,[10]=true},{[3]=5,[4]=100000,[13]=true}}',
             cache.serialize({
                {code = "111", name = "foo", line = 5, column = 100, in_module = true},
                {code = "211", name = "bar", line = 4, column = 1, secondary = true, filtered = true},
@@ -16,7 +16,7 @@ describe("cache", function()
 
       it("puts repeating string values into locals", function()
          assert.same(
-            'local A,B="111","foo";return {{A,B,5,100,[24]=true},{A,B,6,100,[7]=true,[11]=true},{[3]=5,[4]=100000,[14]=true}}',
+            'local A,B="111","foo";return {{A,B,5,100,[23]=true},{A,B,6,100,[7]=true,[10]=true},{[3]=5,[4]=100000,[13]=true}}',
             cache.serialize({
                {code = "111", name = "foo", line = 5, column = 100, in_module = true},
                {code = "111", name = "foo", line = 6, column = 100, secondary = true, filtered = true},

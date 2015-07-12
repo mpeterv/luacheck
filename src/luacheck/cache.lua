@@ -10,7 +10,7 @@ local cache = {}
 
 local fields = {
    "code", "name", "line", "column", "prev_line", "prev_column", "secondary", "self", "func",
-   "vararg", "filtered", "top", "invalid", "unpaired", "read_only", "global", "filtered_111",
+   "filtered", "top", "invalid", "unpaired", "read_only", "global", "filtered_111",
    "filtered_121", "filtered_131", "filtered_112", "filtered_122", "filtered_113", "definition",
    "in_module"}
 

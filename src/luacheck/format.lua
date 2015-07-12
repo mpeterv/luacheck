@@ -15,7 +15,7 @@ local message_formats = {
       if w.func then return "unused function %s"
          else return "unused variable %s" end end,
    ["212"] = function(w)
-      if w.vararg then return "unused variable length argument"
+      if w.name == "..." then return "unused variable length argument"
          else return "unused argument %s" end end,
    ["213"] = "unused loop variable %s",
    ["221"] = "variable %s is never set",

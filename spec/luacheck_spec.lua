@@ -51,8 +51,7 @@ describe("luacheck", function()
                code = "212",
                name = "...",
                line = 3,
-               column = 23,
-               vararg = true
+               column = 23
             },
             {
                code = "111",

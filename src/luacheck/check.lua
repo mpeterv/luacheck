@@ -30,7 +30,6 @@ local type_codes = {
    var = 1,
    func = 1,
    arg = 2,
-   vararg = 2,
    loop = 3,
    loopi = 3
 }
@@ -55,8 +54,7 @@ function ChState:warn_unused_variable(var)
       column = var.location.column,
       secondary = is_secondary(var.values[1]) or nil,
       func = (var.values[1].type == "func") or nil,
-      self = var.self,
-      vararg = (var.type == "vararg") or nil
+      self = var.self
    })
 end
 
