@@ -182,9 +182,9 @@ end
 
 -- Mutates shape of warnings in events according to inline options.
 -- Warnings which are simply filtered are marked with .filtered.
--- Returns array of unpaired push/pop comments.
+-- Returns arrays of unpaired push events and unpaired pop events.
 local function handle_events(events, per_line_opts)
-   local unpaired_comments = {}
+   local unpaired_pushes, unpaired_pops = {}, {}
    local unfiltered_warnings = {}
    local option_stack = utils.Stack()
    local boundaries = utils.Stack()
@@ -213,12 +213,12 @@ local function handle_events(events, per_line_opts)
       elseif event.pop then
          if boundaries.size == 0 or (boundaries.top.closure and not event.closure) then
             -- Unpaired pop boundary, do nothing.
-            table.insert(unpaired_comments, event)
+            table.insert(unpaired_pops, event)
          else
             if event.closure then
                -- There could be unpaired push boundaries, pop them.
                while not boundaries.top.closure do
-                  table.insert(unpaired_comments, boundaries:pop())
+                  table.insert(unpaired_pushes, boundaries:pop())
                end
             end
 
@@ -242,7 +242,7 @@ local function handle_events(events, per_line_opts)
       apply_inline_options(option_stack, per_line_opts, unfiltered_warnings)
    end
 
-   return unpaired_comments
+   return unpaired_pushes, unpaired_pops
 end
 
 -- Filteres warnings using inline options, adds invalid comments.
@@ -254,9 +254,10 @@ end
 --    .in_module is added to 111 warnings that are in module due to inline options.
 --    .read_only is added to 111 and 112 warnings related to read only globals.
 --    .global is added to 111 and 112 related to regular globals.
--- Invalid comments have same shape as warnings except they don't have .code field.
--- Instead, they may have .invalid or .unpaired field for syntactically invalid inline options and unpaired
---    push/pop options, correspondingly.
+-- Invalid comments have same shape as warnings, with codes:
+--    021 - syntactically invalid comment;
+--    022 - unpaired push comment;
+--    023 - unpaired pop comment.
 local function handle_inline_options(ast, comments, code_lines, warnings)
    -- Create array of all events sorted by location.
    -- This includes inline options, warnings and implicit push/pop operations corresponding to closure starts/ends.
@@ -271,14 +272,18 @@ local function handle_inline_options(ast, comments, code_lines, warnings)
    add_closure_boundaries(ast, events)
    local per_line_opts, invalid_comments = add_inline_options(events, comments, code_lines)
    core_utils.sort_by_location(events)
-   local unpaired_comments = handle_events(events, per_line_opts)
+   local unpaired_pushes, unpaired_pops = handle_events(events, per_line_opts)
 
    for _, comment in ipairs(invalid_comments) do
-      table.insert(warnings, {invalid = true, line = comment.location.line, column = comment.location.column})
+      table.insert(warnings, {code = "021", line = comment.location.line, column = comment.location.column})
    end
 
-   for _, event in ipairs(unpaired_comments) do
-      table.insert(warnings, {unpaired = true, line = event.line, column = event.column})
+   for _, event in ipairs(unpaired_pushes) do
+      table.insert(warnings, {code = "022", line = event.line, column = event.column})
+   end
+
+   for _, event in ipairs(unpaired_pops) do
+      table.insert(warnings, {code = "023", line = event.line, column = event.column})
    end
 
    return warnings

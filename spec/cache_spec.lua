@@ -68,7 +68,7 @@ describe("cache", function()
       end)
 
       it("handles error result", function()
-         assert.same('return {2,4,10,"message"}', cache.serialize({error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}))
+         assert.same('return {{"011",[3]=2,[4]=4,[24]="message"}}', cache.serialize({{code = "011", line = 2, column = 4, msg = "message"}}))
       end)
    end)
 
@@ -159,7 +159,7 @@ return {{"111"},{"122"}}
             cache.update(tmpname,
                {"foo", "bar"},
                {1, 2},
-               {{{code="111"}}, {error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}})
+               {{{code="111"}}, {{code = "011", line = 2, column = 4, msg = "message"}}})
          end)
 
          after_each(function()
@@ -173,7 +173,7 @@ return {{"111"},{"122"}}
          it("loads cached results", function()
             assert.same({
                foo = {{code="111"}},
-               bar = {error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}
+               bar = {{code = "011", line = 2, column = 4, msg = "message"}}
             }, cache.load(tmpname, {"foo", "bar"}, {1, 2}))
          end)
 
@@ -183,7 +183,7 @@ return {{"111"},{"122"}}
 
          it("does not load outdated results", function()
             assert.same(
-               {bar = {error = "syntax", line = 2, column = 4, offset = 10, msg = "message"}},
+               {bar = {{code = "011", line = 2, column = 4, msg = "message"}}},
                cache.load(tmpname, {"foo", "bar", "baz"}, {2, 2}))
          end)
       end)

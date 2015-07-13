@@ -32,7 +32,8 @@ describe("luacheck", function()
    it("works on empty list", function()
       assert.same({
          warnings = 0,
-         errors = 0
+         errors = 0,
+         fatals = 0
       }, luacheck({}))
    end)
 
@@ -76,14 +77,16 @@ describe("luacheck", function()
             }
          },
          {
-            error = "syntax",
-            line = 1,
-            column = 6,
-            offset = 6,
-            msg = "expected '=' near '__future__'"
+            {
+               code = "011",
+               line = 1,
+               column = 6,
+               msg = "expected '=' near '__future__'"
+            }
          },
          warnings = 5,
-         errors = 1
+         errors = 1,
+         fatals = 0
       }, luacheck({
          "spec/samples/good_code.lua",
          "spec/samples/bad_code.lua",
@@ -118,14 +121,16 @@ describe("luacheck", function()
             }
          },
          {
-            error = "syntax",
-            line = 1,
-            column = 6,
-            offset = 6,
-            msg = "expected '=' near '__future__'"
+            {
+               code = "011",
+               line = 1,
+               column = 6,
+               msg = "expected '=' near '__future__'"
+            }
          },
          warnings = 3,
-         errors = 1
+         errors = 1,
+         fatals = 0
       }, luacheck({
          "spec/samples/good_code.lua",
          "spec/samples/bad_code.lua",
@@ -154,14 +159,16 @@ describe("luacheck", function()
             }
          },
          {
-            error = "syntax",
-            line = 1,
-            column = 6,
-            offset = 6,
-            msg = "expected '=' near '__future__'"
+            {
+               code = "011",
+               line = 1,
+               column = 6,
+               msg = "expected '=' near '__future__'"
+            }
          },
          warnings = 2,
-         errors = 1
+         errors = 1,
+         fatals = 0
       }, luacheck({
          "spec/samples/good_code.lua",
          "spec/samples/bad_code.lua",
@@ -198,7 +205,8 @@ describe("check_strings", function()
    it("works on empty list", function()
       assert.same({
          warnings = 0,
-         errors = 0
+         errors = 0,
+         fatals = 0
       }, luacheck.check_strings({}))
    end)
 
@@ -213,14 +221,16 @@ describe("check_strings", function()
             }
          },
          {
-            error = "syntax",
-            line = 1,
-            column = 8,
-            offset = 8,
-            msg = "unexpected symbol near 'return'"
+            {
+               code = "011",
+               line = 1,
+               column = 8,
+               msg = "unexpected symbol near 'return'"
+            }
          },
          warnings = 1,
-         errors = 1
+         errors = 1,
+         fatals = 0
       }, luacheck.check_strings({"return foo", "return return"}))
    end)
 
@@ -228,18 +238,20 @@ describe("check_strings", function()
       assert.same({
          {},
          {
-            error = "syntax",
-            line = 1,
-            column = 8,
-            offset = 8,
-            msg = "unexpected symbol near 'return'"
+            {
+               code = "011",
+               line = 1,
+               column = 8,
+               msg = "unexpected symbol near 'return'"
+            }
          },
          warnings = 0,
-         errors = 1
+         errors = 1,
+         fatals = 0
       }, luacheck.check_strings({"return foo", "return return"}, {ignore = {"113"}}))
    end)
 
-   it("ignores tables", function()
+   it("ignores tables with .fatal field", function()
       assert.same({
          {
             {
@@ -250,11 +262,12 @@ describe("check_strings", function()
             }
          },
          {
-            error = "I/O"
+            fatal = "I/O"
          },
          warnings = 1,
-         errors = 1
-      }, luacheck.check_strings({"return foo", {error = "I/O"}}))
+         errors = 0,
+         fatals = 1
+      }, luacheck.check_strings({"return foo", {fatal = "I/O"}}))
    end)
 end)
 
@@ -268,10 +281,10 @@ describe("get_report", function()
       assert.is_table(luacheck.get_report("return foo"))
    end)
 
-   it("returns nil, error on syntax error", function()
-      local res, err = luacheck.get_report("return return")
-      assert.is_nil(res)
-      assert.same({line = 1, column = 8, offset = 8, msg = "unexpected symbol near 'return'"}, err)
+   it("returns a table with single error event on syntax error", function()
+      local report = luacheck.get_report("return return")
+      assert.is_table(report)
+      assert.same({code = "011", line = 1, column = 8, msg = "unexpected symbol near 'return'"}, report[1])
    end)
 end)
 
@@ -302,7 +315,8 @@ describe("process_reports", function()
          },
          {},
          warnings = 1,
-         errors = 0
+         errors = 0,
+         fatals = 0
       }, luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")}))
    end)
 
@@ -325,7 +339,8 @@ describe("process_reports", function()
             }
          },
          warnings = 2,
-         errors = 0
+         errors = 0,
+         fatals = 0
       }, luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")}, {
          std = "none"
       }))

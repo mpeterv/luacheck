@@ -41,7 +41,7 @@ local function get_defined_and_used_globals(file_report, opts)
    local defined, globally_defined, used = {}, {}, {}
 
    for _, warning in ipairs(file_report) do
-      if warning.code and warning.code:match("11.") then
+      if warning.code:match("11.") then
          if warning.code == "111" then
             if (opts.inline and warning.definition) or core_utils.is_definition(opts, warning) then
                if (opts.inline and warning.in_module) or opts.module then
@@ -86,7 +86,7 @@ local function filter_implicit_defs_file(file_report, opts, globally_defined, gl
    local res = {}
 
    for _, warning in ipairs(file_report) do
-      if warning.code and warning.code:match("11.") then
+      if warning.code:match("11.") then
          if warning.code == "111" then
             if (opts.inline and warning.in_module) or opts.module then
                if not locally_defined[warning.name] then
@@ -125,7 +125,7 @@ local function filter_implicit_defs(report, opts)
    local info = get_implicit_defs_info(report, opts)
 
    for i, file_report in ipairs(report) do
-      if not file_report.error then
+      if not file_report.fatal then
          res[i] = filter_implicit_defs_file(file_report, opts[i], info.globally_defined, info.globally_used, info.locally_defined[i])
       else
          res[i] = file_report
@@ -256,16 +256,16 @@ end
 local function filter_file_report(report, opts)
    local res = {}
 
-   for _, warning in ipairs(report) do
-      if warning.code and ((opts.inline and warning.read_only) or warning.code:match("11[12]")
-            and not warning.module and opts.read_globals[warning.name]) and not (
-               (opts.inline and warning.global) or (opts.globals[warning.name] and not opts.read_globals[warning.name])) then
-         warning.code = "12" .. warning.code:sub(3, 3)
+   for _, event in ipairs(report) do
+      if ((opts.inline and event.read_only) or event.code:match("11[12]")
+            and not event.module and opts.read_globals[event.name]) and not (
+               (opts.inline and event.global) or (opts.globals[event.name] and not opts.read_globals[event.name])) then
+         event.code = "12" .. event.code:sub(3, 3)
       end
 
-      if (not warning.code and opts.inline) or (warning.code and (not warning.filtered and
-            not warning["filtered_" .. warning.code] or not opts.inline) and not filter.filters(opts, warning)) then
-         table.insert(res, warning)
+      if event.code == "011" or (event.code:match("02.") and opts.inline) or (event.code:sub(1, 1) ~= "0" and (not event.filtered and
+            not event["filtered_" .. event.code] or not opts.inline) and not filter.filters(opts, event)) then
+         table.insert(res, event)
       end
    end
 
@@ -277,7 +277,7 @@ local function filter_report(report, opts)
    local res = {}
 
    for i, file_report in ipairs(report) do
-      if not file_report.error then
+      if not file_report.fatal then
          res[i] = filter_file_report(file_report, opts[i])
       else
          res[i] = file_report

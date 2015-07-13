@@ -12,7 +12,7 @@ local fields = {
    "code", "name", "line", "column", "prev_line", "prev_column", "secondary", "self", "func",
    "filtered", "top", "invalid", "unpaired", "read_only", "global", "filtered_111",
    "filtered_121", "filtered_131", "filtered_112", "filtered_122", "filtered_113", "definition",
-   "in_module"}
+   "in_module", "msg"}
 
 -- Converts table with fields into table with indexes.
 local function compress(t)
@@ -83,11 +83,6 @@ end
 
 -- Serializes check result into a string.
 function cache.serialize(events)
-   if events.error then
-      return ("return {%d,%d,%d,%s}"):format(
-         events.line, events.column, events.offset, ("%q"):format(events.msg))
-   end
-
    local strings = {}
    local buffer = {"", "return {"}
 
@@ -169,17 +164,6 @@ local function load_cached(cached)
 
    if type(res) ~= "table" then
       return
-   end
-
-   -- Is it a syntax error message?
-   if type(res[1]) == "number" then
-      return {
-         error = "syntax",
-         line = res[1],
-         column = res[2],
-         offset = res[3],
-         msg = res[4]
-      }
    end
 
    local decompressed = {}

@@ -11,16 +11,16 @@ local fs = require "luacheck.fs"
 local Globber = require "luacheck.globber"
 local utils = require "luacheck.utils"
 
-local function fatal(msg)
-   io.stderr:write("Fatal error: "..msg.."\n")
+local function critical(msg)
+   io.stderr:write("Critical error: "..msg.."\n")
    os.exit(3)
 end
 
 local function global_error_handler(err)
    if type(err) == "table" and err.pattern then
-      fatal("Invalid pattern '" .. err.pattern .. "'")
+      critical("Invalid pattern '" .. err.pattern .. "'")
    else
-      fatal(debug.traceback(
+      critical(debug.traceback(
          ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(luacheck._VERSION, err), 2))
    end
 end
@@ -300,7 +300,7 @@ Otherwise, the pattern matches warning code.]])
          end
       end
 
-      return sparse_mtimes, cache.load(cache_filename, cache_files, cache_mtimes) or fatal(
+      return sparse_mtimes, cache.load(cache_filename, cache_files, cache_mtimes) or critical(
          ("Couldn't load cache from %s: data corrupted"):format(cache_filename))
    end
 
@@ -323,17 +323,6 @@ Otherwise, the pattern matches warning code.]])
       return res
    end
 
-   local function get_report(source)
-      local report, err = luacheck.get_report(source)
-
-      if report then
-         return report
-      else
-         err.error = "syntax"
-         return err
-      end
-   end
-
    -- Returns sparse array of new reports.
    local function get_new_reports(files, srcs, jobs)
       local dense_srcs = {}
@@ -347,7 +336,7 @@ Otherwise, the pattern matches warning code.]])
       end
 
       local map = jobs and multithreading.has_lanes and multithreading.pmap or utils.map
-      local dense_res = map(get_report, dense_srcs, jobs)
+      local dense_res = map(luacheck.get_report, dense_srcs, jobs)
 
       local res = {}
 
@@ -376,7 +365,7 @@ Otherwise, the pattern matches warning code.]])
          end
       end
 
-      return cache.update(cache_filename, cache_files, cache_mtimes, cache_reports) or fatal(
+      return cache.update(cache_filename, cache_files, cache_mtimes, cache_reports) or critical(
          ("Couldn't save cache to %s: I/O error"):format(cache_filename))
    end
 
@@ -403,7 +392,7 @@ Otherwise, the pattern matches warning code.]])
 
       for i, file in ipairs(files) do
          if bad_files[i] then
-            res[i] = {error = bad_files[i]}
+            res[i] = {fatal = bad_files[i]}
          else
             res[i] = cached_reports[file] or new_reports[i]
          end
@@ -453,14 +442,14 @@ Otherwise, the pattern matches warning code.]])
          ok, formatter = config.relative_require(conf, formatter)
 
          if not ok then
-            fatal(("Couldn't load custom formatter '%s': %s"):format(args.formatter, formatter))
+            critical(("Couldn't load custom formatter '%s': %s"):format(args.formatter, formatter))
          end
       end
 
       ok, output = pcall(formatter, report, file_names, args)
 
       if not ok then
-         fatal(("Couldn't run custom formatter '%s': %s"):format(tostring(args.formatter), output))
+         critical(("Couldn't run custom formatter '%s': %s"):format(tostring(args.formatter), output))
       end
 
       return output
@@ -478,7 +467,7 @@ Otherwise, the pattern matches warning code.]])
       conf, err = config.load_config(args.config)
 
       if not conf then
-         fatal(err)
+         critical(err)
       end
    end
 
@@ -502,9 +491,9 @@ Otherwise, the pattern matches warning code.]])
 
    local exit_code
 
-   if report.errors > 0 then
+   if report.fatals > 0 then
       exit_code = 2
-   elseif report.warnings > 0 then
+   elseif report.warnings > 0 or report.errors > 0 then
       exit_code = 1
    else
       exit_code = 0

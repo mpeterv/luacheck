@@ -3,6 +3,10 @@ local utils = require "luacheck.utils"
 local color_support = not utils.is_windows or os.getenv("ANSICON")
 
 local message_formats = {
+   ["011"] = function(w) return w.msg end,
+   ["021"] = "invalid inline option",
+   ["022"] = "unpaired push directive",
+   ["023"] = "unpaired pop directive",
    ["111"] = function(w)
       if w.module then return "setting non-module global variable %s"
          else return "setting non-standard global variable %s" end end,
@@ -45,12 +49,6 @@ local message_formats = {
 }
 
 local function get_message_format(warning)
-   if warning.invalid then
-      return "invalid inline option"
-   elseif warning.unpaired then
-      return "unpaired inline option"
-   end
-
    local message_format = message_formats[warning.code]
 
    if type(message_format) == "function" then
@@ -101,20 +99,43 @@ local function capitalize(str)
    return str:gsub("^.", string.upper)
 end
 
-local function error_type(file_report)
-   return capitalize(file_report.error) .. " error"
+local function fatal_type(file_report)
+   return capitalize(file_report.fatal) .. " error"
+end
+
+local function count_warnings_errors(events)
+   local warnings, errors = 0, 0
+
+   for _, event in ipairs(events) do
+      if event.code:sub(1, 1) == "0" then
+         errors = errors + 1
+      else
+         warnings = warnings + 1
+      end
+   end
+
+   return warnings, errors
 end
 
 local function format_file_report_header(report, file_name, _, color)
    local label = "Checking " .. file_name
    local status
 
-   if report.error then
-      status = format_color(error_type(report), color, "bright")
+   if report.fatal then
+      status = format_color(fatal_type(report), color, "bright")
    elseif #report == 0 then
       status = format_color("OK", color, "bright", "green")
    else
-      status = format_color("Failure", color, "bright", "red")
+      local warnings, errors = count_warnings_errors(report)
+
+      if warnings > 0 then
+         status = format_color(tostring(warnings).." warning"..plural(warnings), color, "bright", "red")
+      end
+
+      if errors > 0 then
+         status = status and (status.." / ") or ""
+         status = status..(format_color(tostring(errors).." error"..plural(errors), color, "bright"))
+      end
    end
 
    return label .. (" "):rep(math.max(50 - #label, 1)) .. status
@@ -124,33 +145,29 @@ local function format_location(file, location)
    return ("%s:%d:%d"):format(file, location.line, location.column)
 end
 
-local function format_warning(file_name, warning, codes, color)
-   local message_format = get_message_format(warning)
-   local message = message_format:format(warning.name and format_name(warning.name, color), warning.prev_line)
-
-   if warning.code and codes then
-      message = ("(W%s) %s"):format(warning.code, message)
-   end
-
-   return format_location(file_name, warning) .. ": " .. message
+local function event_code(event)
+   return (event.code:sub(1, 1) == "0" and "E" or "W")..event.code
 end
 
-local function format_error_msg(file_name, error_report)
-   return format_location(file_name, error_report) .. ": " .. error_report.msg
+local function format_event(file_name, event, codes, color)
+   local message_format = get_message_format(event)
+   local message = message_format:format(event.name and format_name(event.name, color), event.prev_line)
+
+   if codes then
+      message = ("(%s) %s"):format(event_code(event), message)
+   end
+
+   return format_location(file_name, event) .. ": " .. message
 end
 
 local function format_file_report(report, file_name, codes, color)
    local buf = {format_file_report_header(report, file_name, codes, color)}
 
-   if report.msg or #report > 0 then
+   if #report > 0 then
       table.insert(buf, "")
 
-      for _, warning in ipairs(report) do
-         table.insert(buf, "    " .. format_warning(file_name, warning, codes, color))
-      end
-
-      if report.msg then
-         table.insert(buf, "    " .. format_error_msg(file_name, report))
+      for _, event in ipairs(report) do
+         table.insert(buf, "    " .. format_event(file_name, event, codes, color))
       end
 
       table.insert(buf, "")
@@ -166,7 +183,7 @@ function formatters.default(report, file_names, codes, quiet, color)
 
    if quiet <= 2 then
       for i, file_report in ipairs(report) do
-         if quiet == 0 or file_report.error or #file_report > 0 then
+         if quiet == 0 or file_report.fatal or #file_report > 0 then
             table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
                file_report, file_names[i], codes, color))
          end
@@ -177,12 +194,17 @@ function formatters.default(report, file_names, codes, quiet, color)
       end
    end
 
-   table.insert(buf, ("Total: %s warning%s / %s error%s in %d file%s"):format(
+   local total = ("Total: %s warning%s / %s error%s in %d file%s"):format(
       format_number(report.warnings, color), plural(report.warnings),
       format_number(report.errors, color), plural(report.errors),
-      #report, plural(#report)
-   ))
+      #report - report.fatals, plural(#report - report.fatals))
 
+   if report.fatals > 0 then
+      total = total..(", couldn't check %s file%s"):format(
+         report.fatals, plural(report.fatals))
+   end
+
+   table.insert(buf, total)
    return table.concat(buf, "\n")
 end
 
@@ -190,17 +212,13 @@ function formatters.TAP(report, file_names, codes)
    local buf = {}
 
    for i, file_report in ipairs(report) do
-      if file_report.error then
-         if file_report.msg then
-            table.insert(buf, ("not ok %d %s"):format(#buf + 1, format_error_msg(file_names[i], file_report)))
-         else
-            table.insert(buf, ("not ok %d %s: %s error"):format(#buf + 1, file_names[i], error_type(file_report)))
-         end
+      if file_report.fatal then
+         table.insert(buf, ("not ok %d %s: %s"):format(#buf + 1, file_names[i], fatal_type(file_report)))
       elseif #file_report == 0 then
          table.insert(buf, ("ok %d %s"):format(#buf + 1, file_names[i]))
       else
          for _, warning in ipairs(file_report) do
-            table.insert(buf, ("not ok %d %s"):format(#buf + 1, format_warning(file_names[i], warning, codes)))
+            table.insert(buf, ("not ok %d %s"):format(#buf + 1, format_event(file_names[i], warning, codes)))
          end
       end
    end
@@ -214,7 +232,7 @@ function formatters.JUnit(report, file_names)
    local num_testcases = 0
 
    for _, file_report in ipairs(report) do
-      if file_report.error or #file_report == 0 then
+      if file_report.fatal or #file_report == 0 then
          num_testcases = num_testcases + 1
       else
          num_testcases = num_testcases + #file_report
@@ -224,25 +242,17 @@ function formatters.JUnit(report, file_names)
    table.insert(buf, ([[<testsuite name="Luacheck report" tests="%d">]]):format(num_testcases))
 
    for file_i, file_report in ipairs(report) do
-      if file_report.error then
+      if file_report.fatal then
          table.insert(buf, ([[    <testcase name="%s" classname="%s">]]):format(file_names[file_i], file_names[file_i]))
-
-         if file_report.msg then
-            table.insert(buf, ([[        <error type="%s" message="%s"/>]]):format(
-               error_type(file_report), format_error_msg(file_names[file_i], file_report)))
-         else
-            table.insert(buf, ([[        <error type="%s"/>]]):format(error_type(file_report)))
-         end
-
+         table.insert(buf, ([[        <error type="%s"/>]]):format(fatal_type(file_report)))
          table.insert(buf, [[    </testcase>]])
       elseif #file_report == 0 then
          table.insert(buf, ([[    <testcase name="%s" classname="%s"/>]]):format(file_names[file_i], file_names[file_i]))
       else
-         for warning_i, warning in ipairs(file_report) do
-            local warning_type = warning.code and ("W" .. warning.code) or "Inline option"
-            table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(file_names[file_i], warning_i, file_names[file_i]))
+         for event_i, event in ipairs(file_report) do
+            table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(file_names[file_i], event_i, file_names[file_i]))
             table.insert(buf, ([[        <failure type="%s" message="%s"/>]]):format(
-               warning_type, format_warning(file_names[file_i], warning)))
+               event_code(event), format_event(file_names[file_i], event)))
             table.insert(buf, [[    </testcase>]])
          end
       end
@@ -256,15 +266,11 @@ function formatters.plain(report, file_names, codes)
    local buf = {}
 
    for i, file_report in ipairs(report) do
-      if file_report.error then
-         if file_report.msg then
-            table.insert(buf, format_error_msg(file_names[i], file_report))
-         else
-            table.insert(buf, ("%s: %s error"):format(file_names[i], error_type(file_report)))
-         end
+      if file_report.fatal then
+         table.insert(buf, ("%s: %s"):format(file_names[i], fatal_type(file_report)))
       else
-         for _, warning in ipairs(file_report) do
-            table.insert(buf, format_warning(file_names[i], warning, codes))
+         for _, event in ipairs(file_report) do
+            table.insert(buf, format_event(file_names[i], event, codes))
          end
       end
    end

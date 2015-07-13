@@ -6,22 +6,23 @@ end
 
 describe("format", function()
    it("returns formatted report", function()
-      assert.equal([[Checking stdin                                    Failure
+      assert.equal([[Checking stdin                                    1 warning
 
     stdin:2:7: unused global variable foo
 
-Checking foo.lua                                  Failure
+Checking foo.lua                                  1 warning
 
     foo.lua:2:7: unused global variable foo
 
 Checking bar.lua                                  OK
-Checking baz.lua                                  Syntax error
+Checking baz.lua                                  1 error
 
     baz.lua:4:3: something went wrong
 
 Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    warnings = 2,
    errors = 1,
+   fatals = 0,
    {
       {
          code = "131",
@@ -40,29 +41,32 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {},
    {
-      error = "syntax",
-      line = 4,
-      column = 3,
-      offset = 20,
-      msg = "something went wrong"
+      {
+         code = "011",
+         line = 4,
+         column = 3,
+         msg = "something went wrong"
+      }
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {})))
    end)
 
    it("does not output OK messages with options.quiet >= 1", function()
-      assert.equal([[Checking stdin                                    Failure
+      assert.equal([[Checking stdin                                    1 warning
 
     stdin:2:7: unused global variable foo
 
-Checking foo.lua                                  Failure
+Checking foo.lua                                  1 warning / 1 error
 
     foo.lua:2:7: unused global variable foo
+    foo.lua:3:10: invalid inline option
 
 Checking baz.lua                                  Syntax error
 
-Total: 2 warnings / 1 error in 4 files]], remove_color(format({
+Total: 2 warnings / 1 error in 3 files, couldn't check 1 file]], remove_color(format({
    warnings = 2,
    errors = 1,
+   fatals = 1,
    {
       {
          code = "131",
@@ -77,23 +81,29 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
          name = "foo",
          line = 2,
          column = 7
+      },
+      {
+         code = "021",
+         line = 3,
+         column = 10
       }
    },
    {},
    {
-      error = "syntax"
+      fatal = "syntax"
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {quiet = 1})))
    end)
 
    it("does not output warnings with options.quiet >= 2", function()
-      assert.equal([[Checking stdin                                    Failure
-Checking foo.lua                                  Failure
+      assert.equal([[Checking stdin                                    1 warning
+Checking foo.lua                                  1 warning
 Checking baz.lua                                  Syntax error
 
-Total: 2 warnings / 1 error in 4 files]], remove_color(format({
+Total: 2 warnings / 0 errors in 3 files, couldn't check 1 file]], remove_color(format({
    warnings = 2,
-   errors = 1,
+   errors = 0,
+   fatals = 1,
    {
       {
          code = "131",
@@ -112,15 +122,16 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {},
    {
-      error = "syntax"
+      fatal = "syntax"
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {quiet = 2})))
    end)
 
    it("does not output file info with options.quiet == 3", function()
-      assert.equal("Total: 2 warnings / 1 error in 4 files", remove_color(format({
+      assert.equal("Total: 2 warnings / 0 errors in 3 files, couldn't check 1 file", remove_color(format({
    warnings = 2,
-   errors = 1,
+   errors = 0,
+   fatals = 1,
    {
       {
          code = "131",
@@ -139,26 +150,27 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {},
    {
-      error = "syntax"
+      fatal = "syntax"
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {quiet = 3})))
    end)
 
    it("does not color output if options.color == false", function()
-      assert.equal([[Checking stdin                                    Failure
+      assert.equal([[Checking stdin                                    1 warning
 
     stdin:2:7: unused global variable 'foo'
 
-Checking foo.lua                                  Failure
+Checking foo.lua                                  1 warning
 
     foo.lua:2:7: unused global variable 'foo'
 
 Checking bar.lua                                  OK
 Checking baz.lua                                  Syntax error
 
-Total: 2 warnings / 1 error in 4 files]], format({
+Total: 2 warnings / 0 errors in 3 files, couldn't check 1 file]], format({
    warnings = 2,
-   errors = 1,
+   errors = 0,
+   fatals = 1,
    {
       {
          code = "131",
@@ -177,7 +189,7 @@ Total: 2 warnings / 1 error in 4 files]], format({
    },
    {},
    {
-      error = "syntax"
+      fatal = "syntax"
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {color = false}))
    end)

@@ -154,10 +154,7 @@ function ChState:warn_empty_block(location, do_end)
    })
 end
 
---- Checks source.
--- Returns an array of warnings.
--- Raises {line = line, column = column, offset = offset, msg = msg} on syntax errors.
-local function check(src)
+local function check_or_throw(src)
    local ast, comments, code_lines = parse(src)
    local chstate = ChState()
    local line = linearize(chstate, ast)
@@ -166,6 +163,26 @@ local function check(src)
    handle_inline_options(ast, comments, code_lines, chstate.warnings)
    core_utils.sort_by_location(chstate.warnings)
    return chstate.warnings
+end
+
+--- Checks source.
+-- Returns an array of warnings and errors. Codes for errors start with "0".
+-- Syntax errors (with code "011") have message stored in .msg field.
+local function check(src)
+   local warnings, err = utils.pcall(check_or_throw, src)
+
+   if warnings then
+      return warnings
+   else
+      local syntax_error = {
+         code = "011",
+         line = err.line,
+         column = err.column,
+         msg = err.msg
+      }
+
+      return {syntax_error}
+   end
 end
 
 return check
