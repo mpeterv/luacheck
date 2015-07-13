@@ -7,7 +7,7 @@ describe("check", function()
 
    it("does not find anything wrong in used locals", function()
       assert.same({
-         {code = "113", name = "print", line = 5, column = 4}
+         {code = "113", name = "print", line = 5, column = 4, end_column = 8}
       }, check[[
 local a
 local b = 5
@@ -20,7 +20,7 @@ end
 
    it("detects global set", function()
       assert.same({
-         {code = "111", name = "foo", line = 1, column = 1, top = true}
+         {code = "111", name = "foo", line = 1, column = 1, end_column = 3, top = true}
       }, check[[
 foo = {}
       ]])
@@ -28,7 +28,7 @@ foo = {}
 
    it("detects global set in nested functions", function()
       assert.same({
-         {code = "111", name = "foo", line = 2, column = 4}
+         {code = "111", name = "foo", line = 2, column = 4, end_column = 6}
       }, check[[
 local function bar()
    foo = {}
@@ -39,9 +39,9 @@ bar()
 
    it("detects global access in multi-assignments", function()
       assert.same({
-         {code = "532", line = 2, column = 1},
-         {code = "111", name = "y", line = 2, column = 4, top = true},
-         {code = "113", name = "print", line = 3, column = 1}
+         {code = "111", name = "y", line = 2, column = 4, end_column = 4, top = true},
+         {code = "532", line = 2, column = 6, end_column = 6},
+         {code = "113", name = "print", line = 3, column = 1, end_column = 5}
       }, check[[
 local x
 x, y = 1
@@ -51,8 +51,8 @@ print(x)
 
    it("detects global access in self swap", function()
       assert.same({
-         {code = "113", name = "a", line = 1, column = 11},
-         {code = "113", name = "print", line = 2, column = 1}
+         {code = "113", name = "a", line = 1, column = 11, end_column = 11},
+         {code = "113", name = "print", line = 2, column = 1, end_column = 5}
       }, check[[
 local a = a
 print(a)
@@ -61,7 +61,7 @@ print(a)
 
    it("detects global mutation", function()
       assert.same({
-         {code = "112", name = "a", line = 1, column = 1}
+         {code = "112", name = "a", line = 1, column = 1, end_column = 1}
       }, check[[
 a[1] = 6
       ]])
@@ -69,8 +69,8 @@ a[1] = 6
 
    it("detects unused locals", function()
       assert.same({
-         {code = "211", name = "a", line = 1, column = 7},
-         {code = "113", name = "print", line = 5, column = 4}
+         {code = "211", name = "a", line = 1, column = 7, end_column = 7},
+         {code = "113", name = "print", line = 5, column = 4, end_column = 8}
       }, check[[
 local a = 4
 
@@ -83,7 +83,7 @@ end
 
    it("detects unused locals from function arguments", function()
       assert.same({
-         {code = "212", name = "foo", line = 1, column = 17}
+         {code = "212", name = "foo", line = 1, column = 17, end_column = 19}
       }, check[[
 return function(foo, ...)
    return ...
@@ -93,7 +93,7 @@ end
 
    it("detects unused implicit self", function()
       assert.same({
-         {code = "212", name = "self", self = true, line = 2, column = 11}
+         {code = "212", name = "self", self = true, line = 2, column = 11, end_column = 11}
       }, check[[
 local a = {}
 function a:b()
@@ -104,9 +104,9 @@ end
 
    it("detects unused locals from loops", function()
       assert.same({
-         {code = "213", name = "i", line = 1, column = 5},
-         {code = "213", name = "i", line = 2, column = 5},
-         {code = "113", name = "pairs", line = 2, column = 10}
+         {code = "213", name = "i", line = 1, column = 5, end_column = 5},
+         {code = "213", name = "i", line = 2, column = 5, end_column = 5},
+         {code = "113", name = "pairs", line = 2, column = 10, end_column = 14}
       }, check[[
 for i=1, 2 do end
 for i in pairs{} do end
@@ -115,9 +115,9 @@ for i in pairs{} do end
 
    it("detects unused values", function()
       assert.same({
-         {code = "311", name = "a", line = 3, column = 4},
-         {code = "311", name = "a", line = 5, column = 4},
-         {code = "113", name = "print", line = 9, column = 1}
+         {code = "311", name = "a", line = 3, column = 4, end_column = 4},
+         {code = "311", name = "a", line = 5, column = 4, end_column = 4},
+         {code = "113", name = "print", line = 9, column = 1, end_column = 5}
       }, check[[
 local a
 if true then
@@ -133,7 +133,7 @@ print(a)
 
    it("does not detect unused value when it and a closure using it can live together", function()
       assert.same({
-         {code = "113", name = "escape", line = 3, column = 4}
+         {code = "113", name = "escape", line = 3, column = 4, end_column = 9}
       }, check[[
 local a = 3
 if true then
@@ -162,7 +162,7 @@ return a, b
 
    it("considers a variable initialized if short rhs ends with potential multivalue", function()
       assert.same({
-         {code = "311", name = "b", line = 2, column = 13, secondary = true}
+         {code = "311", name = "b", line = 2, column = 13, end_column = 13, secondary = true}
       }, check[[
 return function(...)
    local a, b = ...
@@ -174,7 +174,7 @@ end
 
    it("reports unused variable as secondary if it is assigned together with a used one", function()
       assert.same({
-         {code = "211", name = "a", line = 2, column = 10, secondary = true}
+         {code = "211", name = "a", line = 2, column = 10, end_column = 10, secondary = true}
       }, check[[
 return function(f)
    local a, b = f()
@@ -185,7 +185,7 @@ end
 
    it("reports unused value as secondary if it is assigned together with a used one", function()
       assert.same({
-         {code = "231", name = "a", line = 2, column = 10, secondary = true}
+         {code = "231", name = "a", line = 2, column = 10, end_column = 10, secondary = true}
       }, check[[
 return function(f)
    local a, b
@@ -195,7 +195,7 @@ end
       ]])
 
       assert.same({
-         {code = "231", name = "a", line = 2, column = 10, secondary = true}
+         {code = "231", name = "a", line = 2, column = 10, end_column = 10, secondary = true}
       }, check[[
 return function(f, t)
    local a
@@ -206,9 +206,9 @@ end
 
    it("considers a variable assigned even if it can't get a value due to short rhs (it still gets nil)", function()
       assert.same({
-         {code = "311", name = "a", line = 1, column = 7},
-         {code = "311", name = "b", line = 1, column = 10},
-         {code = "532", line = 2, column = 1}
+         {code = "311", name = "a", line = 1, column = 7, end_column = 7},
+         {code = "311", name = "b", line = 1, column = 10, end_column = 10},
+         {code = "532", line = 2, column = 6, end_column = 6}
       }, check[[
 local a, b = "foo", "bar"
 a, b = "bar"
@@ -218,8 +218,8 @@ return a, b
 
    it("reports vartype == var when the unused value is not the initial", function()
       assert.same({
-         {code = "312", name = "b", line = 1, column = 23},
-         {code = "311", name = "a", line = 2, column = 4}
+         {code = "312", name = "b", line = 1, column = 23, end_column = 23},
+         {code = "311", name = "a", line = 2, column = 4, end_column = 4}
       }, check[[
 local function foo(a, b)
    a = a or "default"
@@ -234,8 +234,8 @@ return foo
 
    it("does not detect unused values in loops", function()
       assert.same({
-         {code = "113", name = "print", line = 3, column = 4},
-         {code = "113", name = "math", line = 4, column = 8}
+         {code = "113", name = "print", line = 3, column = 4, end_column = 8},
+         {code = "113", name = "math", line = 4, column = 8, end_column = 11}
       }, check[[
 local a = 10
 while a > 0 do
@@ -247,9 +247,9 @@ end
 
    it("detects redefinition in the same scope", function()
       assert.same({
-         {code = "211", name = "foo", line = 1, column = 7},
-         {code = "411", name = "foo", line = 2, column = 7, prev_line = 1, prev_column = 7},
-         {code = "113", name = "print", line = 3, column = 1}
+         {code = "211", name = "foo", line = 1, column = 7, end_column = 9},
+         {code = "411", name = "foo", line = 2, column = 7, end_column = 9, prev_line = 1, prev_column = 7},
+         {code = "113", name = "print", line = 3, column = 1, end_column = 5}
       }, check[[
 local foo
 local foo = "bar"
@@ -259,9 +259,9 @@ print(foo)
 
    it("detects redefinition of function arguments", function()
       assert.same({
-         {code = "212", name = "foo", line = 1, column = 17},
-         {code = "212", name = "...", line = 1, column = 22},
-         {code = "412", name = "foo", line = 2, column = 10, prev_line = 1, prev_column = 17}
+         {code = "212", name = "foo", line = 1, column = 17, end_column = 19},
+         {code = "212", name = "...", line = 1, column = 22, end_column = 24},
+         {code = "412", name = "foo", line = 2, column = 10, end_column = 12, prev_line = 1, prev_column = 17}
       }, check[[
 return function(foo, ...)
    local foo = 1
@@ -272,10 +272,10 @@ end
 
    it("marks redefinition of implicit self", function()
       assert.same({
-         {code = "112", name = "t", line = 1, column = 10},
-         {code = "212", name = "self", line = 1, column = 11, self = true},
-         {code = "212", name = "self", line = 3, column = 14, self = true},
-         {code = "432", name = "self", line = 3, column = 14, self = true, prev_line = 1, prev_column = 11}
+         {code = "112", name = "t", line = 1, column = 10, end_column = 10},
+         {code = "212", name = "self", line = 1, column = 11, end_column = 11, self = true},
+         {code = "212", name = "self", line = 3, column = 14, end_column = 14, self = true},
+         {code = "432", name = "self", line = 3, column = 14, end_column = 14, self = true, prev_line = 1, prev_column = 11}
       }, check[[
 function t:f()
    local o = {}
@@ -284,10 +284,10 @@ end
       ]])
 
       assert.same({
-         {code = "112", name = "t", line = 1, column = 10},
-         {code = "212", name = "self", line = 1, column = 14},
-         {code = "212", name = "self", line = 3, column = 14, self = true},
-         {code = "432", name = "self", line = 3, column = 14, prev_line = 1, prev_column = 14}
+         {code = "112", name = "t", line = 1, column = 10, end_column = 10},
+         {code = "212", name = "self", line = 1, column = 14, end_column = 17},
+         {code = "212", name = "self", line = 3, column = 14, end_column = 14, self = true},
+         {code = "432", name = "self", line = 3, column = 14, end_column = 14, prev_line = 1, prev_column = 14}
       }, check[[
 function t.f(self)
    local o = {}
@@ -296,10 +296,10 @@ end
       ]])
 
       assert.same({
-         {code = "112", name = "t", line = 1, column = 10},
-         {code = "212", name = "self", line = 1, column = 11, self = true},
-         {code = "212", name = "self", line = 3, column = 17},
-         {code = "432", name = "self", line = 3, column = 17, prev_line = 1, prev_column = 11}
+         {code = "112", name = "t", line = 1, column = 10, end_column = 10},
+         {code = "212", name = "self", line = 1, column = 11, end_column = 11, self = true},
+         {code = "212", name = "self", line = 3, column = 17, end_column = 20},
+         {code = "432", name = "self", line = 3, column = 17, end_column = 20, prev_line = 1, prev_column = 11}
       }, check[[
 function t:f()
    local o = {}
@@ -310,8 +310,8 @@ end
 
    it("detects shadowing definitions", function()
       assert.same({
-         {code = "431", name = "a", line = 4, column = 10, prev_line = 1, prev_column = 7},
-         {code = "421", name = "a", line = 7, column = 13, prev_line = 4, prev_column = 10}
+         {code = "431", name = "a", line = 4, column = 10, end_column = 10, prev_line = 1, prev_column = 7},
+         {code = "421", name = "a", line = 7, column = 13, end_column = 13, prev_line = 4, prev_column = 10}
       }, check[[
 local a = 46
 
@@ -330,7 +330,7 @@ end
 
    it("detects unset variables", function()
       assert.same({
-         {code = "221", name = "a", line = 1, column = 7}
+         {code = "221", name = "a", line = 1, column = 7, end_column = 7}
       }, check[[
 local a
 return a
@@ -339,7 +339,7 @@ return a
 
    it("detects unused labels", function()
       assert.same({
-         {code = "521", name = "fail", line = 2, column = 4}
+         {code = "521", name = "fail", line = 2, column = 4, end_column = 11}
       }, check[[
 ::fail::
 do ::fail:: end
@@ -349,7 +349,7 @@ goto fail
 
    it("detects unreachable code", function()
       assert.same({
-         {code = "511", line = 2, column = 1}
+         {code = "511", line = 2, column = 1, end_column = 2}
       }, check[[
 do return end
 if true then return 6 end
@@ -357,8 +357,8 @@ return 3
       ]])
 
       assert.same({
-         {code = "511", line = 7, column = 1},
-         {code = "511", line = 13, column = 1}
+         {code = "511", line = 7, column = 1, end_column = 2},
+         {code = "511", line = 13, column = 1, end_column = 6}
       }, check[[
 if false then
    return 4
@@ -378,8 +378,8 @@ return 3
 
    it("detects accessing uninitialized variables", function()
       assert.same({
-         {code = "113", name = "get", line = 6, column = 8},
-         {code = "321", name = "a", line = 6, column = 12}
+         {code = "113", name = "get", line = 6, column = 8, end_column = 10},
+         {code = "321", name = "a", line = 6, column = 12, end_column = 12}
       }, check[[
 local a
 
@@ -395,7 +395,7 @@ return a
 
    it("does not detect accessing unitialized variables incorrectly in loops", function()
       assert.same({
-         {code = "113", name = "get", line = 4, column = 8}
+         {code = "113", name = "get", line = 4, column = 8, end_column = 10}
       }, check[[
 local a
 
@@ -409,8 +409,8 @@ return a
 
    it("detects unbalanced assignments", function()
       assert.same({
-         {code = "532", line = 4, column = 1},
-         {code = "531", line = 5, column = 1}
+         {code = "532", line = 4, column = 6, end_column = 6},
+         {code = "531", line = 5, column = 6, end_column = 6}
       }, check[[
 local a, b = 4; (...)(a)
 
@@ -422,10 +422,10 @@ a, b = 1, 2, 3; (...)(a, b)
 
    it("detects empty blocks", function()
       assert.same({
-         {code = "541", line = 1, column = 1},
-         {code = "542", line = 3, column = 9},
-         {code = "542", line = 5, column = 14},
-         {code = "542", line = 7, column = 1}
+         {code = "541", line = 1, column = 1, end_column = 2},
+         {code = "542", line = 3, column = 9, end_column = 12},
+         {code = "542", line = 5, column = 14, end_column = 17},
+         {code = "542", line = 7, column = 1, end_column = 4}
       }, check[[
 do end
 

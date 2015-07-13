@@ -36,7 +36,7 @@ function reachability(chstate, line)
    for i, item in ipairs(line.items) do
       if not reachable_indexes[i] then
          if item.location then
-            chstate:warn_unreachable(item.location, item.loop_end)
+            chstate:warn_unreachable(item.location, item.loop_end, item.token)
             core_utils.walk_line(line, reachable_indexes, i, noop_callback)
          end
       end

@@ -463,8 +463,8 @@ Checking spec/samples/bad_flow.lua                6 warnings
 
     spec/samples/bad_flow.lua:1:28: empty if branch
     spec/samples/bad_flow.lua:6:4: empty do..end block
-    spec/samples/bad_flow.lua:12:10: left-hand side of assignment is too long
-    spec/samples/bad_flow.lua:16:10: left-hand side of assignment is too short
+    spec/samples/bad_flow.lua:12:15: left-hand side of assignment is too long
+    spec/samples/bad_flow.lua:16:15: left-hand side of assignment is too short
     spec/samples/bad_flow.lua:21:7: unreachable code
     spec/samples/bad_flow.lua:25:1: loop is executed at most once
 

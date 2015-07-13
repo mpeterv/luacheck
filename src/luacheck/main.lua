@@ -146,7 +146,7 @@ Otherwise, the pattern matches warning code.]])
          :count "0-3"
 
       parser:flag("--codes", "Show warning codes.")
-
+      parser:flag("--ranges", "Show ranges of columns related to warnings.")
       parser:flag("--no-color", "Do not color output.")
 
       parser:flag("-v --version", "Show version info and exit.")

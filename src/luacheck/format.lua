@@ -117,24 +117,24 @@ local function count_warnings_errors(events)
    return warnings, errors
 end
 
-local function format_file_report_header(report, file_name, _, color)
+local function format_file_report_header(report, file_name, opts)
    local label = "Checking " .. file_name
    local status
 
    if report.fatal then
-      status = format_color(fatal_type(report), color, "bright")
+      status = format_color(fatal_type(report), opts.color, "bright")
    elseif #report == 0 then
-      status = format_color("OK", color, "bright", "green")
+      status = format_color("OK", opts.color, "bright", "green")
    else
       local warnings, errors = count_warnings_errors(report)
 
       if warnings > 0 then
-         status = format_color(tostring(warnings).." warning"..plural(warnings), color, "bright", "red")
+         status = format_color(tostring(warnings).." warning"..plural(warnings), opts.color, "bright", "red")
       end
 
       if errors > 0 then
          status = status and (status.." / ") or ""
-         status = status..(format_color(tostring(errors).." error"..plural(errors), color, "bright"))
+         status = status..(format_color(tostring(errors).." error"..plural(errors), opts.color, "bright"))
       end
    end
 
@@ -149,25 +149,25 @@ local function event_code(event)
    return (event.code:sub(1, 1) == "0" and "E" or "W")..event.code
 end
 
-local function format_event(file_name, event, codes, color)
+local function format_event(file_name, event, opts)
    local message_format = get_message_format(event)
-   local message = message_format:format(event.name and format_name(event.name, color), event.prev_line)
+   local message = message_format:format(event.name and format_name(event.name, opts.color), event.prev_line)
 
-   if codes then
+   if opts.codes then
       message = ("(%s) %s"):format(event_code(event), message)
    end
 
    return format_location(file_name, event) .. ": " .. message
 end
 
-local function format_file_report(report, file_name, codes, color)
-   local buf = {format_file_report_header(report, file_name, codes, color)}
+local function format_file_report(report, file_name, opts)
+   local buf = {format_file_report_header(report, file_name, opts)}
 
    if #report > 0 then
       table.insert(buf, "")
 
       for _, event in ipairs(report) do
-         table.insert(buf, "    " .. format_event(file_name, event, codes, color))
+         table.insert(buf, "    " .. format_event(file_name, event, opts))
       end
 
       table.insert(buf, "")
@@ -178,14 +178,14 @@ end
 
 local formatters = {}
 
-function formatters.default(report, file_names, codes, quiet, color)
+function formatters.default(report, file_names, opts)
    local buf = {}
 
-   if quiet <= 2 then
+   if opts.quiet <= 2 then
       for i, file_report in ipairs(report) do
-         if quiet == 0 or file_report.fatal or #file_report > 0 then
-            table.insert(buf, (quiet == 2 and format_file_report_header or format_file_report) (
-               file_report, file_names[i], codes, color))
+         if opts.quiet == 0 or file_report.fatal or #file_report > 0 then
+            table.insert(buf, (opts.quiet == 2 and format_file_report_header or format_file_report) (
+               file_report, file_names[i], opts))
          end
       end
 
@@ -195,8 +195,8 @@ function formatters.default(report, file_names, codes, quiet, color)
    end
 
    local total = ("Total: %s warning%s / %s error%s in %d file%s"):format(
-      format_number(report.warnings, color), plural(report.warnings),
-      format_number(report.errors, color), plural(report.errors),
+      format_number(report.warnings, opts.color), plural(report.warnings),
+      format_number(report.errors, opts.color), plural(report.errors),
       #report - report.fatals, plural(#report - report.fatals))
 
    if report.fatals > 0 then
@@ -208,7 +208,8 @@ function formatters.default(report, file_names, codes, quiet, color)
    return table.concat(buf, "\n")
 end
 
-function formatters.TAP(report, file_names, codes)
+function formatters.TAP(report, file_names, opts)
+   opts.color = false
    local buf = {}
 
    for i, file_report in ipairs(report) do
@@ -218,7 +219,7 @@ function formatters.TAP(report, file_names, codes)
          table.insert(buf, ("ok %d %s"):format(#buf + 1, file_names[i]))
       else
          for _, warning in ipairs(file_report) do
-            table.insert(buf, ("not ok %d %s"):format(#buf + 1, format_event(file_names[i], warning, codes)))
+            table.insert(buf, ("not ok %d %s"):format(#buf + 1, format_event(file_names[i], warning, opts)))
          end
       end
    end
@@ -228,6 +229,8 @@ function formatters.TAP(report, file_names, codes)
 end
 
 function formatters.JUnit(report, file_names)
+   -- JUnit formatter doesn't support any options.
+   local opts = {}
    local buf = {[[<?xml version="1.0" encoding="UTF-8"?>]]}
    local num_testcases = 0
 
@@ -252,7 +255,7 @@ function formatters.JUnit(report, file_names)
          for event_i, event in ipairs(file_report) do
             table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(file_names[file_i], event_i, file_names[file_i]))
             table.insert(buf, ([[        <failure type="%s" message="%s"/>]]):format(
-               event_code(event), format_event(file_names[file_i], event)))
+               event_code(event), format_event(file_names[file_i], event, opts)))
             table.insert(buf, [[    </testcase>]])
          end
       end
@@ -262,7 +265,8 @@ function formatters.JUnit(report, file_names)
    return table.concat(buf, "\n")
 end
 
-function formatters.plain(report, file_names, codes)
+function formatters.plain(report, file_names, opts)
+   opts.color = false
    local buf = {}
 
    for i, file_report in ipairs(report) do
@@ -270,7 +274,7 @@ function formatters.plain(report, file_names, codes)
          table.insert(buf, ("%s: %s"):format(file_names[i], fatal_type(file_report)))
       else
          for _, event in ipairs(file_report) do
-            table.insert(buf, format_event(file_names[i], event, codes))
+            table.insert(buf, format_event(file_names[i], event, opts))
          end
       end
    end
@@ -284,11 +288,14 @@ end
 --    `options.quiet`: integer in range 0-3. See CLI. Default: 0.
 --    `options.color`: should use ansicolors? Default: true.
 --    `options.codes`: should output warning codes? Default: false.
+--    `options.ranges`: should output token end column? Default: false.
 local function format(report, file_names, options)
-   local quiet = options.quiet or 0
-   local color = (options.color ~= false) and color_support
-   local codes = options.codes
-   return formatters[options.formatter or "default"](report, file_names, codes, quiet, color)
+   return formatters[options.formatter or "default"](report, file_names, {
+      quiet = options.quiet or 0,
+      color = (options.color ~= false) and color_support,
+      codes = options.codes,
+      ranges = options.ranges
+   })
 end
 
 return format

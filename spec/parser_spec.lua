@@ -3,6 +3,9 @@ local parser = require "luacheck.parser"
 local function strip_locations(ast)
    ast.location = nil
    ast.end_location = nil
+   ast.end_column = nil
+   ast.equals_location = nil
+   ast.first_token = nil
 
    for i=1, #ast do
       if type(ast[i]) == "table" then
@@ -814,7 +817,7 @@ end
 
    it("provides correct location info", function()
       assert.same({
-                     {tag = "Localrec", location = {line = 1, column = 1, offset = 1},
+                     {tag = "Localrec", location = {line = 1, column = 1, offset = 1}, first_token = "local",
                         {tag = "Id", "foo", location = {line = 1, column = 16, offset = 16}},
                         {tag = "Function", location = {line = 1, column = 7, offset = 7},
                            end_location = {line = 4, column = 1, offset = 78},
@@ -825,7 +828,8 @@ end
                               {tag = "Dots", "...", location = {line = 1, column = 29, offset = 29}}
                            },
                            {
-                              {tag = "Local", location = {line = 2, column = 4, offset = 37},
+                              {tag = "Local", location = {line = 2, column = 4, offset = 37}, first_token = "local",
+                                 equals_location = {line = 2, column = 12, offset = 45},
                                  {
                                     {tag = "Id", "d", location = {line = 2, column = 10, offset = 43}}
                                  },
@@ -839,7 +843,7 @@ end
                                     }
                                  }
                               },
-                              {tag = "Return", location = {line = 3, column = 4, offset = 62},
+                              {tag = "Return", location = {line = 3, column = 4, offset = 62}, first_token = "return",
                                  {tag = "Id", "d", location = {line = 3, column = 11, offset = 69}},
                                  {tag = "Paren", location = {line = 3, column = 15, offset = 73},
                                     {tag = "Dots", "...", location = {line = 3, column = 15, offset = 73}}
@@ -848,7 +852,7 @@ end
                            }
                         }
                      },
-                     {tag = "Set", location = {line = 6, column = 1, offset = 83},
+                     {tag = "Set", location = {line = 6, column = 1, offset = 83}, first_token = "function",
                         {
                            {tag = "Index", location = {line = 6, column = 10, offset = 92},
                               {tag = "Id", "t", location = {line = 6, column = 10, offset = 92}},
@@ -863,10 +867,10 @@ end
                                  {tag = "Id", "arg", location = {line = 6, column = 16, offset = 98}}
                               },
                               {
-                                 {tag = "If", location = {line = 7, column = 4, offset = 106},
+                                 {tag = "If", location = {line = 7, column = 4, offset = 106}, first_token = "if",
                                     {tag = "Id", "arg", location = {line = 7, column = 7, offset = 109}},
                                     {location = {line = 7, column = 11, offset = 113}, -- Branch location.
-                                       {tag = "Call", location = {line = 8, column = 7, offset = 124},
+                                       {tag = "Call", location = {line = 8, column = 7, offset = 124}, first_token = "print",
                                           {tag = "Id", "print", location = {line = 8, column = 7, offset = 124}},
                                           {tag = "Id", "arg", location = {line = 8, column = 13, offset = 130}}
                                        }

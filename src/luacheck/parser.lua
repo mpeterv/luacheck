@@ -544,20 +544,35 @@ statements["local"] = function(state)
       lhs[#lhs+1] = parse_id(state)
    until not test_and_skip_token(state, ",")
 
+   local equals_location = location(state)
+
    if test_and_skip_token(state, "=") then
       rhs = parse_expression_list(state)
    end
 
    -- According to Metalua spec, {lhs} should be returned if there is no rhs.
    -- Metalua does not follow the spec itself and returns {lhs, {}}.
-   return init_ast_node({lhs, rhs}, local_location, "Local")
+   return init_ast_node({lhs, rhs, equals_location = rhs and equals_location}, local_location, "Local")
 end
 
 statements["::"] = function(state)
    local ast_node = new_ast_node(state, "Label")
+   ast_node.end_column = ast_node.location.column + 1
    skip_token(state)  -- Skip "::".
    ast_node[1] = check_name(state)
+
+   if state.line == ast_node.location.line then
+      -- Label name on the same line as opening `::`, pull token end to name end.
+      ast_node.end_column = state.column + #state.token_value - 1
+   end
+
    skip_token(state)  -- Skip label name.
+
+   if state.line == ast_node.location.line then
+      -- Whole label is on one line, pull token end to closing `::` end.
+      ast_node.end_column = state.column + 1
+   end
+
    check_and_skip_token(state, "::")
    return ast_node
 end
@@ -614,9 +629,10 @@ local function parse_expression_statement(state)
       lhs[#lhs+1] = primary_expression
    until not test_and_skip_token(state, ",")
 
+   local equals_location = location(state)
    check_and_skip_token(state, "=")
    local rhs = parse_expression_list(state)
-   return init_ast_node({lhs, rhs}, lhs[1].location, "Set")
+   return init_ast_node({lhs, rhs, equals_location = equals_location}, lhs[1].location, "Set")
 end
 
 local function parse_statement(state)
@@ -632,7 +648,10 @@ function parse_block(state, loc)
       if first_token == ";" then
          skip_token(state)
       else
-         block[#block+1] = parse_statement(state)
+         first_token = state.token_value or first_token
+         local statement = parse_statement(state)
+         statement.first_token = first_token
+         block[#block+1] = statement
 
          if first_token == "return" then
             -- "return" must be the last statement.

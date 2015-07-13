@@ -1,5 +1,19 @@
 local luacheck = require "luacheck"
 
+local function strip_locations(report)
+   for _, file_report in ipairs(report) do
+      for _, event in ipairs(file_report) do
+         event.line = nil
+         event.column = nil
+         event.end_column = nil
+         event.prev_line = nil
+         event.prev_column = nil
+      end
+   end
+
+   return report
+end
+
 describe("luacheck", function()
    it("is an alias of luacheck.check_files", function()
       assert.same(luacheck.check_files({
@@ -34,7 +48,7 @@ describe("luacheck", function()
          warnings = 0,
          errors = 0,
          fatals = 0
-      }, luacheck({}))
+      }, strip_locations(luacheck({})))
    end)
 
    it("works on files", function()
@@ -44,54 +58,40 @@ describe("luacheck", function()
             {
                code = "211",
                name = "helper",
-               line = 3,
-               column = 16,
                func = true
             },
             {
                code = "212",
-               name = "...",
-               line = 3,
-               column = 23
+               name = "..."
             },
             {
                code = "111",
                name = "embrace",
-               line = 7,
-               column = 10,
                top = true
             },
             {
                code = "412",
-               name = "opt",
-               line = 8,
-               column = 10,
-               prev_line = 7,
-               prev_column = 18
+               name = "opt"
             },
             {
                code = "113",
-               name = "hepler",
-               line = 9,
-               column = 11
+               name = "hepler"
             }
          },
          {
             {
                code = "011",
-               line = 1,
-               column = 6,
                msg = "expected '=' near '__future__'"
             }
          },
          warnings = 5,
          errors = 1,
          fatals = 0
-      }, luacheck({
+      }, strip_locations(luacheck({
          "spec/samples/good_code.lua",
          "spec/samples/bad_code.lua",
          "spec/samples/python_code.lua"
-      }))
+      })))
    end)
 
    it("uses options", function()
@@ -101,43 +101,33 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               line = 7,
-               column = 10,
                top = true
             },
             {
                code = "412",
-               name = "opt",
-               line = 8,
-               column = 10,
-               prev_line = 7,
-               prev_column = 18
+               name = "opt"
             },
             {
                code = "113",
-               name = "hepler",
-               line = 9,
-               column = 11
+               name = "hepler"
             }
          },
          {
             {
                code = "011",
-               line = 1,
-               column = 6,
                msg = "expected '=' near '__future__'"
             }
          },
          warnings = 3,
          errors = 1,
          fatals = 0
-      }, luacheck({
+      }, strip_locations(luacheck({
          "spec/samples/good_code.lua",
          "spec/samples/bad_code.lua",
          "spec/samples/python_code.lua"
       }, {
          unused = false
-      }))
+      })))
    end)
 
    it("uses option overrides", function()
@@ -147,29 +137,23 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               line = 7,
-               column = 10,
                top = true
             },
             {
                code = "113",
-               name = "hepler",
-               line = 9,
-               column = 11
+               name = "hepler"
             }
          },
          {
             {
                code = "011",
-               line = 1,
-               column = 6,
                msg = "expected '=' near '__future__'"
             }
          },
          warnings = 2,
          errors = 1,
          fatals = 0
-      }, luacheck({
+      }, strip_locations(luacheck({
          "spec/samples/good_code.lua",
          "spec/samples/bad_code.lua",
          "spec/samples/python_code.lua"
@@ -181,7 +165,7 @@ describe("luacheck", function()
             redefined = false
          },
          global = false
-      }  ))
+      })))
    end)
 end)
 
@@ -215,23 +199,19 @@ describe("check_strings", function()
          {
             {
                code = "113",
-               name = "foo",
-               line = 1,
-               column = 8
+               name = "foo"
             }
          },
          {
             {
                code = "011",
-               line = 1,
-               column = 8,
                msg = "unexpected symbol near 'return'"
             }
          },
          warnings = 1,
          errors = 1,
          fatals = 0
-      }, luacheck.check_strings({"return foo", "return return"}))
+      }, strip_locations(luacheck.check_strings({"return foo", "return return"})))
    end)
 
    it("uses options", function()
@@ -240,15 +220,13 @@ describe("check_strings", function()
          {
             {
                code = "011",
-               line = 1,
-               column = 8,
                msg = "unexpected symbol near 'return'"
             }
          },
          warnings = 0,
          errors = 1,
          fatals = 0
-      }, luacheck.check_strings({"return foo", "return return"}, {ignore = {"113"}}))
+      }, strip_locations(luacheck.check_strings({"return foo", "return return"}, {ignore = {"113"}})))
    end)
 
    it("ignores tables with .fatal field", function()
@@ -256,9 +234,7 @@ describe("check_strings", function()
          {
             {
                code = "113",
-               name = "foo",
-               line = 1,
-               column = 8
+               name = "foo"
             }
          },
          {
@@ -267,7 +243,7 @@ describe("check_strings", function()
          warnings = 1,
          errors = 0,
          fatals = 1
-      }, luacheck.check_strings({"return foo", {fatal = "I/O"}}))
+      }, strip_locations(luacheck.check_strings({"return foo", {fatal = "I/O"}})))
    end)
 end)
 
@@ -282,9 +258,8 @@ describe("get_report", function()
    end)
 
    it("returns a table with single error event on syntax error", function()
-      local report = luacheck.get_report("return return")
-      assert.is_table(report)
-      assert.same({code = "011", line = 1, column = 8, msg = "unexpected symbol near 'return'"}, report[1])
+      local report = strip_locations({luacheck.get_report("return return")})[1]
+      assert.same({code = "011", msg = "unexpected symbol near 'return'"}, report[1])
    end)
 end)
 
@@ -308,16 +283,14 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo",
-               line = 1,
-               column = 8
+               name = "foo"
             }
          },
          {},
          warnings = 1,
          errors = 0,
          fatals = 0
-      }, luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")}))
+      }, strip_locations(luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")})))
    end)
 
    it("uses options", function()
@@ -325,24 +298,20 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo",
-               line = 1,
-               column = 8
+               name = "foo"
             }
          },
          {
             {
                code = "113",
-               name = "math",
-               line = 1,
-               column = 8
+               name = "math"
             }
          },
          warnings = 2,
          errors = 0,
          fatals = 0
-      }, luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")}, {
+      }, strip_locations(luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")}, {
          std = "none"
-      }))
+      })))
    end)
 end)
