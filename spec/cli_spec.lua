@@ -515,6 +515,29 @@ Total: 5 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/read_globals.lua --std=lua52 --globals foo --read-globals bar --codes --no-config")
    end)
 
+   it("allows showing token ranges", function()
+      assert.equal([[
+Checking spec/samples/inline_options.lua          8 warnings / 2 errors
+
+    spec/samples/inline_options.lua:6:16-16: unused function f
+    spec/samples/inline_options.lua:12:4-5: accessing undefined variable qu
+    spec/samples/inline_options.lua:15:1-3: accessing undefined variable baz
+    spec/samples/inline_options.lua:24:10-10: unused variable g
+    spec/samples/inline_options.lua:26:7-7: unused variable f
+    spec/samples/inline_options.lua:26:10-10: unused variable g
+    spec/samples/inline_options.lua:28:1-17: unpaired push directive
+    spec/samples/inline_options.lua:30:4-19: unpaired pop directive
+    spec/samples/inline_options.lua:36:1-2: empty do..end block
+    spec/samples/inline_options.lua:37:10-13: empty if branch
+
+Checking spec/samples/python_code.lua             1 error
+
+    spec/samples/python_code.lua:1:6-15: expected '=' near '__future__'
+
+Total: 8 warnings / 3 errors in 2 files
+]], get_output "spec/samples/inline_options.lua spec/samples/python_code.lua --ranges --no-config")
+   end)
+
    it("applies inline options", function()
       assert.equal([[
 Checking spec/samples/inline_options.lua          8 warnings / 2 errors

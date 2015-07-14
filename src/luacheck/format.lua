@@ -141,8 +141,14 @@ local function format_file_report_header(report, file_name, opts)
    return label .. (" "):rep(math.max(50 - #label, 1)) .. status
 end
 
-local function format_location(file, location)
-   return ("%s:%d:%d"):format(file, location.line, location.column)
+local function format_location(file, location, opts)
+   local res = ("%s:%d:%d"):format(file, location.line, location.column)
+
+   if opts.ranges then
+      res = ("%s-%d"):format(res, location.end_column)
+   end
+
+   return res
 end
 
 local function event_code(event)
@@ -157,7 +163,7 @@ local function format_event(file_name, event, opts)
       message = ("(%s) %s"):format(event_code(event), message)
    end
 
-   return format_location(file_name, event) .. ": " .. message
+   return format_location(file_name, event, opts) .. ": " .. message
 end
 
 local function format_file_report(report, file_name, opts)
