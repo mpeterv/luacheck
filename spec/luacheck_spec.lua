@@ -298,6 +298,75 @@ return f --[=[
 ]]}))
    end)
 
+   it("provides correct location info for syntax errors", function()
+      assert.same({
+         {
+            {
+               code = "011",
+               msg = "unfinished string",
+               line = 1,
+               column = 11,
+               end_column = 11
+            }
+         },
+         {
+            {
+               code = "011",
+               msg = "invalid hexadecimal escape sequence '\\x2'",
+               line = 1,
+               column = 15,
+               end_column = 17
+            }
+         },
+         {
+            {
+               code = "011",
+               msg = "expected 'then' near <eof>",
+               line = 1,
+               column = 9,
+               end_column = 9
+            }
+         },
+         {
+            {
+               code = "011",
+               msg = "label 'b' already defined on line 1",
+               line = 1,
+               column = 7,
+               end_column = 11
+            }
+         },
+         {
+            {
+               code = "011",
+               msg = "cannot use '...' outside a vararg function",
+               line = 1,
+               column = 15,
+               end_column = 17
+            }
+         },
+         {
+            {
+               code = "011",
+               msg = "'break' is not inside a loop",
+               line = 1,
+               column = 1,
+               end_column = 5
+            }
+         },
+         warnings = 0,
+         errors = 6,
+         fatals = 0
+      }, luacheck.check_strings({
+         [[local x = "foo]],
+         [[local x = "foo\x2]],
+         [[if true ]],
+         [[::b:: ::b::]],
+         [[function f() (...)() end]],
+         [[break it()]]
+         }))
+   end)
+
    it("uses options", function()
       assert.same({
          {},

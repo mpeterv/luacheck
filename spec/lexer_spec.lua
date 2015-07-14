@@ -21,8 +21,8 @@ local function get_token(source)
 end
 
 local function maybe_error(lexer_state)
-   local ok, err, line, column, offset = lexer.next_token(lexer_state)
-   return not ok and {msg = err, line = line, column = column, offset = offset}
+   local ok, err, line, column, _, end_column = lexer.next_token(lexer_state)
+   return not ok and {msg = err, line = line, column = column, end_column = end_column}
 end
 
 local function get_error(source)
@@ -134,17 +134,18 @@ bar"]]))
          assert.same({token = "string", token_value = "\0buffer exploit"}, get_token([["\0buffer exploit"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo b\97r"]]))
          assert.same({token = "string", token_value = "\1234"}, get_token([["\1234"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid decimal escape sequence '\\300'"}, get_error([["\300"]]))
+         assert.same({line = 1, column = 2, end_column = 5, msg = "invalid decimal escape sequence '\\300'"}, get_error([["\300"]]))
       end)
 
       it("parses hexadecimal escape sequences correctly", function()
          assert.same({token = "string", token_value = "\0buffer exploit"}, get_token([["\x00buffer exploit"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo\x20bar"]]))
          assert.same({token = "string", token_value = "jj"}, get_token([["\x6a\x6A"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid escape sequence '\\X'"}, get_error([["\XFF"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid hexadecimal escape sequence '\\x\"'"}, get_error([["\x"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid hexadecimal escape sequence '\\x1\"'"}, get_error([["\x1"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid hexadecimal escape sequence '\\xx'"}, get_error([["\xxx"]]))
+         assert.same({line = 1, column = 2, end_column = 3, msg = "invalid escape sequence '\\X'"}, get_error([["\XFF"]]))
+         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\x\"'"}, get_error([["\x"]]))
+         assert.same({line = 1, column = 2, end_column = 5, msg = "invalid hexadecimal escape sequence '\\x1\"'"}, get_error([["\x1"]]))
+         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\x1'"}, get_error([["\x1]]))
+         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\xx'"}, get_error([["\xxx"]]))
       end)
 
       it("parses utf-8 escape sequences correctly", function()
@@ -158,22 +159,22 @@ bar"]]))
             get_token([["\u{800}\u{FFFF}"]]))
          assert.same({token = "string", token_value = "\240\144\128\128\244\143\191\191"},
             get_token([["\u{10000}\u{10FFFF}"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid UTF-8 escape sequence '\\u{110000'"}, get_error([["\u{110000}"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid UTF-8 escape sequence '\\u\"'"}, get_error([["\u"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid UTF-8 escape sequence '\\un'"}, get_error([["\unrelated"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid UTF-8 escape sequence '\\u{11u'"}, get_error([["\u{11unrelated"]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid UTF-8 escape sequence '\\u{11'"}, get_error([["\u{11]]))
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid UTF-8 escape sequence '\\u{u'"}, get_error([["\u{unrelated}"]]))
+         assert.same({line = 1, column = 2, end_column = 10, msg = "invalid UTF-8 escape sequence '\\u{110000'"}, get_error([["\u{110000}"]]))
+         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\u\"'"}, get_error([["\u"]]))
+         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\un'"}, get_error([["\unrelated"]]))
+         assert.same({line = 1, column = 2, end_column = 7, msg = "invalid UTF-8 escape sequence '\\u{11u'"}, get_error([["\u{11unrelated"]]))
+         assert.same({line = 1, column = 2, end_column = 6, msg = "invalid UTF-8 escape sequence '\\u{11'"}, get_error([["\u{11]]))
+         assert.same({line = 1, column = 2, end_column = 5, msg = "invalid UTF-8 escape sequence '\\u{u'"}, get_error([["\u{unrelated}"]]))
       end)
 
       it("detects unknown escape sequences", function()
-         assert.same({line = 1, column = 2, offset = 2, msg = "invalid escape sequence '\\c'"}, get_error([["\c"]]))
+         assert.same({line = 1, column = 2, end_column = 3, msg = "invalid escape sequence '\\c'"}, get_error([["\c"]]))
       end)
 
       it("detects unfinished strings", function()
-         assert.same({line = 1, column = 1, offset = 1, msg = "unfinished string"}, get_error([["]]))
-         assert.same({line = 1, column = 1, offset = 1, msg = "unfinished string"}, get_error([["']]))
-         assert.same({line = 1, column = 1, offset = 1, msg = "unfinished string"}, get_error([["
+         assert.same({line = 1, column = 1, end_column = 1, msg = "unfinished string"}, get_error([["]]))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "unfinished string"}, get_error([["']]))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "unfinished string"}, get_error([["
 "]]))
       end)
    end)
@@ -200,13 +201,13 @@ bar"]]))
       end)
 
       it("detects invalid opening brackets", function()
-         assert.same({line = 1, column = 1, offset = 1, msg = "invalid long string delimiter"}, get_error("[="))
-         assert.same({line = 1, column = 1, offset = 1, msg = "invalid long string delimiter"}, get_error("[=|"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "invalid long string delimiter"}, get_error("[="))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "invalid long string delimiter"}, get_error("[=|"))
       end)
 
       it("detects unfinished long strings", function()
-         assert.same({line = 1, column = 1, offset = 1, msg = "unfinished long string"}, get_error("[=[\n"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "unfinished long string"}, get_error("[[]"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "unfinished long string"}, get_error("[=[\n"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "unfinished long string"}, get_error("[[]"))
       end)
    end)
 
@@ -220,7 +221,7 @@ bar"]]))
          assert.same({token = "number", token_value = "0x0"}, get_token("0x0"))
          assert.same({token = "number", token_value = "0X0"}, get_token("0X0"))
          assert.same({token = "number", token_value = "0xFfab"}, get_token("0xFfab"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x"))
       end)
 
       it("parses decimal floats correctly", function()
@@ -233,32 +234,32 @@ bar"]]))
          assert.same({token = "number", token_value = "0xf.A"}, get_token("0xf.A"))
          assert.same({token = "number", token_value = "0x9."}, get_token("0x9."))
          assert.same({token = "number", token_value = "0x.b"}, get_token("0x.b"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x."))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x."))
       end)
 
       it("parses decimal floats with exponent correctly", function()
          assert.same({token = "number", token_value = "1.8e1"}, get_token("1.8e1"))
          assert.same({token = "number", token_value = ".8e-1"}, get_token(".8e-1"))
          assert.same({token = "number", token_value = "1.E+20"}, get_token("1.E+20"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("1.8e"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("1.8e-"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("1.8E+"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("1.8ee"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("1.8e-e"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("1.8E+i"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("1.8e"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("1.8e-"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("1.8E+"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("1.8ee"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("1.8e-e"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("1.8E+i"))
       end)
 
       it("parses hexadecimal floats with exponent correctly", function()
          assert.same({token = "number", token_value = "0x1.8p1"}, get_token("0x1.8p1"))
          assert.same({token = "number", token_value = "0x.8P-1"}, get_token("0x.8P-1"))
          assert.same({token = "number", token_value = "0x1.p+20"}, get_token("0x1.p+20"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x1.8p"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x1.8p-"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x1.8P+"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x1.8pF"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x1.8p-F"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x1.8p+LL"))
-         assert.same({line = 1, column = 1, offset = 1, msg = "malformed number"}, get_error("0x.p1"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x1.8p"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x1.8p-"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x1.8P+"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x1.8pF"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x1.8p-F"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x1.8p+LL"))
+         assert.same({line = 1, column = 1, end_column = 1, msg = "malformed number"}, get_error("0x.p1"))
       end)
 
       it("parses 64 bits cdata literals correctly", function()
@@ -297,7 +298,7 @@ bar"]]))
       assert.same({token = "comment", token_value = ""}, get_token("--[[]]"))
       assert.same({token = "comment", token_value = ""}, get_token("--[[\n]]"))
       assert.same({token = "comment", token_value = "foo\nbar"}, get_token("--[[foo\nbar]]"))
-      assert.same({line = 1, column = 1, offset = 1, msg = "unfinished long comment"}, get_error("--[=[]]"))
+      assert.same({line = 1, column = 1, end_column = 1, msg = "unfinished long comment"}, get_error("--[=[]]"))
    end)
 
    it("provides correct location info", function()
@@ -331,7 +332,7 @@ print "1\z
    end)
 
    it("provides correct location info for errors", function()
-      assert.same({line = 7, column = 9, offset = 79, msg = "invalid escape sequence '\\g'"}, get_last_error([[
+      assert.same({line = 7, column = 9, end_column = 10, msg = "invalid escape sequence '\\g'"}, get_last_error([[
 local function foo(bar)
    return bar:get_foo[=[
 long string
@@ -343,7 +344,7 @@ print "1\g
        3\n"
 ]]))
 
-      assert.same({line = 8, column = 9, offset = 89, msg = "invalid decimal escape sequence '\\300'"}, get_last_error([[
+      assert.same({line = 8, column = 9, end_column = 12, msg = "invalid decimal escape sequence '\\300'"}, get_last_error([[
 local function foo(bar)
    return bar:get_foo[=[
 long string
@@ -355,7 +356,7 @@ print "1\
        3\n"
 ]]))
 
-      assert.same({line = 8, column = 1, offset = 79, msg = "malformed number"}, get_last_error([[
+      assert.same({line = 8, column = 1, end_column = 1, msg = "malformed number"}, get_last_error([[
 local function foo(bar)
    return bar:get_foo[=[
 long string
@@ -366,7 +367,7 @@ print (
 0xx)
 ]]))
 
-      assert.same({line = 7, column = 7, offset = 77, msg = "unfinished string"}, get_last_error([[
+      assert.same({line = 7, column = 7, end_column = 7, msg = "unfinished string"}, get_last_error([[
 local function foo(bar)
    return bar:get_foo[=[
 long string

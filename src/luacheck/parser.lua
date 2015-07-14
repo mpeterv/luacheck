@@ -23,10 +23,11 @@ end
 
 local function skip_token(state)
    while true do
-      state.token, state.token_value, state.line, state.column, state.offset = lexer.next_token(state.lexer)
+      local err_end_column
+      state.token, state.token_value, state.line, state.column, state.offset, err_end_column = lexer.next_token(state.lexer)
 
       if not state.token then
-         lexer.syntax_error(state, state.token_value)
+         lexer.syntax_error(state, err_end_column, state.token_value)
       elseif state.token == "comment" then
          state.comments[#state.comments+1] = {
             contents = state.token_value,
@@ -65,16 +66,20 @@ local function token_name(token)
    return token_names[token] or lexer.quote(token)
 end
 
-local function token_repr(state)
-   if state.token == "eof" then
-      return "<eof>"
-   else
-      return lexer.quote(token_body_or_line(state))
-   end
-end
-
 local function parse_error(state, msg)
-   lexer.syntax_error(state, (msg or "syntax error") .. " near " .. token_repr(state))
+   msg = msg or "syntax error"
+   local token_repr, end_column
+
+   if state.token == "eof" then
+      token_repr = "<eof>"
+      end_column = state.column
+   else
+      token_repr = token_body_or_line(state)
+      end_column = state.column + #token_repr - 1
+      token_repr = lexer.quote(token_repr)
+   end
+
+   lexer.syntax_error(state, end_column, msg .. " near " .. token_repr)
 end
 
 local function check_token(state, token)

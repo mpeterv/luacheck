@@ -188,7 +188,7 @@ local function check(src)
          code = "011",
          line = err.line,
          column = err.column,
-         end_column = err.column, -- TODO.
+         end_column = err.end_column,
          msg = err.msg
       }
 

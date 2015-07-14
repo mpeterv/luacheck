@@ -677,18 +677,18 @@ function lexer.new_state(src)
    return state
 end
 
-function lexer.syntax_error(location, msg)
+function lexer.syntax_error(location, end_column, msg)
    error({
       line = location.line,
       column = location.column,
-      offset = location.offset,
+      end_column = end_column,
       msg = msg})
 end
 
 -- Looks for next token starting from state.line, state.line_offset, state.offset.
 -- Returns next token, its value and its location (line, column, offset).
 -- Sets state.line, state.line_offset, state.offset to token end location + 1.
--- On error returns nil, error message, error location (line, column, offset).
+-- On error returns nil, error message, error location (line, column, offset), error end column.
 function lexer.next_token(state)
    local b = skip_space(state, sbyte(state.src, state.offset))
 
@@ -697,7 +697,7 @@ function lexer.next_token(state)
    local token_column = state.offset - state.line_offset + 1
    local token_offset = state.offset
 
-   local token, token_value, err_offset
+   local token, token_value, err_offset, err_end_column
 
    if b == nil then
       token = "eof"
@@ -706,13 +706,15 @@ function lexer.next_token(state)
    end
 
    if err_offset then
-      token_value = token_value .. " " .. lexer.quote(ssub(state.src, state.offset + err_offset, state.offset))
+      local token_body = ssub(state.src, state.offset + err_offset, state.offset)
+      token_value = token_value .. " " .. lexer.quote(token_body)
       token_line = state.line
       token_column = state.offset - state.line_offset + 1 + err_offset
       token_offset = state.offset + err_offset
+      err_end_column = token_column + #token_body - 1
    end
 
-   return token, token_value, token_line, token_column, token_offset
+   return token, token_value, token_line, token_column, token_offset, err_end_column or token_column
 end
 
 return lexer
