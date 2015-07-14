@@ -409,16 +409,15 @@ end
 
 local statements = {}
 
-statements["if"] = function(state)
-   local ast_node = new_ast_node(state, "If")
+statements["if"] = function(state, loc)
+   local ast_node = init_ast_node({}, loc, "If")
 
    repeat
-      skip_token(state)  -- Skip "if" or "elseif".
       ast_node[#ast_node+1] = parse_expression(state)  -- Parse the condition.
       local branch_location = location(state)
       check_and_skip_token(state, "then")
       ast_node[#ast_node+1] = parse_block(state, branch_location)
-   until state.token ~= "elseif"
+   until not test_and_skip_token(state, "elseif")
 
    if state.token == "else" then
       local branch_location = location(state)
@@ -430,27 +429,22 @@ statements["if"] = function(state)
    return ast_node
 end
 
-statements["while"] = function(state)
-   local ast_node = new_ast_node(state, "While")
-   skip_token(state)  -- Skip "while".
-   ast_node[1] = parse_expression(state)  -- Parse the condition.
+statements["while"] = function(state, loc)
+   local condition = parse_expression(state)
    check_and_skip_token(state, "do")
-   ast_node[2] = parse_block(state)
+   local block = parse_block(state)
+   check_and_skip_token(state, "end")
+   return init_ast_node({condition, block}, loc, "While")
+end
+
+statements["do"] = function(state, loc)
+   local ast_node = init_ast_node(parse_block(state), loc, "Do")
    check_and_skip_token(state, "end")
    return ast_node
 end
 
-statements["do"] = function(state)
-   local do_location = location(state)
-   skip_token(state)  -- Skip "do".
-   local ast_node = init_ast_node(parse_block(state), do_location, "Do")
-   check_and_skip_token(state, "end")
-   return ast_node
-end
-
-statements["for"] = function(state)
-   local ast_node = new_ast_node(state)  -- Will set ast_node.tag later.
-   skip_token(state)  -- Skip "for".
+statements["for"] = function(state, loc)
+   local ast_node = init_ast_node({}, loc)  -- Will set ast_node.tag later.
    local first_var = parse_id(state)
 
    if state.token == "=" then
@@ -490,18 +484,14 @@ statements["for"] = function(state)
    return ast_node
 end
 
-statements["repeat"] = function(state)
-   local ast_node = new_ast_node(state, "Repeat")
-   skip_token(state)  -- Skip "repeat".
-   ast_node[1] = parse_block(state)
+statements["repeat"] = function(state, loc)
+   local block = parse_block(state)
    check_and_skip_token(state, "until")
-   ast_node[2] = parse_expression(state)  -- Parse the condition.
-   return ast_node
+   local condition = parse_expression(state)
+   return init_ast_node({block, condition}, loc, "Repeat")
 end
 
-statements["function"] = function(state)
-   local function_location = location(state)
-   skip_token(state)  -- Skip "function".
+statements["function"] = function(state, loc)
    local lhs_location = location(state)
    local lhs = parse_id(state)
    local self_location
@@ -512,7 +502,7 @@ statements["function"] = function(state)
       lhs = init_ast_node({lhs, parse_id(state, "String")}, lhs_location, "Index")
    end
 
-   local function_node = parse_function(state, function_location)
+   local function_node = parse_function(state, loc)
 
    if self_location then
       -- Insert implicit "self" argument.
@@ -520,13 +510,10 @@ statements["function"] = function(state)
       table.insert(function_node[1], 1, self_arg)
    end
 
-   return init_ast_node({{lhs}, {function_node}}, function_location, "Set")
+   return init_ast_node({{lhs}, {function_node}}, loc, "Set")
 end
 
-statements["local"] = function(state)
-   local local_location = location(state)
-   skip_token(state)  -- Skip "local".
-
+statements["local"] = function(state, loc)
    if state.token == "function" then
       -- Localrec
       local function_location = location(state)
@@ -534,7 +521,7 @@ statements["local"] = function(state)
       local var = parse_id(state)
       local function_node = parse_function(state, function_location)
       -- Metalua would return {{var}, {function}} for some reason.
-      return init_ast_node({var, function_node}, local_location, "Localrec")
+      return init_ast_node({var, function_node}, loc, "Localrec")
    end
 
    local lhs = {}
@@ -552,57 +539,52 @@ statements["local"] = function(state)
 
    -- According to Metalua spec, {lhs} should be returned if there is no rhs.
    -- Metalua does not follow the spec itself and returns {lhs, {}}.
-   return init_ast_node({lhs, rhs, equals_location = rhs and equals_location}, local_location, "Local")
+   return init_ast_node({lhs, rhs, equals_location = rhs and equals_location}, loc, "Local")
 end
 
-statements["::"] = function(state)
-   local ast_node = new_ast_node(state, "Label")
-   ast_node.end_column = ast_node.location.column + 1
-   skip_token(state)  -- Skip "::".
-   ast_node[1] = check_name(state)
+statements["::"] = function(state, loc)
+   local end_column = loc.column + 1
+   local name = check_name(state)
 
-   if state.line == ast_node.location.line then
+   if state.line == loc.line then
       -- Label name on the same line as opening `::`, pull token end to name end.
-      ast_node.end_column = state.column + #state.token_value - 1
+      end_column = state.column + #state.token_value - 1
    end
 
    skip_token(state)  -- Skip label name.
 
-   if state.line == ast_node.location.line then
+   if state.line == loc.line then
       -- Whole label is on one line, pull token end to closing `::` end.
-      ast_node.end_column = state.column + 1
+      end_column = state.column + 1
    end
 
    check_and_skip_token(state, "::")
-   return ast_node
+   return init_ast_node({name, end_column = end_column}, loc, "Label")
 end
 
 local closing_tokens = utils.array_to_set({
    "end", "eof", "else", "elseif", "until"})
 
-statements["return"] = function(state)
-   local return_location = location(state)
-   skip_token(state)  -- Skip "return".
-
+statements["return"] = function(state, loc)
    if closing_tokens[state.token] or state.token == ";" then
       -- No return values.
-      return init_ast_node({}, return_location, "Return")
+      return init_ast_node({}, loc, "Return")
    else
-      return init_ast_node(parse_expression_list(state), return_location, "Return")
+      return init_ast_node(parse_expression_list(state), loc, "Return")
    end
 end
 
-statements["break"] = atom("Break")
-
-statements["goto"] = function(state)
-   local ast_node = new_ast_node(state, "Goto")
-   skip_token(state)  -- Skip "goto".
-   ast_node[1] = check_name(state)
-   skip_token(state)  -- Skip label name.
-   return ast_node
+statements["break"] = function(_, loc)
+   return init_ast_node({}, loc, "Break")
 end
 
-local function parse_expression_statement(state)
+statements["goto"] = function(state, loc)
+   local name = check_name(state)
+   skip_token(state)  -- Skip label name.
+   return init_ast_node({name}, loc, "Goto")
+end
+
+local function parse_expression_statement(state, loc)
    local lhs
 
    repeat
@@ -620,11 +602,12 @@ local function parse_expression_statement(state)
             parse_error(state)
          else
             -- It is a call.
+            primary_expression.location = loc
             return primary_expression
          end
       end
 
-      -- This is an assingment.
+      -- This is an assignment.
       lhs = lhs or {}
       lhs[#lhs+1] = primary_expression
    until not test_and_skip_token(state, ",")
@@ -632,11 +615,19 @@ local function parse_expression_statement(state)
    local equals_location = location(state)
    check_and_skip_token(state, "=")
    local rhs = parse_expression_list(state)
-   return init_ast_node({lhs, rhs, equals_location = equals_location}, lhs[1].location, "Set")
+   return init_ast_node({lhs, rhs, equals_location = equals_location}, loc, "Set")
 end
 
 local function parse_statement(state)
-   return (statements[state.token] or parse_expression_statement)(state)
+   local loc = location(state)
+   local statement_parser = statements[state.token]
+
+   if statement_parser then
+      skip_token(state)
+      return statement_parser(state, loc)
+   else
+      return parse_expression_statement(state, loc)
+   end
 end
 
 function parse_block(state, loc)
