@@ -895,6 +895,49 @@ end
 
    end)
 
+   it("provides correct location info for labels", function()
+      assert.same({
+                     {tag = "Label", "foo", location = {line = 1, column = 1, offset = 1}, end_column = 7, first_token = "::"},
+                     {tag = "Label", "bar", location = {line = 2, column = 1, offset = 9}, end_column = 6, first_token = "::"},
+                     {tag = "Label", "baz", location = {line = 3, column = 3, offset = 18}, end_column = 4, first_token = "::"}
+                  }, (parser([[
+::foo::
+:: bar
+::::
+baz::
+]])))
+   end)
+
+   it("provides correct location info for statements starting with expressions", function()
+      assert.same({
+                     {tag = "Call", location = {line = 1, column = 1, offset = 1}, first_token = "a",
+                        {tag = "Id", "a", location = {line = 1, column = 1, offset = 1}}
+                     },
+                     {tag = "Call", location = {line = 2, column = 1, offset = 6}, first_token = "(",
+                        {tag = "Id", "b", location = {line = 2, column = 2, offset = 7}}
+                     },
+                     {tag = "Set", location = {line = 3, column = 1, offset = 13}, first_token = "(",
+                        equals_location = {line = 3, column = 12, offset = 24},
+                        {
+                           {tag = "Index", location = {line = 3, column = 3, offset = 15},
+                              {tag = "Index", location = {line = 3, column = 3, offset = 15},
+                                 {tag = "Id", "c", location = {line = 3, column = 3, offset = 15}},
+                                 {tag = "String", "d", location = {line = 3, column = 6, offset = 18}}
+                              },
+                              {tag = "Number", "3", location = {line = 3, column = 9, offset = 21}}
+                           }
+                        },
+                        {
+                           {tag = "Number", "2", location = {line = 3, column = 14, offset = 26}}
+                        }
+                     }
+                  }, (parser([[
+a();
+(b)();
+((c).d)[3] = 2
+]])))
+   end)
+
    it("provides correct error location info", function()
       assert.same({line = 8, column = 15, offset = 132, msg = "expected '=' near ')'"}, get_error([[
 local function foo(a, b, c, ...)
