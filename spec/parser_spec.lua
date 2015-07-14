@@ -956,9 +956,9 @@ end
    describe("providing misc information", function()
       it("provides comments correctly", function()
          assert.same({
-            {contents = " ignore something", location = {line = 1, column = 1, offset = 1}},
-            {contents = " comments", location = {line = 2, column = 13, offset = 33}},
-            {contents = "long comment", location = {line = 3, column = 13, offset = 57}}
+            {contents = " ignore something", location = {line = 1, column = 1, offset = 1}, end_column = 19},
+            {contents = " comments", location = {line = 2, column = 13, offset = 33}, end_column = 23},
+            {contents = "long comment", location = {line = 3, column = 13, offset = 57}, end_column = 17}
          }, get_comments([[
 -- ignore something
 foo = bar() -- comments

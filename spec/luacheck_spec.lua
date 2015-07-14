@@ -214,7 +214,7 @@ describe("check_strings", function()
       }, strip_locations(luacheck.check_strings({"return foo", "return return"})))
    end)
 
-   it("provides correct location info", function()
+   it("provides correct location info for warnings", function()
       assert.same({
          {
             {
@@ -258,6 +258,43 @@ function t:m(x)
 end
 do return t end
 (t)()
+]]}))
+   end)
+
+   it("provides correct location info for bad inline options", function()
+      assert.same({
+         {
+            {
+               code = "022",
+               line = 1,
+               column = 1,
+               end_column = 17
+            },
+            {
+               code = "023",
+               line = 3,
+               column = 4,
+               end_column = 26
+            },
+            {
+               code = "021",
+               line = 6,
+               column = 10,
+               end_column = 14
+            }
+         },
+         warnings = 0,
+         errors = 3,
+         fatals = 0
+      }, luacheck.check_strings({[[
+-- luacheck: push
+local function f()
+   --[=[ luacheck: pop ]=]
+end
+
+return f --[=[
+   luacheck: some invalid comment
+]=]
 ]]}))
    end)
 

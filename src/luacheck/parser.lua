@@ -17,6 +17,10 @@ local function location(state)
    }
 end
 
+local function token_body_or_line(state)
+   return state.lexer.src:sub(state.offset, state.lexer.offset - 1):match("^[^\r\n]*")
+end
+
 local function skip_token(state)
    while true do
       state.token, state.token_value, state.line, state.column, state.offset = lexer.next_token(state.lexer)
@@ -26,7 +30,8 @@ local function skip_token(state)
       elseif state.token == "comment" then
          state.comments[#state.comments+1] = {
             contents = state.token_value,
-            location = location(state)
+            location = location(state),
+            end_column = state.column + #token_body_or_line(state) - 1
          }
       else
          state.code_lines[state.line] = true
@@ -64,9 +69,7 @@ local function token_repr(state)
    if state.token == "eof" then
       return "<eof>"
    else
-      local token_body = state.lexer.src:sub(state.offset, state.lexer.offset - 1)
-      -- Take first line.
-      return lexer.quote(token_body:match("^[^\r\n]*"))
+      return lexer.quote(token_body_or_line(state))
    end
 end
 

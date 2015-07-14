@@ -79,11 +79,11 @@ local function get_options(body)
 end
 
 -- Returns whether option is valid.
-local function add_inline_option(events, per_line_opts, body, location, is_code_line)
+local function add_inline_option(events, per_line_opts, body, location, end_column, is_code_line)
    body = utils.strip(body)
 
    if body == "push" or body == "pop" then
-      table.insert(events, {[body] = true, line = location.line, column = location.column})
+      table.insert(events, {[body] = true, line = location.line, column = location.column, end_column = end_column})
       return true
    end
 
@@ -100,7 +100,7 @@ local function add_inline_option(events, per_line_opts, body, location, is_code_
 
       table.insert(per_line_opts[location.line], opts)
    else
-      table.insert(events, {options = opts, line = location.line, column = location.column})
+      table.insert(events, {options = opts, line = location.line, column = location.column, end_column = end_column})
    end
 
    return true
@@ -116,7 +116,7 @@ local function add_inline_options(events, comments, code_lines)
       local body = utils.after(contents, "^luacheck:")
 
       if body then
-         if not add_inline_option(events, per_line_opts, body, comment.location, code_lines[comment.location.line]) then
+         if not add_inline_option(events, per_line_opts, body, comment.location, comment.end_column, code_lines[comment.location.line]) then
             table.insert(invalid_comments, comment)
          end
       end
@@ -275,15 +275,15 @@ local function handle_inline_options(ast, comments, code_lines, warnings)
    local unpaired_pushes, unpaired_pops = handle_events(events, per_line_opts)
 
    for _, comment in ipairs(invalid_comments) do
-      table.insert(warnings, {code = "021", line = comment.location.line, column = comment.location.column})
+      table.insert(warnings, {code = "021", line = comment.location.line, column = comment.location.column, end_column = comment.end_column})
    end
 
    for _, event in ipairs(unpaired_pushes) do
-      table.insert(warnings, {code = "022", line = event.line, column = event.column})
+      table.insert(warnings, {code = "022", line = event.line, column = event.column, end_column = event.end_column})
    end
 
    for _, event in ipairs(unpaired_pops) do
-      table.insert(warnings, {code = "023", line = event.line, column = event.column})
+      table.insert(warnings, {code = "023", line = event.line, column = event.column, end_column = event.end_column})
    end
 
    return warnings
