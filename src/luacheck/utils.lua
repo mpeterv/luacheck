@@ -22,8 +22,10 @@ function utils.read_file(file)
    local res = handler:read("*a")
    handler:close()
 
-   if res and res:sub(1, #bom) == bom then
-      res = res:sub(#bom + 1)
+   -- Use :len() instead of # operator because in some environments
+   -- string library is patched to handle UTF.
+   if res and res:sub(1, bom:len()) == bom then
+      res = res:sub(bom:len() + 1)
    end
 
    return res
