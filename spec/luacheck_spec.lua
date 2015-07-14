@@ -214,6 +214,53 @@ describe("check_strings", function()
       }, strip_locations(luacheck.check_strings({"return foo", "return return"})))
    end)
 
+   it("provides correct location info", function()
+      assert.same({
+         {
+            {
+               code = "521",
+               name = "foo",
+               line = 1,
+               column = 1,
+               end_column = 6
+            },
+            {
+               code = "312",
+               name = "self",
+               line = 3,
+               column = 11,
+               end_column = 11
+            },
+            {
+               code = "311",
+               name = "self",
+               line = 4,
+               column = 4,
+               end_column = 7
+            },
+            {
+               code = "511",
+               line = 9,
+               column = 1,
+               end_column = 1
+            }
+         },
+         warnings = 4,
+         errors = 0,
+         fatals = 0
+      }, luacheck.check_strings({[[
+:: foo
+::local t = {}
+function t:m(x)
+   self = x
+   self = x
+   return self
+end
+do return t end
+(t)()
+]]}))
+   end)
+
    it("uses options", function()
       assert.same({
          {},
