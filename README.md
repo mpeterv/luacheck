@@ -9,7 +9,7 @@
 
 * [Overview](#overview)
 * [Installation](#installation)
-* [Editor support](#editor-support)
+* [Related projects](#related-projects)
 * [Documentation](#documentation)
 * [Development](#development)
 * [Building and testing](#building-and-testing)
@@ -74,14 +74,22 @@ Total: 10 warnings / 1 error in 5 files
 
 For more info, see [documentation](#documentation).
 
-## Editor support
+## Related projects
+
+### Editor support
 
 There are a few plugins which allow using Luacheck directly inside an editor, showing warnings inline:
 
 * For Vim, [Syntastic](https://github.com/scrooloose/syntastic/) contains [luacheck checker](https://github.com/scrooloose/syntastic/wiki/Lua%3A---luacheck);
 * For Sublime Text 3 there is [SublimeLinter-luacheck](https://sublime.wbond.net/packages/SublimeLinter-luacheck) which requires [SublimeLinter](http://sublimelinter.readthedocs.org/en/latest/);
 * For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/AtomLinter/Linter);
-* For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/manual/latest/Supported-languages.html#Lua).
+* For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/manual/latest/Supported-languages.html#Lua);
+* For Brackets, there is [linter.luacheck](https://github.com/Malcolm3141/brackets-luacheck) extension.
+
+### Other projects
+
+* [Luacheck bindings for Node.js](https://www.npmjs.com/package/luacheck);
+* [Luacheck plugin for Gulp](https://www.npmjs.com/package/gulp-luacheck).
 
 ## Documentation
 
