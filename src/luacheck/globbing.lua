@@ -45,11 +45,13 @@ local function glob_part_to_pattern(glob_part)
 
          if first_char == "!" then
             table.insert(buffer, "^")
-         else
-            table.insert(buffer, "%"..first_char)
+            i = i + 1
+         elseif first_char == "]" then
+            table.insert(buffer, "%]")
+            i = i + 1
          end
 
-         bracketless, i = glob_part:match("([^%]]*)()", i + 1)
+         bracketless, i = glob_part:match("([^%]]*)()", i)
 
          if bracketless:sub(1, 1) == "-" then
             table.insert(buffer, "%-")
