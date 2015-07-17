@@ -222,6 +222,23 @@ function utils.split(str, sep)
    return parts
 end
 
+-- Behaves like string.match, except it normally returns boolean and
+-- throws a table {pattern = pattern} on invalid pattern.
+-- The error message turns into original error when tostring is used on it,
+-- to ensure behaviour is predictable when luacheck is used as a module.
+function utils.pmatch(str, pattern)
+   assert(type(str) == "string")
+   assert(type(pattern) == "string")
+
+   local ok, res = pcall(string.match, str, pattern)
+
+   if not ok then
+      error(setmetatable({pattern = pattern}, {__tostring = function() return res end}))
+   else
+      return not not res
+   end
+end
+
 -- Maps func over array.
 function utils.map(func, array)
    local res = {}

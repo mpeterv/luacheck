@@ -74,7 +74,7 @@ local function glob_part_to_pattern(glob_part)
 end
 
 local function part_match(glob_part, path_part)
-   return not not path_part:match(glob_part_to_pattern(glob_part))
+   return utils.pmatch(path_part, glob_part_to_pattern(glob_part))
 end
 
 local function parts_match(glob_parts, glob_i, path_parts, path_i)

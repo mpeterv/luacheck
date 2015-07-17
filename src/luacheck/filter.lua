@@ -135,35 +135,13 @@ local function filter_implicit_defs(report, opts)
    return res
 end
 
-local spmatch_error_mt = {}
-
-function spmatch_error_mt:__tostring()
-   return self.errmsg
-end
-
--- Behaves like string.match, except it throws a table {pattern = pattern} on invalid pattern.
--- The error message turns into original error when tostring is used on it,
--- ensure behaviour is predictable when luacheck is used as a module.
-local function string_pmatch(str, pattern)
-   assert(type(str) == "string")
-   assert(type(pattern) == "string")
-
-   local ok, res = pcall(string.match, str, pattern)
-
-   if not ok then
-      error(setmetatable({pattern = pattern, errmsg = res}, spmatch_error_mt))
-   else
-      return res
-   end
-end
-
 -- Returns two optional booleans indicating if warning matches pattern by code and name.
 local function match(warning, pattern)
    local matches_code, matches_name
    local code_pattern, name_pattern = pattern[1], pattern[2]
 
    if code_pattern then
-      matches_code = not not string_pmatch(warning.code, code_pattern)
+      matches_code = utils.pmatch(warning.code, code_pattern)
    end
 
    if name_pattern then
@@ -171,7 +149,7 @@ local function match(warning, pattern)
          -- Statement-related warnings can't match by name.
          matches_name = false
       else
-         matches_name = not not string_pmatch(warning.name, name_pattern)
+         matches_name = utils.pmatch(warning.name, name_pattern)
       end
    end
 
