@@ -3,7 +3,6 @@ local utils = require "luacheck.utils"
 
 -- Only ?, *, ** and simple character classes (with ranges and negation) are supported.
 -- Hidden files are not treated specially. Special characters can't be escaped.
--- In ranges, - can't be used literally.
 local globbing = {}
 
 local cur_dir = fs.current_dir()
@@ -51,8 +50,21 @@ local function glob_part_to_pattern(glob_part)
          end
 
          bracketless, i = glob_part:match("([^%]]*)()", i + 1)
+
+         if bracketless:sub(1, 1) == "-" then
+            table.insert(buffer, "%-")
+            bracketless = bracketless:sub(2)
+         end
+
+         local last_dash = ""
+
+         if bracketless:sub(-1) == "-" then
+            last_dash = "-"
+            bracketless = bracketless:sub(1, -2)
+         end
+
          table.insert(buffer, (bracketless:gsub("%p", glob_range_escaper)))
-         table.insert(buffer, "]")
+         table.insert(buffer, last_dash.."]")
          i = i + 1
       end
    end
