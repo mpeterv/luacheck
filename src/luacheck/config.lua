@@ -65,7 +65,8 @@ local top_options = {
    jobs = function(x) return type(x) == "number" and math.floor(x) == x and x >= 1 end,
    files = utils.has_type("table"),
    stds = utils.has_type("table"),
-   exclude_files = utils.array_of("string")
+   exclude_files = utils.array_of("string"),
+   include_files = utils.array_of("string")
 }
 
 utils.update(top_options, options.all_options)

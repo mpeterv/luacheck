@@ -57,6 +57,22 @@ Total: 0 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --exclude-files '**/??d_code.lua'")
    end)
 
+   it("filters files using --include-files", function()
+      assert.equal([[
+Checking spec/samples/bad_code.lua                5 warnings
+
+Total: 5 warnings / 0 errors in 1 file
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --include-files '**/??d_code.lua' -qq")
+   end)
+
+   it("--exclude-files has priority over --include-files", function()
+      assert.equal([[
+Checking spec/samples/good_code.lua               OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --include-files '**/*.lua' --exclude-files '**/??d_code.lua'")
+   end)
+
    it("works for incorrect files", function()
       assert.equal([[
 Checking spec/samples/bad_code.lua                5 warnings

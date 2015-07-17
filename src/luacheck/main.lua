@@ -120,6 +120,10 @@ Otherwise, the pattern matches warning code.]])
          :args "+"
          :count "*"
          :argname "<glob>"
+      parser:option("--include-files", "Do not check files not matching these globbing patterns.")
+         :args "+"
+         :count "*"
+         :argname "<glob>"
 
       if fs.has_lfs then
          parser:mutex(
@@ -155,13 +159,28 @@ Otherwise, the pattern matches warning code.]])
       return parser
    end
 
+   local globber = Globber()
+
+   local function match_any(globs, name)
+      for _, glob in ipairs(globs) do
+         if globber:match(glob, name) then
+            return true
+         end
+      end
+
+      return false
+   end
+
+   local function is_included(args, name)
+      return not match_any(args.exclude_files, name) and (#args.include_files == 0 or match_any(args.include_files, name))
+   end
+
    -- Expands folders, rockspecs, -
    -- Returns new array of filenames and table mapping indexes of bad rockspecs to error messages.
    -- Removes "./" in the beginnings of file names.
-   -- Filters filenames using args.exclude_files.
+   -- Filters filenames using args.exclude_files and args.include_files.
    local function expand_files(args)
       local res, bad_rockspecs = {}, {}
-      local globber = Globber()
 
       local function add(file)
          if type(file) == "string" then
@@ -171,10 +190,8 @@ Otherwise, the pattern matches warning code.]])
          local name = args.filename or file
 
          if type(name) == "string" then
-            for _, glob in ipairs(args.exclude_files) do
-               if globber:match(glob, name) then
-                  return false
-               end
+            if not is_included(args, name) then
+               return false
             end
          end
 
@@ -245,6 +262,20 @@ Otherwise, the pattern matches warning code.]])
       return res
    end
 
+   local function combine_conf_and_args_path_arrays(conf, args, option)
+      local conf_opts = config.get_top_options(conf)
+
+      if conf_opts[option] then
+         for i, path in ipairs(conf_opts[option]) do
+            conf_opts[option][i] = config.relative_path(conf, path)
+         end
+
+         table.insert(args[option], conf_opts[option])
+      end
+
+      args[option] = utils.concat_arrays(args[option])
+   end
+
    -- Applies cli-specific options from config to args.
    local function combine_config_and_args(conf, args)
       local conf_opts = config.get_top_options(conf)
@@ -274,15 +305,8 @@ Otherwise, the pattern matches warning code.]])
 
       args.jobs = args.jobs or conf_opts.jobs
 
-      if conf_opts.exclude_files then
-         for i, glob in ipairs(conf_opts.exclude_files) do
-            conf_opts.exclude_files[i] = config.relative_path(conf, glob)
-         end
-
-         table.insert(args.exclude_files, conf_opts.exclude_files)
-      end
-
-      args.exclude_files = utils.concat_arrays(args.exclude_files)
+      combine_conf_and_args_path_arrays(conf, args, "exclude_files")
+      combine_conf_and_args_path_arrays(conf, args, "include_files")
    end
 
    -- Returns sparse array of mtimes and map of filenames to cached reports.
