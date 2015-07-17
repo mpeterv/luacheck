@@ -1,11 +1,11 @@
--- luacheck: allow_defined_top
+-- luacheck: allow defined top
 foo = 4
 print(foo)
 bar = 6 -- luacheck: ignore 131
 
 function f()
    baz = 5
-   -- luacheck: allow_defined
+   -- luacheck: allow defined
    qu = 4
    print(qu)
 end

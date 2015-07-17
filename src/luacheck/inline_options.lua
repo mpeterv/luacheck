@@ -37,13 +37,11 @@ local function get_options(body)
 
    for _, name_and_args in ipairs(utils.split(body, ",")) do
       local args = utils.split(name_and_args)
-      local name = args[1]
+      local name = table.remove(args, 1)
 
       if not name then
          return
       end
-
-      table.remove(args, 1)
 
       if name == "std" then
          if #args ~= 1 or not options.split_std(args[1]) then
@@ -51,25 +49,36 @@ local function get_options(body)
          end
 
          opts.std = args[1]
+      elseif name == "ignore" and #args == 0 then
+         opts.ignore = {".*/.*"}
       else
-         if name == "ignore" and #args == 0 then
-            args[1] = ".*/.*"
+         local flag = true
+
+         if name == "no" then
+            flag = false
+            name = table.remove(args, 1)
          end
 
-         if options.variadic_inline_options[name] then
-            opts[name] = args
-         else
-            local flag = true
-
-            if name == "no" then
-               name = table.remove(args, 1)
-               flag = false
-            end
-
-            if options.nullary_inline_options[name] and #args == 0 then
-               opts[name] = flag
+         while true do
+            if options.variadic_inline_options[name] then
+               if flag then
+                  opts[name] = args
+                  break
+               else
+                  -- Array option with 'no' prefix is invalid.
+                  return
+               end
+            elseif #args == 0 then
+               if options.nullary_inline_options[name] then
+                  opts[name] = flag
+                  break
+               else
+                  -- Consumed all arguments but didn't find a valid option name.
+                  return
+               end
             else
-               return
+               -- Join name with next argument,
+               name = name.."_"..table.remove(args, 1)
             end
          end
       end

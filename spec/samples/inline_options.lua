@@ -3,7 +3,7 @@
 foo()
 bar()
 
-local function f(a) -- luacheck: no unused_args
+local function f(a) -- luacheck: no unused args
    -- luacheck: globals baz
    foo()
    bar()
