@@ -119,7 +119,7 @@ for _, filename in ipairs {
       "format.lua",
       "version.lua",
       "fs.lua",
-      "globber.lua",
+      "globbing.lua",
       "utils.lua",
       "argparse.lua"} do
    copy("src" .. dirsep .. "luacheck" .. dirsep .. filename, luacheck_lib_dir)

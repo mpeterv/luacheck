@@ -4,12 +4,9 @@ local utils = require "luacheck.utils"
 -- Only ?, *, ** and simple character classes (with ranges and negation) are supported.
 -- Hidden files are not treated specially. Special characters can't be escaped.
 -- In ranges, - can't be used literally.
-local Globber = utils.class()
+local globbing = {}
 
-function Globber:__init()
-   self.cur_dir = fs.current_dir()
-   self.cache = {}
-end
+local cur_dir = fs.current_dir()
 
 local function is_regular_path(glob)
    return not glob:find("[*?%[]")
@@ -93,9 +90,9 @@ local function parts_match(glob_parts, glob_i, path_parts, path_i)
 end
 
 -- Checks if a path matches a globbing pattern.
-function Globber:match(glob, path)
-   glob = fs.normalize(fs.join(self.cur_dir, glob))
-   path = fs.normalize(fs.join(self.cur_dir, path))
+function globbing.match(glob, path)
+   glob = fs.normalize(fs.join(cur_dir, glob))
+   path = fs.normalize(fs.join(cur_dir, path))
 
    if is_regular_path(glob) then
       return fs.is_subpath(glob, path)
@@ -114,15 +111,4 @@ function Globber:match(glob, path)
    return parts_match(glob_parts, 1, path_parts, 1)
 end
 
--- Returns array of all paths matching a globbing pattern.
-function Globber:find(glob) -- luacheck: no self
-   glob = fs.normalize(glob)
-
-   if is_regular_path(glob) then
-      return {glob}
-   end
-
-   -- TODO
-end
-
-return Globber
+return globbing

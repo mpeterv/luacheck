@@ -8,7 +8,7 @@ local cache = require "luacheck.cache"
 local format = require "luacheck.format"
 local version = require "luacheck.version"
 local fs = require "luacheck.fs"
-local Globber = require "luacheck.globber"
+local globbing = require "luacheck.globbing"
 local utils = require "luacheck.utils"
 
 local function critical(msg)
@@ -159,11 +159,9 @@ Otherwise, the pattern matches warning code.]])
       return parser
    end
 
-   local globber = Globber()
-
    local function match_any(globs, name)
       for _, glob in ipairs(globs) do
-         if globber:match(glob, name) then
+         if globbing.match(glob, name) then
             return true
          end
       end
