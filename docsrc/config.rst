@@ -15,7 +15,7 @@ Option                 Type                                    Default value
 ====================== ======================================= ==================
 ``color``              Boolean                                 ``true``
 ``codes``              Boolean                                 ``false``
-``formatter``          String                                  ``"default"``
+``formatter``          String or function                      ``"default"``
 ``cache``              Boolean or string                       ``false``
 ``jobs``               Positive integer                        ``1``
 ``exclude_files``      Array of strings                        ``{}``
@@ -89,21 +89,16 @@ Additionally, custom sets can be given names by mutating global ``stds`` variabl
 Per-file and per-path overrides
 -------------------------------
 
-The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<path>]`` and ``files[<parent_path>]``, applying entries for shorter paths first. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for ``src/dir/myfile.lua``:
+The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<path>]`` and ``files[<parent_path>]``, applying entries for shorter paths first. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for ``src/dir/myfile.lua``, and allows using `Busted <http://olivinelabs.com/busted/>`_ globals within ``spec/``:
 
 .. code-block:: lua
    :linenos:
 
    std = "min"
    ignore = {"212"}
-
-   files["src/dir"] = {
-      enable = {"212"}
-   }
-
-   files["src/dir/myfile.lua"] = {
-      ignore = {"212"}
-   }
+   files["src/dir"] = {enable = {"212"}}
+   files["src/dir/myfile.lua"] = {ignore = {"212"}}
+   files["spec"] = {std = "+busted"}
 
 Note that ``files`` table supports autovivification, so that
 
@@ -115,8 +110,6 @@ and
 
 .. code-block:: lua
 
-   files["myfile.lua"] = {
-      ignore = {"212"}
-   }
+   files["myfile.lua"] = {ignore = {"212"}}
 
 are equivalent.

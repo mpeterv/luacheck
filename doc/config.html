@@ -147,7 +147,7 @@
 <td><tt class="docutils literal"><span class="pre">false</span></tt></td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">formatter</span></tt></td>
-<td>String</td>
+<td>String or function</td>
 <td><tt class="docutils literal"><span class="pre">&quot;default&quot;</span></tt></td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">cache</span></tt></td>
@@ -298,26 +298,16 @@
 </div>
 <div class="section" id="per-file-and-per-path-overrides">
 <h2>Per-file and per-path overrides<a class="headerlink" href="#per-file-and-per-path-overrides" title="Permalink to this headline">¶</a></h2>
-<p>The environment in which <tt class="docutils literal"><span class="pre">luacheck</span></tt> loads the config contains a special global <tt class="docutils literal"><span class="pre">files</span></tt>. When checking a file <tt class="docutils literal"><span class="pre">&lt;path&gt;</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will override options from the main config with entries from <tt class="docutils literal"><span class="pre">files[&lt;path&gt;]</span></tt> and <tt class="docutils literal"><span class="pre">files[&lt;parent_path&gt;]</span></tt>, applying entries for shorter paths first. For example, the following config re-enables detection of unused arguments only for files in <tt class="docutils literal"><span class="pre">src/dir</span></tt>, but not for <tt class="docutils literal"><span class="pre">src/dir/myfile.lua</span></tt>:</p>
-<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
+<p>The environment in which <tt class="docutils literal"><span class="pre">luacheck</span></tt> loads the config contains a special global <tt class="docutils literal"><span class="pre">files</span></tt>. When checking a file <tt class="docutils literal"><span class="pre">&lt;path&gt;</span></tt>, <tt class="docutils literal"><span class="pre">luacheck</span></tt> will override options from the main config with entries from <tt class="docutils literal"><span class="pre">files[&lt;path&gt;]</span></tt> and <tt class="docutils literal"><span class="pre">files[&lt;parent_path&gt;]</span></tt>, applying entries for shorter paths first. For example, the following config re-enables detection of unused arguments only for files in <tt class="docutils literal"><span class="pre">src/dir</span></tt>, but not for <tt class="docutils literal"><span class="pre">src/dir/myfile.lua</span></tt>, and allows using <a class="reference external" href="http://olivinelabs.com/busted/">Busted</a> globals within <tt class="docutils literal"><span class="pre">spec/</span></tt>:</p>
+<div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">min&quot;</span>
 <span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">212&quot;</span><span class="p">}</span>
-
-<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">src/dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="n">enable</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">212&quot;</span><span class="p">}</span>
-<span class="p">}</span>
-
-<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">src/dir/myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">212&quot;</span><span class="p">}</span>
-<span class="p">}</span>
+<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">src/dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">enable</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">212&quot;</span><span class="p">}}</span>
+<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">src/dir/myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">212&quot;</span><span class="p">}}</span>
+<span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">spec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">std</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">+busted&quot;</span><span class="p">}</span>
 </pre></div>
 </td></tr></table></div>
 <p>Note that <tt class="docutils literal"><span class="pre">files</span></tt> table supports autovivification, so that</p>
@@ -325,9 +315,7 @@
 </pre></div>
 </div>
 <p>and</p>
-<div class="highlight-lua"><div class="highlight"><pre><span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">212&quot;</span><span class="p">}</span>
-<span class="p">}</span>
+<div class="highlight-lua"><div class="highlight"><pre><span class="n">files</span><span class="p">[</span><span class="s2">&quot;</span><span class="s">myfile.lua&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">ignore</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s">212&quot;</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>are equivalent.</p>
