@@ -5,7 +5,7 @@ local format = require "luacheck.format"
 local utils = require "luacheck.utils"
 
 local luacheck = {
-   _VERSION = "0.10.0"
+   _VERSION = "0.11.0"
 }
 
 local function raw_validate_options(fname, opts)

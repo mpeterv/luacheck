@@ -35,7 +35,7 @@ If it is not possible to install [LuaFileSystem](http://keplerproject.github.io/
 
 For manual installation, only a Lua interpreter binary is required.
 
-1. Download and unpack latest Luacheck release ([.zip](https://github.com/mpeterv/luacheck/archive/0.10.0.zip) [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.10.0.tar.gz)).
+1. Download and unpack latest Luacheck release ([.zip](https://github.com/mpeterv/luacheck/archive/0.11.0.zip) [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.11.0.tar.gz)).
 2. Run `install.lua <path>` script using the Lua interpreter. If Lua interpreter is not in `PATH`, invoke it using absolute path.
 3. Add `<path>/bin` to PATH or run Luacheck as `<path>/bin/luacheck`.
 
@@ -46,17 +46,17 @@ After Luacheck is installed, run `luacheck` program from the command line. Pass 
 ```
 $ luacheck src extra_file.lua another_file.lua
 Checking src/good_code.lua               OK
-Checking src/bad_code.lua                Failure
+Checking src/bad_code.lua                3 warnings
 
     src/bad_code.lua:3:23: unused variable length argument
     src/bad_code.lua:7:10: setting non-standard global variable embrace
     src/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
 
-Checking src/python_code.lua             Syntax error
+Checking src/python_code.lua             1 error
 
     src/python_code.lua:1:6: expected '=' near '__future__'
 
-Checking extra_file.lua                  Failure
+Checking extra_file.lua                  5 warnings
 
     extra_file.lua:3:18: unused argument baz
     extra_file.lua:4:8: unused loop variable i
@@ -64,7 +64,7 @@ Checking extra_file.lua                  Failure
     extra_file.lua:14:1: value assigned to variable x is unused
     extra_file.lua:21:7: variable z is never accessed
 
-Checking another_file.lua                Failure
+Checking another_file.lua                2 warnings
 
     another_file.lua:2:7: unused variable height
     another_file.lua:3:7: accessing undefined variable heigth
@@ -86,6 +86,8 @@ There are a few plugins which allow using Luacheck directly inside an editor, sh
 * For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/manual/latest/Supported-languages.html#Lua);
 * For Brackets, there is [linter.luacheck](https://github.com/Malcolm3141/brackets-luacheck) extension.
 
+If you are a plugin developer, see [recommended way of using Luacheck in a plugin](http://luacheck.readthedocs.org/en/0.11.0/cli.html#stable-interface-for-editor-plugins-and-tools).
+
 ### Other projects
 
 * [Luacheck bindings for Node.js](https://www.npmjs.com/package/luacheck);
@@ -97,13 +99,13 @@ Documentation is available [online](http://luacheck.readthedocs.org). If Luachec
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.10.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.11.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 
 ## Building and testing
 
-After the Luacheck repo is cloned and changes are made, run `luarocks make` (optionally prepended with `sudo`) from its root directory to install dev version of Luacheck. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted) installed and run `busted spec`.
+After the Luacheck repo is cloned and changes are made, run `luarocks make` (optionally prepended with `sudo`) from its root directory to install dev version of Luacheck. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted) installed and run `busted`.
 
 ## License
 
