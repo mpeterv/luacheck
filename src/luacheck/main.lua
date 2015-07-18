@@ -466,7 +466,7 @@ patterns.]])
 
    local function pformat(report, file_names, conf, args)
       if builtin_formatters[args.formatter] then
-         return format(report, file_names, args)
+         return format.format(report, file_names, args)
       end
 
       local formatter = args.formatter

@@ -1,4 +1,4 @@
-local format = require "luacheck.format"
+local format = require "luacheck.format".format
 
 local function remove_color(s)
    return (s:gsub("\27.-\109", ""))

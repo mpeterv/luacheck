@@ -1,9 +1,11 @@
 local utils = require "luacheck.utils"
 
+local format = {}
+
 local color_support = not utils.is_windows or os.getenv("ANSICON")
 
 local message_formats = {
-   ["011"] = function(w) return w.msg end,
+   ["011"] = function(w) return (w.msg:gsub("%%", "%%%%")) end,
    ["021"] = "invalid inline option",
    ["022"] = "unpaired push directive",
    ["023"] = "unpaired pop directive",
@@ -155,9 +157,17 @@ local function event_code(event)
    return (event.code:sub(1, 1) == "0" and "E" or "W")..event.code
 end
 
+local function format_message(event, color)
+   return get_message_format(event):format(event.name and format_name(event.name, color), event.prev_line)
+end
+
+-- Returns formatted message for an issue, without color.
+function format.get_message(event)
+   return format_message(event)
+end
+
 local function format_event(file_name, event, opts)
-   local message_format = get_message_format(event)
-   local message = message_format:format(event.name and format_name(event.name, opts.color), event.prev_line)
+   local message = format_message(event, opts.color)
 
    if opts.codes then
       message = ("(%s) %s"):format(event_code(event), message)
@@ -295,7 +305,7 @@ end
 --    `options.color`: should use ansicolors? Default: true.
 --    `options.codes`: should output warning codes? Default: false.
 --    `options.ranges`: should output token end column? Default: false.
-local function format(report, file_names, options)
+function format.format(report, file_names, options)
    return formatters[options.formatter or "default"](report, file_names, {
       quiet = options.quiet or 0,
       color = (options.color ~= false) and color_support,

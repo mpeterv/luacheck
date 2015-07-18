@@ -1,6 +1,7 @@
 local check = require "luacheck.check"
 local filter = require "luacheck.filter"
 local options = require "luacheck.options"
+local format = require "luacheck.format"
 local utils = require "luacheck.utils"
 
 local luacheck = {
@@ -117,6 +118,11 @@ function luacheck.check_files(files, opts)
    end
 
    return luacheck.check_strings(srcs, opts)
+end
+
+function luacheck.get_message(issue)
+   assert(type(issue) == "table", ("bad argument #1 to 'luacheck.get_message' (table expected, got %s)"):format(type(issue)))
+   return format.get_message(issue)
 end
 
 setmetatable(luacheck, {__call = function(_, ...)

@@ -468,3 +468,31 @@ describe("process_reports", function()
       })))
    end)
 end)
+
+describe("get_message", function()
+   it("panics on bad events", function()
+      assert.has_error(function() luacheck.get_message("foo") end,
+         "bad argument #1 to 'luacheck.get_message' (table expected, got string)")
+   end)
+
+   it("returns message for an event", function()
+      assert.equal("unused argument 'bar'", luacheck.get_message({
+         code = "212",
+         name = "bar"
+      }))
+      assert.equal("shadowing definition of loop variable 'foo' on line 1", luacheck.get_message({
+         code = "423",
+         name = "foo",
+         line = 2,
+         prev_line = 1
+      }))
+      assert.equal("message goes here", luacheck.get_message({
+         code = "011",
+         msg = "message goes here"
+      }))
+      assert.equal("unexpected character near '%'", luacheck.get_message({
+         code = "011",
+         msg = "unexpected character near '%'"
+      }))
+   end)
+end)
