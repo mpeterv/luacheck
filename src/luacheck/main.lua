@@ -42,33 +42,32 @@ Pass "-" to check stdin.]])
          :args "+"
          :argname "<file>"
 
-
-      parser:option("--filename", "Use another filename in output and for selecting configuration overrides.")
-
       parser:flag("-g --no-global", [[Filter out warnings related to global variables.
 Equivalent to --ignore 1.]])
-      parser:flag("-u --no-unused", [[Filter out warnings related to unused variables and values.
-Equivalent to --ignore [23].]])
+      parser:flag("-u --no-unused", [[Filter out warnings related to unused variables
+and values. Equivalent to --ignore [23].]])
       parser:flag("-r --no-redefined", [[Filter out warnings related to redefined variables.
 Equivalent to --ignore 4.]])
 
-      parser:flag("-a --no-unused-args", [[Filter out warnings related to unused arguments and loop variables.
-Equivalent to --ignore 21[23].]])
-      parser:flag("-s --no-unused-secondaries",
-         "Filter out warnings related to unused variables set together with used ones.")
-      parser:flag("--no-self",
-         "Filter out warnings related to implicit self argument.")
+      parser:flag("-a --no-unused-args", [[Filter out warnings related to unused arguments and
+loop variables. Equivalent to --ignore 21[23].]])
+      parser:flag("-s --no-unused-secondaries", [[Filter out warnings related to unused variables set
+together with used ones.]])
+      parser:flag("--no-self", "Filter out warnings related to implicit self argument.")
 
       parser:option("--std", [[Set standard globals. <std> must be one of:
-   _G - globals of the current Lua interpreter (default);
+   _G (default) - globals of the current Lua
+      interpreter;
    lua51 - globals of Lua 5.1;
    lua52 - globals of Lua 5.2;
-   lua52c - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;
+   lua52c - globals of Lua 5.2 with LUA_COMPAT_ALL;
    lua53 - globals of Lua 5.3;
-   lua53c - globals of Lua 5.3 compiled with LUA_COMPAT_5_2;
+   lua53c - globals of Lua 5.3 with LUA_COMPAT_5_2;
    luajit - globals of LuaJIT 2.0;
-   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
-   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
+   min - intersection of globals of Lua 5.1, Lua 5.2,
+      Lua 5.3 and LuaJIT 2.0;
+   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3
+      and LuaJIT 2.0;
    none - no standard globals.]])
       parser:option("--globals", "Add custom globals on top of standard ones.")
          :args "*"
@@ -78,24 +77,28 @@ Equivalent to --ignore 21[23].]])
          :args "*"
          :count "*"
          :argname "<global>"
-      parser:option("--new-globals", "Set custom globals. Removes custom globals added previously.")
+      parser:option("--new-globals", [[Set custom globals. Removes custom globals added
+previously.]])
          :args "*"
          :count "*"
          :argname "<global>"
-      parser:option("--new-read-globals", "Set read-only globals. Removes read-only globals added previously.")
+      parser:option("--new-read-globals", [[Set read-only globals. Removes read-only globals added
+previously.]])
          :args "*"
          :count "*"
          :argname "<global>"
       parser:flag("-c --compat", "Equivalent to --std max.")
       parser:flag("-d --allow-defined", "Allow defining globals implicitly by setting them.")
-      parser:flag("-t --allow-defined-top", "Allow defining globals implicitly by setting them in the top level scope.")
-      parser:flag("-m --module", "Limit visibility of implicitly defined globals to their files.")
+      parser:flag("-t --allow-defined-top", [[Allow defining globals implicitly by setting them in
+the top level scope.]])
+      parser:flag("-m --module", [[Limit visibility of implicitly defined globals to
+their files.]])
 
       parser:option("--ignore -i", [[Filter out warnings matching these patterns.
-If a pattern contains slash, part before slash matches warning code
-   and part after it matches name of related variable.
-Otherwise, if the pattern contains letters or underscore,
-   it matches name of related variable.
+If a pattern contains slash, part before slash matches
+warning code and part after it matches name of related
+variable. Otherwise, if the pattern contains letters
+or underscore, it matches name of related variable.
 Otherwise, the pattern matches warning code.]])
          :args "+"
          :count "*"
@@ -116,11 +119,15 @@ Otherwise, the pattern matches warning code.]])
          parser:flag("--no-config", "Do not look up configuration file.")
       )
 
+      parser:option("--filename", [[Use another filename in output and for selecting
+configuration overrides.]])
+
       parser:option("--exclude-files", "Do not check files matching these globbing patterns.")
          :args "+"
          :count "*"
          :argname "<glob>"
-      parser:option("--include-files", "Do not check files not matching these globbing patterns.")
+      parser:option("--include-files", [[Do not check files not matching these globbing
+patterns.]])
          :args "+"
          :count "*"
          :argname "<glob>"
@@ -138,7 +145,8 @@ Otherwise, the pattern matches warning code.]])
             :convert(tonumber)
       end
 
-      parser:option("--formatter" , [[Use custom formatter. <formatter> must be a module name or one of:
+      parser:option("--formatter" , [[Use custom formatter.
+<formatter> must be a module name or one of:
    TAP - Test Anything Protocol formatter;
    JUnit - JUnit XML formatter;
    plain - simple warning-per-line formatter;
@@ -146,7 +154,8 @@ Otherwise, the pattern matches warning code.]])
 
       parser:flag("-q --quiet", [[Suppress output for files without warnings.
    -qq: Suppress output of warnings.
-   -qqq: Only print total number of warnings and errors.]])
+   -qqq: Only print total number of warnings and
+      errors.]])
          :count "0-3"
 
       parser:flag("--codes", "Show warning codes.")
