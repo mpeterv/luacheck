@@ -3,22 +3,30 @@ Inline options
 
 Luacheck supports setting some options directly in the checked files using inline configuration comments. An inline configuration comment starts with ``luacheck:`` label, possibly after some whitespace. The body of the comment should contain comma separated options, where option invocation consists of its name plus space separated arguments. The following options are supported:
 
-================= ============================================
-Option            Number of arguments
-================= ============================================
-compat            0
-module            0
-allow_defined     0
-allow_defined_top 0
-std               1
-globals           0+
-new_globals       0+
-read_globals      0+
-new_read_globals  0+
-ignore            0+ (without arguments everything is ignored)
-enable            1+
-only              1+
-================= ============================================
+================== ============================================
+Option             Number of arguments
+================== ============================================
+global             0
+unused             0
+redefined          0
+unused args        0
+unused secondaries 0
+self               0
+compat             0
+module             0
+allow defined      0
+allow defined top  0
+std                1
+globals            0+
+new globals        0+
+read globals       0+
+new read globals   0+
+ignore             0+ (without arguments everything is ignored)
+enable             1+
+only               1+
+================== ============================================
+
+Options that take no arguments can be prefixed with ``no`` to invert their meaning. E.g. ``--luacheck: no unused args`` disables unused argument warnings.
 
 Part of the file affected by inline option dependes on where it is placed. If there is any code on the line with the option, only that line is affected; otherwise, everthing till the end of the current closure is. In particular, inline options at the top of the file affect all of it:
 

@@ -1,11 +1,15 @@
 List of warnings
 ================
 
-Warnings produced by Luacheck are categorized using three-digit warning codes. Warning codes can be displayed in CLI output using ``--codes`` CLI option or ``code`` config option.
+Warnings produced by Luacheck are categorized using three-digit warning codes. Warning codes can be displayed in CLI output using ``--codes`` CLI option or ``codes`` config option. Errors also have codes starting with zero.
 
 ==== =============================================
 Code Description
 ==== =============================================
+011  A syntax error.
+021  An invalid inline option.
+022  An upaired inline push directive.
+023  An upaired inline pop directive.
 111  Setting an undefined global variable.
 112  Mutating an undefined global variable.
 113  Accessing an undefined global variable.

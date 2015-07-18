@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Inline options &mdash; luacheck 0.10.0 documentation</title>
+  <title>Inline options &mdash; luacheck latest documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.10.0 documentation" href="index.html"/>
+    <link rel="top" title="luacheck latest documentation" href="index.html"/>
         <link rel="next" title="Luacheck module" href="module.html"/>
         <link rel="prev" title="Configuration file" href="config.html"/> 
 
@@ -68,13 +68,16 @@
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#sets-of-standard-globals">Sets of standard globals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#formatters">Formatters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#stable-interface-for-editor-plugins-and-tools">Stable interface for editor plugins and tools</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="config.html#config-options">Config options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#custom-sets-of-globals">Custom sets of globals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-and-per-path-overrides">Per-file and per-path overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Inline options</a></li>
@@ -121,8 +124,8 @@
 <p>Luacheck supports setting some options directly in the checked files using inline configuration comments. An inline configuration comment starts with <tt class="docutils literal"><span class="pre">luacheck:</span></tt> label, possibly after some whitespace. The body of the comment should contain comma separated options, where option invocation consists of its name plus space separated arguments. The following options are supported:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="28%" />
-<col width="72%" />
+<col width="29%" />
+<col width="71%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Option</th>
@@ -130,16 +133,34 @@
 </tr>
 </thead>
 <tbody valign="top">
+<tr class="row-even"><td>global</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>unused</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>redefined</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>unused args</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>unused secondaries</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>self</td>
+<td>0</td>
+</tr>
 <tr class="row-even"><td>compat</td>
 <td>0</td>
 </tr>
 <tr class="row-odd"><td>module</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td>allow_defined</td>
+<tr class="row-even"><td>allow defined</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td>allow_defined_top</td>
+<tr class="row-odd"><td>allow defined top</td>
 <td>0</td>
 </tr>
 <tr class="row-even"><td>std</td>
@@ -148,13 +169,13 @@
 <tr class="row-odd"><td>globals</td>
 <td>0+</td>
 </tr>
-<tr class="row-even"><td>new_globals</td>
+<tr class="row-even"><td>new globals</td>
 <td>0+</td>
 </tr>
-<tr class="row-odd"><td>read_globals</td>
+<tr class="row-odd"><td>read globals</td>
 <td>0+</td>
 </tr>
-<tr class="row-even"><td>new_read_globals</td>
+<tr class="row-even"><td>new read globals</td>
 <td>0+</td>
 </tr>
 <tr class="row-odd"><td>ignore</td>
@@ -168,6 +189,7 @@
 </tr>
 </tbody>
 </table>
+<p>Options that take no arguments can be prefixed with <tt class="docutils literal"><span class="pre">no</span></tt> to invert their meaning. E.g. <tt class="docutils literal"><span class="pre">--luacheck:</span> <span class="pre">no</span> <span class="pre">unused</span> <span class="pre">args</span></tt> disables unused argument warnings.</p>
 <p>Part of the file affected by inline option dependes on where it is placed. If there is any code on the line with the option, only that line is affected; otherwise, everthing till the end of the current closure is. In particular, inline options at the top of the file affect all of it:</p>
 <div class="highlight-lua"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
@@ -243,7 +265,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.10.0',
+            VERSION:'latest',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

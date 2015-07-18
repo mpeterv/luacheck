@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Luacheck documentation &mdash; luacheck 0.10.0 documentation</title>
+  <title>Luacheck documentation &mdash; luacheck latest documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="luacheck 0.10.0 documentation" href="#"/>
+    <link rel="top" title="luacheck latest documentation" href="#"/>
         <link rel="next" title="List of warnings" href="warnings.html"/> 
 
   
@@ -67,13 +67,16 @@
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#sets-of-standard-globals">Sets of standard globals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#formatters">Formatters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#stable-interface-for-editor-plugins-and-tools">Stable interface for editor plugins and tools</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="config.html#config-options">Config options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#custom-sets-of-globals">Custom sets of globals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-and-per-path-overrides">Per-file and per-path overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="inline.html">Inline options</a></li>
@@ -139,13 +142,16 @@
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#command-line-options">Command line options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#patterns">Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#sets-of-standard-globals">Sets of standard globals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#formatters">Formatters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#stable-interface-for-editor-plugins-and-tools">Stable interface for editor plugins and tools</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration file</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="config.html#config-options">Config options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#per-prefix-overrides">Per-prefix overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#custom-sets-of-globals">Custom sets of globals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#per-file-and-per-path-overrides">Per-file and per-path overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="inline.html">Inline options</a></li>
@@ -155,7 +161,8 @@
 </li>
 </ul>
 </div>
-<p>This is documentation for <a class="reference external" href="https://github.com/mpeterv/luacheck/">Luacheck</a> 0.10.0, a static analyzer and a linter for <a class="reference external" href="http://www.lua.org/">Lua</a>.</p>
+<p>This is documentation for master branch version of <a class="reference external" href="https://github.com/mpeterv/luacheck/">Luacheck</a>, a linter for <a class="reference external" href="http://www.lua.org/">Lua</a>.</p>
+<p>This documentation is being updated.</p>
 </div>
 
 
@@ -194,7 +201,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.10.0',
+            VERSION:'latest',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

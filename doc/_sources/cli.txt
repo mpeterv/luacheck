@@ -11,7 +11,7 @@ Command line interface
 The output of ``luacheck`` consists of separate reports for each checked file and ends with a summary::
 
    $ luacheck src
-   Checking src/bad_code.lua                         Failure
+   Checking src/bad_code.lua                         5 warnings
 
        src/bad_code.lua:3:16: unused variable helper
        src/bad_code.lua:3:23: unused variable length argument
@@ -20,11 +20,11 @@ The output of ``luacheck`` consists of separate reports for each checked file an
        src/bad_code.lua:9:11: accessing undefined variable hepler
 
    Checking src/good_code.lua                        OK
-   Checking src/python_code.lua                      Syntax error
+   Checking src/python_code.lua                      1 error
 
-       spec/samples/python_code.lua:1:6: expected '=' near '__future__'
+       src/python_code.lua:1:6: expected '=' near '__future__'
 
-   Checking src/unused_code.lua                      Failure
+   Checking src/unused_code.lua                      9 warnings
 
        src/unused_code.lua:3:18: unused argument baz
        src/unused_code.lua:4:8: unused loop variable i
@@ -51,67 +51,75 @@ Options taking several arguments can be used several times; ``--ignore foo --ign
 
 Note that options that may take several arguments, such as ``--globals``, should not be used immediately before positional arguments; given ``--globals foo bar file.lua``, ``luacheck`` will consider all ``foo``, ``bar`` and ``file.lua`` global and then panic as there are no file names left.
 
-===================================== ============================================================================
-Option                                Meaning
-===================================== ============================================================================
-``-g`` | ``--no-global``              Filter out warnings related to global variables.
-``-u`` | ``--no-unused``              Filter out warnings related to unused variables and values.
-``-r`` | ``--no-redefined``           Filter out warnings related to redefined variables.
-``-a`` | ``--no-unused-args``         Filter out warnings related to unused arguments and loop variables.
-``-s`` | ``--no-unused-secondaries``  Filter out warnings related to unused variables set together with used ones.
+======================================= ============================================================================
+Option                                  Meaning
+======================================= ============================================================================
+``-g | --no-global``                    Filter out warnings related to global variables.
+``-u | --no-unused``                    Filter out warnings related to unused variables and values.
+``-r | --no-redefined``                 Filter out warnings related to redefined variables.
+``-a | --no-unused-args``               Filter out warnings related to unused arguments and loop variables.
+``-s | --no-unused-secondaries``        Filter out warnings related to unused variables set together with used ones.
 
-                                      See :ref:`secondaryvaluesandvariables`
-``--std <std>``                       Set standard globals. ``<std>`` must be one of:
+                                        See :ref:`secondaryvaluesandvariables`
+``--no-self``                           Filter out warnings related to implicit ``self`` argument.
+``--std <std>``                         Set standard globals. ``<std>`` can be one of:
 
-                                      * ``_G`` - globals of the Lua interpreter ``luacheck`` runs on (default);
-                                      * ``lua51`` - globals of Lua 5.1;
-                                      * ``lua52`` - globals of Lua 5.2;
-                                      * ``lua52c`` - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;
-                                      * ``lua53`` - globals of Lua 5.3; 
-                                      * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
-                                      * ``luajit`` - globals of LuaJIT 2.0;
-                                      * ``min`` - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
-                                      * ``max`` - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
-                                      * ``none`` - no standard globals.
-``--globals [<global>] ...``          Add custom globals on top of standard ones.
-``--read-globals [<global>] ...``     Add read-only globals.
-``--new-globals [<global>] ...``      Set custom globals. Removes custom globals added previously.
-``--new-read-globals [<global>] ...`` Set read-only globals. Removes read-only globals added previously.
-``-c`` | ``--compat``                 Equivalent to ``--std max``.
-``-d`` | ``--allow-defined``          Allow defining globals implicitly by setting them.
+                                        * ``_G`` - globals of the Lua interpreter ``luacheck`` runs on (default);
+                                        * ``lua51`` - globals of Lua 5.1;
+                                        * ``lua52`` - globals of Lua 5.2;
+                                        * ``lua52c`` - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;
+                                        * ``lua53`` - globals of Lua 5.3; 
+                                        * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
+                                        * ``luajit`` - globals of LuaJIT 2.0;
+                                        * ``min`` - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
+                                        * ``max`` - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
+                                        * ``busted`` - globals added by Busted 2.0;
+                                        * ``none`` - no standard globals.
 
-                                      See :ref:`implicitlydefinedglobals`
-``-t`` | ``--allow-defined-top``      Allow defining globals implicitly by setting them in the top level scope.
+                                        See :ref:`stds`
+``--globals [<global>] ...``            Add custom globals on top of standard ones.
+``--read-globals [<global>] ...``       Add read-only globals.
+``--new-globals [<global>] ...``        Set custom globals. Removes custom globals added previously.
+``--new-read-globals [<global>] ...``   Set read-only globals. Removes read-only globals added previously.
+``-c | --compat``                       Equivalent to ``--std max``.
+``-d | --allow-defined``                Allow defining globals implicitly by setting them.
 
-                                      See :ref:`implicitlydefinedglobals`
-``-m`` | ``--module``                 Limit visibility of implicitly defined globals to their files.
+                                        See :ref:`implicitlydefinedglobals`
+``-t | --allow-defined-top``            Allow defining globals implicitly by setting them in the top level scope.
 
-                                      See :ref:`modules`
-``--no-unused-globals``               Filter out warnings related to set but unused global variables.
-``--ignore | -i <patt> [<patt>] ...`` Filter out warnings matching patterns.
-``--enable | -o <patt> [<patt>] ...`` Do not filter out warnings matching patterns.
-``--only | -o <patt> [<patt>] ...``   Filter out warnings not matching patterns.
-``--no-inline``                       Disable inline options.
-``--config <config>``                 Path to custom configuration file (default: ``.luacheckrc``).
-``--no-config``                       Do not look up custom configuration file.
-``--cache [<cache>]``                 Path to cache file. (default: ``.luacheckcache``). See :ref:`cache`
-``--no-cache``                        Do not use cache.
-``-j`` | ``--jobs``                   Check ``<jobs>`` files in parallel. Requires `LuaLanes <http://cmr.github.io/lanes/>`_.
-``--formatter <formatter>``           Use custom formatter. ``<formatter>`` must be a module name or one of:
+                                        See :ref:`implicitlydefinedglobals`
+``-m | --module``                       Limit visibility of implicitly defined globals to their files.
 
-                                      * ``TAP`` - Test Anything Protocol formatter;
-                                      * ``JUnit`` - JUnit XML formatter;
-                                      * ``plain`` - simple warning-per-line formatter;
-                                      * ``default`` - standard formatter.
-``-q`` | ``--quiet``                  Suppress report output for files without warnings.
+                                        See :ref:`modules`
+``--ignore | -i <patt> [<patt>] ...``   Filter out warnings matching patterns.
+``--enable | -e <patt> [<patt>] ...``   Do not filter out warnings matching patterns.
+``--only | -o <patt> [<patt>] ...``     Filter out warnings not matching patterns.
+``--no-inline``                         Disable inline options.
+``--config <config>``                   Path to custom configuration file (default: ``.luacheckrc``).
+``--no-config``                         Do not look up custom configuration file.
+``--filename <filename>``               Use another filename in output, for selecting
+                                        configuration overrides and for file filtering.
+``--exclude-files <glob> [<glob>] ...`` Do not check files matching these globbing patterns. Recursive globs such as ``**/*.lua`` are supported.
+``--include-files <glob> [<glob>] ...`` Do not check files not matching these globbing patterns.
+``--cache [<cache>]``                   Path to cache file. (default: ``.luacheckcache``). See :ref:`cache`
+``--no-cache``                          Do not use cache.
+``-j | --jobs``                         Check ``<jobs>`` files in parallel. Requires `LuaLanes <http://cmr.github.io/lanes/>`_.
+``--formatter <formatter>``             Use custom formatter. ``<formatter>`` must be a module name or one of:
 
-                                      * ``-qq`` - Suppress output of warnings.
-                                      * ``-qqq`` - Only output summary.
-``--codes``                           Show warning codes.
-``--no-color``                        Do not colorize output.
-``-v`` | ``--version``                Show version of luacheck and its dependencies and exit.
-``-h`` | ``--help``                   Show help and exit.
-===================================== ============================================================================
+                                        * ``TAP`` - Test Anything Protocol formatter;
+                                        * ``JUnit`` - JUnit XML formatter;
+                                        * ``plain`` - simple warning-per-line formatter;
+                                        * ``default`` - standard formatter.
+``-q | --quiet``                        Suppress report output for files without warnings.
+
+                                        * ``-qq`` - Suppress output of warnings.
+                                        * ``-qqq`` - Only output summary.
+``--codes``                             Show warning codes.
+``--ranges``                            Show ranges of columns related to warnings.
+``--no-color``                          Do not colorize output.
+``-v | --version``                      Show version of Luacheck and its dependencies and exit.
+``-h | --help``                         Show help and exit.
+======================================= ============================================================================
 
 .. _patterns:
 
@@ -128,12 +136,19 @@ Pattern Matching warnings
 4.2/.*_ Shadowing declarations of arguments with ``_`` suffix or redefining them.
 ======= =========================================================================
 
-Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows to filter warnings by category (e.g. ``--only 1`` focuses ``luacheck`` on global-related warnings).
+Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows one to filter warnings by category (e.g. ``--only 1`` focuses ``luacheck`` on global-related warnings).
+
+.. _stds:
+
+Sets of standard globals
+------------------------
+
+CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51+lua52+lua53``. Leading plus sign adds new sets to default one instead of replacing it. For instance, ``--std +busted`` is suitable for checking test files that use `Busted <http://olivinelabs.com/busted/>`_ testing framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
 
 Formatters
 ----------
 
-CLI option ``--formatter`` allows selecting a custom formatter for ``luacheck`` output. A custom formatter is a Lua module returning a function with three arguments: report as returned by ``luacheck`` module (see :ref:`report`), array of file names and table of options. Options contain values assigned to ``quiet``, ``color``, ``limit``, ``codes`` and ``formatter`` options in CLI or config. Formatter function must return a string.
+CLI option ``--formatter`` allows selecting a custom formatter for ``luacheck`` output. A custom formatter is a Lua module returning a function with three arguments: report as returned by ``luacheck`` module (see :ref:`report`), array of file names and table of options. Options contain values assigned to ``quiet``, ``color``, ``limit``, ``codes``, ``ranges`` and ``formatter`` options in CLI or config. Formatter function must return a string.
 
 .. _cache:
 
@@ -141,3 +156,17 @@ Caching
 -------
 
 If LuaFileSystem is available, Luacheck can cache results of checking files. On subsequent checks, only files which have changed since the last check will be rechecked, improving run time significantly. Changing options (e.g. defining additional globals) does not invalidate cache. Caching can be enabled by using ``--cache <cache>`` option or ``cache`` config option. Using ``--cache`` without an argument or setting ``cache`` config option to ``true`` sets ``.luacheckcache`` as the cache file. Note that ``--cache`` must be used every time ``luacheck`` is run, not on the first run only.
+
+Stable interface for editor plugins and tools
+---------------------------------------------
+
+Command-line interface of Luacheck can change between minor releases. Starting from 0.11.0 version, the following interface is guaranteed at least till 1.0.0 version, and should be used by tools using Luacheck output, e.g. editor plugins.
+
+* Luacheck should be started from the directory containing the checked file.
+* File can be passed through stdin using ``-`` as argument or using a temporary file. Real filename should be passed using ``--filename`` option.
+* Plain formatter should be used. It outputs one issue (warning or error) per line.
+* To get precise error location, ``--ranges`` option can be used. Each line starts with real filename (passed using ``--filename``), followed by ``:<line>:<start_column>-<end_column>:``, where ``<line>`` is line number on which issue occurred and ``<start_column>-<end_column>`` is inclusive range of columns of token related to issue. Numbering starts from 1. If ``--ranges`` is not used, end column and dash is not printed.
+* To get warning and error codes, ``--codes`` option can be used. For each line, substring between parentheses contains three digit issue code, prefixed with ``E`` for errors and ``W`` for warnings. Lack of such substring indicates a fatal error (e.g. I/O error).
+* The rest of the line is warning message.
+
+If compatibility with older Luacheck version is desired, output of ``luacheck --help`` can be used to get its version. If it contains string ``0.<minor>.<patch>``, where ``<minor>`` is at least 11 and ``patch`` is any number, interface described above should be used.

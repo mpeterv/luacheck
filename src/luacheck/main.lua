@@ -55,7 +55,7 @@ loop variables. Equivalent to --ignore 21[23].]])
 together with used ones.]])
       parser:flag("--no-self", "Filter out warnings related to implicit self argument.")
 
-      parser:option("--std", [[Set standard globals. <std> must be one of:
+      parser:option("--std", [[Set standard globals. <std> can be one of:
    _G (default) - globals of the current Lua
       interpreter;
    lua51 - globals of Lua 5.1;
@@ -68,7 +68,10 @@ together with used ones.]])
       Lua 5.3 and LuaJIT 2.0;
    max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3
       and LuaJIT 2.0;
-   none - no standard globals.]])
+   busted - globals added by Busted 2.0;
+   none - no standard globals.
+
+   Sets can be combined using "+".]])
       parser:option("--globals", "Add custom globals on top of standard ones.")
          :args "*"
          :count "*"

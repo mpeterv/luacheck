@@ -11,4 +11,6 @@ Contents:
    inline
    module
 
-This is documentation for `Luacheck <https://github.com/mpeterv/luacheck/>`_ 0.10.0, a static analyzer and a linter for `Lua <http://www.lua.org/>`_.
+This is documentation for master branch version of `Luacheck <https://github.com/mpeterv/luacheck/>`_, a linter for `Lua <http://www.lua.org/>`_.
+
+This documentation is being updated.
