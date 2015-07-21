@@ -131,13 +131,13 @@ do print(foo) end]]))
          assert.equal([[
 1: Local ... (2..8)
 2: Noop
-3: Eval True
+3: Eval Id
 4: Cjump -> 9
 5: Local s (6..6)
 6: Eval Call
 7: Noop
 8: Jump -> 3]], get_line_as_string([[
-while true do
+while cond do
    local s = io.read()
    print(s)
 end]]))
@@ -147,12 +147,12 @@ end]]))
 2: Noop
 3: Local s (4..5)
 4: Eval Call
-5: Eval False
+5: Eval Id
 6: Cjump -> 3]], get_line_as_string([[
 repeat
    local s = io.read()
    print(s)
-until false]]))
+until cond]]))
 
          assert.equal([[
 1: Local ... (2..9)
@@ -180,6 +180,50 @@ end]]))
 for k, v in pairs(t) do
    print(k, v)
 end]]))
+      end)
+
+      it("linearizes loops with literal condition correctly", function()
+         assert.equal([[
+1: Local ... (2..6)
+2: Noop
+3: Eval Number
+4: Eval Call
+5: Noop
+6: Jump -> 3]], get_line_as_string([[
+while 1 do
+   foo()
+end]]))
+
+         assert.equal([[
+1: Local ... (2..7)
+2: Noop
+3: Eval False
+4: Jump -> 8
+5: Eval Call
+6: Noop
+7: Jump -> 3]], get_line_as_string([[
+while false do
+   foo()
+end]]))
+
+         assert.equal([[
+1: Local ... (2..4)
+2: Noop
+3: Eval Call
+4: Eval True]], get_line_as_string([[
+repeat
+   foo()
+until true]]))
+
+            assert.equal([[
+1: Local ... (2..5)
+2: Noop
+3: Eval Call
+4: Eval Nil
+5: Jump -> 3]], get_line_as_string([[
+repeat
+   foo()
+until nil]]))
       end)
 
       it("linearizes nested loops and breaks correctly", function()
@@ -248,6 +292,33 @@ if cond() then
    if cond() then
       stmts()
    elseif cond() then
+      stmts()
+   else
+      stmts()
+   end
+end]]))
+      end)
+
+      it("linearizes if with literal condition correctly", function()
+         assert.equal([[
+1: Local ... (2..14)
+2: Noop
+3: Eval True
+4: Noop
+5: Eval Call
+6: Cjump -> 9
+7: Eval Call
+8: Jump -> 14
+9: Eval False
+10: Jump -> 13
+11: Eval Call
+12: Jump -> 14
+13: Eval Call
+14: Jump -> 15]], get_line_as_string([[
+if true then
+   if cond() then
+      stmts()
+   elseif false then
       stmts()
    else
       stmts()

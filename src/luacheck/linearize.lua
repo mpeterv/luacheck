@@ -247,6 +247,20 @@ function LinState:emit_goto(name, is_conditional, location)
    table.insert(self.scopes.top.gotos, new_goto(name, jump, location))
 end
 
+local tag_to_boolean = {
+   Nil = false, False = false,
+   True = true, Number = true, String = true, Table = true, Function = true
+}
+
+-- Emits goto that jumps to ::name:: if bool(cond_node) == false.
+function LinState:emit_cond_goto(name, cond_node)
+   local cond_bool = tag_to_boolean[cond_node.tag]
+
+   if cond_bool ~= true then
+      self:emit_goto(name, cond_bool ~= false)
+   end
+end
+
 function LinState:emit_noop(node, loop_end)
    self:emit(new_noop_item(node, loop_end))
 end
@@ -278,7 +292,7 @@ function LinState:emit_stmt_While(node)
    self:enter_scope()
    self:register_label("do")
    self:emit_expr(node[1])
-   self:emit_goto("break", true)
+   self:emit_cond_goto("break", node[1])
    self:emit_block(node[2])
    self:emit_noop(node, true)
    self:emit_goto("do")
@@ -294,7 +308,7 @@ function LinState:emit_stmt_Repeat(node)
    self:emit_stmts(node[1])
    self:emit_expr(node[2])
    self:leave_scope()
-   self:emit_goto("do", true)
+   self:emit_cond_goto("do", node[2])
    self:register_label("break")
    self:leave_scope()
 end
@@ -346,7 +360,7 @@ function LinState:emit_stmt_If(node)
    for i = 1, #node - 1, 2 do
       self:enter_scope()
       self:emit_expr(node[i])
-      self:emit_goto("else", true)
+      self:emit_cond_goto("else", node[i])
       self:check_empty_block(node[i + 1])
       self:emit_block(node[i + 1])
       self:emit_goto("end")

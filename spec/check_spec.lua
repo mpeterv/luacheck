@@ -120,7 +120,7 @@ for i in pairs{} do end
          {code = "113", name = "print", line = 9, column = 1, end_column = 5}
       }, check[[
 local a
-if true then
+if ... then
    a = 2
 else
    a = 3
@@ -352,7 +352,7 @@ goto fail
          {code = "511", line = 2, column = 1, end_column = 2}
       }, check[[
 do return end
-if true then return 6 end
+if ... then return 6 end
 return 3
       ]])
 
@@ -360,19 +360,50 @@ return 3
          {code = "511", line = 7, column = 1, end_column = 2},
          {code = "511", line = 13, column = 1, end_column = 6}
       }, check[[
-if false then
+if ... then
    return 4
 else
    return 6
 end
 
-if true then
+if ... then
    return 7
 else
    return 8
 end
 
 return 3
+      ]])
+   end)
+
+   it("detects unreachable code with literal conditions", function()
+      assert.same({
+         {code = "511", line = 4, column = 1, end_column = 6}
+      }, check[[
+while true do
+   (...)()
+end
+return
+      ]])
+
+      assert.same({}, check[[
+repeat
+   if ... then
+      break
+   end
+until false
+return
+      ]])
+
+      assert.same({
+         {code = "511", line = 6, column = 1, end_column = 6}
+      }, check[[
+repeat
+   if nil then
+      break
+   end
+until false
+return
       ]])
    end)
 
@@ -383,7 +414,7 @@ return 3
       }, check[[
 local a
 
-if true then
+if ... then
    a = 5
 else
    a = get(a)
@@ -423,22 +454,22 @@ a, b = 1, 2, 3; (...)(a, b)
    it("detects empty blocks", function()
       assert.same({
          {code = "541", line = 1, column = 1, end_column = 2},
-         {code = "542", line = 3, column = 9, end_column = 12},
-         {code = "542", line = 5, column = 14, end_column = 17},
+         {code = "542", line = 3, column = 8, end_column = 11},
+         {code = "542", line = 5, column = 12, end_column = 15},
          {code = "542", line = 7, column = 1, end_column = 4}
       }, check[[
 do end
 
-if true then
+if ... then
 
-elseif false then
+elseif ... then
 
 else
 
 end
 
-while true do end
-repeat until true
+while ... do end
+repeat until ...
       ]])
    end)
 
