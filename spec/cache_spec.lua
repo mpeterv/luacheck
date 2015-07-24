@@ -5,22 +5,22 @@ describe("cache", function()
    describe("serialize", function()
       it("returns serialized result", function()
          assert.same(
-            'return {{"111","foo",5,100,[23]=true},{"211","bar",4,1,[7]=true,[10]=true},{[3]=5,[4]=100000,[13]=true}}',
+            [[return {{"111","foo",5,100,102,[22]=true},{"211","bar",4,1,3,[8]=true,[11]=true},{"011",[4]=100000,[23]="near '\"'"}}]],
             cache.serialize({
-               {code = "111", name = "foo", line = 5, column = 100, in_module = true},
-               {code = "211", name = "bar", line = 4, column = 1, secondary = true, filtered = true},
-               {line = 5, column = 100000, unpaired = true}
+               {code = "111", name = "foo", line = 5, column = 100, end_column = 102, in_module = true},
+               {code = "211", name = "bar", line = 4, column = 1, end_column = 3, secondary = true, filtered = true},
+               {code = "011", column = 100000, msg = "near '\"'"}
             })
          )
       end)
 
       it("puts repeating string values into locals", function()
          assert.same(
-            'local A,B="111","foo";return {{A,B,5,100,[23]=true},{A,B,6,100,[7]=true,[10]=true},{[3]=5,[4]=100000,[13]=true}}',
+            [[local A,B="111","foo";return {{A,B,5,100,[22]=true},{A,B,6,100,[8]=true,[11]=true},{"011",[4]=100000,[23]="near '\"'"}}]],
             cache.serialize({
                {code = "111", name = "foo", line = 5, column = 100, in_module = true},
                {code = "111", name = "foo", line = 6, column = 100, secondary = true, filtered = true},
-               {line = 5, column = 100000, unpaired = true}
+               {code = "011", column = 100000, msg = "near '\"'"}
             })
          )
       end)
@@ -68,7 +68,7 @@ describe("cache", function()
       end)
 
       it("handles error result", function()
-         assert.same('return {{"011",[3]=2,[4]=4,[24]="message"}}', cache.serialize({{code = "011", line = 2, column = 4, msg = "message"}}))
+         assert.same('return {{"011",[3]=2,[4]=4,[23]="message"}}', cache.serialize({{code = "011", line = 2, column = 4, msg = "message"}}))
       end)
    end)
 

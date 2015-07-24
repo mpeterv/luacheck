@@ -701,11 +701,12 @@ Total: 5 warnings / 1 error in 3 files
 return {}
 spec/samples/bad_code.lua
 (%d+)
-local A="113";return {{A,"package",1,1},{"211","helper",3,16,%[9%]=true},{"212","...",3,23},{"111","embrace",7,10,%[11%]=true},{"412","opt",8,10,7,18},{A,"hepler",9,11}}
+local A="113";return {{A,"package",1,1,7},{"211","helper",3,16,21,%[10%]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,%[12%]=true},{"412","opt",8,10,12,7,18},{A,"hepler",9,11,16}}
 spec/samples/python_code.lua
 (%d+)
-return {{"011",%[3%]=1,%[4%]=6,%[24%]="expected '=' near '__future__'"}}
+return {{"011",%[3%]=1,%[4%]=6,%[5%]=15,%[23%]="expected '=' near '__future__'"}}
 ]])
+
          assert.string(good_mtime)
          assert.string(bad_mtime)
          assert.string(python_mtime)
@@ -734,7 +735,7 @@ Total: 5 warnings / 1 error in 3 files
 return {{"111", "global", 1, 1}, {"321", "uninit", 6, 8}}
 spec/samples/good_code.lua
 %s
-return {{"011",[3]=5,[4]=7,[24]="this code is actually bad"}}
+return {{"011",[3]=5,[4]=7,[23]="this code is actually bad"}}
 spec/samples/bad_code.lua
 %s
 return {}]]):format(python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))

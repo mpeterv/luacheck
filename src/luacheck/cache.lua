@@ -9,10 +9,10 @@ local cache = {}
 -- String fields are compressed into array indexes.
 
 local fields = {
-   "code", "name", "line", "column", "prev_line", "prev_column", "secondary", "self", "func",
-   "filtered", "top", "invalid", "unpaired", "read_only", "global", "filtered_111",
-   "filtered_121", "filtered_131", "filtered_112", "filtered_122", "filtered_113", "definition",
-   "in_module", "msg"}
+   "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "secondary",
+   "self", "func", "filtered", "top", "read_only", "global", "filtered_111", "filtered_121",
+   "filtered_131", "filtered_112", "filtered_122", "filtered_113","definition", "in_module", "msg"
+}
 
 -- Converts table with fields into table with indexes.
 local function compress(t)
