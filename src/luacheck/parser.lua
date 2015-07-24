@@ -409,9 +409,10 @@ local function parse_subexpression(state, limit)
 end
 
 -- Additionally returns whether expression is inside parentheses.
-function parse_expression(state)
-   local first_token = state.token
+function parse_expression(state, save_first_token)
+   local first_token = token_body_or_line(state)
    local expression, is_prefix = parse_subexpression(state, 0)
+   expression.first_token = save_first_token and first_token
    return expression, is_prefix and first_token == "("
 end
 
@@ -421,7 +422,7 @@ statements["if"] = function(state, loc)
    local ast_node = init_ast_node({}, loc, "If")
 
    repeat
-      ast_node[#ast_node+1] = parse_expression(state)  -- Parse the condition.
+      ast_node[#ast_node+1] = parse_expression(state, true)
       local branch_location = location(state)
       check_and_skip_token(state, "then")
       ast_node[#ast_node+1] = parse_block(state, branch_location)
@@ -495,7 +496,7 @@ end
 statements["repeat"] = function(state, loc)
    local block = parse_block(state)
    check_and_skip_token(state, "until")
-   local condition = parse_expression(state)
+   local condition = parse_expression(state, true)
    return init_ast_node({block, condition}, loc, "Repeat")
 end
 

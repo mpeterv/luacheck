@@ -868,7 +868,7 @@ end
                               },
                               {
                                  {tag = "If", location = {line = 7, column = 4, offset = 106}, first_token = "if",
-                                    {tag = "Id", "arg", location = {line = 7, column = 7, offset = 109}},
+                                    {tag = "Id", "arg", location = {line = 7, column = 7, offset = 109}, first_token = "arg"},
                                     {location = {line = 7, column = 11, offset = 113}, -- Branch location.
                                        {tag = "Call", location = {line = 8, column = 7, offset = 124}, first_token = "print",
                                           {tag = "Id", "print", location = {line = 8, column = 7, offset = 124}},

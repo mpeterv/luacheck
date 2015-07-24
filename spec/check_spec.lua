@@ -407,6 +407,26 @@ return
       ]])
    end)
 
+   it("detects unreachable expressions", function()
+      assert.same({
+         {code = "511", line = 3, column = 7, end_column = 9}
+      }, check[[
+repeat
+    return
+until ...
+      ]])
+
+      assert.same({
+         {code = "511", line = 3, column = 8, end_column = 10}
+      }, check[[
+if true then
+   (...)()
+elseif ... then
+   (...)()
+end
+      ]])
+   end)
+
    it("detects accessing uninitialized variables", function()
       assert.same({
          {code = "113", name = "get", line = 6, column = 8, end_column = 10},
