@@ -677,7 +677,7 @@ Total: 26 warnings / 0 errors in 1 file
       end)
 
       it("caches results", function()
-         assert.equal([[
+         local normal_output = [[
 Checking spec/samples/good_code.lua               OK
 Checking spec/samples/bad_code.lua                5 warnings
 
@@ -692,56 +692,9 @@ Checking spec/samples/python_code.lua             1 error
     spec/samples/python_code.lua:1:6: expected '=' near '__future__'
 
 Total: 5 warnings / 1 error in 3 files
-]], get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
+]]
 
-         local cache = utils.read_file(tmpname)
-         assert.string(cache)
-         local good_mtime, bad_mtime, python_mtime = cache:match([[spec/samples/good_code.lua
-(%d+)
-return {}
-spec/samples/bad_code.lua
-(%d+)
-local A="113";return {{A,"package",1,1,7},{"211","helper",3,16,21,%[10%]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,%[12%]=true},{"412","opt",8,10,12,7,18},{A,"hepler",9,11,16}}
-spec/samples/python_code.lua
-(%d+)
-return {{"011",%[3%]=1,%[4%]=6,%[5%]=15,%[23%]="expected '=' near '__future__'"}}
-]])
-
-         assert.string(good_mtime)
-         assert.string(bad_mtime)
-         assert.string(python_mtime)
-
-         assert.equal([[
-Checking spec/samples/good_code.lua               OK
-Checking spec/samples/bad_code.lua                5 warnings
-
-    spec/samples/bad_code.lua:3:16: unused function helper
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable embrace
-    spec/samples/bad_code.lua:8:10: variable opt was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable hepler
-
-Checking spec/samples/python_code.lua             1 error
-
-    spec/samples/python_code.lua:1:6: expected '=' near '__future__'
-
-Total: 5 warnings / 1 error in 3 files
-]], get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
-
-         local fh = io.open(tmpname, "w")
-         assert.userdata(fh)
-         fh:write(([[spec/samples/python_code.lua
-%s
-return {{"111", "global", 1, 1}, {"321", "uninit", 6, 8}}
-spec/samples/good_code.lua
-%s
-return {{"011",[3]=5,[4]=7,[23]="this code is actually bad"}}
-spec/samples/bad_code.lua
-%s
-return {}]]):format(python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
-         fh:close()
-
-         assert.equal([[
+         local mocked_output = [[
 Checking spec/samples/good_code.lua               1 error
 
     spec/samples/good_code.lua:5:7: this code is actually bad
@@ -772,7 +725,60 @@ Checking spec/samples/unused_code.lua             9 warnings
     spec/samples/unused_code.lua:21:7: variable z is never accessed
 
 Total: 16 warnings / 1 error in 4 files
-]], get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
+]]
+
+         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
+
+         local cache = utils.read_file(tmpname)
+         assert.string(cache)
+         local format_version, good_mtime, bad_mtime, python_mtime = cache:match([[
+
+(%d+)
+spec/samples/good_code.lua
+(%d+)
+return {}
+spec/samples/bad_code.lua
+(%d+)
+local A="113";return {{A,"package",1,1,7},{"211","helper",3,16,21,%[10%]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,%[12%]=true},{"412","opt",8,10,12,7,18},{A,"hepler",9,11,16}}
+spec/samples/python_code.lua
+(%d+)
+return {{"011",%[3%]=1,%[4%]=6,%[5%]=15,%[23%]="expected '=' near '__future__'"}}
+]])
+
+         format_version = tonumber(format_version)
+         assert.number(format_version)
+         assert.string(good_mtime)
+         assert.string(bad_mtime)
+         assert.string(python_mtime)
+
+         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
+
+         local function write_new_cache(version)
+            local fh = io.open(tmpname, "w")
+            assert.userdata(fh)
+            fh:write(([[
+%s
+spec/samples/python_code.lua
+%s
+return {{"111", "global", 1, 1}, {"321", "uninit", 6, 8}}
+spec/samples/good_code.lua
+%s
+return {{"011",[3]=5,[4]=7,[23]="this code is actually bad"}}
+spec/samples/bad_code.lua
+%s
+return {}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
+            fh:close()
+         end
+
+         write_new_cache("\n"..tostring(format_version))
+         assert.equal(mocked_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
+         assert.equal(mocked_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
+
+         write_new_cache("\n"..tostring(format_version + 1))
+         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
+
+         write_new_cache("")
+         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
       end)
    end)
 

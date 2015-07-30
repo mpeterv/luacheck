@@ -3,10 +3,13 @@ local utils = require "luacheck.utils"
 local cache = {}
 
 -- Cache file contains check results for n unique filenames.
--- Cache file consists of 3n lines, 3 lines per file.
+-- Cache file consists of 3n+2 lines, the first line is empty and the second is cache format version.
+-- The rest are contain file records, 3 lines per file.
 -- For each file, first line is the filename, second is modification time,
 -- third is check result in lua table format.
 -- String fields are compressed into array indexes.
+
+cache.format_version = 1
 
 local fields = {
    "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "secondary",
@@ -179,13 +182,26 @@ local function load_cached(cached)
    return decompressed
 end
 
+local function check_version_header(fh)
+   return fh:read() == "" and tonumber(fh:read()) == cache.format_version
+end
+
+local function write_version_header(fh)
+   fh:write("\n", tostring(cache.format_version), "\n")
+end
+
 -- Loads cache for filenames given mtimes from cache cache_filename.
 -- Returns table mapping filenames to cached check results.
--- On corrupted cache returns nil.
+-- On corrupted cache returns nil, on version mismatch returns {}.
 function cache.load(cache_filename, filenames, mtimes)
    local fh = io.open(cache_filename, "rb")
 
    if not fh then
+      return {}
+   end
+
+   if not check_version_header(fh) then
+      fh:close()
       return {}
    end
 
@@ -234,19 +250,21 @@ function cache.load(cache_filename, filenames, mtimes)
 end
 
 -- Updates cache at cache_filename with results for filenames.
--- Returns success flag + wether update was append-only.
+-- Returns success flag + whether update was append-only.
 function cache.update(cache_filename, filenames, mtimes, results)
-   local old_triplets
+   local old_triplets = {}
+   local can_append = false
    local fh = io.open(cache_filename, "rb")
 
-   if not fh then
-      old_triplets = {}
-   else
-      old_triplets = read_triplets(fh)
+   if fh then
+      if check_version_header(fh) then
+         old_triplets = read_triplets(fh)
+         can_append = true
+      end
+
       fh:close()
    end
 
-   local can_append = true
    local filename_set = utils.array_to_set(filenames)
    local old_filename_set = {}
 
@@ -297,6 +315,7 @@ function cache.update(cache_filename, filenames, mtimes, results)
          return false
       end
 
+      write_version_header(fh)
       write_triplets(fh, old_triplets)
       write_triplets(fh, new_triplets)
       fh:close()

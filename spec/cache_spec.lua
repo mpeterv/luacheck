@@ -1,6 +1,17 @@
 local cache = require "luacheck.cache"
 local utils = require "luacheck.utils"
 
+local actual_format_version
+
+setup(function()
+   actual_format_version = cache.format_version
+   cache.format_version = 0
+end)
+
+teardown(function()
+   cache.format_version = actual_format_version
+end)
+
 describe("cache", function()
    describe("serialize", function()
       it("returns serialized result", function()
@@ -87,6 +98,8 @@ describe("cache", function()
          cache.update(tmpname, {"foo", "bar", "foo"}, {1, 2, 1}, {{{code="111"}}, {}, {{code="112"}}})
          local data = utils.read_file(tmpname)
          assert.equals([[
+
+0
 foo
 1
 return {{"112"}}
@@ -103,6 +116,8 @@ return {}
          assert.is_true(appended)
          local data = utils.read_file(tmpname)
          assert.equals([[
+
+0
 foo
 1
 return {{"112"}}
@@ -122,6 +137,8 @@ return {{"111"},{"122"}}
          assert.is_false(appended)
          local data = utils.read_file(tmpname)
          assert.equals([[
+
+0
 foo
 4
 return {}
@@ -137,6 +154,14 @@ return {{"111"},{"122"}}
 
    describe("load", function()
       describe("error handling", function()
+         it("returns {} on cache with bad version", function()
+            assert.same({}, cache.load("spec/caches/different_format.cache", {"foo"}, {123}))
+         end)
+
+         it("returns {} on cache without version", function()
+            assert.same({}, cache.load("spec/caches/old_format.cache", {"foo"}, {123}))
+         end)
+
          it("returns nil on cache with bad number of lines", function()
             assert.is_nil(cache.load("spec/caches/bad_lines.cache", {"foo"}, {123}))
          end)
