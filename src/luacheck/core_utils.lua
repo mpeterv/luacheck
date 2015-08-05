@@ -1,30 +1,56 @@
 local core_utils = {}
 
--- Calls callback with line, index, item, ... for each item reachable from starting item.
--- `visited` is a set of already visited indexes.
+-- Calls callback with line, stack_set, index, item, ... for each item reachable from starting item.
+-- `stack_set` is a set of indices of items in current propogation path from root, excluding current item.
 -- Callback can return true to stop walking from current item.
-function core_utils.walk_line(line, visited, index, callback, ...)
+function core_utils.walk_line(line, index, callback, ...)
+   local stack = {}
+   local stack_set = {}
+   local backlog = {}
+   local level = 0
+
+   while index do
+      local item = line.items[index]
+
+      if not callback(line, stack_set, index, item, ...) and item then
+         level = level + 1
+         stack[level] = index
+         stack_set[index] = true
+
+         if item.tag == "Jump" then
+            index = item.to
+         elseif item.tag == "Cjump" then
+            backlog[level] = index + 1
+            index = item.to
+         else
+            index = index + 1
+         end
+      else
+         while level > 0 and not backlog[level] do
+            stack_set[stack[level]] = nil
+            level = level - 1
+         end
+
+         index = backlog[level]
+         backlog[level] = nil
+      end
+   end
+end
+
+local function once_per_item_callback_adapter(line, _, index, item, visited, callback, ...)
    if visited[index] then
-      return
+      return true
    end
 
    visited[index] = true
-   local item = line.items[index]
+   return callback(line, index, item, ...)
+end
 
-   if callback(line, index, item, ...) then
-      return
-   end
-
-   if not item then
-      return
-   elseif item.tag == "Jump" then
-      return core_utils.walk_line(line, visited, item.to, callback, ...)
-   elseif item.tag == "Cjump" then
-      core_utils.walk_line(line, visited, item.to, callback, ...)
-      return core_utils.walk_line(line, visited, index + 1, callback, ...)
-   else
-      return core_utils.walk_line(line, visited, index + 1, callback, ...)
-   end
+-- Calls callback with line, index, item, ... for each item reachable from starting item once.
+-- `visited` is a set of already visited indexes.
+-- Callback can return true to stop walking from current item.
+function core_utils.walk_line_once(line, visited, index, callback, ...)
+   return core_utils.walk_line(line, index, once_per_item_callback_adapter, visited, callback, ...)
 end
 
 -- Given a "global set" warning, return whether it is an implicit definition.

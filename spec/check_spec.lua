@@ -245,6 +245,18 @@ end
       ]])
    end)
 
+   it("handles upvalues before infinite loops", function()
+      assert.same({
+         {code = "221", name = "x", line = 1, column = 7, end_column = 7},
+         {code = "211", name = "f", func = true, line = 2, column = 16, end_column = 16}
+      }, check[[
+local x
+local function f() return x end
+::loop::
+goto loop
+      ]])
+   end)
+
    it("detects redefinition in the same scope", function()
       assert.same({
          {code = "211", name = "foo", line = 1, column = 7, end_column = 9},

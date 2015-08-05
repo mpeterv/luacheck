@@ -21,20 +21,23 @@ local function in_scope(var, index)
    return (var.scope_start <= index) and (index <= var.scope_end)
 end
 
--- Called when value of var is live at an item.
+-- Called when value of var is live at an item, maybe several times.
 -- Registers value as live where variable is accessed or liveness propogation stops.
--- Stops when out of scope of variable or at another assignment to it.
-local function value_propogation_callback(line, index, item, var, value)
+-- Stops when out of scope of variable, at another assignment to it or at an item
+-- encountered already.
+-- When stopping at a visited item, only save value if the item is in the current stack
+-- of items, i.e. when propogation followed some path from it to previous item
+local function value_propogation_callback(line, stack, index, item, visited, var, value)
    if not item then
       register_value(line.last_live_values, var, value)
       return true
    end
 
-   if item.accesses and item.accesses[var] then
+   if not visited[index] and item.accesses and item.accesses[var] then
       add_resolution(item, var, value)
    end
 
-   if not in_scope(var, index) or (item.set_variables and item.set_variables[var]) then
+   if stack[index] or (not visited[index] and (not in_scope(var, index) or item.set_variables and item.set_variables[var])) then
       if not item.live_values then  
          item.live_values = {}    
       end
@@ -42,6 +45,12 @@ local function value_propogation_callback(line, index, item, var, value)
       register_value(item.live_values, var, value)  
       return true
    end
+
+   if visited[index] then
+      return true
+   end
+
+   visited[index] = true
 end
 
 -- For each node accessing variables, adds table {var = {values}} to field `used_values`.
@@ -58,7 +67,7 @@ local function propogate_values(line)
          for var, value in pairs(item.set_variables) do
             if var.line == line then
                -- Values are only live at the item after assignment.
-               core_utils.walk_line(line, {}, i + 1, value_propogation_callback, var, value)
+               core_utils.walk_line(line, i + 1, value_propogation_callback, {}, var, value)
             end
          end
       end
@@ -121,7 +130,7 @@ local function propogate_closures(line)
       if item.lines then
          for _, subline in ipairs(item.lines) do
             -- Closures are considered live at the item they are created.
-            core_utils.walk_line(line, {}, i, closure_propogation_callback, subline)
+            core_utils.walk_line_once(line, {}, i, closure_propogation_callback, subline)
          end
       end
    end
