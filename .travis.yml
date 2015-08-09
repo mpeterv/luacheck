@@ -1,4 +1,5 @@
 language: c
+sudo: false
 
 env:
   - LUA="Lua 5.1"
@@ -7,23 +8,24 @@ env:
   - LUA="LuaJIT 2.0"
 
 before_install:
-  - bash .travis_setup.sh
-  - bash .travis_setup_rocks.sh
+  - bash .travis/setup.sh
+  - export PATH=$PATH:$PWD/.travis/lua/bin:$PWD/.travis/luarocks/bin
+  - bash .travis/setup_rocks.sh
 
 install:
-  - sudo luarocks make
+  - luarocks make
 
 script:
   - busted -c
   - luacheck luacheck-scm-1.rockspec -j2
-  - sudo luarocks remove luafilesystem --force
-  - sudo luarocks remove lanes --force
+  - luarocks remove luafilesystem --force
+  - luarocks remove lanes --force
   - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec | grep 'I/O error'
   - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua --version | grep 'Not found'
-  - sudo luarocks remove luacheck --force
+  - luarocks remove luacheck --force
   - lua install.lua path/to/luacheck
   - mv src src2
   - path/to/luacheck/bin/luacheck spec/*.lua
-  - sudo luarocks install luacov-coveralls
+  - luarocks install luacov-coveralls
   - mv src2 src
   - luacov-coveralls -v
