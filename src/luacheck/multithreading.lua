@@ -1,3 +1,5 @@
+local utils = require "luacheck.utils"
+
 local multithreading = {}
 
 local ok, lanes = pcall(require, "lanes")
@@ -29,6 +31,12 @@ local worker_gen = lanes.gen("*", worker_task)
 
 -- Maps func over array, performing at most jobs calls in parallel.
 function multithreading.pmap(func, array, jobs)
+   jobs = math.min(jobs, #array)
+
+   if jobs < 2 then
+      return utils.map(func, array)
+   end
+
    local workers = {}
    local linda = lanes.linda()
 
