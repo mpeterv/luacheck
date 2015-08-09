@@ -39,7 +39,7 @@ function helper.luacov_config(prefix)
       reportfile = prefix.."luacov.report.out",
       deletestats = false,
       runreport = false,
-      include = {"luacheck/.+$"},
+      include = {"luacheck/[^/]+$"},
       exclude = {}
    }
 end
