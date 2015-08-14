@@ -1,16 +1,17 @@
-language: c
+language: python
 sudo: false
 
 env:
-  - LUA="Lua 5.1"
-  - LUA="Lua 5.2"
-  - LUA="Lua 5.3"
-  - LUA="LuaJIT 2.0"
+  - LUA="lua=5.1"
+  - LUA="lua=5.2"
+  - LUA="lua=5.3"
+  - LUA="luajit=2.0"
 
 before_install:
-  - bash .travis/setup.sh
-  - export PATH=$PATH:$PWD/.travis/lua/bin:$PWD/.travis/luarocks/bin
-  - bash .travis/setup_rocks.sh
+  - pip install hererocks
+  - hererocks here -r^ --$LUA
+  - export PATH=$PATH:$PWD/here/bin
+  - bash .travis_deps.sh
 
 install:
   - luarocks make
