@@ -49,6 +49,13 @@ stds.luajit = {
    "pcall", "print", "rawequal", "rawget", "rawset", "require", "select", "setfenv",
    "setmetatable", "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"}
 
+stds.ngx_lua = {
+   _G = true, package = true, "_VERSION", "arg", "assert", "bit", "collectgarbage", "coroutine",
+   "debug", "dofile", "error", "gcinfo", "getfenv", "getmetatable", "io", "ipairs", "jit",
+   "load", "loadfile", "loadstring", "math", "module", "newproxy", "ndk", "ngx", "next", "os",
+   "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "require", "select", "setfenv",
+   "setmetatable", "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"}
+
 local min = {_G = true, package = true}
 local std_sets = {}
 
@@ -57,7 +64,9 @@ for name, std in pairs(stds) do
 end
 
 for global in pairs(std_sets.lua51) do
-   if std_sets.lua52[global] and std_sets.lua53[global] and std_sets.luajit[global] then
+   if std_sets.lua52[global] and std_sets.lua53[global]
+      and std_sets.luajit[global] and std_sets.ngx_lua[global]
+   then
       table.insert(min, global)
    end
 end
