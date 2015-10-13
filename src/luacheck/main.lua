@@ -64,6 +64,7 @@ together with used ones.]])
    lua53 - globals of Lua 5.3;
    lua53c - globals of Lua 5.3 with LUA_COMPAT_5_2;
    luajit - globals of LuaJIT 2.0;
+   ngx_lua - globals of Openresty lua-nginx-module with LuaJIT 2.0;
    min - intersection of globals of Lua 5.1, Lua 5.2,
       Lua 5.3 and LuaJIT 2.0;
    max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3
