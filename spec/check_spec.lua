@@ -439,6 +439,19 @@ end
       ]])
    end)
 
+   it("detects unreachable code in nested function", function()
+      assert.same({
+         {code = "511", line = 4, column = 7, end_column = 12}
+      }, check[[
+return function()
+   return function()
+      do return end
+      return
+   end
+end
+      ]])
+   end)
+
    it("detects accessing uninitialized variables", function()
       assert.same({
          {code = "113", name = "get", line = 6, column = 8, end_column = 10},
@@ -453,6 +466,25 @@ else
 end
 
 return a
+      ]])
+   end)
+
+   it("detects accessing uninitialized variables in nested functions", function()
+      assert.same({
+         {code = "113", name = "get", line = 7, column = 8, end_column = 10},
+         {code = "321", name = "a", line = 7, column = 12, end_column = 12}
+      }, check[[
+return function() return function(...)
+local a
+
+if ... then
+   a = 5
+else
+   a = get(a)
+end
+
+return a
+end end
       ]])
    end)
 

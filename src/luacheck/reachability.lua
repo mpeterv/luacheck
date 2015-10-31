@@ -4,14 +4,14 @@ local reachability
 
 local function noop_callback() end
 
-local function reachability_callback(_, _, item, chstate)
+local function reachability_callback(_, _, item, chstate, nested)
    if not item then
       return true
    end
 
-   if item.lines then
+   if not nested and item.lines then
       for _, subline in ipairs(item.lines) do
-         reachability(chstate, subline)
+         reachability(chstate, subline, true)
       end
    end
 
@@ -29,9 +29,9 @@ local function reachability_callback(_, _, item, chstate)
 end
 
 -- Emits warnings: unreachable code, uninitialized access.
-function reachability(chstate, line)
+function reachability(chstate, line, nested)
    local reachable_indexes = {}
-   core_utils.walk_line_once(line, reachable_indexes, 1, reachability_callback, chstate)
+   core_utils.walk_line_once(line, reachable_indexes, 1, reachability_callback, chstate, nested)
 
    for i, item in ipairs(line.items) do
       if not reachable_indexes[i] then
