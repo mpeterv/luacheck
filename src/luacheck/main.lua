@@ -43,17 +43,17 @@ Pass "-" to check stdin.]])
          :argname "<file>"
 
       parser:flag("-g --no-global", [[Filter out warnings related to global variables.
-Equivalent to --ignore 1.]])
+Equivalent to --ignore 1.]]):target("global"):action("store_false")
       parser:flag("-u --no-unused", [[Filter out warnings related to unused variables
-and values. Equivalent to --ignore [23].]])
+and values. Equivalent to --ignore [23].]]):target("unused"):action("store_false")
       parser:flag("-r --no-redefined", [[Filter out warnings related to redefined variables.
-Equivalent to --ignore 4.]])
+Equivalent to --ignore 4.]]):target("redefined"):action("store_false")
 
       parser:flag("-a --no-unused-args", [[Filter out warnings related to unused arguments and
-loop variables. Equivalent to --ignore 21[23].]])
+loop variables. Equivalent to --ignore 21[23].]]):target("unused_args"):action("store_false")
       parser:flag("-s --no-unused-secondaries", [[Filter out warnings related to unused variables set
-together with used ones.]])
-      parser:flag("--no-self", "Filter out warnings related to implicit self argument.")
+together with used ones.]]):target("unused_secondaries"):action("store_false")
+      parser:flag("--no-self", "Filter out warnings related to implicit self argument."):target("self"):action("store_false")
 
       parser:option("--std", [[Set standard globals. <std> can be one of:
    _G (default) - globals of the current Lua
@@ -77,20 +77,28 @@ together with used ones.]])
          :args "*"
          :count "*"
          :argname "<global>"
+         :action "concat"
+         :init(nil)
       parser:option("--read-globals", "Add read-only globals.")
          :args "*"
          :count "*"
          :argname "<global>"
+         :action "concat"
+         :init(nil)
       parser:option("--new-globals", [[Set custom globals. Removes custom globals added
 previously.]])
          :args "*"
          :count "*"
          :argname "<global>"
+         :action "concat"
+         :init(nil)
       parser:option("--new-read-globals", [[Set read-only globals. Removes read-only globals added
 previously.]])
          :args "*"
          :count "*"
          :argname "<global>"
+         :action "concat"
+         :init(nil)
       parser:flag("-c --compat", "Equivalent to --std max.")
       parser:flag("-d --allow-defined", "Allow defining globals implicitly by setting them.")
       parser:flag("-t --allow-defined-top", [[Allow defining globals implicitly by setting them in
@@ -107,16 +115,22 @@ Otherwise, the pattern matches warning code.]])
          :args "+"
          :count "*"
          :argname "<patt>"
+         :action "concat"
+         :init(nil)
       parser:option("--enable -e", "Do not filter out warnings matching these patterns.")
          :args "+"
          :count "*"
          :argname "<patt>"
+         :action "concat"
+         :init(nil)
       parser:option("--only -o", "Filter out warnings not matching these patterns.")
          :args "+"
          :count "*"
          :argname "<patt>"
+         :action "concat"
+         :init(nil)
 
-      parser:flag("--no-inline", "Disable inline options.")
+      parser:flag("--no-inline", "Disable inline options."):target("inline"):action("store_false")
 
       parser:mutex(
          parser:option("--config", "Path to configuration file. (default: "..config.default_path..")"),
@@ -245,32 +259,6 @@ patterns.]])
       if args.std and not options.split_std(args.std) then
          parser:error("<std> must name a standard library")
       end
-   end
-
-   local function get_options(args)
-      local res = {}
-
-      for _, argname in ipairs {"allow_defined", "allow_defined_top", "module", "compat", "std"} do
-         if args[argname] then
-            res[argname] = args[argname]
-         end
-      end
-
-      for _, argname in ipairs {"global", "unused", "redefined", "unused", "unused_args",
-            "unused_secondaries", "self", "inline"} do
-         if args["no_"..argname] then
-            res[argname] = false
-         end
-      end
-
-      for _, argname in ipairs {"globals", "read_globals", "new_globals", "new_read_globals",
-            "ignore", "enable", "only"} do
-         if #args[argname] > 0 then
-            res[argname] = utils.concat_arrays(args[argname])
-         end
-      end
-
-      return res
    end
 
    local function combine_conf_and_args_path_arrays(conf, args, option)
@@ -492,7 +480,6 @@ patterns.]])
 
    local parser = get_parser()
    local args = parser:parse()
-   local opts = get_options(args)
    local conf
 
    if args.no_config then
@@ -513,7 +500,7 @@ patterns.]])
    local files, bad_rockspecs = expand_files(args)
    local reports = get_reports(args.cache, files, bad_rockspecs, args.jobs)
    substitute_filename(args.filename, files)
-   local report = luacheck.process_reports(reports, combine_config_and_options(conf, opts, files))
+   local report = luacheck.process_reports(reports, combine_config_and_options(conf, args, files))
    normalize_stdin_in_filenames(files)
 
    local output = pformat(report, files, conf, args)

@@ -8,19 +8,15 @@ local has_argparse, argparse = pcall(require, "luacheck.argparse")
 assert(has_argparse, "couldn't find argparse module")
 local lua_executable = assert(arg[-1], "couldn't detect Lua executable")
 
-local parser = argparse "<lua> install.lua"
-   :description ("Luacheck " .. luacheck._VERSION .. " installer.")
+local parser = argparse("<lua> install.lua", "Luacheck " .. luacheck._VERSION .. " installer.")
 
-parser:argument "path"
-   :description (([[
+parser:argument("path", ([[
 Installation path.
 Luacheck executable scripts will be installed into <path>%sbin.
 Luacheck modules will be installed into <path>%ssrc.
 Pass . to build luacheck executable script without installing.]]):format(dirsep, dirsep))
 
-parser:option "--lua"
-   :description "Absolute path to lua interpreter or its name if it's in PATH."
-   :default(lua_executable)
+parser:option("--lua", "Absolute path to lua interpreter or its name if it's in PATH.", lua_executable)
 
 local args = parser:parse()
 

@@ -1,3 +1,24 @@
+-- The MIT License (MIT)
+
+-- Copyright (c) 2013 - 2015 Peter Melnichenko
+
+-- Permission is hereby granted, free of charge, to any person obtaining a copy of
+-- this software and associated documentation files (the "Software"), to deal in
+-- the Software without restriction, including without limitation the rights to
+-- use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+-- the Software, and to permit persons to whom the Software is furnished to do so,
+-- subject to the following conditions:
+
+-- The above copyright notice and this permission notice shall be included in all
+-- copies or substantial portions of the Software.
+
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+-- FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+-- COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+-- IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+-- CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 local function deep_update(t1, t2)
    for k, v in pairs(t2) do
       if type(v) == "table" then
@@ -13,61 +34,63 @@ end
 -- A property is a tuple {name, callback}.
 -- properties.args is number of properties that can be set as arguments
 -- when calling an object.
-local function new_class(prototype, properties, parent)
+local function class(prototype, properties, parent)
    -- Class is the metatable of its instances.
-   local class = {}
-   class.__index = class
+   local cl = {}
+   cl.__index = cl
 
    if parent then
-      class.__prototype = deep_update(deep_update({}, parent.__prototype), prototype)
+      cl.__prototype = deep_update(deep_update({}, parent.__prototype), prototype)
    else
-      class.__prototype = prototype
+      cl.__prototype = prototype
    end
 
-   local names = {}
+   if properties then
+      local names = {}
 
-   -- Create setter methods and fill set of property names. 
-   for _, property in ipairs(properties) do
-      local name, callback = property[1], property[2]
+      -- Create setter methods and fill set of property names. 
+      for _, property in ipairs(properties) do
+         local name, callback = property[1], property[2]
 
-      class[name] = function(self, value)
-         if not callback(self, value) then
-            self["_" .. name] = value
+         cl[name] = function(self, value)
+            if not callback(self, value) then
+               self["_" .. name] = value
+            end
+
+            return self
+         end
+
+         names[name] = true
+      end
+
+      function cl.__call(self, ...)
+         -- When calling an object, if the first argument is a table,
+         -- interpret keys as property names, else delegate arguments
+         -- to corresponding setters in order.
+         if type((...)) == "table" then
+            for name, value in pairs((...)) do
+               if names[name] then
+                  self[name](self, value)
+               end
+            end
+         else
+            local nargs = select("#", ...)
+
+            for i, property in ipairs(properties) do
+               if i > nargs or i > properties.args then
+                  break
+               end
+
+               local arg = select(i, ...)
+
+               if arg ~= nil then
+                  self[property[1]](self, arg)
+               end
+            end
          end
 
          return self
       end
-
-      names[name] = true
-   end
-
-   function class.__call(self, ...)
-      -- When calling an object, if the first argument is a table,
-      -- interpret keys as property names, else delegate arguments
-      -- to corresponding setters in order.
-      if type((...)) == "table" then
-         for name, value in pairs((...)) do
-            if names[name] then
-               self[name](self, value)
-            end
-         end
-      else
-         local nargs = select("#", ...)
-
-         for i, property in ipairs(properties) do
-            if i > nargs or i > properties.args then
-               break
-            end
-
-            local arg = select(i, ...)
-
-            if arg ~= nil then
-               self[property[1]](self, arg)
-            end
-         end
-      end
-
-      return self
    end
 
    -- If indexing class fails, fallback to its parent.
@@ -82,7 +105,7 @@ local function new_class(prototype, properties, parent)
       return object(...)
    end
 
-   return setmetatable(class, class_metatable)
+   return setmetatable(cl, class_metatable)
 end
 
 local function typecheck(name, types, value)
@@ -154,6 +177,28 @@ local function boundaries(name)
    end}
 end
 
+local actions = {}
+
+local option_action = {"action", function(_, value)
+   typecheck("action", {"function", "string"}, value)
+
+   if type(value) == "string" and not actions[value] then
+      error(("unknown action '%s'"):format(value))
+   end
+end}
+
+local option_init = {"init", function(self)
+   self._has_init = true
+end}
+
+local option_default = {"default", function(self, value)
+   if type(value) ~= "string" then
+      self._init = value
+      self._has_init = true
+      return true
+   end
+end}
+
 local add_help = {"add_help", function(self, value)
    typecheck("add_help", {"boolean", "string", "table"}, value)
 
@@ -182,7 +227,7 @@ local add_help = {"add_help", function(self, value)
    end
 end}
 
-local Parser = new_class({
+local Parser = class({
    _arguments = {},
    _options = {},
    _commands = {},
@@ -198,10 +243,11 @@ local Parser = new_class({
    typechecked("help", "string"),
    typechecked("require_command", "boolean"),
    typechecked("handle_options", "boolean"),
+   typechecked("action", "function"),
    add_help
 })
 
-local Command = new_class({
+local Command = class({
    _aliases = {}
 }, {
    args = 3,
@@ -217,7 +263,7 @@ local Command = new_class({
    add_help
 }, Parser)
 
-local Argument = new_class({
+local Argument = class({
    _minargs = 1,
    _maxargs = 1,
    _mincount = 1,
@@ -228,16 +274,18 @@ local Argument = new_class({
    args = 5,
    typechecked("name", "string"),
    typechecked("description", "string"),
-   typechecked("default", "string"),
+   option_default,
    typechecked("convert", "function", "table"),
    boundaries("args"),
    typechecked("target", "string"),
    typechecked("defmode", "string"),
    typechecked("show_default", "boolean"),
-   typechecked("argname", "string", "table")
+   typechecked("argname", "string", "table"),
+   option_action,
+   option_init
 })
 
-local Option = new_class({
+local Option = class({
    _aliases = {},
    _mincount = 0,
    _overwrite = true
@@ -245,7 +293,7 @@ local Option = new_class({
    args = 6,
    multiname,
    typechecked("description", "string"),
-   typechecked("default", "string"),
+   option_default,
    typechecked("convert", "function", "table"),
    boundaries("args"),
    boundaries("count"),
@@ -254,7 +302,8 @@ local Option = new_class({
    typechecked("show_default", "boolean"),
    typechecked("overwrite", "boolean"),
    typechecked("argname", "string", "table"),
-   typechecked("action", "function")
+   option_action,
+   option_init
 }, Argument)
 
 function Argument:_get_argument_list()
@@ -300,24 +349,75 @@ function Argument:_get_usage()
    return usage
 end
 
-function Argument:_get_type()
+function actions.store_true(result, target)
+   result[target] = true
+end
+
+function actions.store_false(result, target)
+   result[target] = false
+end
+
+function actions.store(result, target, argument)
+   result[target] = argument
+end
+
+function actions.count(result, target, _, overwrite)
+   if not overwrite then
+      result[target] = result[target] + 1
+   end
+end
+
+function actions.append(result, target, argument, overwrite)
+   result[target] = result[target] or {}
+   table.insert(result[target], argument)
+
+   if overwrite then
+      table.remove(result[target], 1)
+   end
+end
+
+function actions.concat(result, target, arguments, overwrite)
+   if overwrite then
+      error("'concat' action can't handle too many invocations")
+   end
+
+   result[target] = result[target] or {}
+
+   for _, argument in ipairs(arguments) do
+      table.insert(result[target], argument)
+   end
+end
+
+function Argument:_get_action()
+   local action, init
+
    if self._maxcount == 1 then
       if self._maxargs == 0 then
-         return "flag"
-      elseif self._maxargs == 1 and (self._minargs == 1 or self._mincount == 1) then
-         return "arg"
+         action, init = "store_true", nil
       else
-         return "multiarg"
+         action, init = "store", nil
       end
    else
       if self._maxargs == 0 then
-         return "counter"
-      elseif self._maxargs == 1 and self._minargs == 1 then
-         return "multicount"
+         action, init = "count", 0
       else
-         return "twodimensional"
+         action, init = "append", {}
       end
    end
+
+   if self._action then
+      action = self._action
+   end
+
+   if self._has_init then
+      init = self._init
+   end
+
+   if type(action) == "string" then
+      action = actions[action]
+   end
+
+   return action, init
 end
 
 -- Returns placeholder for `narg`-th argument. 
@@ -387,6 +487,10 @@ function Option:_get_usage()
    end
 
    return usage
+end
+
+function Argument:_get_default_target()
+   return self._name
 end
 
 function Option:_get_default_target()
@@ -613,19 +717,21 @@ local function get_tip(context, wrong_name)
    local possible_names = {}
 
    for name in pairs(context) do
-      for i=1, #name do
-         possible_name = name:sub(1, i-1) .. name:sub(i+1)
+      if type(name) == "string" then
+         for i = 1, #name do
+            possible_name = name:sub(1, i - 1) .. name:sub(i + 1)
 
-         if not context_pool[possible_name] then
-            context_pool[possible_name] = {}
+            if not context_pool[possible_name] then
+               context_pool[possible_name] = {}
+            end
+
+            table.insert(context_pool[possible_name], name)
          end
-
-         table.insert(context_pool[possible_name], name)
       end
    end
 
-   for i=1, #wrong_name+1 do
-      possible_name = wrong_name:sub(1, i-1) .. wrong_name:sub(i+1)
+   for i = 1, #wrong_name + 1 do
+      possible_name = wrong_name:sub(1, i - 1) .. wrong_name:sub(i + 1)
 
       if context[possible_name] then
          possible_names[possible_name] = true
@@ -637,6 +743,7 @@ local function get_tip(context, wrong_name)
    end
 
    local first = next(possible_names)
+
    if first then
       if next(possible_names, first) then
          local possible_names_arr = {}
@@ -655,350 +762,371 @@ local function get_tip(context, wrong_name)
    end
 end
 
-local function plural(x)
-   if x == 1 then
-      return ""
-   end
+local ElementState = class({
+   invocations = 0
+})
 
-   return "s"
+function ElementState:__call(state, element)
+   self.state = state
+   self.result = state.result
+   self.element = element
+   self.target = element._target or element:_get_default_target()
+   self.action, self.result[self.target] = element:_get_action()
+   return self
 end
 
--- Compatibility with strict.lua and other checkers:
-local default_cmdline = rawget(_G, "arg") or {}
+function ElementState:error(fmt, ...)
+   self.state:error(fmt, ...)
+end
 
-function Parser:_parse(args, errhandler)
-   args = args or default_cmdline
-   local parser
-   local charset
-   local options = {}
-   local arguments = {}
-   local commands
-   local option_mutexes = {}
-   local used_mutexes = {}
-   local opt_context = {}
-   local com_context
-   local result = {}
-   local invocations = {}
-   local passed = {}
-   local cur_option
-   local cur_arg_i = 1
-   local cur_arg
-   local targets = {}
-   local handle_options = true
+function ElementState:convert(argument)
+   local converter = self.element._convert
 
-   local function error_(fmt, ...)
-      return errhandler(parser, fmt:format(...))
-   end
+   if converter then
+      local ok, err
 
-   local function assert_(assertion, ...)
-      return assertion or error_(...)
-   end
-
-   local function convert(element, data)
-      if element._convert then
-         local ok, err
-
-         if type(element._convert) == "function" then
-            ok, err = element._convert(data)
-         else
-            ok = element._convert[data]
-         end
-
-         assert_(ok ~= nil, "%s", err or "malformed argument '" .. data .. "'")
-         data = ok
-      end
-
-      return data
-   end
-
-   local invoke, pass, close
-
-   function invoke(element)
-      local overwrite = false
-
-      if invocations[element] == element._maxcount then
-         if element._overwrite then
-            overwrite = true
-         else
-            error_("option '%s' must be used at most %d time%s", element._name, element._maxcount, plural(element._maxcount))
-         end
+      if type(converter) == "function" then
+         ok, err = converter(argument)
       else
-         invocations[element] = invocations[element]+1
+         ok = converter[argument]
       end
 
-      passed[element] = 0
-      local type_ = element:_get_type()
-      local target = targets[element]
-
-      if type_ == "flag" then
-         result[target] = true
-      elseif type_ == "multiarg" then
-         result[target] = {}
-      elseif type_ == "counter" then
-         if not overwrite then
-            result[target] = result[target]+1
-         end
-      elseif type_ == "multicount" then
-         if overwrite then
-            table.remove(result[target], 1)
-         end
-      elseif type_ == "twodimensional" then
-         table.insert(result[target], {})
-
-         if overwrite then
-            table.remove(result[target], 1)
-         end
+      if ok == nil then
+         self:error(err and "%s" or "malformed argument '%s'", err or argument)
       end
 
-      if element._maxargs == 0 then
-         close(element)
-      end
+      argument = ok
    end
 
-   function pass(element, data)
-      passed[element] = passed[element]+1
-      data = convert(element, data)
-      local type_ = element:_get_type()
-      local target = targets[element]
+   return argument
+end
 
-      if type_ == "arg" then
-         result[target] = data
-      elseif type_ == "multiarg" or type_ == "multicount" then
-         table.insert(result[target], data)
-      elseif type_ == "twodimensional" then
-         table.insert(result[target][#result[target]], data)
-      end
+function ElementState:default(mode)
+   return self.element._defmode:find(mode) and self.element._default
+end
 
-      if passed[element] == element._maxargs then
-         close(element)
-      end
+local function bound(noun, min, max, is_max)
+   local res = ""
+
+   if min ~= max then
+      res = "at " .. (is_max and "most" or "least") .. " "
    end
 
-   local function complete_invocation(element)
-      while passed[element] < element._minargs do
-         pass(element, element._default)
-      end
-   end
+   local number = is_max and max or min
+   return res .. tostring(number) .. " " .. noun ..  (number == 1 and "" or "s")
+end
 
-   function close(element)
-      if passed[element] < element._minargs then
-         if element._default and element._defmode:find "a" then
-            complete_invocation(element)
-         else
-            error_("too few arguments")
-         end
+function ElementState:invoke(alias)
+   self.open = true
+   self.name = ("%s '%s'"):format(alias and "option" or "argument", alias or self.element._name)
+   self.overwrite = false
+
+   if self.invocations >= self.element._maxcount then
+      if self.element._overwrite then
+         self.overwrite = true
       else
-         if element == cur_option then
-            cur_option = nil
-         elseif element == cur_arg then
-            cur_arg_i = cur_arg_i+1
-            cur_arg = arguments[cur_arg_i]
-         end
+         self:error("%s must be used %s", self.name, bound("time", self.element._mincount, self.element._maxcount, true))
       end
+   else
+      self.invocations = self.invocations + 1
    end
 
-   local function switch(p)
-      parser = p
+   self.args = {}
 
-      for _, option in ipairs(parser._options) do
-         table.insert(options, option)
-
-         for _, alias in ipairs(option._aliases) do
-            opt_context[alias] = option
-         end
-
-         local type_ = option:_get_type()
-         targets[option] = option._target or option:_get_default_target()
-
-         if type_ == "counter" then
-            result[targets[option]] = 0
-         elseif type_ == "multicount" or type_ == "twodimensional" then
-            result[targets[option]] = {}
-         end
-
-         invocations[option] = 0
-      end
-
-      for _, mutex in ipairs(parser._mutexes) do
-         for _, option in ipairs(mutex) do
-            if not option_mutexes[option] then
-               option_mutexes[option] = {mutex}
-            else
-               table.insert(option_mutexes[option], mutex)
-            end
-         end
-      end
-
-      for _, argument in ipairs(parser._arguments) do
-         table.insert(arguments, argument)
-         invocations[argument] = 0
-         targets[argument] = argument._target or argument._name
-         invoke(argument)
-      end
-
-      handle_options = parser._handle_options
-      cur_arg = arguments[cur_arg_i]
-      commands = parser._commands
-      com_context = {}
-
-      for _, command in ipairs(commands) do
-         targets[command] = command._target or command._name
-
-         for _, alias in ipairs(command._aliases) do
-            com_context[alias] = command
-         end
-      end
+   if self.element._maxargs <= 0 then
+      self:close()
    end
 
-   local function get_option(name)
-      return assert_(opt_context[name], "unknown option '%s'%s", name, get_tip(opt_context, name))
+   return self.open
+end
+
+function ElementState:pass(argument)
+   argument = self:convert(argument)
+   table.insert(self.args, argument)
+
+   if #self.args >= self.element._maxargs then
+      self:close()
    end
 
-   local function do_action(element)
-      if element._action then
-         element._action()
-      end
+   return self.open
+end
+
+function ElementState:complete_invocation()
+   while #self.args < self.element._minargs do
+      self:pass(self.element._default)
    end
+end
 
-   local function handle_argument(data)
-      if cur_option then
-         pass(cur_option, data)
-      elseif cur_arg then
-         pass(cur_arg, data)
-      else
-         local com = com_context[data]
+function ElementState:close()
+   if self.open then
+      self.open = false
 
-         if not com then
-            if #commands > 0 then
-               error_("unknown command '%s'%s", data, get_tip(com_context, data))
-            else
-               error_("too many arguments")
-            end
+      if #self.args < self.element._minargs then
+         if self:default("a") then
+            self:complete_invocation()
          else
-            result[targets[com]] = true
-            do_action(com)
-            switch(com)
-         end
-      end
-   end
-
-   local function handle_option(data)
-      if cur_option then
-         close(cur_option)
-      end
-
-      cur_option = opt_context[data]
-
-      if option_mutexes[cur_option] then
-         for _, mutex in ipairs(option_mutexes[cur_option]) do
-            if used_mutexes[mutex] and used_mutexes[mutex] ~= cur_option then
-               error_("option '%s' can not be used together with option '%s'", data, used_mutexes[mutex]._name)
-            else
-               used_mutexes[mutex] = cur_option
+            if #self.args == 0 then
+               if getmetatable(self.element) == Argument then
+                  self:error("missing %s", self.name)
+               elseif self.element._maxargs == 1 then
+                  self:error("%s requires an argument", self.name)
+               end
             end
+
+            self:error("%s requires %s", self.name, bound("argument", self.element._minargs, self.element._maxargs))
          end
       end
 
-      do_action(cur_option)
-      invoke(cur_option)
+      local args = self.args
+
+      if self.element._maxargs <= 1 then
+         args = args[1]
+      end
+
+      if self.element._maxargs == 1 and self.element._minargs == 0 and self.element._mincount ~= self.element._maxcount then
+         args = self.args
+      end
+
+      self.action(self.result, self.target, args, self.overwrite)
+   end
+end
+
+local ParseState = class({
+   result = {},
+   options = {},
+   arguments = {},
+   argument_i = 1,
+   element_to_mutexes = {},
+   mutex_to_used_option = {},
+   command_actions = {}
+})
+
+function ParseState:__call(parser, error_handler)
+   self.parser = parser
+   self.error_handler = error_handler
+   self.charset = parser:_update_charset()
+   self:switch(parser)
+   return self
+end
+
+function ParseState:error(fmt, ...)
+   self.error_handler(self.parser, fmt:format(...))
+end
+
+function ParseState:switch(parser)
+   self.parser = parser
+
+   if parser._action then
+      table.insert(self.command_actions, parser._action)
    end
 
-   local function mainloop()
+   for _, option in ipairs(parser._options) do
+      option = ElementState(self, option)
+      table.insert(self.options, option)
 
-      for _, data in ipairs(args) do
-         local plain = true
-         local first, name, option
+      for _, alias in ipairs(option.element._aliases) do
+         self.options[alias] = option
+      end
+   end
 
-         if handle_options then
-            first = data:sub(1, 1)
-            if charset[first] then
-               if #data > 1 then
-                  plain = false
-                  if data:sub(2, 2) == first then
-                     if #data == 2 then
-                        if cur_option then
-                           close(cur_option)
-                        end
+   for _, mutex in ipairs(parser._mutexes) do
+      for _, option in ipairs(mutex) do
+         if not self.element_to_mutexes[option] then
+            self.element_to_mutexes[option] = {}
+         end
 
-                        handle_options = false
-                     else
-                        local equal = data:find "="
-                        if equal then
-                           name = data:sub(1, equal-1)
-                           option = get_option(name)
-                           assert_(option._maxargs > 0, "option '%s' does not take arguments", name)
+         table.insert(self.element_to_mutexes[option], mutex)
+      end
+   end
 
-                           handle_option(data:sub(1, equal-1))
-                           handle_argument(data:sub(equal+1))
-                        else
-                           get_option(data)
-                           handle_option(data)
-                        end
-                     end
+   for _, argument in ipairs(parser._arguments) do
+      argument = ElementState(self, argument)
+      table.insert(self.arguments, argument)
+      argument:invoke()
+   end
+
+   self.handle_options = parser._handle_options
+   self.argument = self.arguments[self.argument_i]
+   self.commands = parser._commands
+
+   for _, command in ipairs(self.commands) do
+      for _, alias in ipairs(command._aliases) do
+         self.commands[alias] = command
+      end
+   end
+end
+
+function ParseState:get_option(name)
+   local option = self.options[name]
+
+   if not option then
+      self:error("unknown option '%s'%s", name, get_tip(self.options, name))
+   else
+      return option
+   end
+end
+
+function ParseState:get_command(name)
+   local command = self.commands[name]
+
+   if not command then
+      if #self.commands > 0 then
+         self:error("unknown command '%s'%s", name, get_tip(self.commands, name))
+      else
+         self:error("too many arguments")
+      end
+   else
+      return command
+   end
+end
+
+function ParseState:invoke(option, name)
+   self:close()
+
+   if self.element_to_mutexes[option.element] then
+      for _, mutex in ipairs(self.element_to_mutexes[option.element]) do
+         local used_option = self.mutex_to_used_option[mutex]
+
+         if used_option and used_option ~= option then
+            self:error("option '%s' can not be used together with %s", name, used_option.name)
+         else
+            self.mutex_to_used_option[mutex] = option
+         end
+      end
+   end
+
+   if option:invoke(name) then
+      self.option = option
+   end
+end
+
+function ParseState:pass(arg)
+   if self.option then
+      if not self.option:pass(arg) then
+         self.option = nil
+      end
+   elseif self.argument then
+      if not self.argument:pass(arg) then
+         self.argument_i = self.argument_i + 1
+         self.argument = self.arguments[self.argument_i]
+      end
+   else
+      local command = self:get_command(arg)
+      self.result[command._target or command._name] = true
+      self:switch(command)
+   end
+end
+
+function ParseState:close()
+   if self.option then
+      self.option:close()
+      self.option = nil
+   end
+end
+
+function ParseState:finalize()
+   self:close()
+
+   for i = self.argument_i, #self.arguments do
+      local argument = self.arguments[i]
+      if #argument.args == 0 and argument:default("u") then
+         argument:complete_invocation()
+      else
+         argument:close()
+      end
+   end
+
+   if self.parser._require_command and #self.commands > 0 then
+      self:error("a command is required")
+   end
+
+   for _, option in ipairs(self.options) do
+      local name = option.name or ("option '%s'"):format(option.element._name)
+
+      if option.invocations == 0 then
+         if option:default("u") then
+            option:invoke(name)
+            option:complete_invocation()
+            option:close()
+         end
+      end
+
+      local mincount = option.element._mincount
+
+      if option.invocations < mincount then
+         if option:default("a") then
+            while option.invocations < mincount do
+               option:invoke(name)
+               option:close()
+            end
+         elseif option.invocations == 0 then
+            self:error("missing %s", name)
+         else
+            self:error("%s must be used %s", name, bound("time", mincount, option.element._maxcount))
+         end
+      end
+   end
+
+   for i = #self.command_actions, 1, -1 do
+      self.command_actions[i](self.result)
+   end
+end
+
+function ParseState:parse(args)
+   for _, arg in ipairs(args) do
+      local plain = true
+
+      if self.handle_options then
+         local first = arg:sub(1, 1)
+
+         if self.charset[first] then
+            if #arg > 1 then
+               plain = false
+
+               if arg:sub(2, 2) == first then
+                  if #arg == 2 then
+                     self:close()
+                     self.handle_options = false
                   else
-                     for i = 2, #data do
-                        name = first .. data:sub(i, i)
-                        option = get_option(name)
-                        handle_option(name)
+                     local equals = arg:find "="
+                     if equals then
+                        local name = arg:sub(1, equals - 1)
+                        local option = self:get_option(name)
 
-                        if i ~= #data and option._minargs > 0 then
-                           handle_argument(data:sub(i+1))
-                           break
+                        if option.element._maxargs <= 0 then
+                           self:error("option '%s' does not take arguments", name)
                         end
+
+                        self:invoke(option, name)
+                        self:pass(arg:sub(equals + 1))
+                     else
+                        local option = self:get_option(arg)
+                        self:invoke(option, arg)
+                     end
+                  end
+               else
+                  for i = 2, #arg do
+                     local name = first .. arg:sub(i, i)
+                     local option = self:get_option(name)
+                     self:invoke(option, name)
+
+                     if i ~= #arg and option.element._maxargs > 0 then
+                        self:pass(arg:sub(i + 1))
+                        break
                      end
                   end
                end
             end
          end
+      end
 
-         if plain then
-            handle_argument(data)
-         end
+      if plain then
+         self:pass(arg)
       end
    end
 
-   switch(self)
-   charset = parser:_update_charset()
-   mainloop()
-
-   if cur_option then
-      close(cur_option)
-   end
-
-   while cur_arg do
-      if passed[cur_arg] == 0 and cur_arg._default and cur_arg._defmode:find "u" then
-         complete_invocation(cur_arg)
-      else
-         close(cur_arg)
-      end
-   end
-
-   if parser._require_command and #commands > 0 then
-      error_("a command is required")
-   end
-
-   for _, option in ipairs(options) do
-      if invocations[option] == 0 then
-         if option._default and option._defmode:find "u" then
-            invoke(option)
-            complete_invocation(option)
-            close(option)
-         end
-      end
-
-      if invocations[option] < option._mincount then
-         if option._default and option._defmode:find "a" then
-            while invocations[option] < option._mincount do
-               invoke(option)
-               close(option)
-            end
-         else
-            error_("option '%s' must be used at least %d time%s", option._name, option._mincount, plural(option._mincount))
-         end
-      end
-   end
-
-   return result
+   self:finalize()
+   return self.result
 end
 
 function Parser:error(msg)
@@ -1006,24 +1134,37 @@ function Parser:error(msg)
    os.exit(1)
 end
 
+-- Compatibility with strict.lua and other checkers:
+local default_cmdline = rawget(_G, "arg") or {}
+
+function Parser:_parse(args, error_handler)
+   return ParseState(self, error_handler):parse(args or default_cmdline)
+end
+
 function Parser:parse(args)
-   return self:_parse(args, Parser.error)
+   return self:_parse(args, self.error)
+end
+
+local function xpcall_error_handler(err)
+   return tostring(err) .. "\noriginal " .. debug.traceback("", 2):sub(2)
 end
 
 function Parser:pparse(args)
-   local errmsg
-   local ok, result = pcall(function()
+   local parse_error
+
+   local ok, result = xpcall(function()
       return self:_parse(args, function(_, err)
-         errmsg = err
-         return error()
+         parse_error = err
+         error(err, 0)
       end)
-   end)
+   end, xpcall_error_handler)
 
    if ok then
       return true, result
+   elseif not parse_error then
+      error(result, 0)
    else
-      assert(errmsg, result)
-      return false, errmsg
+      return false, parse_error
    end
 end
 
