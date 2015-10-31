@@ -16,7 +16,8 @@ function helper.luacov_config(prefix)
          ["luacheck.*"] = "src"
       },
       exclude = {
-         "bin/luacheck$"
+         "bin/luacheck$",
+         "luacheck/argparse$"
       }
    }
 end
