@@ -97,6 +97,8 @@ If you are a plugin developer, see [recommended way of using Luacheck in a plugi
 
 Documentation is available [online](http://luacheck.readthedocs.org). If Luacheck has been installed using LuaRocks, it can be browsed offline using `luarocks doc luacheck` command.
 
+Documentation can be built using [Sphinx](http://sphinx-doc.org/): `sphinx-build docsrc doc`, the files will be found inside `doc/`.
+
 ## Development
 
 Luacheck is currently in development. The latest released version is 0.11.1. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
