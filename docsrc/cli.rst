@@ -71,6 +71,7 @@ Option                                  Meaning
                                         * ``lua53`` - globals of Lua 5.3; 
                                         * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
                                         * ``luajit`` - globals of LuaJIT 2.0;
+                                        * ``ngx_lua`` - globals of Openresty `lua-nginx-module <https://github.com/openresty/lua-nginx-module>`_ with LuaJIT 2.0;
                                         * ``min`` - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
                                         * ``max`` - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
                                         * ``busted`` - globals added by Busted 2.0;
