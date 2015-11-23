@@ -1,15 +1,25 @@
-language: python
+language: c
 sudo: false
 
-env:
-  - LUA="lua=5.1"
-  - LUA="lua=5.2"
-  - LUA="lua=5.3"
-  - LUA="luajit=2.0"
+cache:
+  directories: cache
+
+matrix:
+  include:
+    - compiler: ": Lua51"
+      env: LUA="lua 5.1"
+    - compiler: ": Lua52"
+      env: LUA="lua 5.2"
+    - compiler: ": Lua53"
+      env: LUA="lua 5.3"
+    - compiler: ": LuaJIT20"
+      env: LUA="luajit 2.0"
+    - compiler: ": LuaJIT21"
+      env: LUA="luajit 2.1"
 
 before_install:
-  - pip install hererocks
-  - hererocks here -r^ --$LUA
+  - wget https://raw.githubusercontent.com/mpeterv/hererocks/975d41ec56660a122cb12c5560e3672961a2a13f/hererocks.py
+  - python hererocks.py here --$LUA -r^ --downloads cache --builds cache
   - export PATH=$PATH:$PWD/here/bin
   - bash .travis_deps.sh
 
