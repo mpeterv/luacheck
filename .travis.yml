@@ -18,8 +18,8 @@ matrix:
       env: LUA="luajit 2.1"
 
 before_install:
-  - wget https://raw.githubusercontent.com/mpeterv/hererocks/975d41ec56660a122cb12c5560e3672961a2a13f/hererocks.py
-  - python hererocks.py here --$LUA -r^ --downloads cache --builds cache
+  - wget https://raw.githubusercontent.com/mpeterv/hererocks/0.3.1/hererocks.py
+  - python hererocks.py here --$LUA -r^ --downloads cache --builds cache --no-git-cache
   - export PATH=$PATH:$PWD/here/bin
   - bash .travis_deps.sh
 
