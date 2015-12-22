@@ -206,6 +206,8 @@ patterns.]])
    -- Removes "./" in the beginnings of file names.
    -- Filters filenames using args.exclude_files and args.include_files.
    local function expand_files(args)
+      -- If --include-files is used, do not focus on .lua files in directories.
+      local dir_pattern = #args.include_files > 0 and "" or "%.lua$"
       local res, bad_rockspecs = {}, {}
 
       local function add(file)
@@ -229,7 +231,7 @@ patterns.]])
          if file == "-" then
             add(io.stdin)
          elseif fs.is_dir(file) then
-            for _, nested_file in ipairs(fs.extract_files(file, "%.lua$")) do
+            for _, nested_file in ipairs(fs.extract_files(file, dir_pattern)) do
                add(nested_file)
             end
          elseif file:sub(-#".rockspec") == ".rockspec" then

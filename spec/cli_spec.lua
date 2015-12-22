@@ -909,6 +909,11 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
       assert.matches("^Total: %d+ warnings / %d+ errors in 20 files\n$", get_output "spec/samples -qqq --no-config")
    end)
 
+   it("uses --include-files when expanding folders", function()
+      assert.matches("^Total: %d+ warnings / %d+ errors in 2 files\n$",
+         get_output "spec/samples -qqq --no-config --include-files '**/*.rockspec'")
+   end)
+
    describe("config", function()
       describe("loading", function()
          it("uses .luacheckrc in current directory if possible", function()
