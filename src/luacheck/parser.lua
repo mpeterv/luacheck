@@ -669,7 +669,7 @@ local function parse_statement(state)
 end
 
 -- "Return" not included here as it is handled separately.
-local valid_tags_before_semicolon = utils.array_to_set({"Local", "Set", "Call", "Invoke", "Repeat", "Goto"})
+local valid_tags_before_semicolon = utils.array_to_set({"Local", "Set", "Call", "Invoke", "Repeat", "Break", "Goto"})
 
 function parse_block(state, loc)
    local block = {location = loc}

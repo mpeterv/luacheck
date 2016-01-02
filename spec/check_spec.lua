@@ -554,6 +554,8 @@ foo = foo .. "baz";;
 while true do
    if foo() then;
       goto fail;
+   elseif foo() then
+      break;
    end
 end
 
