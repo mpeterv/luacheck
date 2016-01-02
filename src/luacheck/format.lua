@@ -47,7 +47,8 @@ local message_formats = {
    ["531"] = "left-hand side of assignment is too short",
    ["532"] = "left-hand side of assignment is too long",
    ["541"] = "empty do..end block",
-   ["542"] = "empty if branch"
+   ["542"] = "empty if branch",
+   ["551"] = "empty statement"
 }
 
 local function get_message_format(warning)

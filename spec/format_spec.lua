@@ -12,7 +12,7 @@ describe("format", function()
 
 Checking foo.lua                                  1 warning
 
-    foo.lua:2:7: unused global variable foo
+    foo.lua:2:7: empty statement
 
 Checking bar.lua                                  OK
 Checking baz.lua                                  1 error
@@ -33,8 +33,7 @@ Total: 2 warnings / 1 error in 4 files]], remove_color(format({
    },
    {
       {
-         code = "131",
-         name = "foo",
+         code = "551",
          line = 2,
          column = 7
       }

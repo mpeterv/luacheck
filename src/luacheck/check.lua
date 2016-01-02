@@ -164,10 +164,24 @@ function ChState:warn_empty_block(location, do_end)
    })
 end
 
+function ChState:warn_empty_statement(location)
+   self:warn({
+      code = "551",
+      line = location.line,
+      column = location.column,
+      end_column = location.column
+   })
+end
+
 local function check_or_throw(src)
-   local ast, comments, code_lines = parse(src)
+   local ast, comments, code_lines, semicolons = parse(src)
    local chstate = ChState()
    local line = linearize(chstate, ast)
+
+   for _, location in ipairs(semicolons) do
+      chstate:warn_empty_statement(location)
+   end
+
    analyze(chstate, line)
    reachability(chstate, line)
    handle_inline_options(ast, comments, code_lines, chstate.warnings)

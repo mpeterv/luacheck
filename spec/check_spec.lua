@@ -537,6 +537,31 @@ repeat until ...
       ]])
    end)
 
+   it("detects empty statements", function()
+      assert.same({
+         {code = "551", line = 1, column = 1, end_column = 1},
+         {code = "541", line = 2, column = 1, end_column = 2},
+         {code = "551", line = 2, column = 7, end_column = 7},
+         {code = "551", line = 2, column = 8, end_column = 8},
+         {code = "551", line = 4, column = 20, end_column = 20},
+         {code = "551", line = 7, column = 17, end_column = 17}
+      }, check[[
+;
+do end;;
+local foo = "bar";
+foo = foo .. "baz";;
+
+while true do
+   if foo() then;
+      goto fail;
+   end
+end
+
+::fail::
+return foo;
+      ]])
+   end)
+
    it("handles argparse sample", function()
       assert.table(check(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)

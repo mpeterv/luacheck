@@ -5,7 +5,8 @@ local function new_state(src)
    return {
       lexer = lexer.new_state(src),
       code_lines = {}, -- Set of line numbers containing code.
-      comments = {} -- Array of {comment = string, location = location}.
+      comments = {}, -- Array of {comment = string, location = location}.
+      hanging_semicolons = {} -- Array of locations of semicolons not following an expression or goto.
    }
 end
 
@@ -639,17 +640,28 @@ local function parse_statement(state)
    end
 end
 
+-- "Return" not included here as it is handled separately.
+local valid_tags_before_semicolon = utils.array_to_set({"Local", "Set", "Call", "Invoke", "Repeat", "Goto"})
+
 function parse_block(state, loc)
    local block = {location = loc}
+   local last_tag
 
    while not closing_tokens[state.token] do
       local first_token = state.token
 
       if first_token == ";" then
+         if not valid_tags_before_semicolon[last_tag] then
+            table.insert(state.hanging_semicolons, location(state))
+         end
+
          skip_token(state)
+         -- Do not allow several semicolons in a row, even if the first one is valid.
+         last_tag = nil
       else
          first_token = state.token_value or first_token
          local statement = parse_statement(state)
+         last_tag = statement.tag
          statement.first_token = first_token
          block[#block+1] = statement
 
@@ -668,12 +680,16 @@ function parse_block(state, loc)
    return block
 end
 
+-- Parses source string.
+-- Returns AST (in almost MetaLua format), array of comments - tables {comment = string, location = location},
+-- set of line numbers containing code, and array of locations of empty statements (semicolons).
+-- On error throws {line = line, column = column, end_column = end_column, msg = msg}
 local function parse(src)
    local state = new_state(src)
    skip_token(state)
    local ast = parse_block(state)
    check_token(state, "eof")
-   return ast, state.comments, state.code_lines
+   return ast, state.comments, state.code_lines, state.hanging_semicolons
 end
 
 return parse
