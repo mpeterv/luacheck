@@ -6,12 +6,12 @@ local utils = require "luacheck.utils"
 -- Inline option is a comment starting with "luacheck:".
 -- Body can be "push", "pop" or comma delimited options, where option
 -- is option name plus space delimited arguments.
+-- "push" can also be immediately followed by options.
 
 -- If there is code on line with inline option, it only affects that line;
 -- otherwise, it affects everything till the end of current closure.
 -- Option scope can also be regulated using "push" and "pop" options:
--- -- luacheck: push
--- -- luacheck: ignore foo
+-- -- luacheck: push ignore foo
 -- foo() -- Ignored.
 -- -- luacheck: pop
 -- foo() -- Not ignored.
@@ -90,10 +90,20 @@ end
 -- Returns whether option is valid.
 local function add_inline_option(events, per_line_opts, body, location, end_column, is_code_line)
    body = utils.strip(body)
+   local after_push = body:match("^push%s+(.*)")
+
+   if after_push then
+      body = "push"
+   end
 
    if body == "push" or body == "pop" then
-      table.insert(events, {[body] = true, line = location.line, column = location.column, end_column = end_column})
-      return true
+      table.insert(events, {code = 1, [body] = true, line = location.line, column = location.column, end_column = end_column})
+
+      if after_push then
+         body = after_push
+      else
+         return true
+      end
    end
 
    local opts = get_options(body)
@@ -102,14 +112,14 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
       return false
    end
 
-   if is_code_line then
+   if is_code_line and not after_push then
       if not per_line_opts[location.line] then
          per_line_opts[location.line] = {}
       end
 
       table.insert(per_line_opts[location.line], opts)
    else
-      table.insert(events, {options = opts, line = location.line, column = location.column, end_column = end_column})
+      table.insert(events, {code = 2, options = opts, line = location.line, column = location.column, end_column = end_column})
    end
 
    return true
@@ -202,7 +212,7 @@ local function handle_events(events, per_line_opts)
 
    -- Go through all events.
    for _, event in ipairs(events) do
-      if event.code then
+      if type(event.code) == "string" then
          -- It's a warning, put it into list of not handled warnings.
          table.insert(unfiltered_warnings, event)
       elseif event.options then

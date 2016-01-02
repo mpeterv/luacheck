@@ -14,11 +14,9 @@ end
 
 baz() -- luacheck should ignore this comment
 
--- luacheck: push
--- luacheck: ignore 2/f
+-- luacheck: push ignore 2/f
 local f
--- luacheck: push
--- luacheck: ignore 2/g
+-- luacheck: push ignore 2/g
 local g
 -- luacheck: pop
 local f, g

@@ -538,13 +538,13 @@ Checking spec/samples/inline_options.lua          8 warnings / 2 errors
     spec/samples/inline_options.lua:6:16-16: unused function f
     spec/samples/inline_options.lua:12:4-5: accessing undefined variable qu
     spec/samples/inline_options.lua:15:1-3: accessing undefined variable baz
+    spec/samples/inline_options.lua:22:10-10: unused variable g
+    spec/samples/inline_options.lua:24:7-7: unused variable f
     spec/samples/inline_options.lua:24:10-10: unused variable g
-    spec/samples/inline_options.lua:26:7-7: unused variable f
-    spec/samples/inline_options.lua:26:10-10: unused variable g
-    spec/samples/inline_options.lua:28:1-17: unpaired push directive
-    spec/samples/inline_options.lua:30:4-19: unpaired pop directive
-    spec/samples/inline_options.lua:36:1-2: empty do..end block
-    spec/samples/inline_options.lua:37:10-13: empty if branch
+    spec/samples/inline_options.lua:26:1-17: unpaired push directive
+    spec/samples/inline_options.lua:28:4-19: unpaired pop directive
+    spec/samples/inline_options.lua:34:1-2: empty do..end block
+    spec/samples/inline_options.lua:35:10-13: empty if branch
 
 Checking spec/samples/python_code.lua             1 error
 
@@ -561,13 +561,13 @@ Checking spec/samples/inline_options.lua          8 warnings / 2 errors
     spec/samples/inline_options.lua:6:16: unused function f
     spec/samples/inline_options.lua:12:4: accessing undefined variable qu
     spec/samples/inline_options.lua:15:1: accessing undefined variable baz
+    spec/samples/inline_options.lua:22:10: unused variable g
+    spec/samples/inline_options.lua:24:7: unused variable f
     spec/samples/inline_options.lua:24:10: unused variable g
-    spec/samples/inline_options.lua:26:7: unused variable f
-    spec/samples/inline_options.lua:26:10: unused variable g
-    spec/samples/inline_options.lua:28:1: unpaired push directive
-    spec/samples/inline_options.lua:30:4: unpaired pop directive
-    spec/samples/inline_options.lua:36:1: empty do..end block
-    spec/samples/inline_options.lua:37:10: empty if branch
+    spec/samples/inline_options.lua:26:1: unpaired push directive
+    spec/samples/inline_options.lua:28:4: unpaired pop directive
+    spec/samples/inline_options.lua:34:1: empty do..end block
+    spec/samples/inline_options.lua:35:10: empty if branch
 
 Total: 8 warnings / 2 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none --no-config")
@@ -578,12 +578,12 @@ Checking spec/samples/inline_options.lua          7 warnings / 2 errors
     spec/samples/inline_options.lua:6:16: unused function f
     spec/samples/inline_options.lua:12:4: accessing undefined variable qu
     spec/samples/inline_options.lua:15:1: accessing undefined variable baz
+    spec/samples/inline_options.lua:22:10: unused variable g
+    spec/samples/inline_options.lua:24:7: unused variable f
     spec/samples/inline_options.lua:24:10: unused variable g
-    spec/samples/inline_options.lua:26:7: unused variable f
-    spec/samples/inline_options.lua:26:10: unused variable g
-    spec/samples/inline_options.lua:28:1: unpaired push directive
-    spec/samples/inline_options.lua:30:4: unpaired pop directive
-    spec/samples/inline_options.lua:36:1: empty do..end block
+    spec/samples/inline_options.lua:26:1: unpaired push directive
+    spec/samples/inline_options.lua:28:4: unpaired pop directive
+    spec/samples/inline_options.lua:34:1: empty do..end block
 
 Total: 7 warnings / 2 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none --ignore=542 --no-config")
@@ -644,22 +644,22 @@ Checking spec/samples/inline_options.lua          26 warnings
     spec/samples/inline_options.lua:11:4: accessing undefined variable qu
     spec/samples/inline_options.lua:12:4: accessing undefined variable qu
     spec/samples/inline_options.lua:15:1: accessing undefined variable baz
-    spec/samples/inline_options.lua:19:7: unused variable f
-    spec/samples/inline_options.lua:19:7: variable f was previously defined on line 6
-    spec/samples/inline_options.lua:22:7: unused variable g
+    spec/samples/inline_options.lua:18:7: unused variable f
+    spec/samples/inline_options.lua:18:7: variable f was previously defined on line 6
+    spec/samples/inline_options.lua:20:7: unused variable g
+    spec/samples/inline_options.lua:22:7: unused variable f
+    spec/samples/inline_options.lua:22:7: variable f was previously defined on line 18
+    spec/samples/inline_options.lua:22:10: unused variable g
+    spec/samples/inline_options.lua:22:10: variable g was previously defined on line 20
     spec/samples/inline_options.lua:24:7: unused variable f
-    spec/samples/inline_options.lua:24:7: variable f was previously defined on line 19
+    spec/samples/inline_options.lua:24:7: variable f was previously defined on line 22
     spec/samples/inline_options.lua:24:10: unused variable g
     spec/samples/inline_options.lua:24:10: variable g was previously defined on line 22
-    spec/samples/inline_options.lua:26:7: unused variable f
-    spec/samples/inline_options.lua:26:7: variable f was previously defined on line 24
-    spec/samples/inline_options.lua:26:10: unused variable g
-    spec/samples/inline_options.lua:26:10: variable g was previously defined on line 24
-    spec/samples/inline_options.lua:29:16: unused function f
-    spec/samples/inline_options.lua:29:16: variable f was previously defined on line 26
+    spec/samples/inline_options.lua:27:16: unused function f
+    spec/samples/inline_options.lua:27:16: variable f was previously defined on line 24
+    spec/samples/inline_options.lua:32:1: empty do..end block
     spec/samples/inline_options.lua:34:1: empty do..end block
-    spec/samples/inline_options.lua:36:1: empty do..end block
-    spec/samples/inline_options.lua:37:10: empty if branch
+    spec/samples/inline_options.lua:35:10: empty if branch
 
 Total: 26 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none --no-inline --no-config")
