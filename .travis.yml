@@ -23,7 +23,7 @@ before_install:
   - export PATH=$PATH:$PWD/here/bin
   - luarocks install lanes
   - luarocks install busted
-  - luarocks install luacov-coveralls
+  - luarocks install luacov
 
 install: luarocks make
 
@@ -40,4 +40,6 @@ script:
   - path/to/luacheck/bin/luacheck spec/*.lua
   - mv src2 src
 
-after_success: luacov-coveralls -v
+after_success:
+  - luarocks install luacov-coveralls
+  - luacov-coveralls -v
