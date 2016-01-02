@@ -262,7 +262,7 @@ simple_expressions["function"] = function(state)
    return parse_function(state, function_location)
 end
 
-local function parse_prefix_expression(state)
+local function parse_prefix_expression(state, kind)
    if state.token == "name" then
       return parse_id(state)
    elseif state.token == "(" then
@@ -271,7 +271,7 @@ local function parse_prefix_expression(state)
       check_and_skip_token(state, ")")
       return expression
    else
-      parse_error(state, "unexpected symbol")
+      parse_error(state, "expected " .. (kind or "expression"))
    end
 end
 
@@ -326,8 +326,8 @@ suffixes["{"] = suffixes["("]
 suffixes.string = suffixes["("]
 
 -- Additionally returns whether primary expression is prefix expression.
-local function parse_primary_expression(state)
-   local expression = parse_prefix_expression(state)
+local function parse_primary_expression(state, kind)
+   local expression = parse_prefix_expression(state, kind)
    local is_prefix = true
 
    while true do
@@ -343,8 +343,8 @@ local function parse_primary_expression(state)
 end
 
 -- Additionally returns whether simple expression is prefix expression.
-local function parse_simple_expression(state)
-   return (simple_expressions[state.token] or parse_primary_expression)(state)
+local function parse_simple_expression(state, kind)
+   return (simple_expressions[state.token] or parse_primary_expression)(state, kind)
 end
 
 local unary_operators = {
@@ -399,7 +399,7 @@ local right_priorities = {
 }
 
 -- Additionally returns whether subexpression is prefix expression.
-local function parse_subexpression(state, limit)
+local function parse_subexpression(state, limit, kind)
    local expression
    local is_prefix
    local unary_operator = unary_operators[state.token]
@@ -410,7 +410,7 @@ local function parse_subexpression(state, limit)
       local unary_operand = parse_subexpression(state, unary_priority)
       expression = init_ast_node({unary_operator, unary_operand}, unary_location, "Op")
    else
-      expression, is_prefix = parse_simple_expression(state)
+      expression, is_prefix = parse_simple_expression(state, kind)
    end
 
    -- Expand while operators have priorities higher than `limit`.
@@ -432,9 +432,9 @@ local function parse_subexpression(state, limit)
 end
 
 -- Additionally returns whether expression is inside parentheses.
-function parse_expression(state, save_first_token)
+function parse_expression(state, kind, save_first_token)
    local first_token = token_body_or_line(state)
-   local expression, is_prefix = parse_subexpression(state, 0)
+   local expression, is_prefix = parse_subexpression(state, 0, kind)
    expression.first_token = save_first_token and first_token
    return expression, is_prefix and first_token == "("
 end
@@ -447,7 +447,7 @@ statements["if"] = function(state, loc)
    local ast_node = init_ast_node({}, loc, "If")
 
    repeat
-      ast_node[#ast_node+1] = parse_expression(state, true)
+      ast_node[#ast_node+1] = parse_expression(state, "condition", true)
       local branch_location = location(state)
       check_and_skip_token(state, "then")
       ast_node[#ast_node+1] = parse_block(state, branch_location)
@@ -467,7 +467,7 @@ statements["if"] = function(state, loc)
 end
 
 statements["while"] = function(state, loc)
-   local condition = parse_expression(state)
+   local condition = parse_expression(state, "condition")
    check_and_skip_token(state, "do")
    local block = parse_block(state)
    check_closing_token(state, "while", "end", loc.line)
@@ -524,7 +524,7 @@ end
 statements["repeat"] = function(state, loc)
    local block = parse_block(state)
    check_closing_token(state, "repeat", "until", loc.line)
-   local condition = parse_expression(state, true)
+   local condition = parse_expression(state, "condition", true)
    return init_ast_node({block, condition}, loc, "Repeat")
 end
 
@@ -626,7 +626,8 @@ local function parse_expression_statement(state, loc)
 
    repeat
       local first_token = state.token
-      local primary_expression, is_prefix = parse_primary_expression(state)
+      local expected = lhs and "identifier or field" or "statement"
+      local primary_expression, is_prefix = parse_primary_expression(state, expected)
 
       if is_prefix and first_token == "(" then
          -- (expr) is invalid.

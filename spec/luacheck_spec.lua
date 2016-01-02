@@ -205,7 +205,7 @@ describe("check_strings", function()
          {
             {
                code = "011",
-               msg = "unexpected symbol near 'return'"
+               msg = "expected expression near 'return'"
             }
          },
          warnings = 1,
@@ -373,7 +373,7 @@ return f --[=[
          {
             {
                code = "011",
-               msg = "unexpected symbol near 'return'"
+               msg = "expected expression near 'return'"
             }
          },
          warnings = 0,
@@ -412,7 +412,7 @@ describe("get_report", function()
 
    it("returns a table with single error event on syntax error", function()
       local report = strip_locations({luacheck.get_report("return return")})[1]
-      assert.same({code = "011", msg = "unexpected symbol near 'return'"}, report[1])
+      assert.same({code = "011", msg = "expected expression near 'return'"}, report[1])
    end)
 end)
 
