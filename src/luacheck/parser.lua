@@ -68,7 +68,6 @@ local function token_name(token)
 end
 
 local function parse_error(state, msg)
-   msg = msg or "syntax error"
    local token_repr, end_column
 
    if state.token == "eof" then
@@ -626,18 +625,19 @@ local function parse_expression_statement(state, loc)
 
    repeat
       local first_token = state.token
+      local first_loc = lhs and location(state) or loc
       local expected = lhs and "identifier or field" or "statement"
       local primary_expression, is_prefix = parse_primary_expression(state, expected)
 
       if is_prefix and first_token == "(" then
          -- (expr) is invalid.
-         parse_error(state)
+         lexer.syntax_error(first_loc, first_loc.column, "expected " .. expected .. " near '('")
       end
 
       if primary_expression.tag == "Call" or primary_expression.tag == "Invoke" then
          if lhs then
             -- This is an assingment, and a call is not a valid lvalue.
-            parse_error(state)
+            parse_error(state, "expected call or indexing")
          else
             -- It is a call.
             primary_expression.location = loc
