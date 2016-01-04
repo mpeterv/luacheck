@@ -257,7 +257,11 @@ local function lex_short_string(state, quote)
 
             b = next_byte(state)  -- Skip "{".
 
-            local codepoint = to_hex(b)  -- There should be at least one digit.
+            local codepoint  -- There should be at least one digit.
+
+            if b then
+               codepoint = to_hex(b)
+            end
 
             if not codepoint then
                return nil, "invalid UTF-8 escape sequence", -3
@@ -297,7 +301,11 @@ local function lex_short_string(state, quote)
             b = skip_space(state, next_byte(state))
          else
             -- Must be a decimal escape.
-            local cb = to_dec(b)
+            local cb
+
+            if b then
+               cb = to_dec(b)
+            end
 
             if not cb then
                return nil, "invalid escape sequence", -1
@@ -606,7 +614,7 @@ local function lex_dot(state)
       else
          return ".."
       end
-   elseif to_dec(b) then
+   elseif b and to_dec(b) then
       -- Backtrack to dot.
       return lex_number(state, next_byte(state, -1))
    else
