@@ -49,8 +49,7 @@ For fine-grained control over inline option visibility use ``luacheck: push`` an
 .. code-block:: lua
    :linenos:
 
-   -- luacheck: push
-   -- luacheck: ignore foo
+   -- luacheck: push ignore foo
    foo() -- No warning.
    -- luacheck: pop
    foo() -- Warning is emitted.

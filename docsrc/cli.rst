@@ -5,7 +5,7 @@ Command line interface
 
 * Given a file, ``luacheck`` will check it.
 * Given ``-``, ``luacheck`` will check stdin.
-* Given a directory, ``luacheck`` will check all files with ``.lua`` extension within it. This feature requires `LuaFileSystem <http://keplerproject.github.io/luafilesystem/>`_ (installed automatically if LuaRocks was used to install Luacheck).
+* Given a directory, ``luacheck`` will check all files within it, selecting only files with ``.lua`` extension unless ``--include-files`` option is used. This feature requires `LuaFileSystem <http://keplerproject.github.io/luafilesystem/>`_ (installed automatically if LuaRocks was used to install Luacheck).
 * Given a rockspec (a file with ``.rockspec`` extension), ``luacheck`` will check all files with ``.lua`` extension mentioned in the rockspec in ``build.install.lua``, ``build.install.bin`` and ``build.modules`` tables.
 
 The output of ``luacheck`` consists of separate reports for each checked file and ends with a summary::

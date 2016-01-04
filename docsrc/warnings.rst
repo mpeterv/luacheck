@@ -43,6 +43,7 @@ Code Description
 532  Left-hand side of an assignment is too long.
 541  An empty ``do`` ``end`` block.
 542  An empty ``if`` branch.
+551  An empty statement.
 ==== =============================================
 
 Global variables
@@ -140,3 +141,4 @@ The following control flow and data flow issues are detected:
 * Unused labels;
 * Unbalanced assignments;
 * Empty blocks.
+* Empty statements (semicolons without preceding statements).
