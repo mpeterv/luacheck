@@ -668,28 +668,25 @@ local function parse_statement(state)
    end
 end
 
--- "Return" not included here as it is handled separately.
-local valid_tags_before_semicolon = utils.array_to_set({"Local", "Set", "Call", "Invoke", "Repeat", "Break", "Goto"})
-
 function parse_block(state, loc)
    local block = {location = loc}
-   local last_tag
+   local after_statement = false
 
    while not closing_tokens[state.token] do
       local first_token = state.token
 
       if first_token == ";" then
-         if not valid_tags_before_semicolon[last_tag] then
+         if not after_statement then
             table.insert(state.hanging_semicolons, location(state))
          end
 
          skip_token(state)
          -- Do not allow several semicolons in a row, even if the first one is valid.
-         last_tag = nil
+         after_statement = false
       else
          first_token = state.token_value or first_token
          local statement = parse_statement(state)
-         last_tag = statement.tag
+         after_statement = true
          statement.first_token = first_token
          block[#block+1] = statement
 

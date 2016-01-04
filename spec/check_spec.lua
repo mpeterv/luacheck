@@ -541,7 +541,6 @@ repeat until ...
       assert.same({
          {code = "551", line = 1, column = 1, end_column = 1},
          {code = "541", line = 2, column = 1, end_column = 2},
-         {code = "551", line = 2, column = 7, end_column = 7},
          {code = "551", line = 2, column = 8, end_column = 8},
          {code = "551", line = 4, column = 20, end_column = 20},
          {code = "551", line = 7, column = 17, end_column = 17}
