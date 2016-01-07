@@ -17,29 +17,22 @@ matrix:
     - compiler: ": LuaJIT21"
       env: LUA="luajit 2.1"
 
-before_install:
+install:
   - wget https://raw.githubusercontent.com/mpeterv/hererocks/0.3.1/hererocks.py
   - python hererocks.py here --$LUA -r^ --downloads cache --builds cache --no-git-cache
   - export PATH=$PATH:$PWD/here/bin
   - luarocks install lanes
   - luarocks install busted
-  - luarocks install luacov
-
-install: luarocks make
+  - luarocks install luacov-coveralls
 
 script:
   - busted -c
-  - luacheck luacheck-scm-1.rockspec -j2
-  - luarocks remove luafilesystem --force
-  - luarocks remove lanes --force
-  - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec | grep 'I/O error'
-  - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua --version | grep 'Not found'
-  - luarocks remove luacheck --force
+  - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua luacheck-scm-1.rockspec -j2
+  - lua -e 'package.preload.lfs=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec | grep 'I/O error'
+  - lua -e 'package.preload.lanes=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua --version | grep 'Not found'
   - lua install.lua path/to/luacheck
   - mv src src2
   - path/to/luacheck/bin/luacheck spec/*.lua
   - mv src2 src
 
-after_success:
-  - luarocks install luacov-coveralls
-  - luacov-coveralls -v
+after_success: luacov-coveralls -v
