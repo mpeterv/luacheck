@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/mpeterv/luacheck.png?branch=master)](https://travis-ci.org/mpeterv/luacheck)
 [![Windows build status](https://ci.appveyor.com/api/projects/status/pgox2vvelagw1fux/branch/master?svg=true&passingText=Windows%20build%20passing&failingText=Windows%20build%20failing)](https://ci.appveyor.com/project/mpeterv/luacheck/branch/master)
 [![Coverage Status](https://coveralls.io/repos/mpeterv/luacheck/badge.svg?branch=master)](https://coveralls.io/r/mpeterv/luacheck?branch=master)
-[![License](http://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 
 ## Contents
 
@@ -23,7 +23,7 @@ Luacheck supports checking Lua files using syntax of Lua 5.1, Lua 5.2, Lua 5.3 a
 
 ## Installation
 
-The easiest way to install Luacheck is to use [LuaRocks](http://luarocks.org). From your command line run the following command:
+The easiest way to install Luacheck is to use [LuaRocks](https://luarocks.org/). From your command line run the following command:
 
 ```bash
 $ luarocks install luacheck # prepend with sudo if necessary
@@ -81,8 +81,8 @@ For more info, see [documentation](#documentation).
 There are a few plugins which allow using Luacheck directly inside an editor, showing warnings inline:
 
 * For Vim, [Syntastic](https://github.com/scrooloose/syntastic/) contains [luacheck checker](https://github.com/scrooloose/syntastic/wiki/Lua%3A---luacheck);
-* For Sublime Text 3 there is [SublimeLinter-luacheck](https://sublime.wbond.net/packages/SublimeLinter-luacheck) which requires [SublimeLinter](http://sublimelinter.readthedocs.org/en/latest/);
-* For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/AtomLinter/Linter);
+* For Sublime Text 3 there is [SublimeLinter-luacheck](https://packagecontrol.io/packages/SublimeLinter-luacheck) which requires [SublimeLinter](http://sublimelinter.readthedocs.org/en/latest/);
+* For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/atom-community/linter);
 * For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/manual/latest/Supported-languages.html#Lua);
 * For Brackets, there is [linter.luacheck](https://github.com/Malcolm3141/brackets-luacheck) extension.
 
@@ -107,7 +107,7 @@ Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questio
 
 ## Building and testing
 
-After the Luacheck repo is cloned and changes are made, run `luarocks make` (optionally prepended with `sudo`) from its root directory to install dev version of Luacheck. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted) installed and run `busted`.
+After the Luacheck repo is cloned and changes are made, run `luarocks make` (optionally prepended with `sudo`) from its root directory to install dev version of Luacheck. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted/) installed and run `busted`.
 
 ## License
 
