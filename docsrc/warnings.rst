@@ -8,8 +8,8 @@ Code Description
 ==== =============================================
 011  A syntax error.
 021  An invalid inline option.
-022  An upaired inline push directive.
-023  An upaired inline pop directive.
+022  An unpaired inline push directive.
+023  An unpaired inline pop directive.
 111  Setting an undefined global variable.
 112  Mutating an undefined global variable.
 113  Accessing an undefined global variable.
