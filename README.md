@@ -9,6 +9,7 @@
 
 * [Overview](#overview)
 * [Installation](#installation)
+* [Basic usage](#basic-usage)
 * [Related projects](#related-projects)
 * [Documentation](#documentation)
 * [Development](#development)
