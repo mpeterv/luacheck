@@ -7,6 +7,7 @@ local utils = require "luacheck.utils"
 -- Body can be "push", "pop" or comma delimited options, where option
 -- is option name plus space delimited arguments.
 -- "push" can also be immediately followed by options.
+-- Body can contain comments enclosed in balanced parens.
 
 -- If there is code on line with inline option, it only affects that line;
 -- otherwise, it affects everything till the end of current closure.
@@ -135,6 +136,9 @@ local function add_inline_options(events, comments, code_lines)
       local body = utils.after(contents, "^luacheck:")
 
       if body then
+         -- Remove comments in balanced parens.
+         body = body:gsub("%b()", " ")
+
          if not add_inline_option(events, per_line_opts, body, comment.location, comment.end_column, code_lines[comment.location.line]) then
             table.insert(invalid_comments, comment)
          end

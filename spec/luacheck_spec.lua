@@ -214,6 +214,20 @@ describe("check_strings", function()
       }, strip_locations(luacheck.check_strings({"return foo", "return return"})))
    end)
 
+   it("supports comments in inline options", function()
+      assert.same({
+         {
+            {
+               code = "211",
+               name = "bar"
+            }
+         },
+         warnings = 1,
+         errors = 0,
+         fatals = 0
+      }, strip_locations(luacheck.check_strings({"local foo, bar -- luacheck: ignore foo (not bar though)"})))
+   end)
+
    it("provides correct location info for warnings", function()
       assert.same({
          {
