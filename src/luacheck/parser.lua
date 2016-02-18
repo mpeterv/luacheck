@@ -181,6 +181,7 @@ simple_expressions["{"] = function(state)
       else
          local lhs, rhs
          local item_location = location(state)
+         local first_key_token
 
          if state.token == "name" then
             local name = state.token_value
@@ -188,6 +189,7 @@ simple_expressions["{"] = function(state)
 
             if test_and_skip_token(state, "=") then
                -- `name` = `expr`.
+               first_key_token = name
                lhs = init_ast_node({name}, item_location, "String")
                rhs, is_inside_parentheses = parse_expression(state)
             else
@@ -197,26 +199,25 @@ simple_expressions["{"] = function(state)
                state.lexer.line_offset = item_location.offset-item_location.column+1
                state.lexer.offset = item_location.offset
                skip_token(state)  -- Load name again.
-               rhs, is_inside_parentheses = parse_expression(state)
+               rhs, is_inside_parentheses = parse_expression(state, nil, true)
             end
+         elseif state.token == "[" then
+            -- [ `expr` ] = `expr`.
+            item_location = location(state)
+            first_key_token = "["
+            skip_token(state)
+            lhs = parse_expression(state)
+            check_closing_token(state, "[", "]", item_location.line)
+            check_and_skip_token(state, "=")
+            rhs = parse_expression(state)
          else
-            local bracket_line = state.line
-
-            if test_and_skip_token(state, "[") then
-               -- [ `expr` ] = `expr`.
-               lhs = parse_expression(state)
-               check_closing_token(state, "[", "]", bracket_line)
-               check_and_skip_token(state, "=")
-               rhs = parse_expression(state)
-            else
-               -- Expression in array part.
-               rhs, is_inside_parentheses = parse_expression(state)
-            end
+            -- Expression in array part.
+            rhs, is_inside_parentheses = parse_expression(state, nil, true)
          end
 
          if lhs then
             -- Pair.
-            ast_node[#ast_node+1] = init_ast_node({lhs, rhs}, item_location, "Pair")
+            ast_node[#ast_node+1] = init_ast_node({lhs, rhs, first_token = first_key_token}, item_location, "Pair")
          else
             -- Array part item.
             ast_node[#ast_node+1] = rhs

@@ -967,7 +967,7 @@ a();
 ]])))
    end)
 
-it("provides correct location info for conditions", function()
+   it("provides correct location info for conditions", function()
       assert.same({
                      {tag = "If", location = {line = 1, column = 1, offset = 1}, first_token = "if",
                         {tag = "Id", "x", location = {line = 1, column = 5, offset = 5}, first_token = "x"},
@@ -975,6 +975,26 @@ it("provides correct location info for conditions", function()
                      }
                   }, (parser([[
 if (x) then end
+]])))
+   end)
+
+   it("provides correct location info for table keys", function()
+      assert.same({
+                     {tag = "Return", location = {line = 1, column = 1, offset = 1}, first_token = "return",
+                        {tag = "Table", location = {line = 1, column = 8, offset = 8},
+                           {tag = "Pair", location = {line = 1, column = 9, offset = 9}, first_token = "a",
+                              {tag = "String", "a", location = {line = 1, column = 9, offset = 9}},
+                              {tag = "Id", "b", location = {line = 1, column = 13, offset = 13}}
+                           },
+                           {tag = "Pair", location = {line = 1, column = 16, offset = 16}, first_token = "[",
+                              {tag = "Id", "x", location = {line = 1, column = 17, offset = 17}},
+                              {tag = "Id", "y", location = {line = 1, column = 22, offset = 22}},
+                           },
+                           {tag = "Id", "z", location = {line = 1, column = 26, offset = 26}, first_token = "z"}
+                        }
+                     }
+                  }, (parser([[
+return {a = b, [x] = y, (z)}
 ]])))
    end)
 
