@@ -261,20 +261,6 @@ simple_expressions["function"] = function(state)
    return parse_function(state, function_location)
 end
 
-local function parse_prefix_expression(state, kind)
-   if state.token == "name" then
-      return parse_id(state)
-   elseif state.token == "(" then
-      local paren_line = state.line
-      skip_token(state)
-      local expression = parse_expression(state)
-      check_closing_token(state, "(", ")", paren_line)
-      return expression
-   else
-      parse_error(state, "expected " .. (kind or "expression"))
-   end
-end
-
 local calls = {}
 
 calls["("] = function(state)
@@ -325,26 +311,42 @@ end
 suffixes["{"] = suffixes["("]
 suffixes.string = suffixes["("]
 
--- Additionally returns whether primary expression is prefix expression.
-local function parse_primary_expression(state, kind)
-   local expression = parse_prefix_expression(state, kind)
-   local is_prefix = true
+-- Additionally returns whether the expression is inside parens and the first non-paren token.
+local function parse_simple_expression(state, kind, no_literals)
+   local expression, first_token
+   local in_parens = false
+
+   if state.token == "(" then
+      in_parens = true
+      local paren_line = state.line
+      skip_token(state)
+      local _
+      expression, _, first_token = parse_expression(state)
+      check_closing_token(state, "(", ")", paren_line)
+   elseif state.token == "name" then
+      expression = parse_id(state)
+      first_token = expression[1]
+   else
+      local literal_handler = simple_expressions[state.token]
+
+      if not literal_handler or no_literals then
+         parse_error(state, "expected " .. (kind or "expression"))
+      end
+
+      first_token = token_body_or_line(state)
+      return literal_handler(state), false, first_token
+   end
 
    while true do
-      local handler = suffixes[state.token]
+      local suffix_handler = suffixes[state.token]
 
-      if handler then
-         is_prefix = false
-         expression = handler(state, expression)
+      if suffix_handler then
+         in_parens = false
+         expression = suffix_handler(state, expression)
       else
-         return expression, is_prefix
+         return expression, in_parens, first_token
       end
    end
-end
-
--- Additionally returns whether simple expression is prefix expression.
-local function parse_simple_expression(state, kind)
-   return (simple_expressions[state.token] or parse_primary_expression)(state, kind)
 end
 
 local unary_operators = {
@@ -398,19 +400,21 @@ local right_priorities = {
    ["and"] = 2, ["or"] = 1
 }
 
--- Additionally returns whether subexpression is prefix expression.
+-- Additionally returns whether subexpression is inside parentheses, and its first non-paren token.
 local function parse_subexpression(state, limit, kind)
    local expression
-   local is_prefix
+   local first_token
+   local in_parens = false
    local unary_operator = unary_operators[state.token]
 
    if unary_operator then
+      first_token = state.token
       local unary_location = location(state)
       skip_token(state)  -- Skip operator.
       local unary_operand = parse_subexpression(state, unary_priority)
       expression = init_ast_node({unary_operator, unary_operand}, unary_location, "Op")
    else
-      expression, is_prefix = parse_simple_expression(state, kind)
+      expression, in_parens, first_token = parse_simple_expression(state, kind)
    end
 
    -- Expand while operators have priorities higher than `limit`.
@@ -421,22 +425,21 @@ local function parse_subexpression(state, limit, kind)
          break
       end
 
-      is_prefix = false
+      in_parens = false
       skip_token(state)  -- Skip operator.
       -- Read subexpression with higher priority.
       local subexpression = parse_subexpression(state, right_priorities[binary_operator])
       expression = init_ast_node({binary_operator, expression, subexpression}, expression.location, "Op")
    end
 
-   return expression, is_prefix
+   return expression, in_parens, first_token
 end
 
--- Additionally returns whether expression is inside parentheses.
+-- Additionally returns whether expression is inside parentheses and the first non-paren token.
 function parse_expression(state, kind, save_first_token)
-   local first_token = token_body_or_line(state)
-   local expression, is_prefix = parse_subexpression(state, 0, kind)
+   local expression, in_parens, first_token = parse_subexpression(state, 0, kind)
    expression.first_token = save_first_token and first_token
-   return expression, is_prefix and first_token == "("
+   return expression, in_parens, first_token
 end
 
 local statements = {}
@@ -625,12 +628,11 @@ local function parse_expression_statement(state, loc)
    local lhs
 
    repeat
-      local first_token = state.token
       local first_loc = lhs and location(state) or loc
       local expected = lhs and "identifier or field" or "statement"
-      local primary_expression, is_prefix = parse_primary_expression(state, expected)
+      local primary_expression, in_parens = parse_simple_expression(state, expected, true)
 
-      if is_prefix and first_token == "(" then
+      if in_parens then
          -- (expr) is invalid.
          lexer.syntax_error(first_loc, first_loc.column, "expected " .. expected .. " near '('")
       end

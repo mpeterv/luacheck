@@ -967,6 +967,17 @@ a();
 ]])))
    end)
 
+it("provides correct location info for conditions", function()
+      assert.same({
+                     {tag = "If", location = {line = 1, column = 1, offset = 1}, first_token = "if",
+                        {tag = "Id", "x", location = {line = 1, column = 5, offset = 5}, first_token = "x"},
+                        {location = {line = 1, column = 8, offset = 8}}
+                     }
+                  }, (parser([[
+if (x) then end
+]])))
+   end)
+
    it("provides correct error location info", function()
       assert.same({line = 8, column = 15, end_column = 15, msg = "expected '=' near ')'"}, get_error([[
 local function foo(a, b, c, ...)
