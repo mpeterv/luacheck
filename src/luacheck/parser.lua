@@ -265,9 +265,10 @@ local function parse_prefix_expression(state, kind)
    if state.token == "name" then
       return parse_id(state)
    elseif state.token == "(" then
-      skip_token(state)  -- Skip "("
+      local paren_line = state.line
+      skip_token(state)
       local expression = parse_expression(state)
-      check_and_skip_token(state, ")")
+      check_closing_token(state, "(", ")", paren_line)
       return expression
    else
       parse_error(state, "expected " .. (kind or "expression"))

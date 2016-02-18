@@ -454,6 +454,8 @@ describe("parser", function()
          assert.same({line = 1, column = 4, end_column = 4, msg = "expected ')' near <eof>"}, get_error("a(b"))
          assert.same({line = 2, column = 2, end_column = 2, msg = "expected ')' (to close '(' on line 1) near <eof>"},
             get_error("a(\nb"))
+         assert.same({line = 2, column = 1, end_column = 2, msg = "expected ')' (to close '(' on line 1) near 'cc'"},
+            get_error("(a\ncc"))
          assert.same({line = 1, column = 1, end_column = 1, msg = "expected statement near '1'"}, get_error("1()"))
          assert.same({line = 1, column = 1, end_column = 5, msg = "expected statement near ''foo''"}, get_error("'foo'()"))
          assert.same({line = 1, column = 9, end_column = 9, msg = "expected identifier near '('"}, get_error("function() end ()"))
