@@ -81,6 +81,14 @@ end
       ]])
    end)
 
+   it("reports unused function with forward declaration as variable, not value", function()
+      assert.same({
+         {code = "211", name = "noop", func = true, line = 1, column = 22, end_column = 25}
+      }, check[[
+local noop; function noop() end
+      ]])
+   end)
+
    it("detects unused recursive functions", function()
       assert.same({
          {code = "211", name = "f", func = true, recursive = true, line = 1, column = 16, end_column = 16}
@@ -94,7 +102,7 @@ end
    it("detects unused mutually recursive functions", function()
       assert.same({
          {code = "211", name = "odd", func = true, mutually_recursive = true, line = 3, column = 16, end_column = 18},
-         {code = "311", name = "even", line = 7, column = 10, end_column = 13}
+         {code = "211", name = "even", func = true, mutually_recursive = true, line = 7, column = 10, end_column = 13}
       }, check[[
 local even
 

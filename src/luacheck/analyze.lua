@@ -160,11 +160,22 @@ local function analyze_line(line)
    propogate_closures(line)
 end
 
+local function is_function_var(var)
+   return (#var.values == 1 and var.values[1].type == "func") or (
+      #var.values == 2 and var.values[1].empty and var.values[2].type == "func")
+end
+
 -- Emits warnings for variable.
 local function check_var(chstate, var)
-   if #var.values == 1 then
+   if is_function_var(var) then
+      local value = var.values[2] or var.values[1]
+
+      if not value.used then
+         chstate:warn_unused_variable(value)
+      end
+   elseif #var.values == 1 then
       if not var.values[1].used then
-         chstate:warn_unused_variable(var)
+         chstate:warn_unused_variable(var.values[1])
       elseif var.values[1].empty then
          var.empty = true
          chstate:warn_unset(var)
@@ -187,6 +198,7 @@ local function check_for_warnings(chstate, line)
          for var in pairs(item.set_variables) do
             -- Do not check implicit top level vararg.
             if var.location then
+
                check_var(chstate, var)
             end
          end
@@ -240,14 +252,14 @@ local function check_unused_recursive_funcs(chstate, line)
       local value = nested_line.node.value
 
       if value and value.used and not all_used_lines[nested_line] then
-         if #value.var.values > 1 then
-            -- Just report an unused value.
-            chstate:warn_unused_value(value)
+         -- Need different wording for recursive functions (that use themselves)
+         -- and for mutually recursive functions that are used by other (unused, too) functions.
+         local simply_recursive = line_to_used_lines[nested_line][nested_line]
+
+         if is_function_var(value.var) then
+            chstate:warn_unused_variable(value, true, simply_recursive)
          else
-            -- Need different wording for recursive functions (that use themselves)
-            -- and for mutually recursive functions that are used by other (unused, too) functions.
-            local simply_recursive = line_to_used_lines[nested_line][nested_line]
-            chstate:warn_unused_variable(value.var, true, simply_recursive)
+            chstate:warn_unused_value(value, true, simply_recursive)
          end
       end
    end
