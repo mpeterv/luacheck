@@ -24,6 +24,7 @@ local message_formats = {
       if w.name == "..." then return "unused variable length argument"
          else return "unused argument %s" end end,
    ["213"] = "unused loop variable %s",
+   ["214"] = "unused field %s",
    ["221"] = "variable %s is never set",
    ["231"] = "variable %s is never accessed",
    ["232"] = "argument %s is never accessed",

@@ -62,6 +62,16 @@ function ChState:warn_unused_variable(var)
    }, var.self)
 end
 
+function ChState:warn_unused_field(node)
+   self:warn({
+      code = "214",
+      name = node.field,
+      line = node.location.line,
+      column = node.location.column,
+      end_column = node.location.column + #node.first_token - 1
+   })
+end
+
 function ChState:warn_unset(var)
    self:warn({
       code = "221",

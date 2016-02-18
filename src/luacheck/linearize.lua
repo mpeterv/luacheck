@@ -521,8 +521,62 @@ LinState.scan_expr_Index = LinState.scan_exprs
 LinState.scan_expr_Call = LinState.scan_exprs
 LinState.scan_expr_Invoke = LinState.scan_exprs
 LinState.scan_expr_Paren = LinState.scan_exprs
-LinState.scan_expr_Pair = LinState.scan_exprs
-LinState.scan_expr_Table = LinState.scan_exprs
+
+local function node_to_lua_value(node)
+   if node.tag == "True" then
+      return true, "true"
+   elseif node.tag == "False" then
+      return false, "false"
+   elseif node.tag == "String" then
+      return node[1], node[1]
+   elseif node.tag == "Number" then
+      local str = node[1]
+
+      if str:find("[iIuUlL]") then
+         -- Ignore LuaJIT cdata literals.
+         return
+      end
+
+      -- Always convert to float to get consistent results on Lua 5.2/5.3.
+      if not str:find("[%.eEpP]") then
+         str = str .. ".0"
+      end
+
+      local number = tonumber(str)
+
+      if number == number and number < 1/0 and number > -1/0 then
+         return number, node[1]
+      end
+   end
+end
+
+function LinState:scan_expr_Table(item, node)
+   local array_index = 1.0
+   local key_to_node = {}
+
+   for _, pair in ipairs(node) do
+      local key, field
+
+      if pair.tag == "Pair" then
+         key, field = node_to_lua_value(pair[1])
+         self:scan_exprs(item, pair)
+      else
+         key = array_index
+         field = tostring(math.floor(key))
+         array_index = array_index + 1.0
+         self:scan_expr(item, pair)
+      end
+
+      if field then
+         if key_to_node[key] then
+            self.chstate:warn_unused_field(key_to_node[key])
+         end
+
+         key_to_node[key] = pair
+         pair.field = field
+      end
+   end
+end
 
 function LinState:scan_expr_Op(item, node)
    self:scan_expr(item, node[2])
@@ -612,7 +666,7 @@ function LinState:scan_expr_Function(item, node)
 end
 
 -- Builds linear representation of AST and returns it.
--- Emits warnings: global, redefined/shadowed, unused label, unbalanced assignment, empty block.
+-- Emits warnings: global, redefined/shadowed, unused field, unused label, unbalanced assignment, empty block.
 local function linearize(chstate, ast)
    local linstate = LinState(chstate)
    local line = linstate:build_line({{tag = "Dots", "..."}}, ast)
