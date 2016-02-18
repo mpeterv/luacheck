@@ -62,16 +62,6 @@ function ChState:warn_unused_variable(var)
    }, var.self)
 end
 
-function ChState:warn_unused_field(node)
-   self:warn({
-      code = "214",
-      name = node.field,
-      line = node.location.line,
-      column = node.location.column,
-      end_column = node.location.column + #node.first_token - 1
-   })
-end
-
 function ChState:warn_unset(var)
    self:warn({
       code = "221",
@@ -110,6 +100,16 @@ function ChState:warn_unused_value(value)
       column = value.location.column,
       secondary = is_secondary(value) or nil
    }, value.type == "arg" and value.var.self)
+end
+
+function ChState:warn_unused_field_value(node)
+   self:warn({
+      code = "314",
+      name = node.field,
+      line = node.location.line,
+      column = node.location.column,
+      end_column = node.location.column + #node.first_token - 1
+   })
 end
 
 function ChState:warn_uninit(node)

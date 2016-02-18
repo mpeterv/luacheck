@@ -204,12 +204,12 @@ end
       ]])
    end)
 
-   it("detects unused fields in table literals", function()
+   it("detects duplicated fields in table literals", function()
       assert.same({
-         {code = "214", name = "key", line = 3, column = 4, end_column = 4},
-         {code = "214", name = "2", line = 6, column = 4, end_column = 4},
-         {code = "214", name = "key", line = 7, column = 4, end_column = 6},
-         {code = "214", name = "0.2e1", line = 9, column = 4, end_column = 4}
+         {code = "314", name = "key", line = 3, column = 4, end_column = 4},
+         {code = "314", name = "2", line = 6, column = 4, end_column = 4},
+         {code = "314", name = "key", line = 7, column = 4, end_column = 6},
+         {code = "314", name = "0.2e1", line = 9, column = 4, end_column = 4}
       }, check[[
 local x, y, z = 1, 2, 3
 return {
