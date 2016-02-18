@@ -81,6 +81,33 @@ end
       ]])
    end)
 
+   it("detects unused recursive functions", function()
+      assert.same({
+         {code = "211", name = "f", func = true, recursive = true, line = 1, column = 16, end_column = 16}
+      }, check[[
+local function f(x)
+   return x <= 1 and 1 or x * f(x - 1)
+end
+      ]])
+   end)
+
+   it("detects unused mutually recursive functions", function()
+      assert.same({
+         {code = "211", name = "odd", func = true, mutually_recursive = true, line = 3, column = 16, end_column = 18},
+         {code = "311", name = "even", line = 7, column = 10, end_column = 13}
+      }, check[[
+local even
+
+local function odd(x)
+   return x == 1 or even(x - 1)
+end
+
+function even(x)
+   return x == 0 or odd(x - 1)
+end
+      ]])
+   end)
+
    it("detects unused locals from function arguments", function()
       assert.same({
          {code = "212", name = "foo", line = 1, column = 17, end_column = 19}

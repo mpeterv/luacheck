@@ -8,9 +8,10 @@ local function register_value(values_per_var, var, value)
    table.insert(values_per_var[var], value)
 end
 
-local function add_resolution(item, var, value)
+local function add_resolution(line, item, var, value)
    register_value(item.used_values, var, value)
    value.used = true
+   value.using_lines[line] = true
 
    if value.secondaries then
       value.secondaries.used = true
@@ -34,7 +35,7 @@ local function value_propogation_callback(line, stack, index, item, visited, var
    end
 
    if not visited[index] and item.accesses and item.accesses[var] then
-      add_resolution(item, var, value)
+      add_resolution(line, item, var, value)
    end
 
    if stack[index] or (not visited[index] and (not in_scope(var, index) or item.set_variables and item.set_variables[var])) then
@@ -99,7 +100,7 @@ local function closure_propogation_callback(line, _, item, subline)
             if live_values[var] then
                for _, accessing_item in ipairs(accessing_items) do
                   for _, value in ipairs(live_values[var]) do
-                     add_resolution(accessing_item, var, value)
+                     add_resolution(subline, accessing_item, var, value)
                   end
                end
             end
@@ -116,7 +117,7 @@ local function closure_propogation_callback(line, _, item, subline)
          if var.line == line then
             if item.accesses[var] then
                for _, setting_item in ipairs(setting_items) do
-                  add_resolution(item, var, setting_item.set_variables[var])
+                  add_resolution(line, item, var, setting_item.set_variables[var])
                end
             end
          end
@@ -144,7 +145,7 @@ local function propogate_closures(line)
                for _, another_subline in ipairs(line.lines) do
                   if another_subline.set_upvalues[var] then
                      for _, setting_item in ipairs(another_subline.set_upvalues[var]) do
-                        add_resolution(accessing_item, var, setting_item.set_variables[var])
+                        add_resolution(subline, accessing_item, var, setting_item.set_variables[var])
                      end
                   end
                end
@@ -193,6 +194,65 @@ local function check_for_warnings(chstate, line)
    end
 end
 
+local function mark_line_used(line_to_used_lines, all_used_lines, line)
+   all_used_lines[line] = true
+
+   for used_line in pairs(line_to_used_lines[line]) do
+      if not all_used_lines[used_line] then
+         mark_line_used(line_to_used_lines, all_used_lines, used_line)
+      end
+   end
+end
+
+-- Detects unused recursive and mutually recursive functions.
+local function check_unused_recursive_funcs(chstate, line)
+   -- Build a graph of usage relations of all closures.
+   -- Closure A is used by closure B iff either B is parent
+   -- of A and A is not assigned to a local/upvalue, or
+   -- B uses local/upvalue value that is A.
+   -- Closures not reachable from root closure are unused,
+   -- report corresponding values/variables if not done already.
+
+   -- Initialize edges maps.
+   local line_to_used_lines = {[line] = {}}
+
+   for _, nested_line in ipairs(line.lines) do
+      line_to_used_lines[nested_line] = {}
+   end
+
+   -- Add edges leading to each nested line.
+   for _, nested_line in ipairs(line.lines) do
+      if nested_line.node.value then
+         for using_line in pairs(nested_line.node.value.using_lines) do
+            line_to_used_lines[using_line][nested_line] = true
+         end
+      elseif nested_line.parent then
+         line_to_used_lines[nested_line.parent][nested_line] = true
+      end
+   end
+
+   -- Recursively mark all closures reachable from root closure by usability relation.
+   local all_used_lines = {}
+   mark_line_used(line_to_used_lines, all_used_lines, line)
+
+   -- Deal with unused closures.
+   for _, nested_line in ipairs(line.lines) do
+      local value = nested_line.node.value
+
+      if value and value.used and not all_used_lines[nested_line] then
+         if #value.var.values > 1 then
+            -- Just report an unused value.
+            chstate:warn_unused_value(value)
+         else
+            -- Need different wording for recursive functions (that use themselves)
+            -- and for mutually recursive functions that are used by other (unused, too) functions.
+            local simply_recursive = line_to_used_lines[nested_line][nested_line]
+            chstate:warn_unused_variable(value.var, true, simply_recursive)
+         end
+      end
+   end
+end
+
 -- Finds reaching assignments for all variable accesses.
 -- Emits warnings: unused variable, unused value, unset variable.
 local function analyze(chstate, line)
@@ -207,6 +267,8 @@ local function analyze(chstate, line)
    for _, nested_line in ipairs(line.lines) do
       check_for_warnings(chstate, nested_line)
    end
+
+   check_unused_recursive_funcs(chstate, line)
 end
 
 return analyze

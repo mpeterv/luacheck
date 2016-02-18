@@ -4,11 +4,14 @@ local utils = require "luacheck.utils"
 local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"})
 
 -- Who needs classes anyway.
-local function new_line()
+local function new_line(node, parent, value)
    return {
       accessed_upvalues = {}, -- Maps variables to arrays of accessing items.
       set_upvalues = {}, -- Maps variables to arays of setting items.
       lines = {},
+      node = node,
+      parent = parent,
+      value = value,
       items = utils.Stack()
    }
 end
@@ -35,13 +38,22 @@ local function new_var(line, node, type_)
 end
 
 local function new_value(var_node, value_node, is_init)
-   return {
+   local value = {
       var = var_node.var,
       location = var_node.location,
-      type = value_node and value_node.tag == "Function" and "func" or (is_init and var_node.var.type or "var"),
+      type = is_init and var_node.var.type or "var",
       initial = is_init,
+      node = value_node,
+      using_lines = {},
       empty = is_init and not value_node and (var_node.var.type == "var")
    }
+
+   if value_node and value_node.tag == "Function" then
+      value.type = "func"
+      value_node.value = value
+   end
+
+   return value
 end
 
 local function new_label(line, name, location, end_column)
@@ -637,13 +649,13 @@ function LinState:register_set_variables()
    end
 end
 
-function LinState:build_line(args, block)
-   self.lines:push(new_line())
+function LinState:build_line(node)
+   self.lines:push(new_line(node, self.lines.top))
    self:enter_scope()
-   self:emit(new_local_item(args))
+   self:emit(new_local_item(node[1]))
    self:enter_scope()
-   self:register_vars(args, "arg")
-   self:emit_stmts(block)
+   self:register_vars(node[1], "arg")
+   self:emit_stmts(node[2])
    self:leave_scope()
    self:register_label("return")
    self:leave_scope()
@@ -658,7 +670,7 @@ function LinState:build_line(args, block)
 end
 
 function LinState:scan_expr_Function(item, node)
-   local line = self:build_line(node[1], node[2])
+   local line = self:build_line(node)
    table.insert(item.lines, line)
 
    for _, nested_line in ipairs(line.lines) do
@@ -670,7 +682,7 @@ end
 -- Emits warnings: global, redefined/shadowed, unused field, unused label, unbalanced assignment, empty block.
 local function linearize(chstate, ast)
    local linstate = LinState(chstate)
-   local line = linstate:build_line({{tag = "Dots", "..."}}, ast)
+   local line = linstate:build_line({{{tag = "Dots", "..."}}, ast})
    assert(linstate.lines.size == 0)
    assert(linstate.scopes.size == 0)
    return line
