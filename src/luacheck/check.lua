@@ -106,6 +106,7 @@ function ChState:warn_unused_field_value(node)
    self:warn({
       code = "314",
       name = node.field,
+      index = node.is_index,
       line = node.location.line,
       column = node.location.column,
       end_column = node.location.column + #node.first_token - 1

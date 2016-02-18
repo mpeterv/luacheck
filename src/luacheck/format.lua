@@ -31,7 +31,8 @@ local message_formats = {
    ["311"] = "value assigned to variable %s is unused",
    ["312"] = "value of argument %s is unused",
    ["313"] = "value of loop variable %s is unused",
-   ["314"] = "value assigned to field %s is unused",
+   ["314"] = function(w)
+      return "value assigned to " .. (w.index and "index" or "field") .. " %s is unused" end,
    ["321"] = "accessing uninitialized variable %s",
    ["411"] = "variable %s was previously defined on line %s",
    ["412"] = "variable %s was previously defined as an argument on line %s",

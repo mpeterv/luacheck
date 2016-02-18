@@ -574,6 +574,7 @@ function LinState:scan_expr_Table(item, node)
 
          key_to_node[key] = pair
          pair.field = field
+         pair.is_index = pair.tag ~= "Pair" or nil
       end
    end
 end
