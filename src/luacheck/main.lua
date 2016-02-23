@@ -212,7 +212,7 @@ patterns.]])
 
       local function add(file)
          if type(file) == "string" then
-            file = file:gsub("^./", "")
+            file = file:gsub("^./([^/])", "%1")
          end
 
          local name = args.filename or file
