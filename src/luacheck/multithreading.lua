@@ -6,9 +6,38 @@ local ok, lanes = pcall(require, "lanes")
 ok = ok and pcall(lanes.configure)
 multithreading.has_lanes = ok
 multithreading.lanes = lanes
+multithreading.default_jobs = 1
 
 if not ok then
    return multithreading
+end
+
+local cpu_number_detection_commands = {}
+
+if utils.is_windows then
+   cpu_number_detection_commands[1] = "echo %NUMBER_OF_PROCESSORS%"
+else
+   cpu_number_detection_commands[1] = "getconf _NPROCESSORS_ONLN 2>&1"
+   cpu_number_detection_commands[2] = "sysctl -n hw.ncpu 2>&1"
+   cpu_number_detection_commands[3] = "psrinfo -p 2>&1"
+end
+
+for _, command in ipairs(cpu_number_detection_commands) do
+   local handler = io.popen(command)
+
+   if handler then
+      local output = handler:read("*a")
+      handler:close()
+
+      if output then
+         local cpu_number = tonumber(utils.strip(output))
+
+         if cpu_number then
+            multithreading.default_jobs = math.floor(math.max(cpu_number, 1))
+            break
+         end
+      end
+   end
 end
 
 -- Worker thread reads pairs {outkey, arg} from inkey channel of linda,

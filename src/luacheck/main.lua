@@ -162,11 +162,12 @@ patterns.]])
       local lanes_notice = ""
 
       if not multithreading.has_lanes then
-         lanes_notice = " (warning: LuaLanes\nnot found)"
+         lanes_notice = "\nWarning: LuaLanes not found."
       end
 
-      parser:option("-j --jobs", "Check <jobs> files in parallel" .. lanes_notice .. ".")
-         :convert(tonumber)
+      parser:option(
+         "-j --jobs", "Check <jobs> files in parallel (default: " ..
+            tostring(multithreading.default_jobs) .. ")." .. lanes_notice):convert(tonumber)
 
       parser:option("--formatter" , [[Use custom formatter.
 <formatter> must be a module name or one of:
@@ -313,7 +314,7 @@ patterns.]])
          args.cache = config.relative_path(conf, default_cache_path)
       end
 
-      args.jobs = args.jobs or conf_opts.jobs
+      args.jobs = args.jobs or conf_opts.jobs or multithreading.default_jobs
 
       combine_conf_and_args_path_arrays(conf, args, "exclude_files")
       combine_conf_and_args_path_arrays(conf, args, "include_files")
