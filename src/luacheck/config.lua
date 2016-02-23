@@ -189,11 +189,11 @@ function config.load_config(path)
    local conf_path = fs.join(rel_conf_dir, path)
    local env, special_values = make_config_env()
    local loader = add_relative_loader(conf)
-   local load_ok, ret = utils.load_config(conf_path, env)
+   local load_ok, ret, load_err = utils.load_config(conf_path, env)
    remove_relative_loader(loader)
 
    if not load_ok then
-      return nil, ("Couldn't load configuration from %s: %s error"):format(conf_path, ret)
+      return nil, ("Couldn't load configuration from %s: %s error (%s)"):format(conf_path, ret, load_err)
    end
 
    -- Support returning some options from config instead of setting them as globals.
