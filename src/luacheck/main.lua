@@ -159,10 +159,14 @@ patterns.]])
          )
       end
 
-      if multithreading.has_lanes then
-         parser:option("-j --jobs", "Check <jobs> files in parallel.")
-            :convert(tonumber)
+      local lanes_notice = ""
+
+      if not multithreading.has_lanes then
+         lanes_notice = " (warning: LuaLanes\nnot found)"
       end
+
+      parser:option("-j --jobs", "Check <jobs> files in parallel" .. lanes_notice .. ".")
+         :convert(tonumber)
 
       parser:option("--formatter" , [[Use custom formatter.
 <formatter> must be a module name or one of:
