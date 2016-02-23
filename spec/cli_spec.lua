@@ -1157,8 +1157,8 @@ Total: 1 warning / 0 errors in 1 file
 
       describe("error handling", function()
          it("raises critical error on config with syntax errors", function()
-            assert.equal([[
-Critical error: Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error (line 2: syntax error near 'method_missing')
+            assert.matches([[
+Critical error: Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error %(line 2: .*%)
 ]], get_output "spec/samples/empty.lua --config=spec/configs/bad_config.luacheckrc")
             assert.equal(3, get_exitcode "spec/samples/empty.lua --config=spec/configs/bad_config.luacheckrc")
          end)
