@@ -147,27 +147,39 @@ if not fs.has_lfs then
    return fs
 end
 
--- Returns whether path points to a directory. 
+-- Returns whether path points to a directory.
 function fs.is_dir(path)
    return fs.lfs.attributes(path, "mode") == "directory"
 end
 
--- Returns whether path points to a file. 
+-- Returns whether path points to a file.
 function fs.is_file(path)
    return fs.lfs.attributes(path, "mode") == "file"
 end
 
--- Returns list of all files in directory matching pattern. 
+-- Returns list of all files in directory matching pattern.
+-- Returns nil, error message on error.
 function fs.extract_files(dir_path, pattern)
    local res = {}
 
    local function scan(dir)
-      for path in fs.lfs.dir(dir) do
+      local ok, iter, state, var = pcall(fs.lfs.dir, dir)
+
+      if not ok then
+         local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
+         return "couldn't recursively check " .. dir .. ": " .. err
+      end
+
+      for path in iter, state, var do
          if path ~= "." and path ~= ".." then
             local full_path = dir .. utils.dir_sep .. path
 
             if fs.is_dir(full_path) then
-               scan(full_path)
+               local err = scan(full_path)
+
+               if err then
+                  return err
+               end
             elseif path:match(pattern) and fs.is_file(full_path) then
                table.insert(res, full_path)
             end
@@ -175,7 +187,12 @@ function fs.extract_files(dir_path, pattern)
       end
    end
 
-   scan(dir_path)
+   local err = scan(dir_path)
+
+   if err then
+      return nil, err
+   end
+
    table.sort(res)
    return res
 end

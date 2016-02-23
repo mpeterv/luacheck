@@ -5,26 +5,32 @@ utils.is_windows = utils.dir_sep == "\\"
 
 local bom = "\239\187\191"
 
--- Returns all contents of file (path or file handler) or nil. 
+-- Returns all contents of file (path or file handler) or nil + error message.
 function utils.read_file(file)
    local handler
 
    if type(file) == "string" then
-      handler = io.open(file, "rb")
+      local open_err
+      handler, open_err = io.open(file, "rb")
 
       if not handler then
-         return nil
+         open_err = utils.unprefix(open_err, file .. ": ")
+         return nil, "couldn't read: " .. open_err
       end
    else
       handler = file
    end
 
-   local res = handler:read("*a")
+   local res, read_err = handler:read("*a")
    handler:close()
+
+   if not res then
+      return nil, "couldn't read: " .. read_err
+   end
 
    -- Use :len() instead of # operator because in some environments
    -- string library is patched to handle UTF.
-   if res and res:sub(1, bom:len()) == bom then
+   if res:sub(1, bom:len()) == bom then
       res = res:sub(bom:len() + 1)
    end
 
@@ -57,26 +63,26 @@ end
 -- luacheck: pop
 
 -- Loads config containing assignments to global variables from path. 
--- Returns config table and return value of config or nil and error message
--- ("I/O" or "syntax" or "runtime"). 
+-- Returns config table and return value of config or nil and error type
+-- ("I/O" or "syntax" or "runtime") and error message.
 function utils.load_config(path, env)
    env = env or {}
-   local src = utils.read_file(path)
+   local src, read_err = utils.read_file(path)
 
    if not src then
-      return nil, "I/O"
+      return nil, "I/O", read_err
    end
 
-   local func = utils.load(src, env)
+   local func, load_err = utils.load(src, env, "chunk")
 
    if not func then
-      return nil, "syntax"
+      return nil, "syntax", "line " .. utils.unprefix(load_err, "[string \"chunk\"]:")
    end
 
    local ok, res = pcall(func)
 
    if not ok then
-      return nil, "runtime"
+      return nil, "runtime", "line " .. utils.unprefix(res, "[string \"chunk\"]:")
    end
 
    return env, res
@@ -187,6 +193,14 @@ end
 
 function utils.ripairs(array)
    return ripairs_iterator, array, #array + 1
+end
+
+function utils.unprefix(str, prefix)
+   if str:sub(1, #prefix) == prefix then
+      return str:sub(#prefix + 1)
+   else
+      return str
+   end
 end
 
 function utils.after(str, pattern)

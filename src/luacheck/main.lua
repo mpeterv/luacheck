@@ -202,13 +202,13 @@ patterns.]])
    end
 
    -- Expands folders, rockspecs, -
-   -- Returns new array of filenames and table mapping indexes of bad rockspecs to error messages.
+   -- Returns new array of filenames and table mapping indexes of bad files to {fatal = error type, msg = message}.
    -- Removes "./" in the beginnings of file names.
    -- Filters filenames using args.exclude_files and args.include_files.
    local function expand_files(args)
       -- If --include-files is used, do not focus on .lua files in directories.
       local dir_pattern = #args.include_files > 0 and "" or "%.lua$"
-      local res, bad_rockspecs = {}, {}
+      local res, bad_files = {}, {}
 
       local function add(file)
          if type(file) == "string" then
@@ -231,27 +231,31 @@ patterns.]])
          if file == "-" then
             add(io.stdin)
          elseif fs.is_dir(file) then
-            for _, nested_file in ipairs(fs.extract_files(file, dir_pattern)) do
-               add(nested_file)
+            local extracted, err = fs.extract_files(file, dir_pattern)
+
+            if extracted then
+               for _, nested_file in ipairs(extracted) do
+                  add(nested_file)
+               end
+            elseif add(file) then
+               bad_files[#res] = {fatal = "I/O", msg = err}
             end
          elseif file:sub(-#".rockspec") == ".rockspec" then
-            local related_files, err = expand_rockspec(file)
+            local related_files, err, msg = expand_rockspec(file)
 
             if related_files then
                for _, related_file in ipairs(related_files) do
                   add(related_file)
                end
-            else
-               if add(file) then
-                  bad_rockspecs[#res] = err
-               end
+            elseif add(file) then
+               bad_files[#res] = {fatal = err, msg = msg}
             end
          else
             add(file)
          end
       end
 
-      return res, bad_rockspecs
+      return res, bad_files
    end
 
    local function validate_args(args, parser)
@@ -336,12 +340,12 @@ patterns.]])
 
       for i, file in ipairs(files) do
          if not bad_files[i] and not cached_reports[file] then
-            local src = utils.read_file(file)
+            local src, err_msg = utils.read_file(file)
 
             if src then
                res[i] = src
             else
-               bad_files[i] = "I/O"
+               bad_files[i] = {fatal = "I/O", msg = err_msg}
             end
          end
       end
@@ -382,7 +386,7 @@ patterns.]])
       for i, file in ipairs(files) do
          if srcs[i] and file ~= io.stdin then
             if not mtimes[i] then
-               bad_files[i] = "I/O"
+               bad_files[i] = {fatal = "I/O", msg = "couldn't get modification time"}
             else
                table.insert(cache_files, file)
                table.insert(cache_mtimes, mtimes[i])
@@ -396,8 +400,7 @@ patterns.]])
    end
 
    -- Returns array of reports for files.
-   local function get_reports(cache_filename, files, bad_rockspecs, jobs)
-      local bad_files = utils.update({}, bad_rockspecs)
+   local function get_reports(cache_filename, files, bad_files, jobs)
       local mtimes
       local cached_reports
 
@@ -418,7 +421,7 @@ patterns.]])
 
       for i, file in ipairs(files) do
          if bad_files[i] then
-            res[i] = {fatal = bad_files[i]}
+            res[i] = bad_files[i]
          else
             res[i] = cached_reports[file] or new_reports[i]
          end
@@ -500,8 +503,8 @@ patterns.]])
    validate_args(args, parser)
    combine_config_and_args(conf, args)
 
-   local files, bad_rockspecs = expand_files(args)
-   local reports = get_reports(args.cache, files, bad_rockspecs, args.jobs)
+   local files, bad_files = expand_files(args)
+   local reports = get_reports(args.cache, files, bad_files, args.jobs)
    substitute_filename(args.filename, files)
    local report = luacheck.process_reports(reports, combine_config_and_options(conf, args, files))
    normalize_stdin_in_filenames(files)
