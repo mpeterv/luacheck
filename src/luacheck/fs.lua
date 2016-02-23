@@ -172,7 +172,7 @@ function fs.extract_files(dir_path, pattern)
 
       for path in iter, state, var do
          if path ~= "." and path ~= ".." then
-            local full_path = dir .. utils.dir_sep .. path
+            local full_path = fs.join(dir, path)
 
             if fs.is_dir(full_path) then
                local err = scan(full_path)
