@@ -209,6 +209,9 @@ local function format_file_report(report, file_name, opts)
       end
 
       table.insert(buf, "")
+   elseif report.fatal then
+      table.insert(buf, "")
+      table.insert(buf, "    " .. file_name .. ": " .. report.msg)
    end
 
    return table.concat(buf, "\n")
@@ -309,7 +312,7 @@ function formatters.plain(report, file_names, opts)
 
    for i, file_report in ipairs(report) do
       if file_report.fatal then
-         table.insert(buf, ("%s: %s"):format(file_names[i], fatal_type(file_report)))
+         table.insert(buf, ("%s: %s (%s)"):format(file_names[i], fatal_type(file_report), file_report.msg))
       else
          for _, event in ipairs(file_report) do
             table.insert(buf, format_event(file_names[i], event, opts))

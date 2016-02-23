@@ -345,6 +345,8 @@ Checking spec/samples/python_code.lua             1 error
 
 Checking spec/samples/absent_code.lua             I/O error
 
+    spec/samples/absent_code.lua: couldn't read: No such file or directory
+
 Total: 0 warnings / 1 error in 1 file, couldn't check 1 file
 ]], get_output "spec/samples/python_code.lua spec/samples/absent_code.lua --no-config")
       assert.equal(2, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua --no-config")
@@ -369,6 +371,8 @@ Total: 5 warnings / 0 errors in 2 files
    it("handles bad rockspecs", function()
       assert.equal([[
 Checking spec/samples/bad.rockspec                Syntax error
+
+    spec/samples/bad.rockspec: rockspec.build is not a table
 
 Total: 0 warnings / 0 errors in 0 files, couldn't check 1 file
 ]], get_output "spec/samples/bad.rockspec --no-config")
@@ -887,7 +891,7 @@ spec/samples/python_code.lua:1:6: expected '=' near '__future__'
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter plain --no-config")
 
       assert.equal([[
-spec/samples/404.lua: I/O error
+spec/samples/404.lua: I/O error (couldn't read: No such file or directory)
 ]], get_output "spec/samples/404.lua --formatter plain --no-config")
 
       assert.equal([[

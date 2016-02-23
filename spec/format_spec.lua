@@ -62,6 +62,8 @@ Checking foo.lua                                  1 warning / 1 error
 
 Checking baz.lua                                  Syntax error
 
+    baz.lua: error message
+
 Total: 2 warnings / 1 error in 3 files, couldn't check 1 file]], remove_color(format({
    warnings = 2,
    errors = 1,
@@ -89,7 +91,8 @@ Total: 2 warnings / 1 error in 3 files, couldn't check 1 file]], remove_color(fo
    },
    {},
    {
-      fatal = "syntax"
+      fatal = "syntax",
+      msg = "error message"
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {quiet = 1})))
    end)
@@ -166,6 +169,8 @@ Checking foo.lua                                  1 warning
 Checking bar.lua                                  OK
 Checking baz.lua                                  Syntax error
 
+    baz.lua: error message
+
 Total: 2 warnings / 0 errors in 3 files, couldn't check 1 file]], format({
    warnings = 2,
    errors = 0,
@@ -188,7 +193,8 @@ Total: 2 warnings / 0 errors in 3 files, couldn't check 1 file]], format({
    },
    {},
    {
-      fatal = "syntax"
+      fatal = "syntax",
+      msg = "error message"
    }
 }, {"stdin", "foo.lua", "bar.lua", "baz.lua"}, {color = false}))
    end)
