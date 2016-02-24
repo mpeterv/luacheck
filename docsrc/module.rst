@@ -20,9 +20,9 @@ Report format
 
 A final report is an array of file reports plus fields ``warnings``, ``errors`` and ``fatals`` containing total number of warnings, errors and fatal errors, correspondingly.
 
-A file report is an array of issues (warnings or errors). If a fatal error occured while checking a file, its report will have ``fatal`` field containing error type.
+A file report is an array of issues (warnings or errors). If a fatal error occured while checking a file, its report will have ``fatal`` field containing error type and ``msg`` field containing error message.
 
-An issue is a table with field ``code`` indicating its type (see :doc:`warnings`), and fields ``line``, ``column`` and ``end_column`` pointing to the source of the warning. ``name`` field may contain name of relate variable. Issues of some types can also have additional fields:
+An issue is a table with field ``code`` indicating its type (see :doc:`warnings`), and fields ``line``, ``column`` and ``end_column`` pointing to the source of the warning. ``name`` field may contain name of related variable. Issues of some types can also have additional fields:
 
 ===== ========================================================================================
 Codes Additional fields
@@ -30,6 +30,8 @@ Codes Additional fields
 011   ``msg`` field contains syntax error message.
 111   ``module`` field indicates that assignment is to a non-module global variable.
 211   ``func`` field indicates that unused variable is a function.
+211   ``recursive`` field indicates that unused function is recursive.
+211   ``mutually_recursive`` field is set for unused mutually recursive functions.
 4..   ``prev_line`` and ``prev_column`` fields contain location of the overwritten definition.
 ===== ========================================================================================
 

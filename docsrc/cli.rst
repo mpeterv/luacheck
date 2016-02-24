@@ -1,7 +1,7 @@
 Command line interface
 ======================
 
-``luacheck`` program accepts files, directories and `rockspecs <http://www.luarocks.org/en/Rockspec_format>`_ as arguments.
+``luacheck`` program accepts files, directories and `rockspecs <http://www.luarocks.org/en/Rockspec_format>`_ as arguments. They can be filtered using ``--include-files`` and ``--exclude-files`` options, see below.
 
 * Given a file, ``luacheck`` will check it.
 * Given ``-``, ``luacheck`` will check stdin.
@@ -105,6 +105,7 @@ Option                                  Meaning
 ``--cache [<cache>]``                   Path to cache file. (default: ``.luacheckcache``). See :ref:`cache`
 ``--no-cache``                          Do not use cache.
 ``-j | --jobs``                         Check ``<jobs>`` files in parallel. Requires `LuaLanes <http://cmr.github.io/lanes/>`_.
+                                        Default number of jobs is set to number of available processing units.
 ``--formatter <formatter>``             Use custom formatter. ``<formatter>`` must be a module name or one of:
 
                                         * ``TAP`` - Test Anything Protocol formatter;

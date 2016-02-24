@@ -3,9 +3,9 @@ List of warnings
 
 Warnings produced by Luacheck are categorized using three-digit warning codes. Warning codes can be displayed in CLI output using ``--codes`` CLI option or ``codes`` config option. Errors also have codes starting with zero.
 
-==== =============================================
+==== ==============================================
 Code Description
-==== =============================================
+==== ==============================================
 011  A syntax error.
 021  An invalid inline option.
 022  An unpaired inline push directive.
@@ -26,6 +26,7 @@ Code Description
 311  Value assigned to a local variable is unused.
 312  Value of an argument is unused.
 313  Value of a loop variable is unused.
+314  Value of a field in a table literal is unused.
 321  Accessing uninitialized local variable.
 411  Redefining a local variable.
 412  Redefining an argument.
@@ -44,7 +45,7 @@ Code Description
 541  An empty ``do`` ``end`` block.
 542  An empty ``if`` branch.
 551  An empty statement.
-==== =============================================
+==== ==============================================
 
 Global variables
 ----------------
