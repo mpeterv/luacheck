@@ -89,7 +89,7 @@ Additionally, custom sets can be given names by mutating global ``stds`` variabl
 Per-file and per-path overrides
 -------------------------------
 
-The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<path>]`` and ``files[<parent_path>]``, applying entries for shorter paths first. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for ``src/dir/myfile.lua``, and allows using `Busted <http://olivinelabs.com/busted/>`_ globals within ``spec/``:
+The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<glob>]`` if ``<glob>`` matches ``<path>``, applying entries for more general globs first. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for files ending with ``_special.lua``, and allows using `Busted <http://olivinelabs.com/busted/>`_ globals within ``spec/``:
 
 .. code-block:: lua
    :linenos:
@@ -97,19 +97,19 @@ The environment in which ``luacheck`` loads the config contains a special global
    std = "min"
    ignore = {"212"}
    files["src/dir"] = {enable = {"212"}}
-   files["src/dir/myfile.lua"] = {ignore = {"212"}}
+   files["src/dir/**/*_special.lua"] = {ignore = {"212"}}
    files["spec"] = {std = "+busted"}
 
 Note that ``files`` table supports autovivification, so that
 
 .. code-block:: lua
 
-   files["myfile.lua"].ignore = {"212"}
+   files["src/dir"].enable = {"212"}
 
 and
 
 .. code-block:: lua
 
-   files["myfile.lua"] = {ignore = {"212"}}
+   files["src/dir"] = {enable = {"212"}}
 
 are equivalent.
