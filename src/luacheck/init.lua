@@ -114,7 +114,8 @@ function luacheck.check_files(files, opts)
    local srcs = {}
 
    for i, file in ipairs(files) do
-      srcs[i] = utils.read_file(file) or {fatal = "I/O"}
+      local src, err = utils.read_file(file)
+      srcs[i] = src or {fatal = "I/O", msg = err}
    end
 
    return luacheck.check_strings(srcs, opts)
