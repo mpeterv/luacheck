@@ -116,6 +116,35 @@ end
       ]])
    end)
 
+   it("does not incorrectly detect unused recursive functions inside unused functions", function()
+      assert.same({
+         {code = "211", name = "unused", func = true, line = 1, column = 16, end_column = 21}
+      }, check[[
+local function unused()
+   local function nested1() end
+   local function nested2() nested2() end
+   return nested1(), nested2()
+end
+      ]])
+   end)
+
+   it("does not incorrectly detect unused recursive functions used by an unused recursive function", function()
+      assert.same({
+         {code = "211", name = "g", func = true, recursive = true, line = 2, column = 16, end_column = 16}
+      }, check[[
+local function f() return 1 end
+local function g() return f() + g() end
+      ]])
+
+      assert.same({
+         {code = "211", name = "g", func = true, recursive = true, line = 2, column = 16, end_column = 16}
+      }, check[[
+local f
+local function g() return f() + g() end
+function f() return 1 end
+      ]])
+   end)
+
    it("detects unused locals from function arguments", function()
       assert.same({
          {code = "212", name = "foo", line = 1, column = 17, end_column = 19}
