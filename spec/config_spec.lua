@@ -37,7 +37,7 @@ describe("config", function()
          assert.equal("../../bar.lua", config.relative_path(nested_conf, "bar.lua"))
       end)
 
-      assert.not_same(config.get_options(conf, "spec/foo.lua"), config.get_options(conf, "foo.lua"))
+      assert.not_same(config.get_options(conf, "spec/foo_spec.lua"), config.get_options(conf, "foo_spec.lua"))
       assert.equal("bar.lua", config.relative_path(conf, "bar.lua"))
    end)
 
