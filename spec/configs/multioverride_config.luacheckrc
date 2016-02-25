@@ -6,6 +6,6 @@ files["spec/samples/"] = {
    ignore = {"213"}
 }
 
-files["spec/samples/unused_code.lua"] = {
+files["spec/samples/*_code.lua"] = {
 	enable = {"213"}
 }

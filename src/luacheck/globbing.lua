@@ -125,4 +125,40 @@ function globbing.match(glob, path)
    return parts_match(glob_parts, 1, path_parts, 1)
 end
 
+-- Checks if glob1 is less specific than glob2 and should be applied
+-- first in overrides.
+function globbing.compare(glob1, glob2)
+   local base1, base2
+   base1, glob1 = fs.split_base(glob1)
+   base2, glob2 = fs.split_base(glob2)
+
+   if base1 ~= base2 then
+      return base1 < base2
+   end
+
+   local parts1 = get_parts(glob1)
+   local parts2 = get_parts(glob2)
+
+   for i = 1, math.max(#parts1, #parts2) do
+      if not parts1[i] then
+         return true
+      elseif not parts2[i] then
+         return false
+      end
+
+      if (parts1[i] == "**" or parts2[i] == "**") and parts1[i] ~= parts2[i] then
+         return parts1[i] == "**"
+      end
+
+      local _, specials1 = parts1[i]:gsub("[%*%?%[]", {})
+      local _, specials2 = parts2[i]:gsub("[%*%?%[]", {})
+
+      if specials1 ~= specials2 then
+         return specials1 > specials2
+      end
+   end
+
+   return glob1 < glob2
+end
+
 return globbing

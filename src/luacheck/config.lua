@@ -1,6 +1,7 @@
 local options = require "luacheck.options"
 local stds = require "luacheck.stds"
 local fs = require "luacheck.fs"
+local globbing = require "luacheck.globbing"
 local utils = require "luacheck.utils"
 
 local config = {}
@@ -104,30 +105,30 @@ local function validate_config(conf)
    end
 end
 
--- Returns table with field `paths` containing sorted normalize paths
--- used in overrides and `options` mapping these paths to options.
+-- Returns table with field `globs` containing sorted normalized globs
+-- used in overrides and `options` mapping these globs to options.
 local function normalize_overrides(files, abs_conf_dir)
-   local overrides = {paths = {}, options = {}}
+   local overrides = {globs = {}, options = {}}
 
-   local orig_paths = {}
+   local orig_globs = {}
 
-   for path in pairs(files) do
-      table.insert(orig_paths, path)
+   for glob in pairs(files) do
+      table.insert(orig_globs, glob)
    end
 
-   table.sort(orig_paths)
+   table.sort(orig_globs)
 
-   for _, orig_path in ipairs(orig_paths) do
-      local path = fs.normalize(fs.join(abs_conf_dir, orig_path))
+   for _, orig_glob in ipairs(orig_globs) do
+      local glob = fs.normalize(fs.join(abs_conf_dir, orig_glob))
 
-      if not overrides.options[path] then
-         table.insert(overrides.paths, path)
+      if not overrides.options[glob] then
+         table.insert(overrides.globs, glob)
       end
 
-      overrides.options[path] = files[orig_path]
+      overrides.options[glob] = files[orig_glob]
    end
 
-   table.sort(overrides.paths)
+   table.sort(overrides.globs, globbing.compare)
    return overrides
 end
 
@@ -268,9 +269,9 @@ function config.get_options(conf, file)
 
    local path = fs.normalize(fs.join(conf.cur_dir, file))
 
-   for _, override_path in ipairs(conf.overrides.paths) do
-      if fs.is_subpath(override_path, path) then
-         table.insert(res, conf.overrides.options[override_path])
+   for _, override_glob in ipairs(conf.overrides.globs) do
+      if globbing.match(override_glob, path) then
+         table.insert(res, conf.overrides.options[override_glob])
       end
    end
 
