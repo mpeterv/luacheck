@@ -20,7 +20,7 @@ Report format
 
 A final report is an array of file reports plus fields ``warnings``, ``errors`` and ``fatals`` containing total number of warnings, errors and fatal errors, correspondingly.
 
-A file report is an array of issues (warnings or errors). If a fatal error occured while checking a file, its report will have ``fatal`` field containing error type and ``msg`` field containing error message.
+A file report is an array of issues (warnings or errors). If a fatal error occurred while checking a file, its report will have ``fatal`` field containing error type and ``msg`` field containing error message.
 
 An issue is a table with field ``code`` indicating its type (see :doc:`warnings`), and fields ``line``, ``column`` and ``end_column`` pointing to the source of the warning. ``name`` field may contain name of related variable. Issues of some types can also have additional fields:
 
