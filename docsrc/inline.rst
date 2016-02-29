@@ -28,7 +28,7 @@ only               1+
 
 Options that take no arguments can be prefixed with ``no`` to invert their meaning. E.g. ``--luacheck: no unused args`` disables unused argument warnings.
 
-Part of the file affected by inline option dependes on where it is placed. If there is any code on the line with the option, only that line is affected; otherwise, everthing till the end of the current closure is. In particular, inline options at the top of the file affect all of it:
+Part of the file affected by inline option dependes on where it is placed. If there is any code on the line with the option, only that line is affected; otherwise, everything till the end of the current closure is. In particular, inline options at the top of the file affect all of it:
 
 .. code-block:: lua
    :linenos:
