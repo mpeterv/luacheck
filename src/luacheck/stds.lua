@@ -56,6 +56,10 @@ stds.ngx_lua = {
    "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "require", "select", "setfenv",
    "setmetatable", "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"}
 
+stds.rockspec = {
+  "rockspec_format", "package", "version", "description", "supported_platforms",
+  "dependencies", "external_dependencies", "source", "build"}
+
 local min = {_G = true, package = true}
 local std_sets = {}
 
