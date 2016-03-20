@@ -18,7 +18,7 @@ matrix:
       env: LUA="luajit 2.1"
 
 install:
-  - wget https://raw.githubusercontent.com/mpeterv/hererocks/master/hererocks.py
+  - wget https://raw.githubusercontent.com/mpeterv/hererocks/latest/hererocks.py
   - python hererocks.py here --$LUA -r https://github.com/mpeterv/luarocks@upgrade-install
   - export PATH=$PATH:$PWD/here/bin
   - luarocks install lanes --upgrade --upgrade-deps
