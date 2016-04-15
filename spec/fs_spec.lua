@@ -1,4 +1,5 @@
 local fs = require "luacheck.fs"
+local P = fs.normalize
 
 describe("fs", function()
    describe("is_dir", function()
@@ -32,10 +33,10 @@ describe("fs", function()
    describe("extract_files", function()
       it("returns sorted list of files in a directory matching pattern", function()
          assert.same({
-            "spec/folder/folder1/fail",
-            "spec/folder/folder1/file",
-            "spec/folder/foo"
-         }, fs.extract_files("spec/folder", "^f"))
+            P"spec/folder/folder1/fail",
+            P"spec/folder/folder1/file",
+            P"spec/folder/foo"
+         }, fs.extract_files(P"spec/folder", "^f"))
       end)
    end)
 
@@ -53,20 +54,20 @@ describe("fs", function()
       it("returns absolute path to current directory", function()
          local current_dir = fs.current_dir()
          assert.string(current_dir)
-         assert.equal("/", current_dir:sub(1, 1))
+         assert.not_equal("", (fs.split_base(current_dir)))
          assert.is_true(fs.is_file(current_dir .. "spec/folder/foo"))
       end)
    end)
 
    describe("find_file", function()
       it("finds file in a directory", function()
-         local path = fs.current_dir() .. "spec/folder"
+         local path = fs.current_dir() .. P"spec/folder"
          assert.equal(path, fs.find_file(path, "foo"))
       end)
 
       it("finds file in a parent directory", function()
-         local path = fs.current_dir() .. "spec/folder"
-         assert.equal(path, fs.find_file(path .. "/folder1", "foo"))
+         local path = fs.current_dir() .. P"spec/folder"
+         assert.equal(path, fs.find_file(path .. P"/folder1", "foo"))
       end)
 
       it("returns nil if can't find file", function()
