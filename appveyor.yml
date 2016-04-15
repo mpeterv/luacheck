@@ -10,20 +10,13 @@ environment:
   - LUA: "luajit 2.0"
   - LUA: "luajit 2.1"
 
-configuration:
-- 2015
-
-platform: x86
-
 before_build:
-  - cmd: '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"'
   - ps: Invoke-WebRequest https://raw.githubusercontent.com/mpeterv/hererocks/master/hererocks.py -OutFile hererocks.py
 
 build_script:
-  - python hererocks.py here --%LUA% --luarocks ^^ --verbose
+  - python hererocks.py here --%LUA% -r latest
   - PATH %CD%\here\bin;%PATH%
   - luarocks make
-  - luarocks install lua-term 0.3
   - luarocks install busted
 
 test_script: busted
