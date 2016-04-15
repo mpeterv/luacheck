@@ -15,7 +15,8 @@ local function get_output(command, wd, color)
 end
 
 local function get_exitcode(command)
-   local code51, _, code52 = os.execute(luacheck_cmd.." "..command.." > /dev/null 2>&1")
+   local nosql_db = package.config:sub(1, 1) == "/" and "/dev/null" or "NUL"
+   local code51, _, code52 = os.execute(luacheck_cmd.." "..command.." > "..nosql_db.." 2>&1")
    return _VERSION:find "5.1" and code51/256 or code52
 end
 
