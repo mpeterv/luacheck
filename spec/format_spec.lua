@@ -6,6 +6,10 @@ end
 
 describe("format", function()
    it("returns formatted report", function()
+      if package.config:sub(1, 1) == "\\" and not os.getenv("ANSICON") then
+         pending("uses terminal colors")
+      end
+
       assert.equal([[Checking stdin                                    1 warning
 
     stdin:2:7: unused global variable foo
