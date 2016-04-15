@@ -22,7 +22,7 @@ function helper.luacov_config(prefix)
    }
 end
 
-local luacov = package.loaded.luacov or package.loaded["luacov.runner"]
+local luacov = package.loaded["luacov.runner"]
 
 -- Returns command that runs `luacheck` executable from `loc_path`.
 function helper.luacheck_command(loc_path)
@@ -31,12 +31,12 @@ function helper.luacheck_command(loc_path)
    local cmd = ("cd %s && lua"):format(loc_path)
 
    -- Extend package.path to allow loading this helper and luacheck modules.
-   cmd = cmd..(" -e 'package.path=[[%s?.lua;%ssrc%s?.lua;%ssrc%s?%sinit.lua;]]..package.path'"):format(
+   cmd = cmd..(' -e "package.path=[[%s?.lua;%ssrc%s?.lua;%ssrc%s?%sinit.lua;]]..package.path"'):format(
       prefix, prefix, dir_sep, prefix, dir_sep, dir_sep)
 
    if luacov then
       -- Launch luacov.
-      cmd = cmd..(" -e 'require[[luacov.runner]](require[[spec.helper]].luacov_config([[%s]]))'"):format(prefix)
+      cmd = cmd..(' -e "require[[luacov.runner]](require[[spec.helper]].luacov_config([[%s]]))"'):format(prefix)
    end
 
    return ("%s %sbin%sluacheck.lua"):format(cmd, prefix, dir_sep)
