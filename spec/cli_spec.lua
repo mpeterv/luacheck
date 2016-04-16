@@ -169,7 +169,7 @@ Checking spec/samples/unused_code.lua             9 warnings
     spec/samples/unused_code.lua:21:7: variable 'z' is never accessed
 
 Total: 14 warnings / 0 errors in 3 files
-]], get_output "-q spec/samples/*d_code.lua --no-config")
+]], get_output "-q spec/samples/bad_code.lua spec/samples/good_code.lua spec/samples/unused_code.lua --no-config")
       assert.equal([[
 Total: 0 warnings / 0 errors in 1 file
 ]], get_output "-q spec/samples/good_code.lua --no-config")
@@ -181,12 +181,12 @@ Checking spec/samples/bad_code.lua                5 warnings
 Checking spec/samples/unused_code.lua             9 warnings
 
 Total: 14 warnings / 0 errors in 3 files
-]], get_output "-qq spec/samples/*d_code.lua --no-config")
+]], get_output "-qq spec/samples/bad_code.lua spec/samples/good_code.lua spec/samples/unused_code.lua --no-config")
    end)
 
    it("suppresses file info output with -qqq", function()
       assert.equal([[Total: 14 warnings / 0 errors in 3 files
-]], get_output "-qqq spec/samples/*d_code.lua --no-config")
+]], get_output "-qqq spec/samples/bad_code.lua spec/samples/good_code.lua spec/samples/unused_code.lua --no-config")
    end)
 
    it("allows to ignore some types of warnings", function()
