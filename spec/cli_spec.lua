@@ -29,8 +29,17 @@ end
 
 local function get_exitcode(command)
    local nosql_db = package.config:sub(1, 1) == "/" and "/dev/null" or "NUL"
-   local code51, _, code52 = os.execute(luacheck_cmd.." "..command.." > "..nosql_db.." 2>&1")
-   return _VERSION:find "5.1" and code51/256 or code52
+   local code51, _, code52plus = os.execute(luacheck_cmd.." "..command.." > "..nosql_db.." 2>&1")
+
+   if _VERSION:find "5.1" then
+      if code51 >= 256 then
+         return math.floor(code51/256)
+      else
+         return code51
+      end
+   else
+      return code52plus
+   end
 end
 
 describe("cli", function()
