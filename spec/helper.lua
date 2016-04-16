@@ -4,7 +4,7 @@ local dir_sep = package.config:sub(1, 1)
 
 -- Return path to root directory when run from `path`.
 local function antipath(path)
-   local _, level = path:gsub(dir_sep, "")
+   local _, level = path:gsub("[/\\]", "")
    return (".."..dir_sep):rep(level)
 end
 
