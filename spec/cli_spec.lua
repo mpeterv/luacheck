@@ -1064,7 +1064,7 @@ Codes: true
          end)
 
          it("uses exclude_files option", function()
-            assert.equal([[
+            assert.equal(([[
 Checking spec/samples/argparse.lua                6 warnings
 Checking spec/samples/compat.lua                  4 warnings
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
@@ -1079,7 +1079,8 @@ Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
 
 Total: 53 warnings / 4 errors in 14 files
-]], get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
+]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
+            get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
          end)
 
          it("loads exclude_files option correctly from upper directory", function()
