@@ -550,7 +550,7 @@ local function node_to_lua_value(node)
       end
 
       -- Always convert to float to get consistent results on Lua 5.2/5.3.
-      if not str:find("[%.eEpP]") then
+      if _VERSION ~= "Lua 5.1" and not str:find("[%.eEpP]") then
          str = str .. ".0"
       end
 
