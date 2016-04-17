@@ -51,9 +51,9 @@ Options taking several arguments can be used several times; ``--ignore foo --ign
 
 Note that options that may take several arguments, such as ``--globals``, should not be used immediately before positional arguments; given ``--globals foo bar file.lua``, ``luacheck`` will consider all ``foo``, ``bar`` and ``file.lua`` global and then panic as there are no file names left.
 
-======================================= ============================================================================
+======================================= ================================================================================
 Option                                  Meaning
-======================================= ============================================================================
+======================================= ================================================================================
 ``-g | --no-global``                    Filter out warnings related to global variables.
 ``-u | --no-unused``                    Filter out warnings related to unused variables and values.
 ``-r | --no-redefined``                 Filter out warnings related to redefined variables.
@@ -72,8 +72,9 @@ Option                                  Meaning
                                         * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
                                         * ``luajit`` - globals of LuaJIT 2.0;
                                         * ``ngx_lua`` - globals of Openresty `lua-nginx-module <https://github.com/openresty/lua-nginx-module>`_ with LuaJIT 2.0;
-                                        * ``min`` - intersection of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
-                                        * ``max`` - union of globals of Lua 5.1, Lua 5.2 and LuaJIT 2.0;
+                                        * ``rockspec`` - globals allowed in rockspecs;
+                                        * ``min`` - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
+                                        * ``max`` - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
                                         * ``busted`` - globals added by Busted 2.0;
                                         * ``none`` - no standard globals.
 
@@ -121,7 +122,7 @@ Option                                  Meaning
 ``--no-color``                          Do not colorize output.
 ``-v | --version``                      Show version of Luacheck and its dependencies and exit.
 ``-h | --help``                         Show help and exit.
-======================================= ============================================================================
+======================================= ================================================================================
 
 .. _patterns:
 
