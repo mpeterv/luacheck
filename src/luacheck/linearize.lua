@@ -549,14 +549,14 @@ local function node_to_lua_value(node)
          return
       end
 
-      -- Always convert to float to get consistent results on Lua 5.2/5.3.
-      if _VERSION ~= "Lua 5.1" and not str:find("[%.eEpP]") then
+      -- On Lua 5.3 convert to float to get same results as on Lua 5.1 and 5.2.
+      if _VERSION == "Lua 5.3" and not str:find("[%.eEpP]") then
          str = str .. ".0"
       end
 
       local number = tonumber(str)
 
-      if number == number and number < 1/0 and number > -1/0 then
+      if number and number == number and number < 1/0 and number > -1/0 then
          return number, node[1]
       end
    end
