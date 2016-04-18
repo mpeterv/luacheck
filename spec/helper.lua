@@ -42,16 +42,4 @@ function helper.luacheck_command(loc_path)
    return ("%s %sbin%sluacheck.lua"):format(cmd, prefix, dir_sep)
 end
 
-function helper.before_command()
-   if luacov then
-      luacov.pause()
-   end
-end
-
-function helper.after_command()
-   if luacov then
-      luacov.resume()
-   end
-end
-
 return helper

@@ -3,9 +3,6 @@ local multithreading = require "luacheck.multithreading"
 local helper = require "spec.helper"
 local luacheck_cmd = helper.luacheck_command()
 
-setup(helper.before_command)
-teardown(helper.after_command)
-
 local function get_output(command, wd, color)
    if color then
       if package.config:sub(1, 1) == "\\" and not os.getenv("ANSICON") then
