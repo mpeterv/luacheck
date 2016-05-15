@@ -217,6 +217,15 @@ local function format_file_report(report, file_name, opts)
    return table.concat(buf, "\n")
 end
 
+local function escape_xml(str)
+   str = str:gsub("&", "&amp;")
+   str = str:gsub('"', "&quot;")
+   str = str:gsub("'", "&apos;")
+   str = str:gsub("<", "&lt;")
+   str = str:gsub(">", "&gt;")
+   return str
+end
+
 local formatters = {}
 
 function formatters.default(report, file_names, opts)
@@ -287,16 +296,17 @@ function formatters.JUnit(report, file_names)
 
    for file_i, file_report in ipairs(report) do
       if file_report.fatal then
-         table.insert(buf, ([[    <testcase name="%s" classname="%s">]]):format(file_names[file_i], file_names[file_i]))
-         table.insert(buf, ([[        <error type="%s"/>]]):format(fatal_type(file_report)))
+         table.insert(buf, ([[    <testcase name="%s" classname="%s">]]):format(escape_xml(file_names[file_i]), escape_xml(file_names[file_i])))
+         table.insert(buf, ([[        <error type="%s"/>]]):format(escape_xml(fatal_type(file_report))))
          table.insert(buf, [[    </testcase>]])
       elseif #file_report == 0 then
-         table.insert(buf, ([[    <testcase name="%s" classname="%s"/>]]):format(file_names[file_i], file_names[file_i]))
+         table.insert(buf, ([[    <testcase name="%s" classname="%s"/>]]):format(escape_xml(file_names[file_i]), escape_xml(file_names[file_i])))
       else
          for event_i, event in ipairs(file_report) do
-            table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(file_names[file_i], event_i, file_names[file_i]))
+            table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(
+               escape_xml(file_names[file_i]), event_i, escape_xml(file_names[file_i])))
             table.insert(buf, ([[        <failure type="%s" message="%s"/>]]):format(
-               event_code(event), format_event(file_names[file_i], event, opts)))
+               escape_xml(event_code(event)), escape_xml(format_event(file_names[file_i], event, opts))))
             table.insert(buf, [[    </testcase>]])
          end
       end
