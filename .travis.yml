@@ -23,6 +23,7 @@ install:
   - export PATH="$PWD/here/bin:$PATH"
   - luarocks install lanes --upgrade --upgrade-deps
   - luarocks install busted --upgrade --upgrade-deps
+  - luarocks install cluacov --upgrade --upgrade-deps
   - luarocks install luacov-coveralls --upgrade --upgrade-deps
 
 script:
