@@ -11,11 +11,11 @@ environment:
   - LUA: "luajit 2.1"
 
 before_build:
-  - ps: Invoke-WebRequest https://raw.githubusercontent.com/mpeterv/hererocks/master/hererocks.py -OutFile hererocks.py
+  - set PATH=%CD%\here\bin;C:\Python27\Scripts;%PATH%
+  - pip install hererocks
 
 build_script:
-  - python hererocks.py here --%LUA% -r latest
-  - PATH %CD%\here\bin;%PATH%
+  - hererocks here --%LUA% -r latest
   - luarocks make
   - luarocks install busted
 
