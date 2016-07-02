@@ -234,7 +234,7 @@ Total: 4 warnings / 0 errors in 1 file
       assert.equal([[
 Checking spec/samples/bad_code.lua                6 warnings
 
-    spec/samples/bad_code.lua:1:1: accessing undefined variable 'package'
+    spec/samples/bad_code.lua:1:1: mutating non-standard global variable 'package'
     spec/samples/bad_code.lua:3:16: unused function 'helper'
     spec/samples/bad_code.lua:3:23: unused variable length argument
     spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'
@@ -750,7 +750,7 @@ spec/samples/good_code.lua
 return {}
 spec/samples/bad_code.lua
 (%d+)
-local A="113";return {{A,"package",1,1,7},{"211","helper",3,16,21,%[10%]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,%[12%]=true},{"412","opt",8,10,12,7,18},{A,"hepler",9,11,16}}
+return {{"112","package",1,1,7},{"211","helper",3,16,21,%[10%]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,%[12%]=true},{"412","opt",8,10,12,7,18},{"113","hepler",9,11,16}}
 spec/samples/python_code.lua
 (%d+)
 return {{"011",%[3%]=1,%[4%]=6,%[5%]=15,%[23%]="expected '=' near '__future__'"}}

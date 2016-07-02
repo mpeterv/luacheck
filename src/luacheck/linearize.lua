@@ -456,15 +456,7 @@ function LinState:emit_stmt_Set(node)
          end
       else
          assert(expr.tag == "Index")
-
-         if expr[1].tag == "Id" and not self:resolve_var(expr[1][1]) then
-            -- Warn about mutated global.
-            self:check_var(expr[1], "mutate")
-         else
-            self:scan_expr(item, expr[1])
-         end
-
-         self:scan_expr(item, expr[2])
+         self:scan_lhs_index(item, expr)
       end
    end
 
@@ -527,6 +519,19 @@ function LinState:scan_expr_Dots(item, node)
    end
 
    self:mark_access(item, node)
+end
+
+function LinState:scan_lhs_index(item, node)
+   if node[1].tag == "Id" and not self:resolve_var(node[1][1]) then
+      -- Warn about mutated global.
+      self:check_var(node[1], "mutate")
+   elseif node[1].tag == "Index" then
+      self:scan_lhs_index(item, node[1])
+   else
+      self:scan_expr(item, node[1])
+   end
+
+   self:scan_expr(item, node[2])
 end
 
 LinState.scan_expr_Index = LinState.scan_exprs
