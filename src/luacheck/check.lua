@@ -50,7 +50,7 @@ end
 
 -- W12* (read-only global) and W131 (unused global) are patched in during filtering.
 
-function ChState:warn_unused_variable(value, recursive, self_recursive)
+function ChState:warn_unused_variable(value, recursive, self_recursive, useless)
    self:warn({
       code = "21" .. type_codes[value.var.type],
       name = value.var.name,
@@ -60,7 +60,8 @@ function ChState:warn_unused_variable(value, recursive, self_recursive)
       func = (value.type == "func") or nil,
       mutually_recursive = not self_recursive and recursive or nil,
       recursive = self_recursive,
-      self = value.var.self
+      self = value.var.self,
+      useless = value.var.name == "_" and useless or nil
    }, value.var.self)
 end
 

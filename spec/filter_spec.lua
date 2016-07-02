@@ -30,12 +30,17 @@ describe("filter", function()
       }))
    end)
 
-   it("removes unused var/value and redefined warnings related to _", function()
+   it("removes unused var/value and redefined warnings related to _, unless it's useless", function()
       assert.same({
          {
             {
                code = "211",
                name = "foo"
+            },
+            {
+               code = "211",
+               name = "_",
+               useless = true
             }
          }
       }, filter({
@@ -46,7 +51,8 @@ describe("filter", function()
             },
             {
                code = "211",
-               name = "_"
+               name = "_",
+               useless = true
             },
             {
                code = "412",

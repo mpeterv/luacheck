@@ -81,6 +81,29 @@ end
       ]])
    end)
 
+   it("detects useless local _ variable", function()
+      assert.same({
+         {code = "211", name = "_", useless = true, line = 2, column = 10, end_column = 10},
+         {code = "211", name = "_", useless = true, line = 7, column = 13, end_column = 13},
+         {code = "211", name = "_", filtered = true, secondary = true, line = 12, column = 13, end_column = 13}
+      }, check[[
+do
+   local _
+end
+
+do
+   local a = 5
+   local b, _ = a
+   b()
+end
+
+do
+   local c, _ = ...
+   c()
+end
+      ]])
+   end)
+
    it("reports unused function with forward declaration as variable, not value", function()
       assert.same({
          {code = "211", name = "noop", func = true, line = 1, column = 22, end_column = 25}

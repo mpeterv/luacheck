@@ -212,7 +212,7 @@ local function is_enabled(rules, warning)
 end
 
 function filter.filters(opts, warning)
-   if warning.code:match("[234]..") and warning.name == "_" then
+   if warning.code:match("[234]..") and warning.name == "_" and not warning.useless then
       return true
    end
 

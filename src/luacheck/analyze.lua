@@ -175,7 +175,7 @@ local function check_var(chstate, var)
       end
    elseif #var.values == 1 then
       if not var.values[1].used then
-         chstate:warn_unused_variable(var.values[1])
+         chstate:warn_unused_variable(var.values[1], nil, nil, var.values[1].empty)
       elseif var.values[1].empty then
          var.empty = true
          chstate:warn_unset(var)
