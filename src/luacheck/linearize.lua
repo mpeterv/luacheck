@@ -7,6 +7,7 @@ local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"
 local function new_line(node, parent, value)
    return {
       accessed_upvalues = {}, -- Maps variables to arrays of accessing items.
+      mutated_upvalues = {}, -- Maps variables to arrays of mutating items.
       set_upvalues = {}, -- Maps variables to arays of setting items.
       lines = {},
       node = node,
@@ -121,6 +122,7 @@ local function new_set_item(lhs, rhs, location, token)
       location = location,
       token = token,
       accesses = {},
+      mutations = {},
       used_values = {},
       lines = {}
    }
@@ -452,7 +454,7 @@ function LinState:emit_stmt_Set(node)
          local var = self:check_var(expr, "set")
 
          if var then
-            self:register_upvalue_action(item, var, "set")
+            self:register_upvalue_action(item, var, "set_upvalues")
          end
       else
          assert(expr.tag == "Index")
@@ -478,9 +480,7 @@ function LinState:scan_exprs(item, nodes)
    end
 end
 
-function LinState:register_upvalue_action(item, var, action)
-   local key = (action == "set") and "set_upvalues" or "accessed_upvalues"
-
+function LinState:register_upvalue_action(item, var, key)
    for _, line in utils.ripairs(self.lines) do
       if line == var.line then
          break
@@ -502,7 +502,18 @@ function LinState:mark_access(item, node)
    end
 
    table.insert(item.accesses[node.var], node)
-   self:register_upvalue_action(item, node.var, "access")
+   self:register_upvalue_action(item, node.var, "accessed_upvalues")
+end
+
+function LinState:mark_mutation(item, node)
+   node.var.mutated = true
+
+   if not item.mutations[node.var] then
+      item.mutations[node.var] = {}
+   end
+
+   table.insert(item.mutations[node.var], node)
+   self:register_upvalue_action(item, node.var, "mutated_upvalues")
 end
 
 function LinState:scan_expr_Id(item, node)
@@ -522,9 +533,10 @@ function LinState:scan_expr_Dots(item, node)
 end
 
 function LinState:scan_lhs_index(item, node)
-   if node[1].tag == "Id" and not self:resolve_var(node[1][1]) then
-      -- Warn about mutated global.
-      self:check_var(node[1], "mutate")
+   if node[1].tag == "Id" then
+      if self:check_var(node[1], "mutate") then
+         self:mark_mutation(item, node[1])
+      end
    elseif node[1].tag == "Index" then
       self:scan_lhs_index(item, node[1])
    else

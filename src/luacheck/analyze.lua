@@ -34,7 +34,7 @@ local function value_propogation_callback(line, stack, index, item, visited, var
       return true
    end
 
-   if not visited[index] and item.accesses and item.accesses[var] then
+   if not visited[index] and (item.accesses and item.accesses[var] or item.mutations and item.mutations[var]) then
       add_resolution(line, item, var, value)
    end
 
@@ -95,12 +95,14 @@ local function closure_propogation_callback(line, _, item, subline)
    end
 
    if live_values then
-      for var, accessing_items in pairs(subline.accessed_upvalues) do
-         if var.line == line then
-            if live_values[var] then
-               for _, accessing_item in ipairs(accessing_items) do
-                  for _, value in ipairs(live_values[var]) do
-                     add_resolution(subline, accessing_item, var, value)
+      for _, var_map in ipairs({subline.accessed_upvalues, subline.mutated_upvalues}) do
+         for var, accessing_items in pairs(var_map) do
+            if var.line == line then
+               if live_values[var] then
+                  for _, accessing_item in ipairs(accessing_items) do
+                     for _, value in ipairs(live_values[var]) do
+                        add_resolution(subline, accessing_item, var, value)
+                     end
                   end
                end
             end
@@ -112,12 +114,16 @@ local function closure_propogation_callback(line, _, item, subline)
       return true
    end
 
-   if item.accesses then
-      for var, setting_items in pairs(subline.set_upvalues) do
-         if var.line == line then
-            if item.accesses[var] then
-               for _, setting_item in ipairs(setting_items) do
-                  add_resolution(line, item, var, setting_item.set_variables[var])
+   for _, action_key in ipairs({"accesses", "mutations"}) do
+      local item_var_map = item[action_key]
+
+      if item_var_map then
+         for var, setting_items in pairs(subline.set_upvalues) do
+            if var.line == line then
+               if item_var_map[var] then
+                  for _, setting_item in ipairs(setting_items) do
+                     add_resolution(line, item, var, setting_item.set_variables[var])
+                  end
                end
             end
          end
@@ -139,13 +145,15 @@ local function propogate_closures(line)
    -- It is assumed that all closures are live at the end of the line.
    -- Therefore, all accesses and sets inside closures can resolve to each other.
    for _, subline in ipairs(line.lines) do
-      for var, accessing_items in pairs(subline.accessed_upvalues) do
-         if var.line == line then
-            for _, accessing_item in ipairs(accessing_items) do
-               for _, another_subline in ipairs(line.lines) do
-                  if another_subline.set_upvalues[var] then
-                     for _, setting_item in ipairs(another_subline.set_upvalues[var]) do
-                        add_resolution(subline, accessing_item, var, setting_item.set_variables[var])
+      for _, var_map in ipairs({subline.accessed_upvalues, subline.mutated_upvalues}) do
+         for var, accessing_items in pairs(var_map) do
+            if var.line == line then
+               for _, accessing_item in ipairs(accessing_items) do
+                  for _, another_subline in ipairs(line.lines) do
+                     if another_subline.set_upvalues[var] then
+                        for _, setting_item in ipairs(another_subline.set_upvalues[var]) do
+                           add_resolution(subline, accessing_item, var, setting_item.set_variables[var])
+                        end
                      end
                   end
                end
@@ -180,7 +188,7 @@ local function check_var(chstate, var)
          var.empty = true
          chstate:warn_unset(var)
       end
-   elseif not var.accessed then
+   elseif not var.accessed and not var.mutated then
       chstate:warn_unaccessed(var)
    else
       for _, value in ipairs(var.values) do
