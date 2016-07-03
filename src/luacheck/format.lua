@@ -46,6 +46,7 @@ local message_formats = {
    ["231"] = "variable %s is never accessed",
    ["232"] = "argument %s is never accessed",
    ["233"] = "loop variable %s is never accessed",
+   ["241"] = "variable %s is mutated but never accessed",
    ["311"] = "value assigned to variable %s is unused",
    ["312"] = "value of argument %s is unused",
    ["313"] = "value of loop variable %s is unused",
@@ -53,6 +54,7 @@ local message_formats = {
       return "value assigned to " .. (w.index and "index" or "field") .. " %s is unused"
    end,
    ["321"] = "accessing uninitialized variable %s",
+   ["331"] = "value assigned to variable %s is mutated but never accessed",
    ["341"] = "mutating uninitialized variable %s",
    ["411"] = "variable %s was previously defined on line %s",
    ["412"] = "variable %s was previously defined as an argument on line %s",

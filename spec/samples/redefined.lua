@@ -10,3 +10,5 @@ function a:b(...)
 
    print(a[1])
 end
+
+return a

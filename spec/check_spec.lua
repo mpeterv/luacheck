@@ -186,6 +186,7 @@ local a = {}
 function a:b()
    
 end
+return a
       ]])
    end)
 
@@ -291,6 +292,66 @@ end
       ]])
    end)
 
+   it("detects variable that is mutated but never accessed", function()
+      assert.same({
+         {code = "241", name = "a", line = 1, column = 7, end_column = 7}
+      }, check[[
+local a = {}
+a.k = 1
+      ]])
+
+      assert.same({
+         {code = "241", name = "a", line = 1, column = 7, end_column = 7}
+      }, check[[
+local a
+
+if ... then
+   a = {}
+   a.k1 = 1
+else
+   a = {}
+   a.k2 = 2
+end
+      ]])
+
+      assert.same({
+         {code = "241", name = "a", line = 1, column = 7, end_column = 7},
+         {code = "311", name = "a", line = 7, column = 4, end_column = 4}
+      }, check[[
+local a
+
+if ... then
+   a = {}
+   a.k1 = 1
+else
+   a = {}
+end
+      ]])
+   end)
+
+   it("detects values that are mutated but never accessed", function()
+      assert.same({
+         {code = "331", name = "a", line = 5, column = 4, end_column = 4}
+      }, check[[
+local a
+local b = (...).k
+
+if (...)[1] then
+   a = {}
+   a.k1 = 1
+elseif (...)[2] then
+   a = b
+   a.k2 = 2
+elseif (...)[3] then
+   a = b()
+   a.k3 = 3
+else
+   a = {}
+   return a
+end
+      ]])
+   end)
+
    it("detects duplicated fields in table literals", function()
       assert.same({
          {code = "314", name = "key", line = 3, column = 4, end_column = 4},
@@ -392,39 +453,45 @@ end
 
    it("marks redefinition of implicit self", function()
       assert.same({
-         {code = "112", name = "t", line = 1, column = 10, end_column = 10},
-         {code = "212", name = "self", line = 1, column = 11, end_column = 11, self = true},
-         {code = "212", name = "self", line = 3, column = 14, end_column = 14, self = true},
-         {code = "432", name = "self", line = 3, column = 14, end_column = 14, self = true, prev_line = 1, prev_column = 11}
+         {code = "212", name = "self", line = 2, column = 11, end_column = 11, self = true},
+         {code = "212", name = "self", line = 4, column = 14, end_column = 14, self = true},
+         {code = "432", name = "self", line = 4, column = 14, end_column = 14, self = true, prev_line = 2, prev_column = 11}
       }, check[[
+local t = {}
 function t:f()
    local o = {}
    function o:g() end
+   return o
 end
+return t
       ]])
 
       assert.same({
-         {code = "112", name = "t", line = 1, column = 10, end_column = 10},
-         {code = "212", name = "self", line = 1, column = 14, end_column = 17},
-         {code = "212", name = "self", line = 3, column = 14, end_column = 14, self = true},
-         {code = "432", name = "self", line = 3, column = 14, end_column = 14, prev_line = 1, prev_column = 14}
+         {code = "212", name = "self", line = 2, column = 14, end_column = 17},
+         {code = "212", name = "self", line = 4, column = 14, end_column = 14, self = true},
+         {code = "432", name = "self", line = 4, column = 14, end_column = 14, prev_line = 2, prev_column = 14}
       }, check[[
+local t = {}
 function t.f(self)
    local o = {}
    function o:g() end
+   return o
 end
+return t
       ]])
 
       assert.same({
-         {code = "112", name = "t", line = 1, column = 10, end_column = 10},
-         {code = "212", name = "self", line = 1, column = 11, end_column = 11, self = true},
-         {code = "212", name = "self", line = 3, column = 17, end_column = 20},
-         {code = "432", name = "self", line = 3, column = 17, end_column = 20, prev_line = 1, prev_column = 11}
+         {code = "212", name = "self", line = 2, column = 11, end_column = 11, self = true},
+         {code = "212", name = "self", line = 4, column = 17, end_column = 20},
+         {code = "432", name = "self", line = 4, column = 17, end_column = 20, prev_line = 2, prev_column = 11}
       }, check[[
+local t = {}
 function t:f()
    local o = {}
    function o.g(self) end
+   return o
 end
+return t
       ]])
    end)
 

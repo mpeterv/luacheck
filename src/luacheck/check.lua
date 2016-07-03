@@ -74,7 +74,7 @@ function ChState:warn_unset(var)
    })
 end
 
-function ChState:warn_unaccessed(var)
+function ChState:warn_unaccessed(var, mutated)
    -- Mark as secondary if all assigned values are secondary.
    -- It is guaranteed that there are at least two values.
    local secondary = true
@@ -87,7 +87,7 @@ function ChState:warn_unaccessed(var)
    end
 
    self:warn({
-      code = "23" .. type_codes[var.type],
+      code = "2" .. (mutated and "4" or "3") .. type_codes[var.type],
       name = var.name,
       line = var.location.line,
       column = var.location.column,
@@ -95,9 +95,9 @@ function ChState:warn_unaccessed(var)
    }, var.self)
 end
 
-function ChState:warn_unused_value(value)
+function ChState:warn_unused_value(value, mutated)
    self:warn({
-      code = "31" .. type_codes[value.type],
+      code = "3" .. (mutated and "3" or "1") .. type_codes[value.type],
       name = value.var.name,
       line = value.location.line,
       column = value.location.column,
