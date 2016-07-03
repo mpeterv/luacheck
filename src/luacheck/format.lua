@@ -53,6 +53,7 @@ local message_formats = {
       return "value assigned to " .. (w.index and "index" or "field") .. " %s is unused"
    end,
    ["321"] = "accessing uninitialized variable %s",
+   ["341"] = "mutating uninitialized variable %s",
    ["411"] = "variable %s was previously defined on line %s",
    ["412"] = "variable %s was previously defined as an argument on line %s",
    ["413"] = "variable %s was previously defined as a loop variable on line %s",

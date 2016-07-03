@@ -116,9 +116,9 @@ function ChState:warn_unused_field_value(node)
    })
 end
 
-function ChState:warn_uninit(node)
+function ChState:warn_uninit(node, mutation)
    self:warn({
-      code = "321",
+      code = mutation and "341" or "321",
       name = node[1],
       line = node.location.line,
       column = node.location.column

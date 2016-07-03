@@ -9,7 +9,7 @@ local cache = {}
 -- third is check result in lua table format.
 -- String fields are compressed into array indexes.
 
-cache.format_version = 6
+cache.format_version = 7
 
 local fields = {
    "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "secondary",

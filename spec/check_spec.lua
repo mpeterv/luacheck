@@ -577,6 +577,23 @@ return a
       ]])
    end)
 
+   it("detects mutating uninitialized variables", function()
+      assert.same({
+         {code = "341", name = "a", line = 4, column = 4, end_column = 4},
+         {code = "113", name = "get", line = 6, column = 8, end_column = 10}
+      }, check[[
+local a
+
+if ... then
+   a.k = 5
+else
+   a = get(5)
+end
+
+return a
+      ]])
+   end)
+
    it("detects accessing uninitialized variables in nested functions", function()
       assert.same({
          {code = "113", name = "get", line = 7, column = 8, end_column = 10},

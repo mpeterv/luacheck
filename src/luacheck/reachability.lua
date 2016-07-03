@@ -32,7 +32,7 @@ local function reachability_callback(_, _, item, chstate, nested)
 
                if all_possible_values_empty then
                   for _, accessing_node in ipairs(accessing_nodes) do
-                     chstate:warn_uninit(accessing_node)
+                     chstate:warn_uninit(accessing_node, action_key == "mutations")
                   end
                end
             end
