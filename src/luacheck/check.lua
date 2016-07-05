@@ -25,17 +25,17 @@ function ChState:warn(warning, implicit_self)
 end
 
 local action_codes = {
-   set = 1,
-   mutate = 2,
-   access = 3
+   set = "1",
+   mutate = "2",
+   access = "3"
 }
 
 local type_codes = {
-   var = 1,
-   func = 1,
-   arg = 2,
-   loop = 3,
-   loopi = 3
+   var = "1",
+   func = "1",
+   arg = "2",
+   loop = "3",
+   loopi = "3"
 }
 
 function ChState:warn_global(node, action, is_top)
