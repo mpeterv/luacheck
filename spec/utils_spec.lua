@@ -3,11 +3,11 @@ local utils = require "luacheck.utils"
 describe("utils", function()
    describe("read_file", function()
       it("returns contents of a file", function()
-         assert.equal("contents\n", utils.read_file("spec/folder/foo"))
+         assert.match("contents\r?\n", utils.read_file("spec/folder/foo"))
       end)
 
       it("removes UTF-8 BOM", function()
-         assert.equal("foo\nbar\n", utils.read_file("spec/folder/bom"))
+         assert.match("foo\r?\nbar\r?\n", utils.read_file("spec/folder/bom"))
       end)
 
       it("returns nil for non-existent paths", function()
