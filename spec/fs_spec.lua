@@ -67,7 +67,7 @@ describe("fs", function()
 
       it("finds file in a parent directory", function()
          local path = fs.current_dir() .. P"spec/folder"
-         assert.equal(path, fs.find_file(path .. P"/folder1", "foo"))
+         assert.equal(path, fs.find_file(fs.join(path, "folder1"), "foo"))
       end)
 
       it("returns nil if can't find file", function()
