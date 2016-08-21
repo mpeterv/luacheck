@@ -1125,7 +1125,7 @@ Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
 Total: 45 warnings / 4 errors in 12 files
-]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files './read*'", "spec/samples/"))
+]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 
          it("allows defining custom stds", function()
