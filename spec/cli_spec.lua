@@ -3,9 +3,15 @@ local multithreading = require "luacheck.multithreading"
 local helper = require "spec.helper"
 local luacheck_cmd = helper.luacheck_command()
 
+local function quote(argument)
+   -- Do not worry about special characters too much, just quote.
+   local mark = utils.is_windows and '"' or "'"
+   return mark .. argument .. mark
+end
+
 local function get_output(command, wd, color)
    if color then
-      if package.config:sub(1, 1) == "\\" and not os.getenv("ANSICON") then
+      if utils.is_windows and not os.getenv("ANSICON") then
          pending("uses terminal colors")
       end
    else
@@ -74,7 +80,7 @@ Total: 0 warnings / 0 errors in 1 file
 Checking spec/samples/good_code.lua               OK
 
 Total: 0 warnings / 0 errors in 1 file
-]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --exclude-files '**/??d_code.lua'")
+]], get_output("spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --exclude-files " .. quote("**/??d_code.lua")))
    end)
 
    it("filters files using --include-files", function()
@@ -82,7 +88,7 @@ Total: 0 warnings / 0 errors in 1 file
 Checking spec/samples/bad_code.lua                5 warnings
 
 Total: 5 warnings / 0 errors in 1 file
-]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --include-files '**/??d_code.lua' -qq")
+]], get_output("spec/samples/good_code.lua spec/samples/bad_code.lua --no-config -qq --include-files " .. quote("**/??d_code.lua")))
    end)
 
    it("--exclude-files has priority over --include-files", function()
@@ -90,7 +96,7 @@ Total: 5 warnings / 0 errors in 1 file
 Checking spec/samples/good_code.lua               OK
 
 Total: 0 warnings / 0 errors in 1 file
-]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --include-files '**/*.lua' --exclude-files '**/??d_code.lua'")
+]], get_output("spec/samples/good_code.lua spec/samples/bad_code.lua --no-config --include-files " .. quote("**/*.lua") .. " --exclude-files " .. quote("**/??d_code.lua")))
    end)
 
    it("works for incorrect files", function()
@@ -922,7 +928,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
 
    it("uses --include-files when expanding folders", function()
       assert.matches("^Total: %d+ warnings / %d+ errors in 2 files\n$",
-         get_output "spec/samples -qqq --no-config --include-files '**/*.rockspec'")
+         get_output("spec/samples -qqq --no-config --include-files " .. quote("**/*.rockspec")))
    end)
 
    describe("config", function()
