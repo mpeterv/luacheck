@@ -88,6 +88,11 @@ describe("cache", function()
 
       before_each(function()
          tmpname = os.tmpname()
+
+         -- Work around os.tmpname being broken on Windows sometimes.
+         if utils.is_windows and not tmpname:find(':') then
+            tmpname = os.getenv("TEMP") .. tmpname
+         end
       end)
 
       after_each(function()

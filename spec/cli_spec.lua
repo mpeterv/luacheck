@@ -693,6 +693,11 @@ Total: 26 warnings / 0 errors in 1 file
 
       before_each(function()
          tmpname = os.tmpname()
+
+         -- Work around os.tmpname being broken on Windows sometimes.
+         if utils.is_windows and not tmpname:find(':') then
+            tmpname = os.getenv("TEMP") .. tmpname
+         end
       end)
 
       after_each(function()
@@ -777,7 +782,7 @@ return {{"011",%[3%]=1,%[4%]=6,%[5%]=15,%[23%]="expected '=' near '__future__'"}
          assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
 
          local function write_new_cache(version)
-            local fh = io.open(tmpname, "w")
+            local fh = io.open(tmpname, "wb")
             assert.userdata(fh)
             fh:write(([[
 %s
