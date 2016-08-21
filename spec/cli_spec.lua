@@ -9,6 +9,12 @@ local function quote(argument)
    return mark .. argument .. mark
 end
 
+local function norm_output(output)
+   -- Replace "/" with native slashes, except when it's used to separate
+   -- warning and error numbers on the last line.
+   return output:gsub("(%w)/(%w)", "%1" .. utils.dir_sep .. "%2")
+end
+
 local function get_output(command, wd, color)
    if color then
       if utils.is_windows and not os.getenv("ANSICON") then
@@ -934,7 +940,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
    describe("config", function()
       describe("loading", function()
          it("uses .luacheckrc in current directory if possible", function()
-            assert.equal([[
+            assert.equal(norm_output [[
 Checking nested/ab.lua                            1 warning
 
     nested/ab.lua:1:10: accessing undefined variable 'b'
@@ -949,7 +955,7 @@ Total: 3 warnings / 0 errors in 2 files
          end)
 
          it("does not use .luacheckrc in current directory with --no-config", function()
-            assert.equal([[
+            assert.equal(norm_output [[
 Checking nested/ab.lua                            2 warnings
 
     nested/ab.lua:1:7: accessing undefined variable 'a'
@@ -966,7 +972,7 @@ Total: 5 warnings / 0 errors in 2 files
          end)
 
          it("uses .luacheckrc in upper directory", function()
-            assert.equal([[
+            assert.equal(norm_output [[
 Checking ab.lua                                   1 warning
 
     ab.lua:1:10: accessing undefined variable 'b'
