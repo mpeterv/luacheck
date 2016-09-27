@@ -51,7 +51,7 @@ local function get_options(body)
 
          opts.std = args[1]
       elseif name == "ignore" and #args == 0 then
-         opts.ignore = {".*/.*"}
+         opts.ignore = {".*"}
       else
          local flag = true
 

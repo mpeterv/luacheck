@@ -166,7 +166,7 @@ local function is_enabled(rules, warning)
       for _, pattern in ipairs(rule[1]) do
          local matches_code, matches_name = match(warning, pattern)
 
-         -- If a factor is enabled, warning can't be disable by it.
+         -- If a factor is enabled, warning can't be disabled by it.
          if enabled_code then
             matches_code = rule[2] ~= "disable"
          end
@@ -190,7 +190,7 @@ local function is_enabled(rules, warning)
             end
 
             if enabled_code and enabled_name then
-               -- Enable as matching to some `enable` pattern by code and to other by name.
+               -- Enable as matching to some `enable` pattern by code and to another by name.
                return true
             end
          elseif rule[2] == "disable" then

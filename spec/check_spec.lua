@@ -755,6 +755,19 @@ return foo;
       ]])
    end)
 
+   it("marks ignored warnings as filtered", function()
+      assert.same({
+         {code = "211", name = "foo", filtered = true, line = 1, column = 7, end_column = 9},
+         {code = "211", name = "bar", line = 1, column = 12, end_column = 14},
+         {code = "512", filtered = true, line = 2, column = 1, end_column = 3},
+         {code = "213", name = "_", filtered = true, line = 2, column = 5, end_column = 5},
+         {code = "113", name = "pairs", filtered_113 = true, line = 2, column = 10, end_column = 14},
+      }, check[[
+local foo, bar -- luacheck: ignore foo
+for _ in pairs({}) do return end -- luacheck: ignore
+      ]])
+   end)
+
    it("handles argparse sample", function()
       assert.table(check(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)
