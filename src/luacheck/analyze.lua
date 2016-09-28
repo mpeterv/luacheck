@@ -180,7 +180,7 @@ local function is_function_var(var)
       #var.values == 2 and var.values[1].empty and var.values[2].type == "func")
 end
 
-local externally_accessible_tags = utils.array_to_set({"Id", "Index", "Call", "Invoke", "Dots"})
+local externally_accessible_tags = utils.array_to_set({"Id", "Index", "Call", "Invoke", "Op", "Paren", "Dots"})
 
 local function externally_accessible(value)
    return value.type ~= "var" or (value.node and externally_accessible_tags[value.node.tag])

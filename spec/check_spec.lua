@@ -345,6 +345,9 @@ elseif (...)[2] then
 elseif (...)[3] then
    a = b()
    a.k3 = 3
+elseif (...)[4] then
+   a = b(1) or b(2)
+   a.k4 = 4
 else
    a = {}
    return a
