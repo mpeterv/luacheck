@@ -523,16 +523,7 @@ patterns.]])
 
    io.stdout:write(output)
 
-   local exit_code
-
-   if report.fatals > 0 then
-      exit_code = 2
-   elseif report.warnings > 0 or report.errors > 0 then
-      exit_code = 1
-   else
-      exit_code = 0
-   end
-
+   local exit_code = math.min(report.fatals + report.errors + report.warnings, 255)
    os.exit(exit_code)
 end
 
