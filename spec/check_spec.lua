@@ -617,6 +617,17 @@ end
       ]])
    end)
 
+   it("detects unreachable functions", function()
+      assert.same({
+         {code = "231", name = "f", line = 1, column = 7, end_column = 7},
+         {code = "511", line = 3, column = 1, end_column = 8}
+      }, check[[
+local f = nil
+do return end
+function f() end
+      ]])
+   end)
+
    it("detects unreachable code in nested function", function()
       assert.same({
          {code = "511", line = 4, column = 7, end_column = 12}

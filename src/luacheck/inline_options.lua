@@ -98,7 +98,7 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
    end
 
    if body == "push" or body == "pop" then
-      table.insert(events, {code = 1, [body] = true, line = location.line, column = location.column, end_column = end_column})
+      table.insert(events, {[body] = true, line = location.line, column = location.column, end_column = end_column})
 
       if after_push then
          body = after_push
@@ -120,7 +120,7 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
 
       table.insert(per_line_opts[location.line], opts)
    else
-      table.insert(events, {code = 2, options = opts, line = location.line, column = location.column, end_column = end_column})
+      table.insert(events, {options = opts, line = location.line, column = location.column, end_column = end_column})
    end
 
    return true
@@ -216,7 +216,7 @@ local function handle_events(events, per_line_opts)
 
    -- Go through all events.
    for _, event in ipairs(events) do
-      if type(event.code) == "string" then
+      if event.code then
          -- It's a warning, put it into list of not handled warnings.
          table.insert(unfiltered_warnings, event)
       elseif event.options then
