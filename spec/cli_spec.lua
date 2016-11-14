@@ -1079,7 +1079,7 @@ Codes: true
 
          it("uses exclude_files option", function()
             assert.equal(([[
-Checking spec/samples/argparse.lua                6 warnings
+Checking spec/samples/argparse.lua                7 warnings
 Checking spec/samples/compat.lua                  4 warnings
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
 Checking spec/samples/global_inline_options.lua   3 warnings
@@ -1092,14 +1092,14 @@ Checking spec/samples/redefined.lua               7 warnings
 Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
 
-Total: 53 warnings / 4 errors in 14 files
+Total: 54 warnings / 4 errors in 14 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
          end)
 
          it("loads exclude_files option correctly from upper directory", function()
             assert.equal([[
-Checking argparse.lua                             6 warnings
+Checking argparse.lua                             7 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
@@ -1112,13 +1112,13 @@ Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 53 warnings / 4 errors in 14 files
+Total: 54 warnings / 4 errors in 14 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq", "spec/samples/"))
          end)
 
          it("combines excluded files from config and cli", function()
             assert.equal([[
-Checking argparse.lua                             6 warnings
+Checking argparse.lua                             7 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
@@ -1129,7 +1129,7 @@ Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 45 warnings / 4 errors in 12 files
+Total: 46 warnings / 4 errors in 12 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 
