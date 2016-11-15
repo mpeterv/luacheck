@@ -72,7 +72,11 @@ local message_formats = {
    ["532"] = "left-hand side of assignment is too long",
    ["541"] = "empty do..end block",
    ["542"] = "empty if branch",
-   ["551"] = "empty statement"
+   ["551"] = "empty statement",
+   ["611"] = "line contains only whitespace",
+   ["612"] = "line contains trailing whitespace",
+   --["613"] = "trailing whitespace after comment", -- RESERVED for future use
+   ["621"] = "inconsistent indentation (SPACE followed by TAB)",
 }
 
 local function get_message_format(warning)

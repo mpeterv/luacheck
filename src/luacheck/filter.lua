@@ -145,7 +145,7 @@ local function match(warning, pattern)
    end
 
    if name_pattern then
-      if warning.code:match("5..") or warning.code == "314" then
+      if warning.code:match("[56]..") or warning.code == "314" then
          -- Statement and field related warnings can't match by name.
          matches_name = false
       else
