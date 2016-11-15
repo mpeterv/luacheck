@@ -46,11 +46,11 @@ local function value_propogation_callback(line, stack, index, item, visited, var
    end
 
    if stack[index] or (not visited[index] and (not in_scope(var, index) or item.set_variables and item.set_variables[var])) then
-      if not item.live_values then  
-         item.live_values = {}    
+      if not item.live_values then
+         item.live_values = {}
       end
 
-      register_value(item.live_values, var, value)  
+      register_value(item.live_values, var, value)
       return true
    end
 
@@ -65,7 +65,7 @@ end
 -- A pair `var = {values}` in this table means that accessed local variable `var` can contain one of values `values`.
 -- Values that can be accessed locally are marked as used.
 local function propogate_values(line)
-   -- {var = values} live at the end of line.   
+   -- {var = values} live at the end of line.
    line.last_live_values = {}
 
    -- It is not very clever to simply propogate every single assigned value.
@@ -93,11 +93,11 @@ end
 -- point be propogated to where value liveness ends and is stored as live.
 -- (Chances that I will understand this comment six months later: non-existent)
 local function closure_propogation_callback(line, _, item, subline)
-   local live_values    
+   local live_values
 
    if not item then
       live_values = line.last_live_values
-   else   
+   else
       live_values = item.live_values
    end
 

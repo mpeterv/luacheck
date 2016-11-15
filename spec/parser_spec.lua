@@ -349,7 +349,7 @@ describe("parser", function()
 
       it("parses local function declaration correctly", function()
          assert.same({tag = "Localrec",
-                        {tag = "Id", "a"}, 
+                        {tag = "Id", "a"},
                         {tag = "Function", {}, {}}
                      }, get_node("local function a() end"))
          assert.same({line = 1, column = 15, end_column = 15, msg = "expected identifier near <eof>"}, get_error("local function"))

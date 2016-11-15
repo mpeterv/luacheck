@@ -250,7 +250,7 @@ local function filter_file_report(report, opts)
    return res
 end
 
--- Assumes `opts` are normalized. 
+-- Assumes `opts` are normalized.
 local function filter_report(report, opts)
    local res = {}
 
@@ -265,9 +265,9 @@ local function filter_report(report, opts)
    return res
 end
 
--- Removes warnings from report that do not match options. 
+-- Removes warnings from report that do not match options.
 -- `opts[i]`, if present, is used as options when processing `report[i]`
--- together with options in its array part. 
+-- together with options in its array part.
 function filter.filter(report, opts)
    opts = get_normalized_opts(report, opts)
    report = filter_implicit_defs(report, opts)

@@ -197,7 +197,7 @@ function fs.extract_files(dir_path, pattern)
    return res
 end
 
--- Returns modification time for a file. 
+-- Returns modification time for a file.
 function fs.mtime(path)
    return fs.lfs.attributes(path, "modification")
 end
