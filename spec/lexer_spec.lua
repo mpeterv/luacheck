@@ -122,11 +122,11 @@ bar"]]))
 bar"]]))
       end)
 
--- luacheck: ignore 612
       it("parses \\z correctly", function()
          assert.same({token = "string", token_value = "foo "}, get_token([["foo \z"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo \zbar"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo \z bar"]]))
+         -- luacheck: ignore 612
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo \z 
 
             bar\z "]]))
