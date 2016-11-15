@@ -5,6 +5,7 @@ local reachability = require "luacheck.reachability"
 local handle_inline_options = require "luacheck.inline_options"
 local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
+local check_whitespace = require "luacheck.whitespace"
 
 local function is_secondary(value)
    return value.secondaries and value.secondaries.used
@@ -196,6 +197,7 @@ local function check_or_throw(src)
       chstate:warn_empty_statement(location)
    end
 
+   check_whitespace(chstate, src)
    analyze(chstate, line)
    reachability(chstate, line)
    handle_inline_options(ast, comments, code_lines, chstate.warnings)

@@ -62,7 +62,7 @@ else
 end
 -- luacheck: pop
 
--- Loads config containing assignments to global variables from path. 
+-- Loads config containing assignments to global variables from path.
 -- Returns config table and return value of config or nil and error type
 -- ("I/O" or "syntax" or "runtime") and error message.
 function utils.load_config(path, env)

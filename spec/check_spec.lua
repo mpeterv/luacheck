@@ -15,7 +15,7 @@ a = 6
 do
    print(b, {a})
 end
-      ]])
+]])
    end)
 
    it("detects global set", function()
@@ -23,7 +23,7 @@ end
          {code = "111", name = "foo", line = 1, column = 1, end_column = 3, top = true}
       }, check[[
 foo = {}
-      ]])
+]])
    end)
 
    it("detects global set in nested functions", function()
@@ -34,7 +34,7 @@ local function bar()
    foo = {}
 end
 bar()
-      ]])
+]])
    end)
 
    it("detects global access in multi-assignments", function()
@@ -46,7 +46,7 @@ bar()
 local x
 x, y = 1
 print(x)
-      ]])
+]])
    end)
 
    it("detects global access in self swap", function()
@@ -56,7 +56,7 @@ print(x)
       }, check[[
 local a = a
 print(a)
-      ]])
+]])
    end)
 
    it("detects global mutation", function()
@@ -64,7 +64,7 @@ print(a)
          {code = "112", name = "a", line = 1, column = 1, end_column = 1}
       }, check[[
 a[1] = 6
-      ]])
+]])
    end)
 
    it("detects unused locals", function()
@@ -78,7 +78,7 @@ do
    local b = 6
    print(b)
 end
-      ]])
+]])
    end)
 
    it("detects useless local _ variable", function()
@@ -101,7 +101,7 @@ do
    local c, _ = ...
    c()
 end
-      ]])
+]])
    end)
 
    it("reports unused function with forward declaration as variable, not value", function()
@@ -109,7 +109,7 @@ end
          {code = "211", name = "noop", func = true, line = 1, column = 22, end_column = 25}
       }, check[[
 local noop; function noop() end
-      ]])
+]])
    end)
 
    it("detects unused recursive functions", function()
@@ -119,7 +119,7 @@ local noop; function noop() end
 local function f(x)
    return x <= 1 and 1 or x * f(x - 1)
 end
-      ]])
+]])
    end)
 
    it("detects unused mutually recursive functions", function()
@@ -136,7 +136,7 @@ end
 function even(x)
    return x == 0 or odd(x - 1)
 end
-      ]])
+]])
    end)
 
    it("does not incorrectly detect unused recursive functions inside unused functions", function()
@@ -148,7 +148,7 @@ local function unused()
    local function nested2() nested2() end
    return nested1(), nested2()
 end
-      ]])
+]])
    end)
 
    it("does not incorrectly detect unused recursive functions used by an unused recursive function", function()
@@ -157,7 +157,7 @@ end
       }, check[[
 local function f() return 1 end
 local function g() return f() + g() end
-      ]])
+]])
 
       assert.same({
          {code = "211", name = "g", func = true, recursive = true, line = 2, column = 16, end_column = 16}
@@ -165,7 +165,7 @@ local function g() return f() + g() end
 local f
 local function g() return f() + g() end
 function f() return 1 end
-      ]])
+]])
    end)
 
    it("detects unused locals from function arguments", function()
@@ -175,7 +175,7 @@ function f() return 1 end
 return function(foo, ...)
    return ...
 end
-      ]])
+]])
    end)
 
    it("detects unused implicit self", function()
@@ -184,10 +184,10 @@ end
       }, check[[
 local a = {}
 function a:b()
-   
+
 end
 return a
-      ]])
+]])
    end)
 
    it("detects unused locals from loops", function()
@@ -198,7 +198,7 @@ return a
       }, check[[
 for i=1, 2 do end
 for i in pairs{} do end
-      ]])
+]])
    end)
 
    it("detects unused values", function()
@@ -216,7 +216,7 @@ end
 
 a = 5
 print(a)
-      ]])
+]])
    end)
 
    it("does not detect unused value when it and a closure using it can live together", function()
@@ -227,7 +227,7 @@ local a = 3
 if true then
    escape(function() return a end)
 end
-      ]])
+]])
    end)
 
    it("does not consider value assigned to upvalue as unused if it is accessed in another closure", function()
@@ -237,7 +237,7 @@ local a
 local function f(x) a = x end
 local function g() return a end
 return f, g
-      ]])
+]])
    end)
 
    it("does not consider a variable initialized if it can't get a value due to short rhs", function()
@@ -245,7 +245,7 @@ return f, g
 local a, b = "foo"
 b = "bar"
 return a, b
-      ]])
+]])
    end)
 
    it("considers a variable initialized if short rhs ends with potential multivalue", function()
@@ -257,7 +257,7 @@ return function(...)
    b = "bar"
    return a, b
 end
-      ]])
+]])
    end)
 
    it("reports unused variable as secondary if it is assigned together with a used one", function()
@@ -268,7 +268,7 @@ return function(f)
    local a, b = f()
    return b
 end
-      ]])
+]])
    end)
 
    it("reports unused value as secondary if it is assigned together with a used one", function()
@@ -280,7 +280,7 @@ return function(f)
    a, b = f()
    return b
 end
-      ]])
+]])
 
       assert.same({
          {code = "231", name = "a", line = 2, column = 10, end_column = 10, secondary = true}
@@ -289,7 +289,7 @@ return function(f, t)
    local a
    a, t[1] = f()
 end
-      ]])
+]])
    end)
 
    it("detects variable that is mutated but never accessed", function()
@@ -298,7 +298,7 @@ end
       }, check[[
 local a = {}
 a.k = 1
-      ]])
+]])
 
       assert.same({
          {code = "241", name = "a", line = 1, column = 7, end_column = 7}
@@ -312,7 +312,7 @@ else
    a = {}
    a.k2 = 2
 end
-      ]])
+]])
 
       assert.same({
          {code = "241", name = "a", line = 1, column = 7, end_column = 7},
@@ -326,7 +326,7 @@ if ... then
 else
    a = {}
 end
-      ]])
+]])
    end)
 
    it("detects values that are mutated but never accessed", function()
@@ -352,7 +352,7 @@ else
    a = {}
    return a
 end
-      ]])
+]])
    end)
 
    it("detects duplicated fields in table literals", function()
@@ -373,7 +373,7 @@ return {
    [0.2e1] = 6,
    [2] = 7
 }
-      ]])
+]])
    end)
 
    it("considers a variable assigned even if it can't get a value due to short rhs (it still gets nil)", function()
@@ -385,7 +385,7 @@ return {
 local a, b = "foo", "bar"
 a, b = "bar"
 return a, b
-      ]])
+]])
    end)
 
    it("reports vartype == var when the unused value is not the initial", function()
@@ -401,7 +401,7 @@ local function foo(a, b)
 end
 
 return foo
-      ]])
+]])
    end)
 
    it("does not detect unused values in loops", function()
@@ -414,7 +414,7 @@ while a > 0 do
    print(a)
    a = math.floor(a/2)
 end
-      ]])
+]])
    end)
 
    it("handles upvalues before infinite loops", function()
@@ -426,7 +426,7 @@ local x
 local function f() return x end
 ::loop::
 goto loop
-      ]])
+]])
    end)
 
    it("detects redefinition in the same scope", function()
@@ -438,7 +438,7 @@ goto loop
 local foo
 local foo = "bar"
 print(foo)
-      ]])
+]])
    end)
 
    it("detects redefinition of function arguments", function()
@@ -451,7 +451,7 @@ return function(foo, ...)
    local foo = 1
    return foo
 end
-      ]])
+]])
    end)
 
    it("marks redefinition of implicit self", function()
@@ -467,7 +467,7 @@ function t:f()
    return o
 end
 return t
-      ]])
+]])
 
       assert.same({
          {code = "212", name = "self", line = 2, column = 14, end_column = 17},
@@ -481,7 +481,7 @@ function t.f(self)
    return o
 end
 return t
-      ]])
+]])
 
       assert.same({
          {code = "212", name = "self", line = 2, column = 11, end_column = 11, self = true},
@@ -495,7 +495,7 @@ function t:f()
    return o
 end
 return t
-      ]])
+]])
    end)
 
    it("detects shadowing definitions", function()
@@ -515,7 +515,7 @@ return a, function(foo, ...)
 
    return a
 end
-      ]])
+]])
    end)
 
    it("detects unset variables", function()
@@ -524,7 +524,7 @@ end
       }, check[[
 local a
 return a
-      ]])
+]])
    end)
 
    it("detects unused labels", function()
@@ -534,7 +534,7 @@ return a
 ::fail::
 do ::fail:: end
 goto fail
-      ]])
+]])
    end)
 
    it("detects unreachable code", function()
@@ -544,7 +544,7 @@ goto fail
 do return end
 if ... then return 6 end
 return 3
-      ]])
+]])
 
       assert.same({
          {code = "511", line = 7, column = 1, end_column = 2},
@@ -563,7 +563,7 @@ else
 end
 
 return 3
-      ]])
+]])
    end)
 
    it("detects unreachable code with literal conditions", function()
@@ -574,7 +574,7 @@ while true do
    (...)()
 end
 return
-      ]])
+]])
 
       assert.same({}, check[[
 repeat
@@ -583,7 +583,7 @@ repeat
    end
 until false
 return
-      ]])
+]])
 
       assert.same({
          {code = "511", line = 6, column = 1, end_column = 6}
@@ -594,7 +594,7 @@ repeat
    end
 until false
 return
-      ]])
+]])
    end)
 
    it("detects unreachable expressions", function()
@@ -604,7 +604,7 @@ return
 repeat
     return
 until ...
-      ]])
+]])
 
       assert.same({
          {code = "511", line = 3, column = 8, end_column = 10}
@@ -614,7 +614,7 @@ if true then
 elseif ... then
    (...)()
 end
-      ]])
+]])
    end)
 
    it("detects unreachable functions", function()
@@ -625,7 +625,7 @@ end
 local f = nil
 do return end
 function f() end
-      ]])
+]])
    end)
 
    it("detects unreachable code in nested function", function()
@@ -638,7 +638,7 @@ return function()
       return
    end
 end
-      ]])
+]])
    end)
 
    it("detects accessing uninitialized variables", function()
@@ -655,7 +655,7 @@ else
 end
 
 return a
-      ]])
+]])
    end)
 
    it("detects mutating uninitialized variables", function()
@@ -672,7 +672,7 @@ else
 end
 
 return a
-      ]])
+]])
    end)
 
    it("detects accessing uninitialized variables in nested functions", function()
@@ -691,7 +691,7 @@ end
 
 return a
 end end
-      ]])
+]])
    end)
 
    it("does not detect accessing unitialized variables incorrectly in loops", function()
@@ -705,7 +705,7 @@ while not a do
 end
 
 return a
-      ]])
+]])
    end)
 
    it("detects unbalanced assignments", function()
@@ -718,7 +718,7 @@ local a, b = 4; (...)(a)
 a, b = (...)(); (...)(a, b)
 a, b = 5; (...)(a, b)
 a, b = 1, 2, 3; (...)(a, b)
-      ]])
+]])
    end)
 
    it("detects empty blocks", function()
@@ -740,7 +740,7 @@ end
 
 while ... do end
 repeat until ...
-      ]])
+]])
    end)
 
    it("detects empty statements", function()
@@ -766,7 +766,7 @@ end
 
 ::fail::
 return foo;
-      ]])
+]])
    end)
 
    it("marks ignored warnings as filtered", function()
@@ -779,7 +779,7 @@ return foo;
       }, check[[
 local foo, bar -- luacheck: ignore foo
 for _ in pairs({}) do return end -- luacheck: ignore
-      ]])
+]])
    end)
 
    it("handles argparse sample", function()

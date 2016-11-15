@@ -698,7 +698,7 @@ function parse_block(state, loc)
             -- "return" must be the last statement.
             -- However, one ";" after it is allowed.
             test_and_skip_token(state, ";")
-            
+
             if not closing_tokens[state.token] then
                parse_error(state, "expected end of block")
             end

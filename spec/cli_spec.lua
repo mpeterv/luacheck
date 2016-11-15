@@ -120,6 +120,24 @@ Total: 5 warnings / 0 errors in 1 file
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua --no-config")
    end)
 
+   it("detects whitespace issues", function()
+      assert.equal([[
+Checking spec/samples/bad_whitespace.lua          8 warnings
+
+    spec/samples/bad_whitespace.lua:4:26: line contains trailing whitespace
+    spec/samples/bad_whitespace.lua:8:25: line contains trailing whitespace
+    spec/samples/bad_whitespace.lua:13:40: line contains trailing whitespace
+    spec/samples/bad_whitespace.lua:17:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:18:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:19:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:20:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:25:1: inconsistent indentation (SPACE followed by TAB)
+
+Total: 8 warnings / 0 errors in 1 file
+]], get_output "spec/samples/bad_whitespace.lua --no-config")
+      assert.equal(1, get_exitcode "spec/samples/bad_whitespace.lua --no-config")
+   end)
+
    it("works for incorrect patterns in options", function()
       assert.equal([[
 Critical error: Invalid pattern '^%1foo$'
@@ -934,7 +952,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
    end)
 
    it("expands folders", function()
-      assert.matches("^Total: %d+ warnings / %d+ errors in 20 files\n$", get_output "spec/samples -qqq --no-config")
+      assert.matches("^Total: %d+ warnings / %d+ errors in 21 files\n$", get_output "spec/samples -qqq --no-config")
    end)
 
    it("uses --include-files when expanding folders", function()
@@ -1079,7 +1097,7 @@ Codes: true
 
          it("uses exclude_files option", function()
             assert.equal(([[
-Checking spec/samples/argparse.lua                6 warnings
+Checking spec/samples/argparse.lua                7 warnings
 Checking spec/samples/compat.lua                  4 warnings
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
 Checking spec/samples/global_inline_options.lua   3 warnings
@@ -1092,14 +1110,14 @@ Checking spec/samples/redefined.lua               7 warnings
 Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
 
-Total: 53 warnings / 4 errors in 14 files
+Total: 54 warnings / 4 errors in 14 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
          end)
 
          it("loads exclude_files option correctly from upper directory", function()
             assert.equal([[
-Checking argparse.lua                             6 warnings
+Checking argparse.lua                             7 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
@@ -1112,13 +1130,13 @@ Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 53 warnings / 4 errors in 14 files
+Total: 54 warnings / 4 errors in 14 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq", "spec/samples/"))
          end)
 
          it("combines excluded files from config and cli", function()
             assert.equal([[
-Checking argparse.lua                             6 warnings
+Checking argparse.lua                             7 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
@@ -1129,7 +1147,7 @@ Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 45 warnings / 4 errors in 12 files
+Total: 46 warnings / 4 errors in 12 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 
