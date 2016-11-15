@@ -48,6 +48,9 @@ Code Description
 541  An empty ``do`` ``end`` block.
 542  An empty ``if`` branch.
 551  An empty statement.
+611  A line consists of nothing but whitespace.
+612  A line contains trailing whitespace.
+621  Inconsistent indentation (``SPACE`` followed by ``TAB``).
 ==== =================================================================
 
 Global variables
@@ -146,3 +149,8 @@ The following control flow and data flow issues are detected:
 * Unbalanced assignments;
 * Empty blocks.
 * Empty statements (semicolons without preceding statements).
+
+Whitespace issues
+-----------------
+
+Luacheck detects some common whitespace issues, such as trailing whitespace.
