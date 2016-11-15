@@ -120,6 +120,24 @@ Total: 5 warnings / 0 errors in 1 file
       assert.equal(1, get_exitcode "spec/samples/bad_code.lua --no-config")
    end)
 
+   it("detects whitespace issues", function()
+      assert.equal([[
+Checking spec/samples/bad_whitespace.lua          8 warnings
+
+    spec/samples/bad_whitespace.lua:4:26: line contains trailing whitespace
+    spec/samples/bad_whitespace.lua:8:25: line contains trailing whitespace
+    spec/samples/bad_whitespace.lua:13:40: line contains trailing whitespace
+    spec/samples/bad_whitespace.lua:17:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:18:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:19:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:20:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:25:1: inconsistent indentation (SPACE followed by TAB)
+
+Total: 8 warnings / 0 errors in 1 file
+]], get_output "spec/samples/bad_whitespace.lua --no-config")
+      assert.equal(1, get_exitcode "spec/samples/bad_whitespace.lua --no-config")
+   end)
+
    it("works for incorrect patterns in options", function()
       assert.equal([[
 Critical error: Invalid pattern '^%1foo$'
