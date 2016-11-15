@@ -934,7 +934,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
    end)
 
    it("expands folders", function()
-      assert.matches("^Total: %d+ warnings / %d+ errors in 20 files\n$", get_output "spec/samples -qqq --no-config")
+      assert.matches("^Total: %d+ warnings / %d+ errors in 21 files\n$", get_output "spec/samples -qqq --no-config")
    end)
 
    it("uses --include-files when expanding folders", function()
