@@ -32,7 +32,9 @@ Codes Additional fields
 211   ``func`` field indicates that unused variable is a function.
 211   ``recursive`` field indicates that unused function is recursive.
 211   ``mutually_recursive`` field is set for unused mutually recursive functions.
+314   ``field`` field contains string representation of ununsed field or index.
 4..   ``prev_line`` and ``prev_column`` fields contain location of the overwritten definition.
+521   ``label`` field contains label name.
 ===== ========================================================================================
 
 Other fields may be present for internal reasons.
