@@ -5,69 +5,69 @@ local format = {}
 local color_support = not utils.is_windows or os.getenv("ANSICON")
 
 local message_formats = {
-   ["011"] = function(w) return (w.msg:gsub("%%", "%%%%")) end,
+   ["011"] = "{msg}",
    ["021"] = "invalid inline option",
    ["022"] = "unpaired push directive",
    ["023"] = "unpaired pop directive",
    ["111"] = function(w)
       if w.module then
-         return "setting non-module global variable %s"
+         return "setting non-module global variable {name!}"
       else
-         return "setting non-standard global variable %s"
+         return "setting non-standard global variable {name!}"
       end
    end,
-   ["112"] = "mutating non-standard global variable %s",
-   ["113"] = "accessing undefined variable %s",
-   ["121"] = "setting read-only global variable %s",
-   ["122"] = "mutating read-only global variable %s",
-   ["131"] = "unused global variable %s",
+   ["112"] = "mutating non-standard global variable {name!}",
+   ["113"] = "accessing undefined variable {name!}",
+   ["121"] = "setting read-only global variable {name!}",
+   ["122"] = "mutating read-only global variable {name!}",
+   ["131"] = "unused global variable {name!}",
    ["211"] = function(w)
       if w.func then
          if w.recursive then
-            return "unused recursive function %s"
+            return "unused recursive function {name!}"
          elseif w.mutually_recursive then
-            return "unused mutually recursive function %s"
+            return "unused mutually recursive function {name!}"
          else
-            return "unused function %s"
+            return "unused function {name!}"
          end
       else
-         return "unused variable %s"
+         return "unused variable {name!}"
       end
    end,
    ["212"] = function(w)
       if w.name == "..." then
          return "unused variable length argument"
       else
-         return "unused argument %s"
+         return "unused argument {name!}"
       end
    end,
-   ["213"] = "unused loop variable %s",
-   ["221"] = "variable %s is never set",
-   ["231"] = "variable %s is never accessed",
-   ["232"] = "argument %s is never accessed",
-   ["233"] = "loop variable %s is never accessed",
-   ["241"] = "variable %s is mutated but never accessed",
-   ["311"] = "value assigned to variable %s is unused",
-   ["312"] = "value of argument %s is unused",
-   ["313"] = "value of loop variable %s is unused",
+   ["213"] = "unused loop variable {name!}",
+   ["221"] = "variable {name!} is never set",
+   ["231"] = "variable {name!} is never accessed",
+   ["232"] = "argument {name!} is never accessed",
+   ["233"] = "loop variable {name!} is never accessed",
+   ["241"] = "variable {name!} is mutated but never accessed",
+   ["311"] = "value assigned to variable {name!} is unused",
+   ["312"] = "value of argument {name!} is unused",
+   ["313"] = "value of loop variable {name!} is unused",
    ["314"] = function(w)
-      return "value assigned to " .. (w.index and "index" or "field") .. " %s is unused"
+      return "value assigned to " .. (w.index and "index" or "field") .. " {name!} is unused"
    end,
-   ["321"] = "accessing uninitialized variable %s",
-   ["331"] = "value assigned to variable %s is mutated but never accessed",
-   ["341"] = "mutating uninitialized variable %s",
-   ["411"] = "variable %s was previously defined on line %s",
-   ["412"] = "variable %s was previously defined as an argument on line %s",
-   ["413"] = "variable %s was previously defined as a loop variable on line %s",
-   ["421"] = "shadowing definition of variable %s on line %s",
-   ["422"] = "shadowing definition of argument %s on line %s",
-   ["423"] = "shadowing definition of loop variable %s on line %s",
-   ["431"] = "shadowing upvalue %s on line %s",
-   ["432"] = "shadowing upvalue argument %s on line %s",
-   ["433"] = "shadowing upvalue loop variable %s on line %s",
+   ["321"] = "accessing uninitialized variable {name!}",
+   ["331"] = "value assigned to variable {name!} is mutated but never accessed",
+   ["341"] = "mutating uninitialized variable {name!}",
+   ["411"] = "variable {name!} was previously defined on line {prev_line}",
+   ["412"] = "variable {name!} was previously defined as an argument on line {prev_line}",
+   ["413"] = "variable {name!} was previously defined as a loop variable on line {prev_line}",
+   ["421"] = "shadowing definition of variable {name!} on line {prev_line}",
+   ["422"] = "shadowing definition of argument {name!} on line {prev_line}",
+   ["423"] = "shadowing definition of loop variable {name!} on line {prev_line}",
+   ["431"] = "shadowing upvalue {name!} on line {prev_line}",
+   ["432"] = "shadowing upvalue argument {name!} on line {prev_line}",
+   ["433"] = "shadowing upvalue loop variable {name!} on line {prev_line}",
    ["511"] = "unreachable code",
    ["512"] = "loop is executed at most once",
-   ["521"] = "unused label %s",
+   ["521"] = "unused label {name!}",
    ["531"] = "left-hand side of assignment is too short",
    ["532"] = "left-hand side of assignment is too long",
    ["541"] = "empty do..end block",
@@ -118,12 +118,37 @@ local function format_color(str, color, ...)
    return color and colorize(str, ...) or str
 end
 
-local function format_name(name, color)
-   return color and colorize(name, "bright") or ("'" .. name .. "'")
-end
-
 local function format_number(number, color)
    return format_color(tostring(number), color, "bright", (number > 0) and "red" or "reset")
+end
+
+-- Substitutes markers within string format with values from a table.
+-- "{field_name}" marker is replaced with `values.field_name`.
+-- "{field_name!}" marker adds highlight or quoting depending on color
+-- option.
+local function substitute(string_format, values, color)
+   return (string_format:gsub("{([_a-zA-Z0-9]+)(!?)}", function(field_name, highlight)
+      local value = tostring(assert(values[field_name], "No field " .. field_name))
+
+      if highlight == "!" then
+         if color then
+            return colorize(value, "bright")
+         else
+            return "'" .. value .. "'"
+         end
+      else
+         return value
+      end
+   end))
+end
+
+local function format_message(event, color)
+   return substitute(get_message_format(event), event, color)
+end
+
+-- Returns formatted message for an issue, without color.
+function format.get_message(event)
+   return format_message(event)
 end
 
 local function capitalize(str)
@@ -184,15 +209,6 @@ end
 
 local function event_code(event)
    return (event.code:sub(1, 1) == "0" and "E" or "W")..event.code
-end
-
-local function format_message(event, color)
-   return get_message_format(event):format(event.name and format_name(event.name, color), event.prev_line)
-end
-
--- Returns formatted message for an issue, without color.
-function format.get_message(event)
-   return format_message(event)
 end
 
 local function format_event(file_name, event, opts)
