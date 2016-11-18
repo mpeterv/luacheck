@@ -1,8 +1,7 @@
 local utils = require "luacheck.utils"
 
 local function check_whitespace(chstate, src --[[, code_lines]])
-   for lineno, line in ipairs(utils.split(src, "\n")) do
-      line = string.gsub(line, "\r$", "") -- strip any remaining CR line ending
+   for lineno, line in ipairs(utils.split_lines(src)) do
       if line ~= "" then
          local from, to = line:find("%s+$")
          if from then
