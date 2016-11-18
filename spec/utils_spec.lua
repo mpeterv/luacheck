@@ -196,6 +196,12 @@ describe("utils", function()
       end)
    end)
 
+   describe("split_lines", function()
+      it("considers \\n, \\r, \\r\\n, and \\n\\r line endings", function()
+         assert.same({"foo", "", "bar", "baz", "", "quux", "line   ", "another one"}, utils.split_lines("foo\n\nbar\r\nbaz\r\rquux\n\rline   \nanother one"))
+      end)
+   end)
+
    describe("map", function()
       it("maps function over an array", function()
          assert.same({3, 1, 2}, utils.map(math.sqrt, {9, 1, 4}))
