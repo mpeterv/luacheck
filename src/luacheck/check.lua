@@ -109,7 +109,7 @@ end
 function ChState:warn_unused_field_value(node)
    self:warn({
       code = "314",
-      name = node.field,
+      field = node.field,
       index = node.is_index,
       line = node.location.line,
       column = node.location.column,
@@ -152,7 +152,7 @@ end
 function ChState:warn_unused_label(label)
    self:warn({
       code = "521",
-      name = label.name,
+      label = label.name,
       line = label.location.line,
       column = label.location.column,
       end_column = label.end_column

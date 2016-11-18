@@ -357,10 +357,10 @@ end
 
    it("detects duplicated fields in table literals", function()
       assert.same({
-         {code = "314", name = "key", line = 3, column = 4, end_column = 4},
-         {code = "314", name = "2", index = true, line = 6, column = 4, end_column = 4},
-         {code = "314", name = "key", line = 7, column = 4, end_column = 6},
-         {code = "314", name = "0.2e1", line = 9, column = 4, end_column = 4}
+         {code = "314", field = "key", line = 3, column = 4, end_column = 4},
+         {code = "314", field = "2", index = true, line = 6, column = 4, end_column = 4},
+         {code = "314", field = "key", line = 7, column = 4, end_column = 6},
+         {code = "314", field = "0.2e1", line = 9, column = 4, end_column = 4}
       }, check[[
 local x, y, z = 1, 2, 3
 return {
@@ -529,7 +529,7 @@ return a
 
    it("detects unused labels", function()
       assert.same({
-         {code = "521", name = "fail", line = 2, column = 4, end_column = 11}
+         {code = "521", label = "fail", line = 2, column = 4, end_column = 11}
       }, check[[
 ::fail::
 do ::fail:: end

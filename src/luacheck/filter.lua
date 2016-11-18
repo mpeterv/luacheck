@@ -145,8 +145,8 @@ local function match(warning, pattern)
    end
 
    if name_pattern then
-      if warning.code:match("[56]..") or warning.code == "314" then
-         -- Statement and field related warnings can't match by name.
+      if not warning.name then
+         -- Warnings without name field can't match by name.
          matches_name = false
       else
          matches_name = utils.pmatch(warning.name, name_pattern)

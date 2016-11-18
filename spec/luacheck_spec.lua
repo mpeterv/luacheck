@@ -233,7 +233,7 @@ describe("check_strings", function()
          {
             {
                code = "521",
-               name = "foo",
+               label = "foo",
                line = 1,
                column = 1,
                end_column = 6
