@@ -494,16 +494,38 @@ describe("get_message", function()
          code = "212",
          name = "bar"
       }))
+
       assert.equal("shadowing definition of loop variable 'foo' on line 1", luacheck.get_message({
          code = "423",
          name = "foo",
          line = 2,
          prev_line = 1
       }))
+
+      assert.equal("unused label 'fail'", luacheck.get_message({
+         code = "521",
+         name = "unrelated",
+         label = "fail"
+      }))
+
+      assert.equal("value assigned to field 'actual' is unused", luacheck.get_message({
+         code = "314",
+         name = "unrelated",
+         field = "actual"
+      }))
+
+      assert.equal("value assigned to index '42' is unused", luacheck.get_message({
+         code = "314",
+         name = "11037",
+         field = "42",
+         index = true
+      }))
+
       assert.equal("message goes here", luacheck.get_message({
          code = "011",
          msg = "message goes here"
       }))
+
       assert.equal("unexpected character near '%'", luacheck.get_message({
          code = "011",
          msg = "unexpected character near '%'"
