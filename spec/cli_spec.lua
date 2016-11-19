@@ -117,7 +117,7 @@ Checking spec/samples/bad_code.lua                5 warnings
 
 Total: 5 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/bad_code.lua --no-config")
-      assert.equal(5, get_exitcode "spec/samples/bad_code.lua --no-config")
+      assert.equal(1, get_exitcode "spec/samples/bad_code.lua --no-config")
    end)
 
    it("detects whitespace issues", function()
@@ -135,7 +135,7 @@ Checking spec/samples/bad_whitespace.lua          8 warnings
 
 Total: 8 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/bad_whitespace.lua --no-config")
-      assert.equal(8, get_exitcode "spec/samples/bad_whitespace.lua --no-config")
+      assert.equal(1, get_exitcode "spec/samples/bad_whitespace.lua --no-config")
    end)
 
    it("works for incorrect patterns in options", function()
@@ -386,7 +386,7 @@ Checking s/samples/absent_code.lua                I/O error
 
 Total: 0 warnings / 1 error in 1 file, couldn't check 1 file
 ]], get_output "spec/samples/python_code.lua s/samples/absent_code.lua --no-config")
-      assert.equal(2, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua --no-config")
+      assert.equal(6, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua --no-config")
    end)
 
    it("expands rockspecs", function()
@@ -1216,11 +1216,11 @@ Critical error: Couldn't find configuration file spec/configs/config_404.luachec
 
       describe("overwriting", function()
          it("prioritizes CLI options over config", function()
-            assert.is_true(get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_config.luacheckrc --new-globals foo" > 0)
+            assert.equal(1, get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_config.luacheckrc --new-globals foo")
          end)
 
          it("prioritizes CLI options over config overrides", function()
-            assert.is_true(get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_file_config.luacheckrc --new-globals foo" > 0)
+            assert.equal(1, get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_file_config.luacheckrc --new-globals foo")
          end)
 
          it("concats array-like options from config and CLI", function()
