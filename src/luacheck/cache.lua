@@ -9,13 +9,13 @@ local cache = {}
 -- third is check result in lua table format.
 -- String fields are compressed into array indexes.
 
-cache.format_version = 9
+cache.format_version = 10
 
 local fields = {
    "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "secondary",
    "self", "func", "filtered", "top", "read_only", "global", "filtered_111", "filtered_121",
    "filtered_131", "filtered_112", "filtered_122", "filtered_113", "definition", "in_module",
-   "msg", "index", "recursive", "mutually_recursive", "useless"
+   "msg", "index", "recursive", "mutually_recursive", "useless", "field", "label"
 }
 
 -- Converts table with fields into table with indexes.
