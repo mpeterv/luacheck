@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.17.1 (unreleased)
+
+### Fixes
+
+* Fixed error when using cache and there are warnings with
+  codes `314` or `521`.
+
 ## 0.17.0 (2016-11-18)
 
 ### New features and improvements
