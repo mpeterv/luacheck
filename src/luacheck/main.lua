@@ -13,7 +13,7 @@ local utils = require "luacheck.utils"
 
 local function critical(msg)
    io.stderr:write("Critical error: "..msg.."\n")
-   os.exit(3)
+   os.exit(1)
 end
 
 local function global_error_handler(err)
@@ -526,13 +526,13 @@ patterns.]])
    local exit_code = 0
 
    if report.fatals > 0 then
-      exit_code = exit_code + 4
+      exit_code = exit_code + 8
    end
    if report.errors > 0 then
-      exit_code = exit_code + 2
+      exit_code = exit_code + 4
    end
    if report.warnings > 0 then
-      exit_code = exit_code + 1
+      exit_code = exit_code + 2
    end
 
    os.exit(exit_code)
