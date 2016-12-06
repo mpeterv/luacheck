@@ -40,12 +40,8 @@ local function get_exitcode(command)
    local nosql_db = package.config:sub(1, 1) == "/" and "/dev/null" or "NUL"
    local code51, _, code52plus = os.execute(luacheck_cmd.." "..command.." > "..nosql_db.." 2>&1")
 
-   if _VERSION:find "5.1" then
-      if code51 >= 256 then
-         return math.floor(code51/256)
-      else
-         return code51
-      end
+   if type(code51) == "number" then
+      return code51 >= 256 and math.floor(code51 / 256) or code51
    else
       return code52plus
    end
@@ -1220,11 +1216,11 @@ Critical error: Couldn't find configuration file spec/configs/config_404.luachec
 
       describe("overwriting", function()
          it("prioritizes CLI options over config", function()
-            assert.equal(1, get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_config.luacheckrc --new-globals foo")
+            assert.equal(1, get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_config.luacheckrc --std=min --new-globals foo")
          end)
 
          it("prioritizes CLI options over config overrides", function()
-            assert.equal(1, get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_file_config.luacheckrc --new-globals foo")
+            assert.equal(1, get_exitcode "spec/samples/compat.lua --config=spec/configs/cli_override_file_config.luacheckrc --std=min --new-globals foo")
          end)
 
          it("concats array-like options from config and CLI", function()
