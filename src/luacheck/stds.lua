@@ -50,9 +50,9 @@ stds.luajit = {
    "setmetatable", "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"}
 
 stds.ngx_lua = {
-   _G = true, package = true, "_VERSION", "arg", "assert", "bit", "collectgarbage", "coroutine",
+   _G = true, ngx = true, package = true, "_VERSION", "arg", "assert", "bit", "collectgarbage", "coroutine",
    "debug", "dofile", "error", "gcinfo", "getfenv", "getmetatable", "io", "ipairs", "jit",
-   "load", "loadfile", "loadstring", "math", "module", "newproxy", "ndk", "ngx", "next", "os",
+   "load", "loadfile", "loadstring", "math", "module", "newproxy", "ndk", "next", "os",
    "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "require", "select", "setfenv",
    "setmetatable", "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"}
 
