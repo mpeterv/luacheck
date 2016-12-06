@@ -491,7 +491,12 @@ patterns.]])
    end
 
    local parser = get_parser()
-   local args = parser:parse()
+   local ok, args = parser:pparse()
+   if not ok then
+      io.stderr:write(("%s\n\nError: %s\n"):format(parser:get_usage(), args))
+      os.exit(3)
+   end
+
    local conf
 
    if args.no_config then

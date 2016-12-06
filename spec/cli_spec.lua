@@ -56,6 +56,10 @@ describe("cli", function()
       assert.equal(0, get_exitcode "--help")
    end)
 
+   it("handles invalid options", function()
+      assert.equal(3, get_exitcode "--invalid-option")
+   end)
+
    it("works for correct files", function()
       assert.equal([[
 Checking spec/samples/good_code.lua               OK
