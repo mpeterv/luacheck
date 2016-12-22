@@ -40,7 +40,7 @@ local function validate_options(fname, items, opts)
    end
 end
 
--- Returns report for a string. Report is an array of warnings and errors.
+-- Returns report for a string.
 function luacheck.get_report(src)
    assert(type(src) == "string", ("bad argument #1 to 'luacheck.get_report' (string expected, got %s)"):format(type(src)))
    return check(src)

@@ -1,7 +1,8 @@
 local options = require "luacheck.options"
-local filter = require "luacheck.filter"
 local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
+
+local inline_options = {}
 
 -- Inline option is a comment starting with "luacheck:".
 -- Body can be "push", "pop" or comma delimited options, where option
@@ -45,7 +46,7 @@ local function get_options(body)
       end
 
       if name == "std" then
-         if #args ~= 1 or not options.split_std(args[1]) then
+         if #args ~= 1 then
             return
          end
 
@@ -88,7 +89,15 @@ local function get_options(body)
    return opts
 end
 
--- Returns whether option is valid.
+local function invalid_options_error(event)
+   return {
+      code = "021",
+      line = event.line,
+      column = event.column,
+      end_column = event.end_column
+   }
+end
+
 local function add_inline_option(events, per_line_opts, body, location, end_column, is_code_line)
    body = utils.strip(body)
    local after_push = body:match("^push%s+(.*)")
@@ -103,14 +112,16 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
       if after_push then
          body = after_push
       else
-         return true
+         return
       end
    end
 
    local opts = get_options(body)
+   local event = {options = opts, line = location.line, column = location.column, end_column = end_column}
 
    if not opts then
-      return false
+      table.insert(events, invalid_options_error(event))
+      return
    end
 
    if is_code_line and not after_push then
@@ -118,15 +129,14 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
          per_line_opts[location.line] = {}
       end
 
-      table.insert(per_line_opts[location.line], opts)
+      table.insert(per_line_opts[location.line], event)
    else
-      table.insert(events, {options = opts, line = location.line, column = location.column, end_column = end_column})
+      table.insert(events, event)
    end
-
-   return true
 end
 
--- Returns map of per line options and array of invalid comments.
+-- Adds inline options to events, marks invalid ones as errors.
+-- Returns map of per line inline option events (maps line numbers to arrays of event tables).
 local function add_inline_options(events, comments, code_lines)
    local per_line_opts = {}
    local invalid_comments = {}
@@ -138,178 +148,222 @@ local function add_inline_options(events, comments, code_lines)
       if body then
          -- Remove comments in balanced parens.
          body = body:gsub("%b()", " ")
-
-         if not add_inline_option(events, per_line_opts, body, comment.location, comment.end_column, code_lines[comment.location.line]) then
-            table.insert(invalid_comments, comment)
-         end
+         add_inline_option(events, per_line_opts, body, comment.location, comment.end_column, code_lines[comment.location.line])
       end
    end
 
    return per_line_opts, invalid_comments
 end
 
-local function alert_code(warning, code)
-   local new_warning = utils.update({}, warning)
-   new_warning.code = code
-   return new_warning
+local function unpaired_boundary_error(event)
+   return {
+      code = "02" .. (event.push and "2" or "3"),
+      line = event.line,
+      column = event.column,
+      end_column = event.end_column
+   }
 end
 
-local function apply_possible_filtering(opts, warning, code)
-   if filter.filters(opts, code and alert_code(warning, code) or warning) then
-      warning["filtered_" .. (code or warning.code)] = true
-   end
-end
+-- Given sorted events, transforms unpaired push and pop directives into errors.
+local function mark_unpaired_boundaries(events)
+   local pushes = utils.Stack()
 
-local function apply_inline_options(option_stack, per_line_opts, warnings)
-   if not option_stack.top.normalized then
-      option_stack.top.normalize = options.normalize(option_stack)
-   end
-
-   local normalized_options = option_stack.top.normalize
-
-   for _, warning in ipairs(warnings) do
-      local opts = normalized_options
-
-      if per_line_opts[warning.line] then
-         opts = options.normalize(utils.concat_arrays({option_stack, per_line_opts[warning.line]}))
-      end
-
-      if warning.code:match("1..") then
-         apply_possible_filtering(opts, warning)
-
-         if warning.code ~= "113" then
-            warning.read_only = opts.read_globals[warning.name]
-            warning.global = opts.globals[warning.name] and not warning.read_only or nil
-
-            if warning.code == "111" then
-               if opts.module then
-                  warning.in_module = true
-                  warning.filtered_111 = nil
-               end
-
-               if core_utils.is_definition(opts, warning) then
-                  warning.definition = true
-               end
-
-               apply_possible_filtering(opts, warning, "121")
-               apply_possible_filtering(opts, warning, "131")
-            else
-               apply_possible_filtering(opts, warning, "122")
+   for i, event in ipairs(events) do
+      if event.push then
+         pushes:push({index = i, event = event})
+      elseif event.pop then
+         if pushes.size == 0 then
+            events[i] = unpaired_boundary_error(event)
+         elseif event.closure then
+            -- There could be unpaired push boundaries, pop them.
+            while not pushes.top.event.closure do
+               local unpaired_push = pushes:pop()
+               events[unpaired_push.index] = unpaired_boundary_error(unpaired_push.event)
             end
+
+            pushes:pop()
+         elseif pushes.top.event.closure then
+            -- User-supplied pop directive but last push is closure start.
+            events[i] = unpaired_boundary_error(event)
+         else
+            pushes:pop()
          end
-      elseif filter.filters(opts, warning) then
-         warning.filtered = true
       end
+   end
+
+   -- Remaining push boundaries are unpaired.
+   for _, unpaired_push in ipairs(pushes) do
+      events[unpaired_push.index] = unpaired_boundary_error(unpaired_push.event)
    end
 end
 
--- Mutates shape of warnings in events according to inline options.
--- Warnings which are simply filtered are marked with .filtered.
--- Returns arrays of unpaired push events and unpaired pop events.
-local function handle_events(events, per_line_opts)
-   local unpaired_pushes, unpaired_pops = {}, {}
-   local unfiltered_warnings = {}
+-- Removes push/pop pairs that do no have any options inbetween.
+-- Returns new, sorted array of events.
+local function filter_useless_boundaries(events)
+   local pushes = utils.Stack()
+   local filtered_events = {}
+
+   for _, event in ipairs(events) do
+      if event.push then
+         table.insert(filtered_events, event)
+         pushes:push({filtered_index = #filtered_events, has_options = false})
+      elseif event.pop then
+         local push = pushes:pop()
+
+         if push.has_options then
+            table.insert(filtered_events, event)
+         else
+            table.remove(filtered_events, push.filtered_index)
+         end
+      else
+         if event.options and pushes.size ~= 0 then
+            pushes.top.has_options = true
+         end
+
+         table.insert(filtered_events, event)
+      end
+   end
+
+   return filtered_events
+end
+
+-- Adds events and errors related to inline options to the warning list.
+-- Returns a new list, sorted by location, plus a map of per line inline option events
+-- (maps line numbers to arrays of event tables).
+-- Inline option events are tables marked with `push`, `pop`, or `options` key.
+-- Push and pop events create and remove scopes that limit effects of inline options,
+-- and option events carry inline option tables themselves.
+-- Inline option errors have codes `02[123]`, issued for invalid option syntax,
+-- unpaired push directives and unpaired pop directives.
+function inline_options.get_events(ast, comments, code_lines, warnings)
+   local events = utils.update({}, warnings)
+   add_closure_boundaries(ast, events)
+   local per_line_opts = add_inline_options(events, comments, code_lines)
+   core_utils.sort_by_location(events)
+   mark_unpaired_boundaries(events)
+   events = filter_useless_boundaries(events)
+   return events, per_line_opts
+end
+
+local function stack_to_array(stack)
+   local res = {}
+
+   for i = 1, stack.size do
+      res[i] = stack[i]
+   end
+
+   return res
+end
+
+-- Validates inline options within events and per-line options.
+-- Returns a new array of events and a new per-line option map
+-- with invalid options replaced with errors.
+-- This is require because of `std` option which has to be validated
+-- at join/filter time, not at check time, because of possible
+-- custom stds.
+function inline_options.validate_options(events, per_line_opts)
+   local new_events = {}
+   local new_per_line_opts = {}
+   local added_errors = false
+
+   for i, event in ipairs(events) do
+      if event.options and not options.validate(options.all_options, event.options) then
+         new_events[i] = invalid_options_error(event)
+      else
+         new_events[i] = event
+      end
+   end
+
+   for line, line_events in pairs(per_line_opts) do
+      for _, event in ipairs(line_events) do
+         if options.validate(options.all_options, event.options) then
+            if not new_per_line_opts[line] then
+               new_per_line_opts[line] = {}
+            end
+
+            table.insert(new_per_line_opts[line], event)
+         else
+            table.insert(new_events, invalid_options_error(event))
+            added_errors = true
+         end
+      end
+   end
+
+   -- This optimization is rather useless, it's mostly used here
+   -- to allow testing filtering without providing location information.
+   if added_errors then
+      core_utils.sort_by_location(new_events)
+   end
+
+   return new_events, new_per_line_opts
+end
+
+-- Takes an array of events and a map of per-line options as returned from
+-- `get_events()`, possibly with location information stripped from push/pop events.
+-- Returns an array of pairs {issue, option_attay} that matches each
+-- warning or error with an array of inline option tables that affect it.
+-- Some option arrays may share identity.
+-- Returned array is sorted by warning location.
+function inline_options.get_issues_and_affecting_options(events, per_line_opts)
+   local pushes = utils.Stack()
    local option_stack = utils.Stack()
-   local boundaries = utils.Stack()
+   local res = {}
+   local empty_option_array = {}
 
-   option_stack:push({std = "none"})
-
-   -- Go through all events.
    for _, event in ipairs(events) do
       if event.code then
-         -- It's a warning, put it into list of not handled warnings.
-         table.insert(unfiltered_warnings, event)
-      elseif event.options then
-         if #unfiltered_warnings ~= 0 then
-            -- There are new options added and there were not handled warnings.
-            -- Handle them using old option stack.
-            apply_inline_options(option_stack, per_line_opts, unfiltered_warnings)
-            unfiltered_warnings = {}
+         local option_array
+
+         if option_stack.size == 0 then
+            option_array = empty_option_array
+         elseif option_stack.top.option_array then
+            option_array = option_stack.top.option_array
+         else
+            option_array = stack_to_array(option_stack)
+            option_stack.top.option_array = option_array
          end
 
+         if per_line_opts[event.line] then
+            local line_options = {}
+
+            for i, inline_event in ipairs(per_line_opts[event.line]) do
+               line_options[i] = inline_event.options
+            end
+
+            option_array = utils.concat_arrays({option_array, line_options})
+         end
+
+         table.insert(res, {event, option_array})
+      elseif event.options then
          option_stack:push(event.options)
       elseif event.push then
-         -- New boundary. Save size of the option stack to rollback later
+         -- New push boundary. Save size of the option stack to rollback later
          -- when boundary is popped.
-         event.last_option_index = option_stack.size
-         boundaries:push(event)
-      elseif event.pop then
-         if boundaries.size == 0 or (boundaries.top.closure and not event.closure) then
-            -- Unpaired pop boundary, do nothing.
-            table.insert(unpaired_pops, event)
-         else
-            if event.closure then
-               -- There could be unpaired push boundaries, pop them.
-               while not boundaries.top.closure do
-                  table.insert(unpaired_pushes, boundaries:pop())
-               end
-            end
+         pushes:push(option_stack.size)
+      else
+         -- Rollback option stack.
+         local new_option_stack_size = pushes:pop()
 
-            -- Pop closure boundary.
-            local new_last_option_index = boundaries:pop().last_option_index
-
-            if new_last_option_index ~= option_stack.size and #unfiltered_warnings ~= 0 then
-               -- Some options are going to be popped, handle not handled warnings.
-               apply_inline_options(option_stack, per_line_opts, unfiltered_warnings)
-               unfiltered_warnings = {}
-            end
-
-            while new_last_option_index ~= option_stack.size do
-               option_stack:pop()
-            end
+         while option_stack.size ~= new_option_stack_size do
+            option_stack:pop()
          end
       end
    end
 
-   if #unfiltered_warnings ~= 0 then
-      apply_inline_options(option_stack, per_line_opts, unfiltered_warnings)
-   end
-
-   return unpaired_pushes, unpaired_pops
+   return res
 end
 
--- Filteres warnings using inline options, adds invalid comments.
--- Warnings which are altered in shape:
---    .filtered is added to warnings filtered by inline options;
---    .filtered_<code> is added to warnings that would be filtered by inline options if their code was <code>
---       (111 can change to 121 and 131, 112 can change to 122);
---    .definition is added to global set warnings (111) that are implicit definitions due to inline options;
---    .in_module is added to 111 warnings that are in module due to inline options.
---    .read_only is added to 111 and 112 warnings related to read only globals.
---    .global is added to 111 and 112 related to regular globals.
--- Invalid comments have same shape as warnings, with codes:
---    021 - syntactically invalid comment;
---    022 - unpaired push comment;
---    023 - unpaired pop comment.
-local function handle_inline_options(ast, comments, code_lines, warnings)
-   -- Create array of all events sorted by location.
-   -- This includes inline options, warnings and implicit push/pop operations corresponding to closure starts/ends.
-   local events = utils.update({}, warnings)
+-- Extract only warnings and errors from an array of events.
+function inline_options.get_issues(events)
+   local res = {}
 
-   -- Add implicit push/pop around main chunk.
-   table.insert(events, {push = true, closure = true,
-      line = -1, column = 0})
-   table.insert(events, {pop = true, closure = true,
-      line = math.huge, column = 0})
-
-   add_closure_boundaries(ast, events)
-   local per_line_opts, invalid_comments = add_inline_options(events, comments, code_lines)
-   core_utils.sort_by_location(events)
-   local unpaired_pushes, unpaired_pops = handle_events(events, per_line_opts)
-
-   for _, comment in ipairs(invalid_comments) do
-      table.insert(warnings, {code = "021", line = comment.location.line, column = comment.location.column, end_column = comment.end_column})
+   for _, event in ipairs(events) do
+      if event.code then
+         table.insert(res, event)
+      end
    end
 
-   for _, event in ipairs(unpaired_pushes) do
-      table.insert(warnings, {code = "022", line = event.line, column = event.column, end_column = event.end_column})
-   end
-
-   for _, event in ipairs(unpaired_pops) do
-      table.insert(warnings, {code = "023", line = event.line, column = event.column, end_column = event.end_column})
-   end
-
-   return warnings
+   return res
 end
 
-return handle_inline_options
+return inline_options

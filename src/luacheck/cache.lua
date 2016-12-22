@@ -9,96 +9,155 @@ local cache = {}
 -- third is check result in lua table format.
 -- String fields are compressed into array indexes.
 
-cache.format_version = 10
+cache.format_version = 11
 
-local fields = {
-   "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "secondary",
-   "self", "func", "filtered", "top", "read_only", "global", "filtered_111", "filtered_121",
-   "filtered_131", "filtered_112", "filtered_122", "filtered_113", "definition", "in_module",
-   "msg", "index", "recursive", "mutually_recursive", "useless", "field", "label"
+local option_fields = {
+   "ignore", "std", "globals", "unused_args", "self", "compat", "global", "unused", "redefined",
+   "unused_secondaries", "allow_defined", "allow_defined_top", "module",
+   "read_globals", "new_globals", "new_read_globals", "enable", "only"
 }
 
--- Converts table with fields into table with indexes.
-local function compress(t)
+local event_fields = {
+   "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "secondary",
+   "self", "func", "top", "msg", "index", "recursive", "mutually_recursive", "useless",
+   "field", "label", "push", "pop", "options"
+}
+
+-- Recursively replace string keys with integer keys.
+local function compress(t, fields)
+   fields = fields or event_fields
    local res = {}
 
    for index, field in ipairs(fields) do
-      res[index] = t[field]
+      local value = t[field]
+
+      if value ~= nil then
+         if type(value) == "table" and fields == event_fields then
+            value = compress(value, option_fields)
+         end
+
+         res[index] = value
+      end
    end
 
    return res
+end
+
+local function compress_report(report)
+   local res = {}
+   res[1] = utils.map(compress, report.events)
+   res[2] = {}
+
+   for line, events in pairs(report.per_line_options) do
+      res[2][line] = utils.map(compress, events)
+   end
+
+   return res
+end
+
+-- Recursively restores a table from a compressed array.
+local function decompress(t, fields)
+   fields = fields or event_fields
+   local res = {}
+
+   for index, field in ipairs(fields) do
+      local value = t[index]
+
+      if value ~= nil then
+         if type(value) == "table" and fields == event_fields then
+            value = decompress(value, option_fields)
+         end
+
+         res[field] = value
+      end
+   end
+
+   return res
+end
+
+local function decompress_report(compressed)
+   local report = {}
+   report.events = utils.map(decompress, compressed[1])
+   report.per_line_options = {}
+
+   for line, events in pairs(compressed[2]) do
+      report.per_line_options[line] = utils.map(decompress, events)
+   end
+
+   return report
 end
 
 local function get_local_name(index)
    return string.char(index + (index > 26 and 70 or 64))
 end
 
--- Serializes event into buffer.
--- strings is a table mapping string values to where they first occured or to name of local
--- variable used to represent it.
--- Array part contains representations of values saved into locals.
-local function serialize_event(buffer, strings, event)
-   event = compress(event)
-   table.insert(buffer, "{")
-   local is_sparse
-   local put_one
+local function max_n(t)
+   local res = 0
 
-   for i = 1, #fields do
-      local value = event[i]
-
-      if not value then
-         is_sparse = true
-      else
-         if put_one then
-            table.insert(buffer, ",")
-         end
-
-         put_one = true
-
-         if is_sparse then
-            table.insert(buffer, ("[%d]="):format(i))
-         end
-
-         if type(value) == "string" then
-            local prev = strings[value]
-
-            if type(prev) == "string" then
-               -- There is a local with such value.
-               table.insert(buffer, prev)
-            elseif type(prev) == "number" and #strings < 52 then
-               -- Value is used second time, put it into a local.
-               table.insert(strings, ("%q"):format(value))
-               local local_name = get_local_name(#strings)
-               buffer[prev] = local_name
-               table.insert(buffer, local_name)
-               strings[value] = local_name
-            else
-               table.insert(buffer, ("%q"):format(value))
-               strings[value] = #buffer
-            end
-         else
-            table.insert(buffer, tostring(value))
-         end
-      end
+   for k in pairs(t) do
+      res = math.max(res, k)
    end
 
-   table.insert(buffer, "}")
+   return res
+end
+
+-- Serializes a value into buffer.
+-- `strings` is a table mapping string values to where they first occured or to name of local
+-- variable used to represent it.
+-- Array part contains representations of values saved into locals.
+local function add_value(buffer, strings, value)
+   if type(value) == "string" then
+      local prev = strings[value]
+
+      if type(prev) == "string" then
+         -- There is a local with such value.
+         table.insert(buffer, prev)
+      elseif type(prev) == "number" and #strings < 52 then
+         -- Value is used second time, put it into a local.
+         table.insert(strings, ("%q"):format(value))
+         local local_name = get_local_name(#strings)
+         buffer[prev] = local_name
+         table.insert(buffer, local_name)
+         strings[value] = local_name
+      else
+         table.insert(buffer, ("%q"):format(value))
+         strings[value] = #buffer
+      end
+   elseif type(value) == "table" then
+      local is_sparse
+      local put_one
+      table.insert(buffer, "{")
+
+      for i = 1, max_n(value) do
+         local item = value[i]
+
+         if item == nil then
+            is_sparse = true
+         else
+            if put_one then
+               table.insert(buffer, ",")
+            end
+
+            if is_sparse then
+               table.insert(buffer, ("[%d]="):format(i))
+            end
+
+            add_value(buffer, strings, item)
+            put_one = true
+         end
+      end
+
+      table.insert(buffer, "}")
+   else
+      table.insert(buffer, tostring(value))
+   end
 end
 
 -- Serializes check result into a string.
-function cache.serialize(events)
+function cache.serialize(report)
    local strings = {}
-   local buffer = {"", "return {"}
-
-   for i, event in ipairs(events) do
-      if i > 1 then
-         table.insert(buffer, ",")
-      end
-
-      serialize_event(buffer, strings, event)
-   end
-
-   table.insert(buffer, "}")
+   local buffer = {"", "return "}
+   add_value(buffer, strings, compress_report(report))
 
    if strings[1] then
       local names = {}
@@ -141,18 +200,7 @@ local function write_triplets(fh, triplets)
    end
 end
 
--- Converts table with indexes into table with fields.
-local function decompress(t)
-   local res = {}
-
-   for index, field in ipairs(fields) do
-      res[field] = t[index]
-   end
-
-   return res
-end
-
--- Loads cached results from string, returns results or nil.
+-- Loads cached checking result from string, returns result or nil.
 local function load_cached(cached)
    local func = utils.load(cached, {})
 
@@ -166,21 +214,9 @@ local function load_cached(cached)
       return
    end
 
-   if type(res) ~= "table" then
-      return
+   if type(res) == "table" then
+      return decompress_report(res)
    end
-
-   local decompressed = {}
-
-   for i, event in ipairs(res) do
-      if type(event) ~= "table" then
-         return
-      end
-
-      decompressed[i] = decompress(event)
-   end
-
-   return decompressed
 end
 
 local function check_version_header(fh)

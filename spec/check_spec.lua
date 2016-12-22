@@ -1,4 +1,8 @@
-local check = require "luacheck.check"
+local check_full = require "luacheck.check"
+
+local function check(src)
+   return check_full(src).events
+end
 
 describe("check", function()
    it("does not find anything wrong in an empty block", function()
@@ -85,7 +89,7 @@ end
       assert.same({
          {code = "211", name = "_", useless = true, line = 2, column = 10, end_column = 10},
          {code = "211", name = "_", useless = true, line = 7, column = 13, end_column = 13},
-         {code = "211", name = "_", filtered = true, secondary = true, line = 12, column = 13, end_column = 13}
+         {code = "211", name = "_", secondary = true, line = 12, column = 13, end_column = 13}
       }, check[[
 do
    local _
@@ -769,16 +773,35 @@ return foo;
 ]])
    end)
 
-   it("marks ignored warnings as filtered", function()
+   it("emits events and per-line options for inline options", function()
+      assert:set_parameter("TableFormatLevel", math.huge)
       assert.same({
-         {code = "211", name = "foo", filtered = true, line = 1, column = 7, end_column = 9},
-         {code = "211", name = "bar", line = 1, column = 12, end_column = 14},
-         {code = "512", filtered = true, line = 2, column = 1, end_column = 3},
-         {code = "213", name = "_", filtered = true, line = 2, column = 5, end_column = 5},
-         {code = "113", name = "pairs", filtered_113 = true, line = 2, column = 10, end_column = 14},
-      }, check[[
+         events = {
+            {push = true, line = 1, column = 1, end_column = 28},
+            {options = {ignore = {"bar"}}, line = 1, column = 1, end_column = 28},
+            {code = "211", name = "foo", line = 2, column = 7, end_column = 9},
+            {code = "211", name = "bar", line = 2, column = 12, end_column = 14},
+            {pop = true, line = 3, column = 1, end_column = 16},
+            {push = true, closure = true, line = 4, column = 8},
+            {options = {ignore = {".*"}}, line = 5, column = 1, end_column = 19},
+            {code = "512", line = 7, column = 1, end_column = 3},
+            {code = "213", name = "_", line = 7, column = 5, end_column = 5},
+            {code = "113", name = "pairs", line = 7, column = 10, end_column = 14},
+            {pop = true, closure = true, line = 9, column = 1}
+         },
+         per_line_options = {
+            [2] = {{options = {ignore = {"foo"}}, line = 2, column = 16, end_column = 38}}
+         }
+      }, check_full[[
+-- luacheck: push ignore bar
 local foo, bar -- luacheck: ignore foo
-for _ in pairs({}) do return end -- luacheck: ignore
+-- luacheck: pop
+return function()
+-- luacheck: ignore
+-- luacheck: push
+for _ in pairs({}) do return end
+-- luacheck: pop
+end
 ]])
    end)
 

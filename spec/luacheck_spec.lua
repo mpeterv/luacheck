@@ -425,7 +425,7 @@ describe("get_report", function()
    end)
 
    it("returns a table with single error event on syntax error", function()
-      local report = strip_locations({luacheck.get_report("return return")})[1]
+      local report = strip_locations({luacheck.get_report("return return").events})[1]
       assert.same({code = "011", msg = "expected expression near 'return'"}, report[1])
    end)
 end)

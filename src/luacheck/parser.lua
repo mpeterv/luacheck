@@ -6,7 +6,7 @@ local function new_state(src)
       lexer = lexer.new_state(src),
       code_lines = {}, -- Set of line numbers containing code.
       comments = {}, -- Array of {comment = string, location = location}.
-      hanging_semicolons = {} -- Array of locations of semicolons not following an expression or goto.
+      hanging_semicolons = {} -- Array of locations of semicolons not following a statement.
    }
 end
 

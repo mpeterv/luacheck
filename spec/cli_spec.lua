@@ -613,8 +613,9 @@ Checking spec/samples/inline_options.lua          8 warnings / 2 errors
 Total: 8 warnings / 2 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none --no-config")
 
+      -- Inline `enable` option overrides CLI `ignore`.
       assert.equal([[
-Checking spec/samples/inline_options.lua          7 warnings / 2 errors
+Checking spec/samples/inline_options.lua          8 warnings / 2 errors
 
     spec/samples/inline_options.lua:6:16: unused function 'f'
     spec/samples/inline_options.lua:12:4: accessing undefined variable 'qu'
@@ -625,8 +626,9 @@ Checking spec/samples/inline_options.lua          7 warnings / 2 errors
     spec/samples/inline_options.lua:26:1: unpaired push directive
     spec/samples/inline_options.lua:28:4: unpaired pop directive
     spec/samples/inline_options.lua:34:1: empty do..end block
+    spec/samples/inline_options.lua:35:10: empty if branch
 
-Total: 7 warnings / 2 errors in 1 file
+Total: 8 warnings / 2 errors in 1 file
 ]], get_output "spec/samples/inline_options.lua --std=none --ignore=542 --no-config")
 
       assert.equal([[
@@ -662,12 +664,13 @@ Total: 1 warning / 0 errors in 1 file
 
    it("inline options can use extended stds", function()
       assert.equal([[
-Checking spec/samples/custom_std_inline_options.lua 2 warnings
+Checking spec/samples/custom_std_inline_options.lua 3 warnings
 
     spec/samples/custom_std_inline_options.lua:3:1: accessing undefined variable 'tostring'
+    spec/samples/custom_std_inline_options.lua:6:19: accessing undefined variable 'print'
     spec/samples/custom_std_inline_options.lua:6:25: accessing undefined variable 'it'
 
-Total: 2 warnings / 0 errors in 1 file
+Total: 3 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/custom_std_inline_options.lua --config=spec/configs/custom_stds_config.luacheckrc")
    end)
 
@@ -777,19 +780,19 @@ Total: 16 warnings / 1 error in 4 files
 
          local cache = utils.read_file(tmpname)
          assert.string(cache)
-         local format_version, good_mtime, bad_mtime, python_mtime = cache:match([[
+         local format_version, good_mtime, bad_mtime, python_mtime = cache:match((([[
 
 (%d+)
 spec/samples/good_code.lua
 (%d+)
-return {}
+return {{},{}}
 spec/samples/bad_code.lua
 (%d+)
-return {{"112","package",1,1,7},{"211","helper",3,16,21,%[10%]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,%[12%]=true},{"412","opt",8,10,12,7,18},{"113","hepler",9,11,16}}
+return {{{"112","package",1,1,7},{"211","helper",3,16,21,[10]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,[11]=true},{"412","opt",8,10,12,7,18},{"113","hepler",9,11,16}},{}}
 spec/samples/python_code.lua
 (%d+)
-return {{"011",%[3%]=1,%[4%]=6,%[5%]=15,%[23%]="expected '=' near '__future__'"}}
-]])
+return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{}}
+]]):gsub("[%[%]]", "%%%0")))
 
          format_version = tonumber(format_version)
          assert.number(format_version)
@@ -806,13 +809,13 @@ return {{"011",%[3%]=1,%[4%]=6,%[5%]=15,%[23%]="expected '=' near '__future__'"}
 %s
 spec/samples/python_code.lua
 %s
-return {{"111", "global", 1, 1}, {"321", "uninit", 6, 8}}
+return {{{"111", "global", 1, 1}, {"321", "uninit", 6, 8}},{}}
 spec/samples/good_code.lua
 %s
-return {{"011",[3]=5,[4]=7,[23]="this code is actually bad"}}
+return {{{"011",[3]=5,[4]=7,[12]="this code is actually bad"}},{}}
 spec/samples/bad_code.lua
 %s
-return {}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
+return {{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
             fh:close()
          end
 

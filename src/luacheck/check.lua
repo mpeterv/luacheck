@@ -2,8 +2,7 @@ local parse = require "luacheck.parser"
 local linearize = require "luacheck.linearize"
 local analyze = require "luacheck.analyze"
 local reachability = require "luacheck.reachability"
-local handle_inline_options = require "luacheck.inline_options"
-local core_utils = require "luacheck.core_utils"
+local inline_options = require "luacheck.inline_options"
 local utils = require "luacheck.utils"
 local check_whitespace = require "luacheck.whitespace"
 
@@ -200,19 +199,19 @@ local function check_or_throw(src)
    check_whitespace(chstate, src)
    analyze(chstate, line)
    reachability(chstate, line)
-   handle_inline_options(ast, comments, code_lines, chstate.warnings)
-   core_utils.sort_by_location(chstate.warnings)
-   return chstate.warnings
+   local events, per_line_opts = inline_options.get_events(ast, comments, code_lines, chstate.warnings)
+   return {events = events, per_line_options = per_line_opts}
 end
 
 --- Checks source.
--- Returns an array of warnings and errors. Codes for errors start with "0".
--- Syntax errors (with code "011") have message stored in .msg field.
+-- Returns a table with results, with the following fields:
+--    `events`: array of issues and inline option events (options, push, or pop).
+--    `per_line_options`: map from line numbers to arrays of inline option events.
 local function check(src)
-   local warnings, err = utils.pcall(check_or_throw, src)
+   local res, err = utils.pcall(check_or_throw, src)
 
-   if warnings then
-      return warnings
+   if res then
+      return res
    else
       local syntax_error = {
          code = "011",
@@ -222,7 +221,7 @@ local function check(src)
          msg = err.msg
       }
 
-      return {syntax_error}
+      return {events = {syntax_error}, per_line_options = {}}
    end
 end
 

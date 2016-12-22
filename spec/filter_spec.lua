@@ -1,4 +1,14 @@
-local filter = require "luacheck.filter".filter
+local filter_full = require "luacheck.filter".filter
+
+local function filter(issue_arrays, opts)
+   local report = {}
+
+   for i, issues in ipairs(issue_arrays) do
+      report[i] = {events = issues, per_line_options = {}}
+   end
+
+   return filter_full(report, opts)
+end
 
 describe("filter", function()
    it("filters warnings by name", function()
@@ -497,6 +507,82 @@ describe("filter", function()
             {
                allow_defined = true,
                module = true
+            }
+      }))
+   end)
+
+   it("applies inline option events and per-line options", function()
+      assert.same({
+         {
+            {code = "111", name = "not_print", line = 1, column = 1},
+            {code = "111", name = "print", line = 5, column = 1},
+            {code = "121", name = "print", line = 7, column = 1},
+            {code = "021", line = 8, column = 1},
+            {code = "021", line = 1000, column = 20}
+         }
+      }, filter_full({
+         {
+            events = {
+               {code = "111", name = "not_print", line = 1, column = 1},
+               {push = true, line = 2, column = 1},
+               {options = {std = "none"}, line = 3, column = 1},
+               {code = "111", name = "not_print", line = 4, column = 1},
+               {code = "111", name = "print", line = 5, column = 1},
+               {pop = true, line = 6, column = 1},
+               {code = "111", name = "print", line = 7, column = 1},
+               {options = {std = "bad_std"}, line = 8, column = 1}
+            },
+            per_line_options = {
+               [4] = {
+                  {options = {ignore = {",*"}}, line = 4, column = 10}
+               },
+               [1000] = {
+                  {options = {std = "max"}, line = 1000, column = 1},
+                  {options = {std = "another_bad_std"}, line = 1000, column = 20}
+               }
+            }
+         }
+      }, {
+            {
+               std = "max"
+            }
+      }))
+   end)
+
+   it("ignores inline options completely with inline = false", function()
+      assert.same({
+         {
+            {code = "111", name = "not_print", line = 1, column = 1},
+            {code = "111", name = "not_print", line = 4, column = 1},
+            {code = "121", name = "print", line = 5, column = 1},
+            {code = "121", name = "print", line = 7, column = 1}
+         }
+      }, filter_full({
+         {
+            events = {
+               {code = "111", name = "not_print", line = 1, column = 1},
+               {push = true, line = 2, column = 1},
+               {options = {std = "none"}, line = 3, column = 1},
+               {code = "111", name = "not_print", line = 4, column = 1},
+               {code = "111", name = "print", line = 5, column = 1},
+               {pop = true, line = 6, column = 1},
+               {code = "111", name = "print", line = 7, column = 1},
+               {options = {std = "bad_std"}, line = 8, column = 1}
+            },
+            per_line_options = {
+               [4] = {
+                  {options = {ignore = {",*"}}, line = 4, column = 10}
+               },
+               [1000] = {
+                  {options = {std = "max"}, line = 1000, column = 1},
+                  {options = {std = "another_bad_std"}, line = 1000, column = 20}
+               }
+            }
+         }
+      }, {
+            {
+               std = "max",
+               inline = false
             }
       }))
    end)

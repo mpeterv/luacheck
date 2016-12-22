@@ -1,29 +1,9 @@
+local inline_options = require "luacheck.inline_options"
 local options = require "luacheck.options"
 local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
 
 local filter = {}
-
--- Returns array of normalized options, one for each file.
-local function get_normalized_opts(report, opts)
-   local res = {}
-
-   for i in ipairs(report) do
-      local option_stack = {opts}
-
-      if opts and opts[i] then
-         option_stack[2] = opts[i]
-
-         for _, nested_opts in ipairs(opts[i]) do
-            table.insert(option_stack, nested_opts)
-         end
-      end
-
-      res[i] = options.normalize(option_stack)
-   end
-
-   return res
-end
 
 -- A global is implicitly defined in a file if opts.allow_defined == true and it is set anywhere in the file,
 --    or opts.allow_defined_top == true and it is set in the top level function scope.
@@ -37,14 +17,16 @@ end
 -- Setting a global not defined in the module results in "setting non-module global variable" warning.
 
 -- Extracts sets of defined, exported and used globals from a file report.
-local function get_defined_and_used_globals(file_report, opts)
+local function get_defined_and_used_globals(file_report)
    local defined, globally_defined, used = {}, {}, {}
 
-   for _, warning in ipairs(file_report) do
+   for _, pair in ipairs(file_report) do
+      local warning, opts = pair[1], pair[2]
+
       if warning.code:match("11.") then
          if warning.code == "111" then
-            if (opts.inline and warning.definition) or core_utils.is_definition(opts, warning) then
-               if (opts.inline and warning.in_module) or opts.module then
+            if core_utils.is_definition(opts, warning) then
+               if opts.module then
                   defined[warning.name] = true
                else
                   globally_defined[warning.name] = true
@@ -64,7 +46,7 @@ end
 --    where `globally_defined` is set of globals defined across all files except modules,
 --    where `globally_used` is set of globals defined across all files except modules,
 --    where `locally_defined` is an array of sets of globals defined per file.
-local function get_implicit_defs_info(report, opts)
+local function get_implicit_defs_info(report)
    local info = {
       globally_defined = {},
       globally_used = {},
@@ -72,7 +54,7 @@ local function get_implicit_defs_info(report, opts)
    }
 
    for i, file_report in ipairs(report) do
-      local defined, globally_defined, used = get_defined_and_used_globals(file_report, opts[i])
+      local defined, globally_defined, used = get_defined_and_used_globals(file_report)
       utils.update(info.globally_defined, globally_defined)
       utils.update(info.globally_used, used)
       info.locally_defined[i] = defined
@@ -82,37 +64,39 @@ local function get_implicit_defs_info(report, opts)
 end
 
 -- Returns file report clear of implicit definitions.
-local function filter_implicit_defs_file(file_report, opts, globally_defined, globally_used, locally_defined)
+local function filter_implicit_defs_file(file_report, globally_defined, globally_used, locally_defined)
    local res = {}
 
-   for _, warning in ipairs(file_report) do
+   for _, pair in ipairs(file_report) do
+      local warning, opts = pair[1], pair[2]
+
       if warning.code:match("11.") then
          if warning.code == "111" then
-            if (opts.inline and warning.in_module) or opts.module then
+            if opts.module then
                if not locally_defined[warning.name] then
                   warning.module = true
-                  table.insert(res, warning)
+                  table.insert(res, {warning, opts})
                end
             else
-               if (opts.inline and  warning.definition) or core_utils.is_definition(opts, warning) then
+               if core_utils.is_definition(opts, warning) then
                   if not globally_used[warning.name] then
                      warning.code = "131"
                      warning.top = nil
-                     table.insert(res, warning)
+                     table.insert(res, {warning, opts})
                   end
                else
                   if not globally_defined[warning.name] then
-                     table.insert(res, warning)
+                     table.insert(res, {warning, opts})
                   end
                end
             end
          else
             if not globally_defined[warning.name] and not locally_defined[warning.name] then
-               table.insert(res, warning)
+               table.insert(res, {warning, opts})
             end
          end
       else
-         table.insert(res, warning)
+         table.insert(res, {warning, opts})
       end
    end
 
@@ -120,13 +104,13 @@ local function filter_implicit_defs_file(file_report, opts, globally_defined, gl
 end
 
 -- Returns report clear of implicit definitions.
-local function filter_implicit_defs(report, opts)
+local function filter_implicit_defs(report)
    local res = {}
-   local info = get_implicit_defs_info(report, opts)
+   local info = get_implicit_defs_info(report)
 
    for i, file_report in ipairs(report) do
       if not file_report.fatal then
-         res[i] = filter_implicit_defs_file(file_report, opts[i], info.globally_defined, info.globally_used, info.locally_defined[i])
+         res[i] = filter_implicit_defs_file(file_report, info.globally_defined, info.globally_used, info.locally_defined[i])
       else
          res[i] = file_report
       end
@@ -211,7 +195,7 @@ local function is_enabled(rules, warning)
    return true
 end
 
-function filter.filters(opts, warning)
+local function filters(opts, warning)
    if warning.code:match("[234]..") and warning.name == "_" and not warning.useless then
       return true
    end
@@ -231,19 +215,18 @@ function filter.filters(opts, warning)
    return not is_enabled(opts.rules, warning)
 end
 
-local function filter_file_report(report, opts)
+local function filter_file_report(report)
    local res = {}
 
-   for _, event in ipairs(report) do
-      if ((opts.inline and event.read_only) or event.code:match("11[12]")
-            and not event.module and opts.read_globals[event.name]) and not (
-               (opts.inline and event.global) or (opts.globals[event.name] and not opts.read_globals[event.name])) then
-         event.code = "12" .. event.code:sub(3, 3)
+   for _, pair in ipairs(report) do
+      local issue, opts = pair[1], pair[2]
+
+      if (issue.code:match("11[12]") and not issue.module and opts.read_globals[issue.name]) then
+         issue.code = "12" .. issue.code:sub(3, 3)
       end
 
-      if event.code == "011" or (event.code:match("02.") and opts.inline) or (event.code:sub(1, 1) ~= "0" and (not event.filtered and
-            not event["filtered_" .. event.code] or not opts.inline) and not filter.filters(opts, event)) then
-         table.insert(res, event)
+      if issue.code == "011" or (issue.code:match("02.") and opts.inline) or (issue.code:sub(1, 1) ~= "0" and not filters(opts, issue)) then
+         table.insert(res, issue)
       end
    end
 
@@ -251,14 +234,77 @@ local function filter_file_report(report, opts)
 end
 
 -- Assumes `opts` are normalized.
-local function filter_report(report, opts)
+local function filter_report(report)
    local res = {}
 
    for i, file_report in ipairs(report) do
       if not file_report.fatal then
-         res[i] = filter_file_report(file_report, opts[i])
+         res[i] = filter_file_report(file_report)
       else
          res[i] = file_report
+      end
+   end
+
+   return res
+end
+
+
+-- Transforms file report, returning an array of pairs {issue, normalized options for the issue}.
+local function annotate_file_report_with_affecting_options(file_report, option_stack)
+   local opts = options.normalize(option_stack)
+
+   if not opts.inline then
+      local res = {}
+      local issues = inline_options.get_issues(file_report.events)
+
+      for i, issue in ipairs(issues) do
+         res[i] = {issue, opts}
+      end
+
+      return res
+   end
+
+   local events, per_line_opts = inline_options.validate_options(file_report.events, file_report.per_line_options)
+   local issues_with_inline_opts = inline_options.get_issues_and_affecting_options(events, per_line_opts)
+
+   local normalized_options_cache = {}
+   local res = {}
+
+   for i, pair in ipairs(issues_with_inline_opts) do
+      local issue, inline_opts = pair[1], pair[2]
+
+      if not normalized_options_cache[inline_opts] then
+         normalized_options_cache[inline_opts] = options.normalize(utils.concat_arrays({option_stack, inline_opts}))
+      end
+
+      res[i] = {issue, normalized_options_cache[inline_opts]}
+   end
+
+   return res
+end
+
+local function get_option_stack(opts, report_index)
+   local res = {opts}
+
+   if opts and opts[report_index] then
+      res[2] = opts[report_index]
+
+      for _, nested_opts in ipairs(opts[report_index]) do
+         table.insert(res, nested_opts)
+      end
+   end
+
+   return res
+end
+
+local function annotate_report_with_affecting_options(report, opts)
+   local res = {}
+
+   for i, file_report in ipairs(report) do
+      if file_report.fatal then
+         res[i] = file_report
+      else
+         res[i] = annotate_file_report_with_affecting_options(file_report, get_option_stack(opts, i))
       end
    end
 
@@ -269,9 +315,9 @@ end
 -- `opts[i]`, if present, is used as options when processing `report[i]`
 -- together with options in its array part.
 function filter.filter(report, opts)
-   opts = get_normalized_opts(report, opts)
-   report = filter_implicit_defs(report, opts)
-   return filter_report(report, opts)
+   local annotated_report = annotate_report_with_affecting_options(report, opts)
+   annotated_report = filter_implicit_defs(annotated_report)
+   return filter_report(annotated_report)
 end
 
 return filter
