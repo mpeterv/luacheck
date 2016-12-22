@@ -1,11 +1,15 @@
 # Change Log
 
-## 0.17.1 (unreleased)
+## 0.17.1 (2016-12-22)
 
 ### Fixes
 
 * Fixed error when using cache and there are warnings with
   codes `314` or `521`.
+* Globals in `rockspec` std and `ngx` global in `ngx_lua` std are
+  no longer read-only (#87).
+* Reverted changes to exit codes that conflicted with assumptions
+  made by luacheck checker in Syntastic (#85).
 
 ## 0.17.0 (2016-11-18)
 
