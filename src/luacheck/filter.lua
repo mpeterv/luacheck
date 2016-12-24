@@ -200,6 +200,10 @@ local function filters(opts, warning)
       return true
    end
 
+   if warning.code:match("11.") and warning.indirect and not opts.globals[warning.name] then
+      return true
+   end
+
    if warning.code:match("11.") and not warning.module and opts.globals[warning.name] then
       return true
    end

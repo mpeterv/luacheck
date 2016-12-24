@@ -558,6 +558,18 @@ Total: 5 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/read_globals.lua --std=lua52 --globals foo --read-globals bar --no-config")
    end)
 
+   it("detects indirect global indexing", function()
+      assert.equal([[
+Checking spec/samples/indirect_globals.lua        3 warnings
+
+    spec/samples/indirect_globals.lua:2:11-16: accessing undefined variable 'global'
+    spec/samples/indirect_globals.lua:5:1-8: indirectly mutating read-only global variable 'table'
+    spec/samples/indirect_globals.lua:5:32-37: accessing undefined variable 'global'
+
+Total: 3 warnings / 0 errors in 1 file
+]], get_output "spec/samples/indirect_globals.lua --std=min --ranges --no-config")
+   end)
+
    it("allows showing warning codes", function()
       assert.equal([[
 Checking spec/samples/read_globals.lua            5 warnings
@@ -955,7 +967,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
    end)
 
    it("expands folders", function()
-      assert.matches("^Total: %d+ warnings / %d+ errors in 21 files\n$", get_output "spec/samples -qqq --no-config")
+      assert.matches("^Total: %d+ warnings / %d+ errors in 22 files\n$", get_output "spec/samples -qqq --no-config")
    end)
 
    it("uses --include-files when expanding folders", function()
@@ -1105,6 +1117,7 @@ Checking spec/samples/compat.lua                  4 warnings
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
 Checking spec/samples/global_inline_options.lua   3 warnings
 Checking spec/samples/globals.lua                 2 warnings
+Checking spec/samples/indirect_globals.lua        3 warnings
 Checking spec/samples/inline_options.lua          7 warnings / 2 errors
 Checking spec/samples/python_code.lua             1 error
 Checking spec/samples/read_globals.lua            5 warnings
@@ -1113,7 +1126,7 @@ Checking spec/samples/redefined.lua               7 warnings
 Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
 
-Total: 54 warnings / 4 errors in 14 files
+Total: 57 warnings / 4 errors in 15 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
          end)
@@ -1125,6 +1138,7 @@ Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
+Checking indirect_globals.lua                     3 warnings
 Checking inline_options.lua                       7 warnings / 2 errors
 Checking python_code.lua                          1 error
 Checking read_globals.lua                         5 warnings
@@ -1133,7 +1147,7 @@ Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 54 warnings / 4 errors in 14 files
+Total: 57 warnings / 4 errors in 15 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq", "spec/samples/"))
          end)
 
@@ -1144,13 +1158,14 @@ Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
+Checking indirect_globals.lua                     3 warnings
 Checking inline_options.lua                       7 warnings / 2 errors
 Checking python_code.lua                          1 error
 Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 46 warnings / 4 errors in 12 files
+Total: 49 warnings / 4 errors in 13 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 

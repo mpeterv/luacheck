@@ -5,6 +5,7 @@ local reachability = require "luacheck.reachability"
 local inline_options = require "luacheck.inline_options"
 local utils = require "luacheck.utils"
 local check_whitespace = require "luacheck.whitespace"
+local detect_globals = require "luacheck.detect_globals"
 
 local function is_secondary(value)
    return value.secondaries and value.secondaries.used
@@ -38,13 +39,27 @@ local type_codes = {
    loopi = "3"
 }
 
-function ChState:warn_global(node, action, is_top)
+-- `index` describes an indexing, where `index[1]` is a global node
+-- and other items descrive keys: each one is a string node, "not_string",
+-- or "unknown". `node` is literal base node that's indexed.
+-- E.g. in `local a = table.a; a.b = "c"` `node` is `a` node of the second
+-- statement and `index` describes `table.a.b`.
+function ChState:warn_global(node, index, is_lhs, is_top_scope)
+   local global = index[1]
+   local action = is_lhs and (#index == 1 and "set" or "mutate") or "access"
+   -- TODO: actually use information about keys.
+   -- TODO: accept information about length of last indexing,
+   -- and filter out the warning if the base of last indexing is already
+   -- undefined and has been reported.
+   -- E.g. avoid useless warning in the second statement of `local t = tabell; t.concat(...)`.
    self:warn({
       code = "11" .. action_codes[action],
-      name = node[1],
+      name = global[1],
       line = node.location.line,
       column = node.location.column,
-      top = is_top and (action == "set") or nil
+      end_column = node.location.column + #node[1] - 1,
+      top = is_top_scope and (action == "set") or nil,
+      indirect = node ~= global or nil
    })
 end
 
@@ -199,6 +214,7 @@ local function check_or_throw(src)
    check_whitespace(chstate, src)
    analyze(chstate, line)
    reachability(chstate, line)
+   detect_globals(chstate, line)
    local events, per_line_opts = inline_options.get_events(ast, comments, code_lines, chstate.warnings)
    return {events = events, per_line_options = per_line_opts}
 end

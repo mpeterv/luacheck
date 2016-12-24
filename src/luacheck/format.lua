@@ -19,7 +19,13 @@ local message_formats = {
    ["112"] = "mutating non-standard global variable {name!}",
    ["113"] = "accessing undefined variable {name!}",
    ["121"] = "setting read-only global variable {name!}",
-   ["122"] = "mutating read-only global variable {name!}",
+   ["122"] = function(w)
+      if w.indirect then
+         return "indirectly mutating read-only global variable {name!}"
+      else
+         return "mutating read-only global variable {name!}"
+      end
+   end,
    ["131"] = "unused global variable {name!}",
    ["211"] = function(w)
       if w.func then

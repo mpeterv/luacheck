@@ -41,7 +41,8 @@ build = {
       ["luacheck.globbing"] = "src/luacheck/globbing.lua",
       ["luacheck.utils"] = "src/luacheck/utils.lua",
       ["luacheck.argparse"] = "src/luacheck/argparse.lua",
-      ["luacheck.whitespace"] = "src/luacheck/whitespace.lua"
+      ["luacheck.whitespace"] = "src/luacheck/whitespace.lua",
+      ["luacheck.detect_globals"] = "src/luacheck/detect_globals.lua"
    },
    install = {
       bin = {

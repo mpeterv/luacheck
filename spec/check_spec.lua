@@ -71,6 +71,28 @@ a[1] = 6
 ]])
    end)
 
+   it("detects indirect global field access", function()
+      assert.same({
+         {code = "113", name = "b", line = 2, column = 15, end_column = 15},
+         {code = "113", name = "b", line = 3, column = 8, end_column = 12, indirect = true}
+      }, check[[
+local c = "foo"
+local alias = b[1]
+return alias[2][c]
+]])
+   end)
+
+   it("detects indirect global field mutation", function()
+      assert.same({
+         {code = "113", name = "b", line = 2, column = 15, end_column = 15},
+         {code = "112", name = "b", line = 3, column = 1, end_column = 5, indirect = true}
+      }, check[[
+local c = "foo"
+local alias = b[1]
+alias[2][c] = c
+]])
+   end)
+
    it("detects unused locals", function()
       assert.same({
          {code = "211", name = "a", line = 1, column = 7, end_column = 7},
