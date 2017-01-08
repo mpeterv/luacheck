@@ -101,6 +101,12 @@ previously.]])
          :argname "<global>"
          :action "concat"
          :init(nil)
+      parser:option("--not-globals", "Remove custom and standard globals.")
+         :args "*"
+         :count "*"
+         :argname "<global>"
+         :action "concat"
+         :init(nil)
       parser:flag("-c --compat", "Equivalent to --std max.")
       parser:flag("-d --allow-defined", "Allow defining globals implicitly by setting them.")
       parser:flag("-t --allow-defined-top", [[Allow defining globals implicitly by setting them in
