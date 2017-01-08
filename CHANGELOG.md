@@ -1,5 +1,19 @@
 # Change Log
 
+## 0.18.0 (unreleased)
+
+### New features and improvements
+
+* Indirect mutations of read-only globals through local aliases
+  are now detected (e.g. `local t = table; t.foo = "bar"`).
+* Luacheck exit codes are now documented.
+
+### Fixes
+
+* Warnings that are explictly enabled by inline options are
+  now correctly reported. E.g. `--luacheck: std none` now
+  results in warnings for any used globals (#51).
+
 ## 0.17.1 (2016-12-22)
 
 ### Fixes
