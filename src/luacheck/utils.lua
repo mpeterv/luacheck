@@ -118,6 +118,12 @@ function utils.update(t1, t2)
    return t1
 end
 
+function utils.remove(t1, t2)
+   for k in pairs(t2) do
+      t1[k] = nil
+   end
+end
+
 local class_metatable = {}
 
 function class_metatable.__call(class, ...)

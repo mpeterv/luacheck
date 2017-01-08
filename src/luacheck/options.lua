@@ -160,21 +160,37 @@ local function get_std_sets(opts_stack)
    return std_globals, std_read_globals
 end
 
-local function get_globals(opts_stack, key)
-   local globals_lists = {}
+local function get_globals(opts_stack)
+   local all_globals = {}
+   local all_read_globals = {}
 
-   for _, opts in utils.ripairs(opts_stack) do
-      if opts["new_" .. key] then
-         table.insert(globals_lists, opts["new_" .. key])
-         break
+   for _, opts in ipairs(opts_stack) do
+      -- When defining read-only or normal globals, keep their sets disjoined.
+
+      if opts.new_read_globals then
+         all_read_globals = utils.array_to_set(opts.new_read_globals)
+         utils.remove(all_globals, all_read_globals)
       end
 
-      if opts[key] then
-         table.insert(globals_lists, opts[key])
+      if opts.read_globals then
+         local read_globals = utils.array_to_set(opts.read_globals)
+         utils.update(all_read_globals, read_globals)
+         utils.remove(all_globals, read_globals)
+      end
+
+      if opts.new_globals then
+         all_globals = utils.array_to_set(opts.new_globals)
+         utils.remove(all_read_globals, all_globals)
+      end
+
+      if opts.globals then
+         local globals = utils.array_to_set(opts.globals)
+         utils.update(all_globals, globals)
+         utils.remove(all_read_globals, globals)
       end
    end
 
-   return utils.concat_arrays(globals_lists)
+   return all_globals, all_read_globals
 end
 
 local function get_boolean_opt(opts_stack, option)
@@ -290,16 +306,11 @@ end
 function options.normalize(opts_stack)
    local res = {}
 
-   res.globals = utils.array_to_set(get_globals(opts_stack, "globals"))
-   res.read_globals = utils.array_to_set(get_globals(opts_stack, "read_globals"))
+   res.globals, res.read_globals = get_globals(opts_stack)
    local std_globals, std_read_globals = get_std_sets(opts_stack)
    utils.update(res.globals, std_globals)
    utils.update(res.read_globals, std_read_globals)
-
-   for k in pairs(res.globals) do
-      res.read_globals[k] = nil
-   end
-
+   utils.remove(res.read_globals, res.globals)
    utils.update(res.globals, res.read_globals)
 
    for i, option in ipairs {"unused_secondaries", "self", "inline", "module", "allow_defined", "allow_defined_top"} do

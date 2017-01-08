@@ -666,11 +666,13 @@ Total: 5 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/read_globals_inline_options.lua --std=lua52 --no-config")
 
       assert.equal([[
-Checking spec/samples/read_globals_inline_options.lua 1 warning
+Checking spec/samples/read_globals_inline_options.lua 3 warnings
 
+    spec/samples/read_globals_inline_options.lua:3:1: setting read-only global variable 'foo'
     spec/samples/read_globals_inline_options.lua:3:16: mutating read-only global variable 'baz'
+    spec/samples/read_globals_inline_options.lua:5:1: setting read-only global variable 'foo'
 
-Total: 1 warning / 0 errors in 1 file
+Total: 3 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/read_globals_inline_options.lua --std=lua52 --read-globals baz --globals foo --no-config")
    end)
 
