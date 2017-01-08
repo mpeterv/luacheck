@@ -29,6 +29,7 @@ Codes Additional fields
 ===== ========================================================================================
 011   ``msg`` field contains syntax error message.
 111   ``module`` field indicates that assignment is to a non-module global variable.
+122   ``indirect`` field indicates that the global was mutated using a local alias.
 211   ``func`` field indicates that unused variable is a function.
 211   ``recursive`` field indicates that unused function is recursive.
 211   ``mutually_recursive`` field is set for unused mutually recursive functions.
