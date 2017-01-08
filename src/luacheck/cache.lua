@@ -9,12 +9,12 @@ local cache = {}
 -- third is check result in lua table format.
 -- String fields are compressed into array indexes.
 
-cache.format_version = 12
+cache.format_version = 13
 
 local option_fields = {
    "ignore", "std", "globals", "unused_args", "self", "compat", "global", "unused", "redefined",
    "unused_secondaries", "allow_defined", "allow_defined_top", "module",
-   "read_globals", "new_globals", "new_read_globals", "enable", "only"
+   "read_globals", "new_globals", "new_read_globals", "enable", "only", "not_globals"
 }
 
 local event_fields = {

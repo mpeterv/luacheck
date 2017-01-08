@@ -124,10 +124,11 @@ describe("options", function()
          local opts = options.normalize({
             {
                std = "lua52",
-               globals = {"foo", "bar"},
+               globals = {"foo", "bar", "removed"},
                read_globals = {"baz"}
             }, {
                new_read_globals = {"quux"},
+               not_globals = {"removed", "unrelated", "print"}
             }
          })
          local globals = opts.globals
@@ -138,6 +139,10 @@ describe("options", function()
          assert.is_truthy(globals.quux)
          assert.is_truthy(read_globals.quux)
          assert.is_truthy(read_globals.string)
+         assert.is_nil(globals.removed)
+         assert.is_nil(globals.unrelated)
+         assert.is_nil(globals.print)
+         assert.is_nil(read_globals.print)
          assert.is_nil(read_globals._ENV)
          assert.is_truthy(globals.string)
          assert.is_truthy(globals._ENV)
