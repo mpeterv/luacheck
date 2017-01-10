@@ -31,6 +31,7 @@ Option                 Type                                    Default value
 ``new_globals``        Array of strings                        (Do not overwrite)
 ``read_globals``       Array of strings                        ``{}``
 ``new_read_globals``   Array of strings                        (Do not overwrite)
+``not_globals``        Array of strings                        ``{}``
 ``compat``             Boolean                                 ``false``
 ``allow_defined``      Boolean                                 ``false``
 ``allow_defined_top``  Boolean                                 ``false``

@@ -21,6 +21,7 @@ globals            0+
 new globals        0+
 read globals       0+
 new read globals   0+
+not globals        0+
 ignore             0+ (without arguments everything is ignored)
 enable             1+
 only               1+

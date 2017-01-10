@@ -88,6 +88,7 @@ Option                                  Meaning
 ``--read-globals [<global>] ...``       Add read-only globals.
 ``--new-globals [<global>] ...``        Set custom globals. Removes custom globals added previously.
 ``--new-read-globals [<global>] ...``   Set read-only globals. Removes read-only globals added previously.
+``--not-globals [<global>] ...``        Remove custom and standard globals.
 ``-c | --compat``                       Equivalent to ``--std max``.
 ``-d | --allow-defined``                Allow defining globals implicitly by setting them.
 
