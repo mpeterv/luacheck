@@ -1,13 +1,13 @@
 # Change Log
 
-## 0.18.0 (unreleased)
+## 0.18.0 (2017-01-10)
 
 ### New features and improvements
 
 * Indirect mutations of read-only globals through local aliases
   are now detected (e.g. `local t = table; t.foo = "bar"`).
 * New CLI, config, and inline option `not_globals` for removing
-  defined standard and custom globals.
+  defined standard and custom globals (#88).
 * Custom globals defined as mutable using `globals` option
   can now be set to read-only using `read_globals` option
   in overwriting settings (previously `globals` had priority
