@@ -99,6 +99,8 @@ Option                                  Meaning
 ``-m | --module``                       Limit visibility of implicitly defined globals to their files.
 
                                         See :ref:`modules`
+``--max-line-length <length``           Set maximum allowed line length (default: 120).
+``--no-max-line-length``                Do not limit line length.
 ``--ignore | -i <patt> [<patt>] ...``   Filter out warnings matching patterns.
 ``--enable | -e <patt> [<patt>] ...``   Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``     Filter out warnings not matching patterns.

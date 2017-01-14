@@ -10,9 +10,9 @@ Config is simply a Lua script executed by ``luacheck``. It may set various optio
 Config options
 --------------
 
-====================== ======================================= ==================
+====================== ======================================= ===================
 Option                 Type                                    Default value
-====================== ======================================= ==================
+====================== ======================================= ===================
 ``color``              Boolean                                 ``true``
 ``codes``              Boolean                                 ``false``
 ``formatter``          String or function                      ``"default"``
@@ -36,11 +36,12 @@ Option                 Type                                    Default value
 ``allow_defined``      Boolean                                 ``false``
 ``allow_defined_top``  Boolean                                 ``false``
 ``module``             Boolean                                 ``false``
+``max_line_length``    Number or ``false``                     ``120``
 ``ignore``             Array of patterns (see :ref:`patterns`) ``{}``
 ``enable``             Array of patterns                       ``{}``
 ``only``               Array of patterns                       (Do not filter)
 ``inline``             Boolean                                 ``true``
-====================== ======================================= ==================
+====================== ======================================= ===================
 
 An example of a config which makes ``luacheck`` ensure that only globals from the portable intersection of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:
 

@@ -36,6 +36,7 @@ Codes Additional fields
 314   ``field`` field contains string representation of ununsed field or index.
 4..   ``prev_line`` and ``prev_column`` fields contain location of the overwritten definition.
 521   ``label`` field contains label name.
+631   ``max_length`` field contains maximum allowed line length.
 ===== ========================================================================================
 
 Other fields may be present for internal reasons.

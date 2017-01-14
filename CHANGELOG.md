@@ -4,6 +4,9 @@
 
 ### New features and improvements
 
+* Lines that are longer than some maximum length are now reported.
+  Default limit is 120. Limit can be changed using `max_line_length`
+  option.
 * Warnings related to trailing whitespace in comments
   and inside string literals now use separate warning codes.
 
