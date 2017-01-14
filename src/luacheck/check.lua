@@ -203,7 +203,7 @@ function ChState:warn_empty_statement(location)
 end
 
 local function check_or_throw(src)
-   local ast, comments, code_lines, semicolons = parse(src)
+   local ast, comments, code_lines, line_endings, semicolons = parse(src)
    local chstate = ChState()
    local line = linearize(chstate, ast)
 
@@ -211,7 +211,7 @@ local function check_or_throw(src)
       chstate:warn_empty_statement(location)
    end
 
-   check_whitespace(chstate, src)
+   check_whitespace(chstate, src, line_endings)
    analyze(chstate, line)
    reachability(chstate, line)
    detect_globals(chstate, line)

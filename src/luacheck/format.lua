@@ -81,7 +81,8 @@ local message_formats = {
    ["551"] = "empty statement",
    ["611"] = "line contains only whitespace",
    ["612"] = "line contains trailing whitespace",
-   --["613"] = "trailing whitespace after comment", -- RESERVED for future use
+   ["613"] = "trailing whitespace in a string",
+   ["614"] = "trailing whitespace in a comment",
    ["621"] = "inconsistent indentation (SPACE followed by TAB)",
 }
 

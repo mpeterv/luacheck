@@ -122,18 +122,20 @@ Total: 5 warnings / 0 errors in 1 file
 
    it("detects whitespace issues", function()
       assert.equal([[
-Checking spec/samples/bad_whitespace.lua          8 warnings
+Checking spec/samples/bad_whitespace.lua          10 warnings
 
     spec/samples/bad_whitespace.lua:4:26: line contains trailing whitespace
-    spec/samples/bad_whitespace.lua:8:25: line contains trailing whitespace
-    spec/samples/bad_whitespace.lua:13:40: line contains trailing whitespace
-    spec/samples/bad_whitespace.lua:17:1: line contains only whitespace
-    spec/samples/bad_whitespace.lua:18:1: line contains only whitespace
-    spec/samples/bad_whitespace.lua:19:1: line contains only whitespace
-    spec/samples/bad_whitespace.lua:20:1: line contains only whitespace
-    spec/samples/bad_whitespace.lua:25:1: inconsistent indentation (SPACE followed by TAB)
+    spec/samples/bad_whitespace.lua:8:25: trailing whitespace in a comment
+    spec/samples/bad_whitespace.lua:14:20: trailing whitespace in a string
+    spec/samples/bad_whitespace.lua:17:30: trailing whitespace in a comment
+    spec/samples/bad_whitespace.lua:22:40: trailing whitespace in a comment
+    spec/samples/bad_whitespace.lua:26:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:27:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:28:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:29:1: line contains only whitespace
+    spec/samples/bad_whitespace.lua:34:1: inconsistent indentation (SPACE followed by TAB)
 
-Total: 8 warnings / 0 errors in 1 file
+Total: 10 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/bad_whitespace.lua --no-config")
       assert.equal(1, get_exitcode "spec/samples/bad_whitespace.lua --no-config")
    end)

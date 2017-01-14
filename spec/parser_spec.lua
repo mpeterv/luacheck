@@ -1028,12 +1028,14 @@ long comment]=]
       end)
 
       it("provides lines with code correctly", function()
-         -- EOS is considered "code" (which does not matter w.r.t inline options).
-         assert.same({nil, true, true, true, true, true, nil, nil, true, true, true}, get_code_lines([[
+         assert.same({nil, true, true, true, true, true, true, true, true, nil, nil, true, true}, get_code_lines([[
 -- nothing here
 local foo = 2
 +
 3
++
+[=[
+]=]
 +
 {
    --[=[empty]=]

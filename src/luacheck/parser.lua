@@ -5,6 +5,8 @@ local function new_state(src)
    return {
       lexer = lexer.new_state(src),
       code_lines = {}, -- Set of line numbers containing code.
+      line_endings = {}, -- Maps line numbers to "comment", "string", or nil based on whether
+                         -- the line ending is within a token.
       comments = {}, -- Array of {comment = string, location = location}.
       hanging_semicolons = {} -- Array of locations of semicolons not following a statement.
    }
@@ -22,6 +24,12 @@ local function token_body_or_line(state)
    return state.lexer.src:sub(state.offset, state.lexer.offset - 1):match("^[^\r\n]*")
 end
 
+local function mark_line_endings(state, first_line, last_line, token_type)
+   for line = first_line, last_line - 1 do
+      state.line_endings[line] = token_type
+   end
+end
+
 local function skip_token(state)
    while true do
       local err_end_column
@@ -35,8 +43,15 @@ local function skip_token(state)
             location = location(state),
             end_column = state.column + #token_body_or_line(state) - 1
          }
+
+         mark_line_endings(state, state.line, state.lexer.line, "comment")
       else
-         state.code_lines[state.line] = true
+         if state.token ~= "eof" then
+            mark_line_endings(state, state.line, state.lexer.line, "string")
+            state.code_lines[state.line] = true
+            state.code_lines[state.lexer.line] = true
+         end
+
          break
       end
    end
@@ -711,14 +726,15 @@ end
 
 -- Parses source string.
 -- Returns AST (in almost MetaLua format), array of comments - tables {comment = string, location = location},
--- set of line numbers containing code, and array of locations of empty statements (semicolons).
+-- set of line numbers containing code, map of types of tokens wrapping line endings (nil, "string", or "comment"),
+-- and array of locations of empty statements (semicolons).
 -- On error throws {line = line, column = column, end_column = end_column, msg = msg}
 local function parse(src)
    local state = new_state(src)
    skip_token(state)
    local ast = parse_block(state)
    check_token(state, "eof")
-   return ast, state.comments, state.code_lines, state.hanging_semicolons
+   return ast, state.comments, state.code_lines, state.line_endings, state.hanging_semicolons
 end
 
 return parse

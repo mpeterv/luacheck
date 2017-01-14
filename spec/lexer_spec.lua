@@ -126,7 +126,7 @@ bar"]]))
          assert.same({token = "string", token_value = "foo "}, get_token([["foo \z"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo \zbar"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo \z bar"]]))
-         -- luacheck: ignore 612
+         -- luacheck: ignore 613
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo \z 
 
             bar\z "]]))
