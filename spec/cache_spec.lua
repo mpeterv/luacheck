@@ -14,6 +14,8 @@ end)
 
 describe("cache", function()
    describe("serialize", function()
+      -- luacheck: no max line length
+
       it("returns serialized result", function()
          assert.same(
             [[return {{{"111","foo",5,100,102},{"211","bar",4,1,3,[8]=true},{"011",[4]=100000,[12]="near '\"'"}},{}}]],
@@ -30,14 +32,15 @@ describe("cache", function()
 
       it("puts repeating string values into locals", function()
          assert.same(
-            [[local A,B="111","foo";return {{{A,B,5,100},{A,B,6,100,[8]=true},{"011",[4]=100000,[12]="near '\"'"}},{}}]],
+            [[local A,B="111","foo";return {{{A,B,5,100},{A,B,6,100,[8]=true},{"011",[4]=100000,[12]="near '\"'"}},{},{}}]],
             cache.serialize({
                events = {
                   {code = "111", name = "foo", line = 5, column = 100},
                   {code = "111", name = "foo", line = 6, column = 100, secondary = true},
                   {code = "011", column = 100000, msg = "near '\"'"}
                },
-               per_line_options = {}
+               per_line_options = {},
+               line_lengths = {}
             })
          )
       end)
@@ -51,7 +54,7 @@ describe("cache", function()
             'return {{{A,A},{B,B},{C,C},{D,D},{E,E},{F,F},{G,G},{H,H},{I,I},{J,J},{K,K},{L,L},{M,M},{N,N},{O,O},' ..
             '{P,P},{Q,Q},{R,R},{S,S},{T,T},{U,U},{V,V},{W,W},{X,X},{Y,Y},{Z,Z},' ..
             '{a,a},{b,b},{c,c},{d,d},{e,e},{f,f},{g,g},{h,h},{i,i},{j,j},{k,k},{l,l},{m,m},{n,n},{o,o},' ..
-            '{p,p},{q,q},{r,r},{s,s},{t,t},{u,u},{v,v},{w,w},{x,x},{y,y},{z,z},{"163","163"},{"164","164"}},{}}',
+            '{p,p},{q,q},{r,r},{s,s},{t,t},{u,u},{v,v},{w,w},{x,x},{y,y},{z,z},{"163","163"},{"164","164"}},{},{}}',
             cache.serialize({
                events = {
                   {code = "111", name = "111"}, {code = "112", name = "112"},
@@ -82,17 +85,19 @@ describe("cache", function()
                   {code = "161", name = "161"}, {code = "162", name = "162"},
                   {code = "163", name = "163"}, {code = "164", name = "164"}
                },
-               per_line_options = {}
+               per_line_options = {},
+               line_lengths = {}
             })
          )
       end)
 
       it("handles error result", function()
-         assert.same('return {{{"011",[3]=2,[4]=4,[12]="message"}},{}}', cache.serialize({
+         assert.same('return {{{"011",[3]=2,[4]=4,[12]="message"}},{},{}}', cache.serialize({
             events = {
                {code = "011", line = 2, column = 4, msg = "message"}
             },
-            per_line_options = {}
+            per_line_options = {},
+            line_lengths = {}
          }))
       end)
    end)
@@ -118,7 +123,8 @@ describe("cache", function()
             events = {
                code and {code = code}
             },
-            per_line_options = {}
+            per_line_options = {},
+            line_lengths = {}
          }
       end
 
@@ -130,10 +136,10 @@ describe("cache", function()
 0
 foo
 1
-return {{{"112"}},{}}
+return {{{"112"}},{},{}}
 bar
 2
-return {{},{}}
+return {{},{},{}}
 ]], data)
       end)
 
@@ -148,13 +154,13 @@ return {{},{}}
 0
 foo
 1
-return {{{"112"}},{}}
+return {{{"112"}},{},{}}
 bar
 2
-return {{},{}}
+return {{},{},{}}
 baz
 3
-return {{{"122"}},{}}
+return {{{"122"}},{},{}}
 ]], data)
       end)
 
@@ -169,13 +175,13 @@ return {{{"122"}},{}}
 0
 foo
 4
-return {{},{}}
+return {{},{},{}}
 bar
 2
-return {{},{}}
+return {{},{},{}}
 baz
 3
-return {{{"122"}},{}}
+return {{{"122"}},{},{}}
 ]], data)
       end)
    end)
@@ -226,12 +232,14 @@ return {{{"122"}},{}}
                   {options = {std = "max"}, line = 1000, column = 1},
                   {options = {std = "another_bad_std"}, line = 1000, column = 20}
                }
-            }
+            },
+            line_lengths = {10, 20, 30}
          }
 
          local bar_report = {
             events = {{code = "011", line = 2, column = 4, msg = "message"}},
-            per_line_options = {}
+            per_line_options = {},
+            line_lengths = {40, 50}
          }
 
          before_each(function()

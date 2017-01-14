@@ -33,7 +33,8 @@ end
 local function skip_token(state)
    while true do
       local err_end_column
-      state.token, state.token_value, state.line, state.column, state.offset, err_end_column = lexer.next_token(state.lexer)
+      state.token, state.token_value, state.line,
+         state.column, state.offset, err_end_column = lexer.next_token(state.lexer)
 
       if not state.token then
          lexer.syntax_error(state, err_end_column, state.token_value)

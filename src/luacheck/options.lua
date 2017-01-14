@@ -29,6 +29,10 @@ local function std_or_array_of_strings(x)
    return array_of_strings(x) or (type(x) == "string" and options.split_std(x))
 end
 
+local function number_or_false(x)
+   return x == false or type(x) == "number"
+end
+
 function options.add_order(option_set)
    local opts = {}
 
@@ -68,6 +72,7 @@ options.variadic_inline_options = {
 
 options.all_options = {
    std = std_or_array_of_strings,
+   max_line_length = number_or_false,
    inline = boolean
 }
 
@@ -202,12 +207,14 @@ local function get_globals(opts_stack)
    return all_globals, all_read_globals, all_not_globals
 end
 
-local function get_boolean_opt(opts_stack, option)
+local function get_scalar_opt(opts_stack, option, default)
    for _, opts in utils.ripairs(opts_stack) do
       if opts[option] ~= nil then
          return opts[option]
       end
    end
+
+   return default
 end
 
 local function anchor_pattern(pattern, only_start)
@@ -306,6 +313,16 @@ local function normalize_patterns(rules)
    return res
 end
 
+local scalar_options = {
+   unused_secondaries = true,
+   self = true,
+   inline = true,
+   module = false,
+   allow_defined = false,
+   allow_defined_top = false,
+   max_line_length = 120
+}
+
 -- Returns normalized options.
 -- Normalized options have fields:
 --    globals: set of strings;
@@ -327,14 +344,8 @@ function options.normalize(opts_stack)
    utils.remove(res.read_globals, res.globals)
    utils.update(res.globals, res.read_globals)
 
-   for i, option in ipairs {"unused_secondaries", "self", "inline", "module", "allow_defined", "allow_defined_top"} do
-      local value = get_boolean_opt(opts_stack, option)
-
-      if value == nil then
-         res[option] = i < 4
-      else
-         res[option] = value
-      end
+   for option, default in pairs(scalar_options) do
+      res[option] = get_scalar_opt(opts_stack, option, default)
    end
 
    res.rules = normalize_patterns(get_rules(opts_stack))

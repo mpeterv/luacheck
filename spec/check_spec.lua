@@ -484,7 +484,8 @@ end
       assert.same({
          {code = "212", name = "self", line = 2, column = 11, end_column = 11, self = true},
          {code = "212", name = "self", line = 4, column = 14, end_column = 14, self = true},
-         {code = "432", name = "self", line = 4, column = 14, end_column = 14, self = true, prev_line = 2, prev_column = 11}
+         {code = "432", name = "self", line = 4, column = 14, end_column = 14, self = true,
+            prev_line = 2, prev_column = 11}
       }, check[[
 local t = {}
 function t:f()
@@ -795,7 +796,7 @@ return foo;
 ]])
    end)
 
-   it("emits events and per-line options for inline options", function()
+   it("emits events, per-line options, and line lengths", function()
       assert:set_parameter("TableFormatLevel", math.huge)
       assert.same({
          events = {
@@ -813,7 +814,8 @@ return foo;
          },
          per_line_options = {
             [2] = {{options = {ignore = {"foo"}}, line = 2, column = 16, end_column = 38}}
-         }
+         },
+         line_lengths = {28, 38, 16, 17, 19, 17, 32, 16, 3}
       }, check_full[[
 -- luacheck: push ignore bar
 local foo, bar -- luacheck: ignore foo

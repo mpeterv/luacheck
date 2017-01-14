@@ -20,8 +20,9 @@ local function global_error_handler(err)
    if type(err) == "table" and err.pattern then
       critical("Invalid pattern '" .. err.pattern .. "'")
    else
-      critical(debug.traceback(
-         ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(luacheck._VERSION, err), 2))
+      local msg = ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(
+         luacheck._VERSION, err)
+      critical(debug.traceback(msg, 2))
    end
 end
 
@@ -53,7 +54,8 @@ Equivalent to --ignore 4.]]):target("redefined"):action("store_false")
 loop variables. Equivalent to --ignore 21[23].]]):target("unused_args"):action("store_false")
       parser:flag("-s --no-unused-secondaries", [[Filter out warnings related to unused variables set
 together with used ones.]]):target("unused_secondaries"):action("store_false")
-      parser:flag("--no-self", "Filter out warnings related to implicit self argument."):target("self"):action("store_false")
+      parser:flag("--no-self", "Filter out warnings related to implicit self argument.")
+         :target("self"):action("store_false")
 
       parser:option("--std", [[Set standard globals. <std> can be one of:
    _G (default) - globals of the current Lua
@@ -113,6 +115,13 @@ previously.]])
 the top level scope.]])
       parser:flag("-m --module", [[Limit visibility of implicitly defined globals to
 their files.]])
+
+      parser:option("--max-line-length", "Set maximum allowed line length (default: 120).")
+         :argname "<length>"
+         :convert(tonumber)
+      parser:flag("--no-max-line-length", "Do not limit line length.")
+         :action "store_false"
+         :target "max_line_length"
 
       parser:option("--ignore -i", [[Filter out warnings matching these patterns.
 If a pattern contains slash, part before slash matches
@@ -210,7 +219,8 @@ patterns.]])
    end
 
    local function is_included(args, name)
-      return not match_any(args.exclude_files, name) and (#args.include_files == 0 or match_any(args.include_files, name))
+      return not match_any(args.exclude_files, name) and (
+         #args.include_files == 0 or match_any(args.include_files, name))
    end
 
    -- Expands folders, rockspecs, -
@@ -346,7 +356,8 @@ patterns.]])
          ("Couldn't load cache from %s: data corrupted"):format(cache_filename))
    end
 
-   -- Returns sparse array of sources of files that need to be checked, updates bad_files with files that had I/O issues.
+   -- Returns sparse array of sources of files that need to be checked,
+   -- updates bad_files with files that had I/O issues.
    local function get_srcs_to_check(cached_reports, files, bad_files)
       local res = {}
 

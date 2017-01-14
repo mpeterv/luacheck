@@ -70,6 +70,17 @@ local function get_options(body)
                   -- Array option with 'no' prefix is invalid.
                   return
                end
+            elseif name == "max_line_length" then
+               -- Either `max line length <number>` or `no max line length`.
+               if flag and #args == 1 and tonumber(args[1]) then
+                  opts.max_line_length = tonumber(args[1])
+                  break
+               elseif not flag and #args == 0 then
+                  opts.max_line_length = false
+                  break
+               else
+                  return
+               end
             elseif #args == 0 then
                if options.nullary_inline_options[name] then
                   opts[name] = flag
@@ -148,7 +159,8 @@ local function add_inline_options(events, comments, code_lines)
       if body then
          -- Remove comments in balanced parens.
          body = body:gsub("%b()", " ")
-         add_inline_option(events, per_line_opts, body, comment.location, comment.end_column, code_lines[comment.location.line])
+         add_inline_option(events, per_line_opts, body,
+            comment.location, comment.end_column, code_lines[comment.location.line])
       end
    end
 

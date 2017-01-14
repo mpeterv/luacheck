@@ -457,7 +457,8 @@ describe("process_reports", function()
          warnings = 1,
          errors = 0,
          fatals = 0
-      }, strip_locations(luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")})))
+      }, strip_locations(luacheck.process_reports(
+         {luacheck.get_report("return foo"), luacheck.get_report("return math")})))
    end)
 
    it("uses options", function()
@@ -477,7 +478,8 @@ describe("process_reports", function()
          warnings = 2,
          errors = 0,
          fatals = 0
-      }, strip_locations(luacheck.process_reports({luacheck.get_report("return foo"), luacheck.get_report("return math")}, {
+      }, strip_locations(luacheck.process_reports(
+         {luacheck.get_report("return foo"), luacheck.get_report("return math")}, {
          std = "none"
       })))
    end)

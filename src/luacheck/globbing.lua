@@ -100,7 +100,8 @@ local function parts_match(glob_parts, glob_i, path_parts, path_i)
    end
 
    local path_part = path_parts[path_i]
-   return path_part and part_match(glob_part, path_part) and parts_match(glob_parts, glob_i + 1, path_parts, path_i + 1)
+   return path_part and part_match(glob_part, path_part) and (
+      parts_match(glob_parts, glob_i + 1, path_parts, path_i + 1))
 end
 
 -- Checks if a path matches a globbing pattern.

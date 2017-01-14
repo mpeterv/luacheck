@@ -9,12 +9,13 @@ local cache = {}
 -- third is check result in lua table format.
 -- String fields are compressed into array indexes.
 
-cache.format_version = 15
+cache.format_version = 16
 
 local option_fields = {
    "ignore", "std", "globals", "unused_args", "self", "compat", "global", "unused", "redefined",
    "unused_secondaries", "allow_defined", "allow_defined_top", "module",
-   "read_globals", "new_globals", "new_read_globals", "enable", "only", "not_globals"
+   "read_globals", "new_globals", "new_read_globals", "enable", "only", "not_globals",
+   "max_line_length"
 }
 
 local event_fields = {
@@ -52,6 +53,7 @@ local function compress_report(report)
       res[2][line] = utils.map(compress, events)
    end
 
+   res[3] = report.line_lengths
    return res
 end
 
@@ -84,6 +86,7 @@ local function decompress_report(compressed)
       report.per_line_options[line] = utils.map(decompress, events)
    end
 
+   report.line_lengths = compressed[3]
    return report
 end
 

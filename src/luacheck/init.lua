@@ -42,7 +42,8 @@ end
 
 -- Returns report for a string.
 function luacheck.get_report(src)
-   assert(type(src) == "string", ("bad argument #1 to 'luacheck.get_report' (string expected, got %s)"):format(type(src)))
+   local msg = ("bad argument #1 to 'luacheck.get_report' (string expected, got %s)"):format(type(src))
+   assert(type(src) == "string", msg)
    return check(src)
 end
 
@@ -50,7 +51,8 @@ end
 -- Options are applied to reports[i] in order: options, options[i], options[i][1], options[i][2], ...
 -- Returns new array of reports, adds .warnings, .errors and .fatals fields to this array.
 function luacheck.process_reports(reports, opts)
-   assert(type(reports) == "table", ("bad argument #1 to 'luacheck.process_reports' (table expected, got %s)"):format(type(reports)))
+   local msg = ("bad argument #1 to 'luacheck.process_reports' (table expected, got %s)"):format(type(reports))
+   assert(type(reports) == "table", msg)
    validate_options("luacheck.process_reports", reports, opts)
    local report = filter.filter(reports, opts)
    report.warnings = 0
@@ -77,12 +79,13 @@ end
 -- Checks strings with options, returns report.
 -- Tables with .fatal field are unchanged.
 function luacheck.check_strings(srcs, opts)
-   assert(type(srcs) == "table", ("bad argument #1 to 'luacheck.check_strings' (table expected, got %s)"):format(type(srcs)))
+   local msg = ("bad argument #1 to 'luacheck.check_strings' (table expected, got %s)"):format(type(srcs))
+   assert(type(srcs) == "table", msg)
 
    for _, item in ipairs(srcs) do
-      assert(type(item) == "string" or type(item) == "table", (
-         "bad argument #1 to 'luacheck.check_strings' (array of strings or tables expected, got %s)"):format(type(item))
-      )
+      msg = ("bad argument #1 to 'luacheck.check_strings' (array of strings or tables expected, got %s)"):format(
+         type(item))
+      assert(type(item) == "string" or type(item) == "table", msg)
    end
 
    validate_options("luacheck.check_strings", srcs, opts)
@@ -101,11 +104,13 @@ function luacheck.check_strings(srcs, opts)
 end
 
 function luacheck.check_files(files, opts)
-   assert(type(files) == "table", ("bad argument #1 to 'luacheck.check_files' (table expected, got %s)"):format(type(files)))
+   local msg = ("bad argument #1 to 'luacheck.check_files' (table expected, got %s)"):format(type(files))
+   assert(type(files) == "table", msg)
 
    for _, item in ipairs(files) do
-      assert(type(item) == "string" or io.type(item) == "file", (
-         "bad argument #1 to 'luacheck.check_files' (array of paths or file handles expected, got %s)"):format(type(item))
+      msg = ("bad argument #1 to 'luacheck.check_files' (array of paths or file handles expected, got %s)"):format(
+         type(item))
+      assert(type(item) == "string" or io.type(item) == "file", msg
       )
    end
 
@@ -122,7 +127,8 @@ function luacheck.check_files(files, opts)
 end
 
 function luacheck.get_message(issue)
-   assert(type(issue) == "table", ("bad argument #1 to 'luacheck.get_message' (table expected, got %s)"):format(type(issue)))
+   local msg = ("bad argument #1 to 'luacheck.get_message' (table expected, got %s)"):format(type(issue))
+   assert(type(issue) == "table", msg)
    return format.get_message(issue)
 end
 

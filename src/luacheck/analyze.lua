@@ -45,7 +45,10 @@ local function value_propogation_callback(line, stack, index, item, visited, var
       end
    end
 
-   if stack[index] or (not visited[index] and (not in_scope(var, index) or item.set_variables and item.set_variables[var])) then
+   local stop_and_save = not visited[index] and (
+      not in_scope(var, index) or item.set_variables and item.set_variables[var])
+
+   if stack[index] or stop_and_save then
       if not item.live_values then
          item.live_values = {}
       end
@@ -159,7 +162,8 @@ local function propogate_closures(line)
                   for _, another_subline in ipairs(line.lines) do
                      if another_subline.set_upvalues[var] then
                         for _, setting_item in ipairs(another_subline.set_upvalues[var]) do
-                           add_resolution(subline, accessing_item, var, setting_item.set_variables[var], var_map == subline.mutated_upvalues)
+                           add_resolution(subline, accessing_item, var,
+                              setting_item.set_variables[var], var_map == subline.mutated_upvalues)
                         end
                      end
                   end

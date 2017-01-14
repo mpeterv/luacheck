@@ -84,6 +84,7 @@ local message_formats = {
    ["613"] = "trailing whitespace in a string",
    ["614"] = "trailing whitespace in a comment",
    ["621"] = "inconsistent indentation (SPACE followed by TAB)",
+   ["631"] = "line is too long ({end_column} > {max_length})"
 }
 
 local function get_message_format(warning)
@@ -326,11 +327,13 @@ function formatters.JUnit(report, file_names)
 
    for file_i, file_report in ipairs(report) do
       if file_report.fatal then
-         table.insert(buf, ([[    <testcase name="%s" classname="%s">]]):format(escape_xml(file_names[file_i]), escape_xml(file_names[file_i])))
+         table.insert(buf, ([[    <testcase name="%s" classname="%s">]]):format(
+            escape_xml(file_names[file_i]), escape_xml(file_names[file_i])))
          table.insert(buf, ([[        <error type="%s"/>]]):format(escape_xml(fatal_type(file_report))))
          table.insert(buf, [[    </testcase>]])
       elseif #file_report == 0 then
-         table.insert(buf, ([[    <testcase name="%s" classname="%s"/>]]):format(escape_xml(file_names[file_i]), escape_xml(file_names[file_i])))
+         table.insert(buf, ([[    <testcase name="%s" classname="%s"/>]]):format(
+            escape_xml(file_names[file_i]), escape_xml(file_names[file_i])))
       else
          for event_i, event in ipairs(file_report) do
             table.insert(buf, ([[    <testcase name="%s:%d" classname="%s">]]):format(

@@ -136,7 +136,10 @@ bar"]]))
          assert.same({token = "string", token_value = "\0buffer exploit"}, get_token([["\0buffer exploit"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo b\97r"]]))
          assert.same({token = "string", token_value = "\1234"}, get_token([["\1234"]]))
-         assert.same({line = 1, column = 2, end_column = 5, msg = "invalid decimal escape sequence '\\300'"}, get_error([["\300"]]))
+         assert.same(
+            {line = 1, column = 2, end_column = 5, msg = "invalid decimal escape sequence '\\300'"},
+            get_error([["\300"]])
+         )
          assert.same({line = 1, column = 2, end_column = 2, msg = "invalid escape sequence '\\'"}, get_error([["\]]))
       end)
 
@@ -144,11 +147,26 @@ bar"]]))
          assert.same({token = "string", token_value = "\0buffer exploit"}, get_token([["\x00buffer exploit"]]))
          assert.same({token = "string", token_value = "foo bar"}, get_token([["foo\x20bar"]]))
          assert.same({token = "string", token_value = "jj"}, get_token([["\x6a\x6A"]]))
-         assert.same({line = 1, column = 2, end_column = 3, msg = "invalid escape sequence '\\X'"}, get_error([["\XFF"]]))
-         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\x\"'"}, get_error([["\x"]]))
-         assert.same({line = 1, column = 2, end_column = 5, msg = "invalid hexadecimal escape sequence '\\x1\"'"}, get_error([["\x1"]]))
-         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\x1'"}, get_error([["\x1]]))
-         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\xx'"}, get_error([["\xxx"]]))
+         assert.same(
+            {line = 1, column = 2, end_column = 3, msg = "invalid escape sequence '\\X'"},
+            get_error([["\XFF"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\x\"'"},
+            get_error([["\x"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 5, msg = "invalid hexadecimal escape sequence '\\x1\"'"},
+            get_error([["\x1"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\x1'"},
+            get_error([["\x1]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 4, msg = "invalid hexadecimal escape sequence '\\xx'"},
+            get_error([["\xxx"]])
+         )
       end)
 
       it("parses utf-8 escape sequences correctly", function()
@@ -162,13 +180,34 @@ bar"]]))
             get_token([["\u{800}\u{FFFF}"]]))
          assert.same({token = "string", token_value = "\240\144\128\128\244\143\191\191"},
             get_token([["\u{10000}\u{10FFFF}"]]))
-         assert.same({line = 1, column = 2, end_column = 10, msg = "invalid UTF-8 escape sequence '\\u{110000'"}, get_error([["\u{110000}"]]))
-         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\u\"'"}, get_error([["\u"]]))
-         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\un'"}, get_error([["\unrelated"]]))
-         assert.same({line = 1, column = 2, end_column = 7, msg = "invalid UTF-8 escape sequence '\\u{11u'"}, get_error([["\u{11unrelated"]]))
-         assert.same({line = 1, column = 2, end_column = 6, msg = "invalid UTF-8 escape sequence '\\u{11'"}, get_error([["\u{11]]))
-         assert.same({line = 1, column = 2, end_column = 5, msg = "invalid UTF-8 escape sequence '\\u{u'"}, get_error([["\u{unrelated}"]]))
-         assert.same({line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\u{'"}, get_error([["\u{]]))
+         assert.same(
+            {line = 1, column = 2, end_column = 10, msg = "invalid UTF-8 escape sequence '\\u{110000'"},
+            get_error([["\u{110000}"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\u\"'"},
+            get_error([["\u"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\un'"},
+            get_error([["\unrelated"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 7, msg = "invalid UTF-8 escape sequence '\\u{11u'"},
+            get_error([["\u{11unrelated"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 6, msg = "invalid UTF-8 escape sequence '\\u{11'"},
+            get_error([["\u{11]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 5, msg = "invalid UTF-8 escape sequence '\\u{u'"},
+            get_error([["\u{unrelated}"]])
+         )
+         assert.same(
+            {line = 1, column = 2, end_column = 4, msg = "invalid UTF-8 escape sequence '\\u{'"},
+            get_error([["\u{]])
+         )
       end)
 
       it("detects unknown escape sequences", function()
@@ -348,7 +387,8 @@ print "1\g
        3\n"
 ]]))
 
-      assert.same({line = 8, column = 9, end_column = 12, msg = "invalid decimal escape sequence '\\300'"}, get_last_error([[
+      assert.same({line = 8, column = 9, end_column = 12, msg = "invalid decimal escape sequence '\\300'"},
+         get_last_error([[
 local function foo(bar)
    return bar:get_foo[=[
 long string

@@ -47,6 +47,8 @@ local function get_exitcode(command)
    end
 end
 
+-- luacheck: max line length 180
+
 describe("cli", function()
    it("exists", function()
       assert.equal(0, get_exitcode "--help")
@@ -546,6 +548,37 @@ Total: 6 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/redefined.lua --globals each --no-config")
    end)
 
+   it("detects lines that are too long", function()
+      assert.equal([[
+Checking spec/samples/line_length.lua             4 warnings
+
+    spec/samples/line_length.lua:2:1: line is too long (123 > 120)
+    spec/samples/line_length.lua:3:1: line is too long (164 > 120)
+    spec/samples/line_length.lua:8:1: line is too long (132 > 120)
+    spec/samples/line_length.lua:10:1: line is too long (85 > 80)
+
+Total: 4 warnings / 0 errors in 1 file
+]], get_output "spec/samples/line_length.lua --no-config")
+
+      assert.equal([[
+Checking spec/samples/line_length.lua             3 warnings
+
+    spec/samples/line_length.lua:3:1: line is too long (164 > 130)
+    spec/samples/line_length.lua:8:1: line is too long (132 > 130)
+    spec/samples/line_length.lua:10:1: line is too long (85 > 80)
+
+Total: 3 warnings / 0 errors in 1 file
+]], get_output "spec/samples/line_length.lua --no-config --max-line-length=130")
+
+      assert.equal([[
+Checking spec/samples/line_length.lua             1 warning
+
+    spec/samples/line_length.lua:10:1: line is too long (85 > 80)
+
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/samples/line_length.lua --no-config --no-max-line-length")
+   end)
+
    it("detects issues related to read-only globals", function()
       assert.equal([[
 Checking spec/samples/read_globals.lua            5 warnings
@@ -796,22 +829,25 @@ Total: 16 warnings / 1 error in 4 files
 
          local cache = utils.read_file(tmpname)
          assert.string(cache)
+
+         -- luacheck: push no max line length
          local format_version, good_mtime, bad_mtime, python_mtime = cache:match((([[
 
 (%d+)
 spec/samples/good_code.lua
 (%d+)
-return {{},{}}
+return {{},{},{19,0,23,17,3,0,30,25,26,3,0,15}}
 spec/samples/bad_code.lua
 (%d+)
-return {{{"112","package",1,1,7},{"211","helper",3,16,21,[10]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,[11]=true},{"412","opt",8,10,12,7,18},{"113","hepler",9,11,16}},{}}
+return {{{"112","package",1,1,7},{"211","helper",3,16,21,[10]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,[11]=true},{"412","opt",8,10,12,7,18},{"113","hepler",9,11,16}},{},{24,0,26,9,3,0,21,31,26,3,0}}
 spec/samples/python_code.lua
 (%d+)
-return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{}}
+return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{},{}}
 ]]):gsub("[%[%]]", "%%%0")))
+         -- luacheck: pop
 
          format_version = tonumber(format_version)
-         assert.number(format_version)
+         assert.number(format_version, "Cache string is:" .. cache)
          assert.string(good_mtime)
          assert.string(bad_mtime)
          assert.string(python_mtime)
@@ -825,19 +861,21 @@ return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{}}
 %s
 spec/samples/python_code.lua
 %s
-return {{{"111", "global", 1, 1}, {"321", "uninit", 6, 8}},{}}
+return {{{"111", "global", 1, 1}, {"321", "uninit", 6, 8}},{},{}}
 spec/samples/good_code.lua
 %s
-return {{{"011",[3]=5,[4]=7,[12]="this code is actually bad"}},{}}
+return {{{"011",[3]=5,[4]=7,[12]="this code is actually bad"}},{},{}}
 spec/samples/bad_code.lua
 %s
-return {{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
+return {{},{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
             fh:close()
          end
 
          write_new_cache("\n"..tostring(format_version))
-         assert.equal(mocked_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
-         assert.equal(mocked_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
+         assert.equal(mocked_output,
+            get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
+         assert.equal(mocked_output,
+            get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
 
          write_new_cache("\n"..tostring(format_version + 1))
          assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
@@ -971,7 +1009,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
    end)
 
    it("expands folders", function()
-      assert.matches("^Total: %d+ warnings / %d+ errors in 22 files\n$", get_output "spec/samples -qqq --no-config")
+      assert.matches("^Total: %d+ warnings / %d+ errors in 23 files\n$", get_output "spec/samples -qqq --no-config")
    end)
 
    it("uses --include-files when expanding folders", function()
@@ -1116,13 +1154,14 @@ Codes: true
 
          it("uses exclude_files option", function()
             assert.equal(([[
-Checking spec/samples/argparse.lua                7 warnings
+Checking spec/samples/argparse.lua                9 warnings
 Checking spec/samples/compat.lua                  4 warnings
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
 Checking spec/samples/global_inline_options.lua   3 warnings
 Checking spec/samples/globals.lua                 2 warnings
 Checking spec/samples/indirect_globals.lua        3 warnings
 Checking spec/samples/inline_options.lua          7 warnings / 2 errors
+Checking spec/samples/line_length.lua             4 warnings
 Checking spec/samples/python_code.lua             1 error
 Checking spec/samples/read_globals.lua            5 warnings
 Checking spec/samples/read_globals_inline_options.lua 3 warnings
@@ -1130,20 +1169,21 @@ Checking spec/samples/redefined.lua               7 warnings
 Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
 
-Total: 57 warnings / 4 errors in 15 files
+Total: 63 warnings / 4 errors in 16 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
          end)
 
          it("loads exclude_files option correctly from upper directory", function()
             assert.equal([[
-Checking argparse.lua                             7 warnings
+Checking argparse.lua                             9 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
 Checking indirect_globals.lua                     3 warnings
 Checking inline_options.lua                       7 warnings / 2 errors
+Checking line_length.lua                          4 warnings
 Checking python_code.lua                          1 error
 Checking read_globals.lua                         5 warnings
 Checking read_globals_inline_options.lua          3 warnings
@@ -1151,25 +1191,26 @@ Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 57 warnings / 4 errors in 15 files
+Total: 63 warnings / 4 errors in 16 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq", "spec/samples/"))
          end)
 
          it("combines excluded files from config and cli", function()
             assert.equal([[
-Checking argparse.lua                             7 warnings
+Checking argparse.lua                             9 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
 Checking indirect_globals.lua                     3 warnings
 Checking inline_options.lua                       7 warnings / 2 errors
+Checking line_length.lua                          4 warnings
 Checking python_code.lua                          1 error
 Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 49 warnings / 4 errors in 13 files
+Total: 55 warnings / 4 errors in 14 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 

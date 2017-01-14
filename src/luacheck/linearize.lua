@@ -158,9 +158,11 @@ function LinState:leave_scope()
       else
          if not prev_scope or prev_scope.line ~= self.lines.top then
             if goto_.name == "break" then
-               lexer.syntax_error(goto_.location, goto_.location.column + 4, "'break' is not inside a loop")
+               lexer.syntax_error(
+                  goto_.location, goto_.location.column + 4, "'break' is not inside a loop")
             else
-               lexer.syntax_error(goto_.location, goto_.location.column + 3, ("no visible label '%s'"):format(goto_.name))
+               lexer.syntax_error(
+                  goto_.location, goto_.location.column + 3, ("no visible label '%s'"):format(goto_.name))
             end
          end
 

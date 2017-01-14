@@ -211,12 +211,14 @@ local function check_or_throw(src)
       chstate:warn_empty_statement(location)
    end
 
-   check_whitespace(chstate, src, line_endings)
+   local lines = utils.split_lines(src)
+   local line_lengths = utils.map(function(s) return #s end, lines)
+   check_whitespace(chstate, lines, line_endings)
    analyze(chstate, line)
    reachability(chstate, line)
    detect_globals(chstate, line)
    local events, per_line_opts = inline_options.get_events(ast, comments, code_lines, chstate.warnings)
-   return {events = events, per_line_options = per_line_opts}
+   return {events = events, per_line_options = per_line_opts, line_lengths = line_lengths}
 end
 
 --- Checks source.
@@ -237,7 +239,7 @@ local function check(src)
          msg = err.msg
       }
 
-      return {events = {syntax_error}, per_line_options = {}}
+      return {events = {syntax_error}, per_line_options = {}, line_lengths = {}}
    end
 end
 

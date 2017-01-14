@@ -4,10 +4,22 @@ local function filter(issue_arrays, opts)
    local report = {}
 
    for i, issues in ipairs(issue_arrays) do
-      report[i] = {events = issues, per_line_options = {}}
+      for issue_index, issue in ipairs(issues) do
+         issue.line = issue_index
+      end
+
+      report[i] = {events = issues, per_line_options = {}, line_lengths = {}}
    end
 
-   return filter_full(report, opts)
+   local result = filter_full(report, opts)
+
+   for _, file_report in ipairs(result) do
+      for _, issue in ipairs(file_report) do
+         issue.line = nil
+      end
+   end
+
+   return result
 end
 
 describe("filter", function()
@@ -540,7 +552,8 @@ describe("filter", function()
                   {options = {std = "max"}, line = 1000, column = 1},
                   {options = {std = "another_bad_std"}, line = 1000, column = 20}
                }
-            }
+            },
+            line_lengths = {}
          }
       }, {
             {
@@ -577,7 +590,8 @@ describe("filter", function()
                   {options = {std = "max"}, line = 1000, column = 1},
                   {options = {std = "another_bad_std"}, line = 1000, column = 20}
                }
-            }
+            },
+            line_lengths = {}
          }
       }, {
             {
@@ -585,5 +599,23 @@ describe("filter", function()
                inline = false
             }
       }))
+   end)
+
+   it("adds line length warnings", function()
+      assert.same({
+         {
+            {code = "631", line = 2, column = 1, end_column = 121, max_length = 120},
+            {code = "631", line = 5, column = 1, end_column = 21, max_length = 20}
+         }
+      }, filter_full({
+         {
+            events = {
+               {options = {max_line_length = 20}, line = 3, column = 1},
+               {options = {max_line_length = false}, line = 6, column = 1}
+            },
+            per_line_options = {},
+            line_lengths = {120, 121, 15, 20, 21, 15, 200}
+         }
+      }, {}))
    end)
 end)

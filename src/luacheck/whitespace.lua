@@ -1,7 +1,5 @@
-local utils = require "luacheck.utils"
-
-local function check_whitespace(chstate, src, line_endings)
-   for line_number, line in ipairs(utils.split_lines(src)) do
+local function check_whitespace(chstate, lines, line_endings)
+   for line_number, line in ipairs(lines) do
       if line ~= "" then
          local from, to = line:find("%s+$")
 

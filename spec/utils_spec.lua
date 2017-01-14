@@ -198,7 +198,10 @@ describe("utils", function()
 
    describe("split_lines", function()
       it("considers \\n, \\r, \\r\\n, and \\n\\r line endings", function()
-         assert.same({"foo", "", "bar", "baz", "", "quux", "line   ", "another one"}, utils.split_lines("foo\n\nbar\r\nbaz\r\rquux\n\rline   \nanother one"))
+         assert.same(
+            {"foo", "", "bar", "baz", "", "quux", "line   ", "another one"},
+            utils.split_lines("foo\n\nbar\r\nbaz\r\rquux\n\rline   \nanother one")
+         )
       end)
    end)
 

@@ -71,7 +71,8 @@ describe("fs", function()
       end)
 
       it("returns nil if can't find file", function()
-         assert.is_nil(fs.find_file(fs.current_dir(), "this file shouldn't exist or it will make luacheck testsuite break"))
+         assert.is_nil(
+            fs.find_file(fs.current_dir(), "this file shouldn't exist or it will make luacheck testsuite break"))
       end)
    end)
 end)

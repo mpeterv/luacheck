@@ -131,8 +131,10 @@ describe("config", function()
       nest("spec/configs/project", function()
          local nested_conf, nested_err = config.load_config(P"spec/configs/invalid_override_config.luacheckrc")
          assert.is_nil(nested_conf)
-         assert.equal("Couldn't load configuration from "..P"../../../spec/configs/invalid_override_config.luacheckrc"..
-            ": invalid value of option 'enable' in options for path 'spec/foo.lua'", nested_err)
+         assert.equal(
+            "Couldn't load configuration from "..P"../../../spec/configs/invalid_override_config.luacheckrc"..
+            ": invalid value of option 'enable' in options for path 'spec/foo.lua'", nested_err
+         )
       end)
    end)
 end)
