@@ -23,13 +23,13 @@ local function check_whitespace(chstate, src, line_endings)
             end
 
             chstate:warn({code = code, line = line_number, column = from, end_column = to})
-         else
-            from, to = line:find("^%s+")
-            if from and string.find(line:sub(1, to), " \t", 1, true) then
-               -- inconsistent leading whitespace (SPACE followed by TAB)
-               chstate:warn({code = "621",
-                             line = line_number, column = from, end_column = to})
-            end
+         end
+
+         from, to = line:find("^%s+")
+
+         if from and to ~= #line and line:sub(1, to):find(" \t") then
+            -- Inconsistent leading whitespace (SPACE followed by TAB).
+            chstate:warn({code = "621", line = line_number, column = from, end_column = to})
          end
       end
    end
