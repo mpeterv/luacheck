@@ -50,6 +50,8 @@ Code Description
 551  An empty statement.
 611  A line consists of nothing but whitespace.
 612  A line contains trailing whitespace.
+613  Trailing whitespace in a string.
+614  Trailing whitespace in a comment.
 621  Inconsistent indentation (``SPACE`` followed by ``TAB``).
 ==== =================================================================
 

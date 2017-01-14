@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.19.0 (unreleased)
+
+### New features and improvements
+
+* Warnings related to trailing whitespace in comments
+  and inside string literals now use separate warning codes.
+
+### Fixes
+
+* Fixes inconsistent indentation not being detected on lines
+  with trailing whitespace.
+
 ## 0.18.0 (2017-01-10)
 
 ### New features and improvements
