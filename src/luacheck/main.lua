@@ -554,6 +554,8 @@ local traceback = error_wrapper.traceback
 
 if utils.is_instance(err, utils.InvalidPatternError) then
    critical(("Invalid pattern '%s'"):format(err.pattern))
+elseif type(err) == "string" and err:match("interrupted!$") then
+   critical("Interrupted")
 else
    local msg = ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s\n%s"):format(
       luacheck._VERSION, err, traceback)
