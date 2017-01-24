@@ -12,7 +12,7 @@ function ChState.warn_unbalanced() end
 function ChState.warn_empty_block() end
 
 local function get_line_(src)
-   local ast = parser(src)
+   local ast = parser.parse(src)
    local chstate = ChState()
    return linearize(chstate, ast)
 end

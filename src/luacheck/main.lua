@@ -16,16 +16,6 @@ local function critical(msg)
    os.exit(3)
 end
 
-local function global_error_handler(err)
-   if type(err) == "table" and err.pattern then
-      critical("Invalid pattern '" .. err.pattern .. "'")
-   else
-      local msg = ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s"):format(
-         luacheck._VERSION, err)
-      critical(debug.traceback(msg, 2))
-   end
-end
-
 local function main()
    local default_cache_path = ".luacheckcache"
 
@@ -558,4 +548,14 @@ patterns.]])
    os.exit(exit_code)
 end
 
-xpcall(main, global_error_handler)
+local _, error_wrapper = utils.try(main)
+local err = error_wrapper.err
+local traceback = error_wrapper.traceback
+
+if utils.is_instance(err, utils.InvalidPatternError) then
+   critical(("Invalid pattern '%s'"):format(err.pattern))
+else
+   local msg = ("Luacheck %s bug (please report at github.com/mpeterv/luacheck/issues):\n%s\n%s"):format(
+      luacheck._VERSION, err, traceback)
+   critical(msg)
+end

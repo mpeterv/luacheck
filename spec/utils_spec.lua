@@ -132,28 +132,35 @@ describe("utils", function()
       end)
    end)
 
-   describe("pcall", function()
-      it("calls f with arg", function()
-         assert.equal(3, utils.pcall(math.sqrt, 9))
+   describe("try", function()
+      it("returns true, original return values on success", function()
+         local ok, ret1, ret2 = utils.try(function(x, y) return x*2, y*2 end, 1, 2)
+         assert.is_true(ok)
+         assert.equal(2, ret1)
+         assert.equal(4, ret2)
       end)
 
-      it("returns nil, table if f throws a table", function()
-         local t = {"foo"}
-         local res, err = utils.pcall(function(x)
-            if x == 9 then
-               error(t)
-            else
-               return true
-            end
-         end, 9)
-         assert.is_nil(res)
-         assert.is_equal(t, err)
-      end)
-
-      it("rethrows if f crashes (throws not a table)", function()
-         local ok, err = pcall(utils.pcall, error, "msg")
+      it("returns false, error wrapper on error", function()
+         local ok, res = utils.try(function() error("foo", 0) end)
          assert.is_false(ok)
-         assert.matches("msg\nstack traceback:", err)
+         assert.table(res)
+         assert.equal(res.err, "foo")
+         assert.string(res.traceback)
+      end)
+
+      it("does not wrap already wrapped errors", function()
+         local orig_traceback
+
+         local ok, res = utils.try(function()
+            local _, orig_res = utils.try(function() error("foo", 0) end)
+            orig_traceback = orig_res.traceback
+            error(orig_res, 0)
+         end)
+         assert.is_false(ok)
+         assert.table(res)
+         assert.equal(res.err, "foo")
+         assert.string(res.traceback)
+         assert.equal(res.traceback, orig_traceback)
       end)
    end)
 

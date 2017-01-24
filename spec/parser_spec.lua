@@ -15,7 +15,7 @@ local function strip_locations(ast)
 end
 
 local function get_ast(src)
-   local ast = parser(src)
+   local ast = parser.parse(src)
    assert.is_table(ast)
    strip_locations(ast)
    return ast
@@ -30,15 +30,15 @@ local function get_expr(src)
 end
 
 local function get_comments(src)
-   return (select(2, parser(src)))
+   return (select(2, parser.parse(src)))
 end
 
 local function get_code_lines(src)
-   return select(3, parser(src))
+   return select(3, parser.parse(src))
 end
 
 local function get_error(src)
-   local ok, err = pcall(parser, src)
+   local ok, err = pcall(parser.parse, src)
    assert.is_false(ok)
    return err
 end
@@ -1122,7 +1122,7 @@ end
                            }
                         }
                      }
-                  }, (parser([[
+                  }, (parser.parse([[
 local function foo(a, b, c, ...)
    local d = (a + b) * c
    return d, (...)
@@ -1142,7 +1142,7 @@ end
          {tag = "Label", "foo", location = {line = 1, column = 1, offset = 1}, end_column = 7, first_token = "::"},
          {tag = "Label", "bar", location = {line = 2, column = 1, offset = 9}, end_column = 6, first_token = "::"},
          {tag = "Label", "baz", location = {line = 3, column = 3, offset = 18}, end_column = 4, first_token = "::"}
-      }, (parser([[
+      }, (parser.parse([[
 ::foo::
 :: bar
 ::::
@@ -1173,7 +1173,7 @@ baz::
                            {tag = "Number", "2", location = {line = 3, column = 14, offset = 26}}
                         }
                      }
-                  }, (parser([[
+                  }, (parser.parse([[
 a();
 (b)();
 ((c).d)[3] = 2
@@ -1186,7 +1186,7 @@ a();
                         {tag = "Id", "x", location = {line = 1, column = 5, offset = 5}, first_token = "x"},
                         {location = {line = 1, column = 8, offset = 8}}
                      }
-                  }, (parser([[
+                  }, (parser.parse([[
 if (x) then end
 ]])))
    end)
@@ -1206,7 +1206,7 @@ if (x) then end
                            {tag = "Id", "z", location = {line = 1, column = 26, offset = 26}, first_token = "z"}
                         }
                      }
-                  }, (parser([[
+                  }, (parser.parse([[
 return {a = b, [x] = y, (z)}
 ]])))
    end)

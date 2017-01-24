@@ -1,4 +1,4 @@
-local lexer = require "luacheck.lexer"
+local parser = require "luacheck.parser"
 local utils = require "luacheck.utils"
 
 local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"})
@@ -158,10 +158,10 @@ function LinState:leave_scope()
       else
          if not prev_scope or prev_scope.line ~= self.lines.top then
             if goto_.name == "break" then
-               lexer.syntax_error(
+               parser.syntax_error(
                   goto_.location, goto_.location.column + 4, "'break' is not inside a loop")
             else
-               lexer.syntax_error(
+               parser.syntax_error(
                   goto_.location, goto_.location.column + 3, ("no visible label '%s'"):format(goto_.name))
             end
          end
@@ -226,7 +226,7 @@ end
 function LinState:register_label(name, location, end_column)
    if self.scopes.top.labels[name] then
       assert(not pseudo_labels[name])
-      lexer.syntax_error(location, end_column, ("label '%s' already defined on line %d"):format(
+      parser.syntax_error(location, end_column, ("label '%s' already defined on line %d"):format(
          name, self.scopes.top.labels[name].location.line))
    end
 
@@ -525,7 +525,7 @@ function LinState:scan_expr_Dots(item, node)
    local dots = self:check_var(node)
 
    if not dots or dots.line ~= self.lines.top then
-      lexer.syntax_error(node.location, node.location.column + 2, "cannot use '...' outside a vararg function")
+      parser.syntax_error(node.location, node.location.column + 2, "cannot use '...' outside a vararg function")
    end
 
    self:mark_access(item, node)

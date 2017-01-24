@@ -1,4 +1,4 @@
-local parse = require "luacheck.parser"
+local parser = require "luacheck.parser"
 local linearize = require "luacheck.linearize"
 local analyze = require "luacheck.analyze"
 local reachability = require "luacheck.reachability"
@@ -203,7 +203,7 @@ function ChState:warn_empty_statement(location)
 end
 
 local function check_or_throw(src)
-   local ast, comments, code_lines, line_endings, semicolons = parse(src)
+   local ast, comments, code_lines, line_endings, semicolons = parser.parse(src)
    local chstate = ChState()
    local line = linearize(chstate, ast)
 
@@ -226,20 +226,22 @@ end
 --    `events`: array of issues and inline option events (options, push, or pop).
 --    `per_line_options`: map from line numbers to arrays of inline option events.
 local function check(src)
-   local res, err = utils.pcall(check_or_throw, src)
+   local ok, res = utils.try(check_or_throw, src)
 
-   if res then
+   if ok then
       return res
-   else
+   elseif utils.is_instance(res.err, parser.SyntaxError) then
       local syntax_error = {
          code = "011",
-         line = err.line,
-         column = err.column,
-         end_column = err.end_column,
-         msg = err.msg
+         line = res.err.line,
+         column = res.err.column,
+         end_column = res.err.end_column,
+         msg = res.err.msg
       }
 
       return {events = {syntax_error}, per_line_options = {}, line_lengths = {}}
+   else
+      error(res, 0)
    end
 end
 

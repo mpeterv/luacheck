@@ -1,6 +1,8 @@
 local lexer = require "luacheck.lexer"
 local utils = require "luacheck.utils"
 
+local parser = {}
+
 local function new_state(src)
    return {
       lexer = lexer.new_state(src),
@@ -20,6 +22,19 @@ local function location(state)
    }
 end
 
+parser.SyntaxError = utils.class()
+
+function parser.SyntaxError:__init(loc, end_column, msg)
+   self.line = loc.line
+   self.column = loc.column
+   self.end_column = end_column
+   self.msg = msg
+end
+
+function parser.syntax_error(loc, end_column, msg)
+   error(parser.SyntaxError(loc, end_column, msg), 0)
+end
+
 local function token_body_or_line(state)
    return state.lexer.src:sub(state.offset, state.lexer.offset - 1):match("^[^\r\n]*")
 end
@@ -37,7 +52,7 @@ local function skip_token(state)
          state.column, state.offset, err_end_column = lexer.next_token(state.lexer)
 
       if not state.token then
-         lexer.syntax_error(state, err_end_column, state.token_value)
+         parser.syntax_error(state, err_end_column, state.token_value)
       elseif state.token == "comment" then
          state.comments[#state.comments+1] = {
             contents = state.token_value,
@@ -95,7 +110,7 @@ local function parse_error(state, msg)
       token_repr = lexer.quote(token_repr)
    end
 
-   lexer.syntax_error(state, end_column, msg .. " near " .. token_repr)
+   parser.syntax_error(state, end_column, msg .. " near " .. token_repr)
 end
 
 local function check_token(state, token)
@@ -651,7 +666,7 @@ local function parse_expression_statement(state, loc)
 
       if in_parens then
          -- (expr) is invalid.
-         lexer.syntax_error(first_loc, first_loc.column, "expected " .. expected .. " near '('")
+         parser.syntax_error(first_loc, first_loc.column, "expected " .. expected .. " near '('")
       end
 
       if primary_expression.tag == "Call" or primary_expression.tag == "Invoke" then
@@ -729,8 +744,9 @@ end
 -- Returns AST (in almost MetaLua format), array of comments - tables {comment = string, location = location},
 -- set of line numbers containing code, map of types of tokens wrapping line endings (nil, "string", or "comment"),
 -- and array of locations of empty statements (semicolons).
--- On error throws {line = line, column = column, end_column = end_column, msg = msg}
-local function parse(src)
+-- On error throws {line = line, column = column, end_column = end_column, msg = msg} - an instance
+-- of parser.SyntaxError.
+function parser.parse(src)
    local state = new_state(src)
    skip_token(state)
    local ast = parse_block(state)
@@ -738,4 +754,4 @@ local function parse(src)
    return ast, state.comments, state.code_lines, state.line_endings, state.hanging_semicolons
 end
 
-return parse
+return parser

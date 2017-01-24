@@ -685,14 +685,6 @@ function lexer.new_state(src)
    return state
 end
 
-function lexer.syntax_error(location, end_column, msg)
-   error({
-      line = location.line,
-      column = location.column,
-      end_column = end_column,
-      msg = msg})
-end
-
 -- Looks for next token starting from state.line, state.line_offset, state.offset.
 -- Returns next token, its value and its location (line, column, offset).
 -- Sets state.line, state.line_offset, state.offset to token end location + 1.
