@@ -107,19 +107,15 @@ end
 -- Option stack is an array of options with options closer to end
 -- overriding options closer to beginning.
 
--- Returns sets of std globals and read-only std globals from option stack.
--- Std globals can be set using compat option (sets std to stds.max) or std option.
--- If std is a table, array part contains read-only globals, hash part - regular globals as keys.
--- If it is a string, it must contain names of standard sets separated by +.
--- If prefixed with +, standard sets will be added on top of existing ones.
-local function get_std_sets(opts_stack)
+-- Extracts sequence of active std tables from an option stack.
+local function get_std_tables(opts_stack)
    local base_std
    local add_stds = {}
    local no_compat = false
 
    for _, opts in utils.ripairs(opts_stack) do
       if opts.compat and not no_compat then
-         base_std = "max"
+         base_std = stds.max
          break
       elseif opts.compat == false then
          no_compat = true
@@ -133,7 +129,7 @@ local function get_std_sets(opts_stack)
             local parts = options.split_std(opts.std)
 
             for _, part in ipairs(parts) do
-               table.insert(add_stds, part)
+               table.insert(add_stds, stds[part])
             end
 
             if not parts.add then
@@ -144,19 +140,27 @@ local function get_std_sets(opts_stack)
       end
    end
 
-   table.insert(add_stds, base_std or "_G")
+   table.insert(add_stds, 1, base_std or stds._G)
+   return add_stds
+end
+
+-- Returns sets of std globals and read-only std globals from option stack.
+-- Std globals can be set using compat option (sets std to stds.max) or std option.
+-- If std is a table, array part contains read-only globals, hash part - regular globals as keys.
+-- If it is a string, it must contain names of standard sets separated by +.
+-- If prefixed with +, standard sets will be added on top of existing ones.
+local function get_std_sets(opts_stack)
+   local std_tables = get_std_tables(opts_stack)
 
    local std_globals = {}
    local std_read_globals = {}
 
-   for _, add_std in ipairs(add_stds) do
-      add_std = stds[add_std] or add_std
-
-      for _, read_global in ipairs(add_std) do
+   for _, std_table in ipairs(std_tables) do
+      for _, read_global in ipairs(std_table) do
          std_read_globals[read_global] = true
       end
 
-      for global in pairs(add_std) do
+      for global in pairs(std_table) do
          if type(global) == "string" then
             std_globals[global] = true
          end
