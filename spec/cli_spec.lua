@@ -584,7 +584,7 @@ Total: 1 warning / 0 errors in 1 file
 Checking spec/samples/read_globals.lua            5 warnings
 
     spec/samples/read_globals.lua:1:1: setting read-only global variable 'string'
-    spec/samples/read_globals.lua:2:1: mutating read-only global variable 'table'
+    spec/samples/read_globals.lua:2:1: setting read-only field 'append' of global 'table'
     spec/samples/read_globals.lua:5:1: setting read-only global variable 'bar'
     spec/samples/read_globals.lua:6:1: mutating non-standard global variable 'baz'
     spec/samples/read_globals.lua:6:21: accessing undefined variable 'baz'
@@ -598,11 +598,22 @@ Total: 5 warnings / 0 errors in 1 file
 Checking spec/samples/indirect_globals.lua        3 warnings
 
     spec/samples/indirect_globals.lua:2:11-16: accessing undefined variable 'global'
-    spec/samples/indirect_globals.lua:5:1-8: indirectly mutating read-only global variable 'table'
+    spec/samples/indirect_globals.lua:5:1-8: indirectly setting read-only field 'concat.foo.bar' of global 'table'
     spec/samples/indirect_globals.lua:5:32-37: accessing undefined variable 'global'
 
 Total: 3 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/indirect_globals.lua --std=min --ranges --no-config")
+   end)
+
+   it("allows defining fields", function()
+      assert.equal([[
+Checking spec/samples/indirect_globals.lua        2 warnings
+
+    spec/samples/indirect_globals.lua:2:11-16: accessing undefined variable 'global'
+    spec/samples/indirect_globals.lua:5:32-37: accessing undefined variable 'global'
+
+Total: 2 warnings / 0 errors in 1 file
+]], get_output "spec/samples/indirect_globals.lua --std=min --globals table.concat.foo --ranges --no-config")
    end)
 
    it("allows showing warning codes", function()
@@ -610,7 +621,7 @@ Total: 3 warnings / 0 errors in 1 file
 Checking spec/samples/read_globals.lua            5 warnings
 
     spec/samples/read_globals.lua:1:1: (W121) setting read-only global variable 'string'
-    spec/samples/read_globals.lua:2:1: (W122) mutating read-only global variable 'table'
+    spec/samples/read_globals.lua:2:1: (W122) setting read-only field 'append' of global 'table'
     spec/samples/read_globals.lua:5:1: (W121) setting read-only global variable 'bar'
     spec/samples/read_globals.lua:6:1: (W112) mutating non-standard global variable 'baz'
     spec/samples/read_globals.lua:6:21: (W113) accessing undefined variable 'baz'
@@ -704,7 +715,7 @@ Total: 5 warnings / 0 errors in 1 file
 Checking spec/samples/read_globals_inline_options.lua 3 warnings
 
     spec/samples/read_globals_inline_options.lua:3:1: setting read-only global variable 'foo'
-    spec/samples/read_globals_inline_options.lua:3:16: mutating read-only global variable 'baz'
+    spec/samples/read_globals_inline_options.lua:3:16: setting read-only field '?' of global 'baz'
     spec/samples/read_globals_inline_options.lua:5:1: setting read-only global variable 'foo'
 
 Total: 3 warnings / 0 errors in 1 file
@@ -839,7 +850,7 @@ spec/samples/good_code.lua
 return {{},{},{19,0,23,17,3,0,30,25,26,3,0,15}}
 spec/samples/bad_code.lua
 (%d+)
-return {{{"112","package",1,1,7},{"211","helper",3,16,21,[10]=true},{"212","...",3,23,25},{"111","embrace",7,10,16,[11]=true},{"412","opt",8,10,12,7,18},{"113","hepler",9,11,16}},{},{24,0,26,9,3,0,21,31,26,3,0}}
+local A,B,C="package","embrace","hepler";return {{{"112",A,1,1,7,[23]={A,"loaded",true}},{"211","helper",3,16,21,[10]=true},{"212","...",3,23,25},{"111",B,7,10,16,[11]=true,[23]={B}},{"412","opt",8,10,12,7,18},{"113",C,9,11,16,[23]={C}}},{},{24,0,26,9,3,0,21,31,26,3,0}}
 spec/samples/python_code.lua
 (%d+)
 return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{},{}}
@@ -861,7 +872,7 @@ return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{},{}
 %s
 spec/samples/python_code.lua
 %s
-return {{{"111", "global", 1, 1}, {"321", "uninit", 6, 8}},{},{}}
+return {{{"111", "global", 1, 1, [23]={"global"}}, {"321", "uninit", 6, 8}},{},{}}
 spec/samples/good_code.lua
 %s
 return {{{"011",[3]=5,[4]=7,[12]="this code is actually bad"}},{},{}}

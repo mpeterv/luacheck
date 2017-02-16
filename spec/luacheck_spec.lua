@@ -67,6 +67,7 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
+               indexing = {"embrace"},
                top = true
             },
             {
@@ -75,7 +76,8 @@ describe("luacheck", function()
             },
             {
                code = "113",
-               name = "hepler"
+               name = "hepler",
+               indexing = {"hepler"}
             }
          },
          {
@@ -101,6 +103,7 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
+               indexing = {"embrace"},
                top = true
             },
             {
@@ -109,7 +112,8 @@ describe("luacheck", function()
             },
             {
                code = "113",
-               name = "hepler"
+               name = "hepler",
+               indexing = {"hepler"}
             }
          },
          {
@@ -137,11 +141,13 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
+               indexing = {"embrace"},
                top = true
             },
             {
                code = "113",
-               name = "hepler"
+               name = "hepler",
+               indexing = {"hepler"}
             }
          },
          {
@@ -199,7 +205,8 @@ describe("check_strings", function()
          {
             {
                code = "113",
-               name = "foo"
+               name = "foo",
+               indexing = {"foo"}
             }
          },
          {
@@ -401,7 +408,8 @@ return f --[=[
          {
             {
                code = "113",
-               name = "foo"
+               name = "foo",
+               indexing = {"foo"}
             }
          },
          {
@@ -450,7 +458,8 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo"
+               name = "foo",
+               indexing = {"foo"}
             }
          },
          {},
@@ -466,20 +475,22 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo"
+               name = "foo",
+               indexing = {"foo"}
             }
          },
          {
             {
                code = "113",
-               name = "math"
+               name = "math",
+               indexing = {"math", "floor"}
             }
          },
          warnings = 2,
          errors = 0,
          fatals = 0
       }, strip_locations(luacheck.process_reports(
-         {luacheck.get_report("return foo"), luacheck.get_report("return math")}, {
+         {luacheck.get_report("return foo"), luacheck.get_report("return math.floor")}, {
          std = "none"
       })))
    end)

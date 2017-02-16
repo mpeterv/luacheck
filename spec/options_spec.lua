@@ -56,7 +56,7 @@ describe("options", function()
          assert.is_false(opts.module)
          assert.is_false(opts.allow_defined)
          assert.is_false(opts.allow_defined_top)
-         assert.is_table(opts.globals)
+         assert.is_table(opts.std)
          assert.same({}, opts.rules)
       end)
 
@@ -77,7 +77,9 @@ describe("options", function()
       end)
 
       it("considers opts.std and opts.compat", function()
-         assert.same({baz = 1}, options.normalize({
+         assert.same({fields = {
+            baz = {read_only = false, other_fields = true}
+         }}, options.normalize({
             {
                std = "none"
             }, {
@@ -87,7 +89,7 @@ describe("options", function()
                new_globals = {"baz"},
                compat = false
             }
-         }).globals)
+         }).std)
       end)
 
       it("allows compound std unions", function()
@@ -131,21 +133,46 @@ describe("options", function()
                not_globals = {"removed", "unrelated", "print"}
             }
          })
-         local globals = opts.globals
-         local read_globals = opts.read_globals
-         assert.is_truthy(globals.foo)
-         assert.is_truthy(globals.bar)
-         assert.is_nil(globals.baz)
-         assert.is_truthy(globals.quux)
-         assert.is_truthy(read_globals.quux)
-         assert.is_truthy(read_globals.string)
-         assert.is_nil(globals.removed)
-         assert.is_nil(globals.unrelated)
-         assert.is_nil(globals.print)
-         assert.is_nil(read_globals.print)
-         assert.is_nil(read_globals._ENV)
-         assert.is_truthy(globals.string)
-         assert.is_truthy(globals._ENV)
+         local std = opts.std
+         assert.is_table(std)
+         assert.is_table(std.fields)
+
+         assert.is_same({read_only = false, other_fields = true}, std.fields.foo)
+         assert.is_same({read_only = false, other_fields = true}, std.fields.bar)
+         assert.is_nil(std.fields.baz)
+         assert.is_same({read_only = true, deep_read_only = true, other_fields = true}, std.fields.quux)
+         assert.is_same({other_fields = true, deep_read_only = true}, std.fields.string)
+      end)
+
+      it("considers read-only and regular field definitions", function()
+         local opts = options.normalize({
+            {
+               std = "none",
+               globals = {"foo", "bar.nested", "baz.nested.deeply"},
+               read_globals = {"bar", "foo.nested"}
+            }, {
+               not_globals = {"baz.nested", "unrelated.field"}
+            }
+         })
+         assert.same({
+            fields = {
+               foo = {
+                  read_only = false,
+                  other_fields = true,
+                  fields = {
+                     nested = {deep_read_only = true, read_only = true, other_fields = true}
+                  }
+               },
+               bar = {
+                  read_only = true,
+                  other_fields = true,
+                  fields = {
+                     nested = {read_only = false, other_fields = true}
+                  }
+               },
+               baz = {deep_read_only = true, read_only = false, fields = {}}
+            }
+         }, opts.std)
       end)
 
       it("considers macros, ignore, enable and only", function()

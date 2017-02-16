@@ -1,5 +1,5 @@
 local options = require "luacheck.options"
-local stds = require "luacheck.stds"
+local builtin_standards = require "luacheck.builtin_standards"
 local fs = require "luacheck.fs"
 local globbing = require "luacheck.globbing"
 local utils = require "luacheck.utils"
@@ -10,7 +10,7 @@ local config = {}
 -- autovivification for `files`, fallback to built-in stds for `stds`.
 
 local special_mts = {
-   stds = {__index = stds},
+   stds = {__index = builtin_standards},
    files = {__index = function(files, key)
       files[key] = {}
       return files[key]
@@ -207,9 +207,9 @@ function config.load_config(path)
 
    -- Update stds before validating config - std validation relies on that.
    if type(env.stds) == "table" then
-      -- Ideally config shouldn't mutate global stds, not if `luacheck.config` becomes public
-      -- interface.
-      utils.update(stds, env.stds)
+      -- Ideally config shouldn't mutate global builtin standards module,
+      -- not if `luacheck.config` becomes public interface.
+      utils.update(builtin_standards, env.stds)
    end
 
    local err = validate_config(env)

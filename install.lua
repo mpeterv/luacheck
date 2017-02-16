@@ -108,7 +108,7 @@ for _, filename in ipairs {
       "filter.lua",
       "options.lua",
       "inline_options.lua",
-      "stds.lua",
+      "builtin_standards.lua",
       "expand_rockspec.lua",
       "multithreading.lua",
       "cache.lua",
@@ -119,7 +119,8 @@ for _, filename in ipairs {
       "utils.lua",
       "argparse.lua",
       "whitespace.lua",
-      "detect_globals.lua"} do
+      "detect_globals.lua",
+      "standards.lua"} do
    copy("src" .. dirsep .. "luacheck" .. dirsep .. filename, luacheck_lib_dir)
 end
 

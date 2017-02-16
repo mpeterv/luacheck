@@ -11,7 +11,7 @@ describe("check", function()
 
    it("does not find anything wrong in used locals", function()
       assert.same({
-         {code = "113", name = "print", line = 5, column = 4, end_column = 8}
+         {code = "113", name = "print", indexing = {"print"}, line = 5, column = 4, end_column = 8}
       }, check[[
 local a
 local b = 5
@@ -24,7 +24,7 @@ end
 
    it("detects global set", function()
       assert.same({
-         {code = "111", name = "foo", line = 1, column = 1, end_column = 3, top = true}
+         {code = "111", name = "foo", indexing = {"foo"}, line = 1, column = 1, end_column = 3, top = true}
       }, check[[
 foo = {}
 ]])
@@ -32,7 +32,7 @@ foo = {}
 
    it("detects global set in nested functions", function()
       assert.same({
-         {code = "111", name = "foo", line = 2, column = 4, end_column = 6}
+         {code = "111", name = "foo", indexing = {"foo"}, line = 2, column = 4, end_column = 6}
       }, check[[
 local function bar()
    foo = {}
@@ -43,9 +43,9 @@ bar()
 
    it("detects global access in multi-assignments", function()
       assert.same({
-         {code = "111", name = "y", line = 2, column = 4, end_column = 4, top = true},
+         {code = "111", name = "y", indexing = {"y"}, line = 2, column = 4, end_column = 4, top = true},
          {code = "532", line = 2, column = 6, end_column = 6},
-         {code = "113", name = "print", line = 3, column = 1, end_column = 5}
+         {code = "113", name = "print", indexing = {"print"}, line = 3, column = 1, end_column = 5}
       }, check[[
 local x
 x, y = 1
@@ -55,8 +55,8 @@ print(x)
 
    it("detects global access in self swap", function()
       assert.same({
-         {code = "113", name = "a", line = 1, column = 11, end_column = 11},
-         {code = "113", name = "print", line = 2, column = 1, end_column = 5}
+         {code = "113", name = "a", indexing = {"a"}, line = 1, column = 11, end_column = 11},
+         {code = "113", name = "print", indexing = {"print"}, line = 2, column = 1, end_column = 5}
       }, check[[
 local a = a
 print(a)
@@ -65,7 +65,7 @@ print(a)
 
    it("detects global mutation", function()
       assert.same({
-         {code = "112", name = "a", line = 1, column = 1, end_column = 1}
+         {code = "112", name = "a", indexing = {"a", false}, line = 1, column = 1, end_column = 1}
       }, check[[
 a[1] = 6
 ]])
@@ -73,8 +73,23 @@ a[1] = 6
 
    it("detects indirect global field access", function()
       assert.same({
-         {code = "113", name = "b", line = 2, column = 15, end_column = 15},
-         {code = "113", name = "b", line = 3, column = 8, end_column = 12, indirect = true}
+         {
+            code = "113",
+            name = "b",
+            indexing = {"b", false},
+            line = 2,
+            column = 15,
+            end_column = 15
+         }, {
+            code = "113",
+            name = "b",
+            indexing = {"b", false, false, "foo"},
+            previous_indexing_len = 2,
+            line = 3,
+            column = 8,
+            end_column = 12,
+            indirect = true
+         }
       }, check[[
 local c = "foo"
 local alias = b[1]
@@ -84,8 +99,23 @@ return alias[2][c]
 
    it("detects indirect global field mutation", function()
       assert.same({
-         {code = "113", name = "b", line = 2, column = 15, end_column = 15},
-         {code = "112", name = "b", line = 3, column = 1, end_column = 5, indirect = true}
+         {
+            code = "113",
+            name = "b",
+            indexing = {"b", false},
+            line = 2,
+            column = 15,
+            end_column = 15
+         }, {
+            code = "112",
+            name = "b",
+            indexing = {"b", false, false, "foo"},
+            previous_indexing_len = 2,
+            line = 3,
+            column = 1,
+            end_column = 5,
+            indirect = true
+         }
       }, check[[
 local c = "foo"
 local alias = b[1]
@@ -93,10 +123,47 @@ alias[2][c] = c
 ]])
    end)
 
+   it("provides indexing information for warnings related to globals", function()
+      assert.same({
+         {
+            code = "113",
+            name = "global",
+            indexing = {"global"},
+            line = 2,
+            column = 11,
+            end_column = 16
+         }, {
+            code = "113",
+            name = "global",
+            indexing = {"global", "foo", "bar", false},
+            indirect = true,
+            previous_indexing_len = 1,
+            line = 3,
+            column = 15,
+            end_column = 15
+         }, {
+            code = "113",
+            name = "global",
+            indexing = {"global", "foo", "bar", false, true},
+            indirect = true,
+            previous_indexing_len = 4,
+            line = 5,
+            column = 8,
+            end_column = 13
+         }
+      }, check[[
+local c = "foo"
+local g = global
+local alias = g[c].bar[1]
+local alias2 = alias
+return alias2[...]
+]])
+   end)
+
    it("detects unused locals", function()
       assert.same({
          {code = "211", name = "a", line = 1, column = 7, end_column = 7},
-         {code = "113", name = "print", line = 5, column = 4, end_column = 8}
+         {code = "113", name = "print", indexing = {"print"}, line = 5, column = 4, end_column = 8}
       }, check[[
 local a = 4
 
@@ -220,7 +287,7 @@ return a
       assert.same({
          {code = "213", name = "i", line = 1, column = 5, end_column = 5},
          {code = "213", name = "i", line = 2, column = 5, end_column = 5},
-         {code = "113", name = "pairs", line = 2, column = 10, end_column = 14}
+         {code = "113", name = "pairs", indexing = {"pairs"}, line = 2, column = 10, end_column = 14}
       }, check[[
 for i=1, 2 do end
 for i in pairs{} do end
@@ -231,7 +298,7 @@ for i in pairs{} do end
       assert.same({
          {code = "311", name = "a", line = 3, column = 4, end_column = 4},
          {code = "311", name = "a", line = 5, column = 4, end_column = 4},
-         {code = "113", name = "print", line = 9, column = 1, end_column = 5}
+         {code = "113", name = "print", indexing = {"print"}, line = 9, column = 1, end_column = 5}
       }, check[[
 local a
 if ... then
@@ -247,7 +314,7 @@ print(a)
 
    it("does not detect unused value when it and a closure using it can live together", function()
       assert.same({
-         {code = "113", name = "escape", line = 3, column = 4, end_column = 9}
+         {code = "113", name = "escape", indexing = {"escape"}, line = 3, column = 4, end_column = 9}
       }, check[[
 local a = 3
 if true then
@@ -432,8 +499,8 @@ return foo
 
    it("does not detect unused values in loops", function()
       assert.same({
-         {code = "113", name = "print", line = 3, column = 4, end_column = 8},
-         {code = "113", name = "math", line = 4, column = 8, end_column = 11}
+         {code = "113", name = "print", indexing = {"print"}, line = 3, column = 4, end_column = 8},
+         {code = "113", name = "math", indexing = {"math", "floor"}, line = 4, column = 8, end_column = 11}
       }, check[[
 local a = 10
 while a > 0 do
@@ -459,7 +526,7 @@ goto loop
       assert.same({
          {code = "211", name = "foo", line = 1, column = 7, end_column = 9},
          {code = "411", name = "foo", line = 2, column = 7, end_column = 9, prev_line = 1, prev_column = 7},
-         {code = "113", name = "print", line = 3, column = 1, end_column = 5}
+         {code = "113", name = "print", indexing = {"print"}, line = 3, column = 1, end_column = 5}
       }, check[[
 local foo
 local foo = "bar"
@@ -670,7 +737,7 @@ end
 
    it("detects accessing uninitialized variables", function()
       assert.same({
-         {code = "113", name = "get", line = 6, column = 8, end_column = 10},
+         {code = "113", name = "get", indexing = {"get"}, line = 6, column = 8, end_column = 10},
          {code = "321", name = "a", line = 6, column = 12, end_column = 12}
       }, check[[
 local a
@@ -688,7 +755,7 @@ return a
    it("detects mutating uninitialized variables", function()
       assert.same({
          {code = "341", name = "a", line = 4, column = 4, end_column = 4},
-         {code = "113", name = "get", line = 6, column = 8, end_column = 10}
+         {code = "113", name = "get", indexing = {"get"}, line = 6, column = 8, end_column = 10}
       }, check[[
 local a
 
@@ -704,7 +771,7 @@ return a
 
    it("detects accessing uninitialized variables in nested functions", function()
       assert.same({
-         {code = "113", name = "get", line = 7, column = 8, end_column = 10},
+         {code = "113", name = "get", indexing = {"get"}, line = 7, column = 8, end_column = 10},
          {code = "321", name = "a", line = 7, column = 12, end_column = 12}
       }, check[[
 return function() return function(...)
@@ -723,7 +790,7 @@ end end
 
    it("does not detect accessing unitialized variables incorrectly in loops", function()
       assert.same({
-         {code = "113", name = "get", line = 4, column = 8, end_column = 10}
+         {code = "113", name = "get", indexing = {"get"}, line = 4, column = 8, end_column = 10}
       }, check[[
 local a
 
@@ -809,7 +876,7 @@ return foo;
             {options = {ignore = {".*"}}, line = 5, column = 1, end_column = 19},
             {code = "512", line = 7, column = 1, end_column = 3},
             {code = "213", name = "_", line = 7, column = 5, end_column = 5},
-            {code = "113", name = "pairs", line = 7, column = 10, end_column = 14},
+            {code = "113", name = "pairs", indexing = {"pairs"}, line = 7, column = 10, end_column = 14},
             {pop = true, closure = true, line = 9, column = 1}
          },
          per_line_options = {

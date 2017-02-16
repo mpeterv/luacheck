@@ -1,6 +1,6 @@
 stds = {
-   my_std = {"print", "setfenv"},
-   other_std = {"tostring", "setfenv"}
+   my_std = {read_globals = {"print", "setfenv"}},
+   other_std = {read_globals = {"tostring", "setfenv"}}
 }
 
 std = "my_std"

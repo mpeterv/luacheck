@@ -4,6 +4,16 @@ local format = {}
 
 local color_support = not utils.is_windows or os.getenv("ANSICON")
 
+local function prefix_if_indirect(fmt)
+   return function(w)
+      if w.indirect then
+         return "indirectly " .. fmt
+      else
+         return fmt
+      end
+   end
+end
+
 local message_formats = {
    ["011"] = "{msg}",
    ["021"] = "invalid inline option",
@@ -19,14 +29,10 @@ local message_formats = {
    ["112"] = "mutating non-standard global variable {name!}",
    ["113"] = "accessing undefined variable {name!}",
    ["121"] = "setting read-only global variable {name!}",
-   ["122"] = function(w)
-      if w.indirect then
-         return "indirectly mutating read-only global variable {name!}"
-      else
-         return "mutating read-only global variable {name!}"
-      end
-   end,
+   ["122"] = prefix_if_indirect("setting read-only field {field!} of global {name!}"),
    ["131"] = "unused global variable {name!}",
+   ["142"] = prefix_if_indirect("setting undefined field {field!} of global {name!}"),
+   ["143"] = prefix_if_indirect("accessing undefined field {field!} of global {name!}"),
    ["211"] = function(w)
       if w.func then
          if w.recursive then

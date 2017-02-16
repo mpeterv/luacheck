@@ -18,10 +18,10 @@ describe("cache", function()
 
       it("returns serialized result", function()
          assert.same(
-            [[return {{{"111","foo",5,100,102},{"211","bar",4,1,3,[8]=true},{"011",[4]=100000,[12]="near '\"'"}},{}}]],
+            [[return {{{"111","foo",5,100,102,[23]={"faa"}},{"211","bar",4,1,3,[8]=true},{"011",[4]=100000,[12]="near '\"'"}},{}}]],
             cache.serialize({
                events = {
-                  {code = "111", name = "foo", line = 5, column = 100, end_column = 102},
+                  {code = "111", name = "foo", indexing = {"faa"}, line = 5, column = 100, end_column = 102},
                   {code = "211", name = "bar", line = 4, column = 1, end_column = 3, secondary = true},
                   {code = "011", column = 100000, msg = "near '\"'"}
                },

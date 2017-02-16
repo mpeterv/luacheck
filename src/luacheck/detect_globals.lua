@@ -22,7 +22,8 @@ end
 -- Resolves value of an identifier or index node, tracking through simple
 -- assignments like `local foo = bar.baz`.
 -- Can be given an `Invoke` node to resolve the method field.
--- Sets `node.resolution` to "unknown", "not_string", `string node`, or {global_node, key...}.
+-- Sets `node.resolution` to "unknown", "not_string", `string node`, or
+-- {previous_indexing_len = index, global_node, key...}.
 -- Each key can be "unknown", "not_string" or `string_node`.
 function deep_resolve(node, item)
    if node.resolution then
@@ -30,7 +31,7 @@ function deep_resolve(node, item)
    end
 
    -- Common case.
-   -- Also protects against inifnite recursion, if it's even possible.
+   -- Also protects against infinite recursion, if it's even possible.
    node.resolution = "unknown"
 
    local base = node
@@ -49,6 +50,7 @@ function deep_resolve(node, item)
 
    local var = base.var
    local base_resolution
+   local previous_indexing_len
 
    if var then
       if not item.used_values[var] or #item.used_values[var] ~= 1 then
@@ -63,6 +65,10 @@ function deep_resolve(node, item)
       end
 
       base_resolution = resolve_node(value.node, value.item)
+
+      if resolved_to_index(base_resolution) then
+         previous_indexing_len = #base_resolution
+      end
    else
       base_resolution = {base}
    end
@@ -74,6 +80,7 @@ function deep_resolve(node, item)
       node.resolution = "unknown"
    else
       local resolution = utils.update({}, base_resolution)
+      resolution.previous_indexing_len = previous_indexing_len
 
       for _, key in ipairs(keys) do
          local key_resolution = resolve_node(key, item)

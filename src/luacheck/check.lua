@@ -40,21 +40,37 @@ local type_codes = {
 }
 
 -- `index` describes an indexing, where `index[1]` is a global node
--- and other items descrive keys: each one is a string node, "not_string",
+-- and other items describe keys: each one is a string node, "not_string",
 -- or "unknown". `node` is literal base node that's indexed.
 -- E.g. in `local a = table.a; a.b = "c"` `node` is `a` node of the second
 -- statement and `index` describes `table.a.b`.
+-- `index.previous_indexing_len` is optional length of prefix of `index` array representing last assignment
+-- in the aliasing chain, e.g. `2` in the previous example (because last indexing
+-- is `table.a`).
 function ChState:warn_global(node, index, is_lhs, is_top_scope)
    local global = index[1]
    local action = is_lhs and (#index == 1 and "set" or "mutate") or "access"
-   -- TODO: actually use information about keys.
-   -- TODO: accept information about length of last indexing,
+
+   local indexing = {}
+
+   for i, field in ipairs(index) do
+      if field == "unknown" then
+         indexing[i] = true
+      elseif field == "not_string" then
+         indexing[i] = false
+      else
+         indexing[i] = field[1]
+      end
+   end
+
    -- and filter out the warning if the base of last indexing is already
    -- undefined and has been reported.
    -- E.g. avoid useless warning in the second statement of `local t = tabell; t.concat(...)`.
    self:warn({
       code = "11" .. action_codes[action],
       name = global[1],
+      indexing = indexing,
+      previous_indexing_len = index.previous_indexing_len,
       line = node.location.line,
       column = node.location.column,
       end_column = node.location.column + #node[1] - 1,

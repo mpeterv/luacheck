@@ -197,6 +197,68 @@ local function is_enabled(rules, warning)
    return true
 end
 
+local function get_field_string(warning)
+   local parts = {}
+
+   for i = 2, #warning.indexing do
+      local index_string = warning.indexing[i]
+      table.insert(parts, type(index_string) == "string" and index_string or "?")
+   end
+
+   return table.concat(parts, ".")
+end
+
+local function get_field_status(opts, warning, depth)
+   local def = opts.std
+   local defined = true
+   local read_only = true
+
+   for i = 1, depth or #warning.indexing do
+      local index_string = warning.indexing[i]
+
+      if index_string == true then
+         -- Indexing with something that may or may not be a string.
+         if (def.fields and next(def.fields)) or def.other_fields then
+            if def.deep_read_only then
+               read_only = true
+            else
+               read_only = false
+            end
+         else
+            defined = false
+         end
+
+         break
+      elseif index_string == false then
+         -- Indexing with not a string.
+         if not def.other_fields then
+            defined = false
+         end
+
+         break
+      else
+         -- Indexing with a constant string.
+         if def.fields and def.fields[index_string] then
+            -- The field is defined, recurse into it.
+            def = def.fields[index_string]
+
+            if def.read_only ~= nil then
+               read_only = def.read_only
+            end
+         else
+            -- The field is not defined, but it may be okay to index if `other_fields` is true.
+            if not def.other_fields then
+               defined = false
+            end
+
+            break
+         end
+      end
+   end
+
+   return defined and (read_only and "read_only" or "global") or "undefined"
+end
+
 local function filters(opts, warning)
    if warning.code == "631" and (not opts.max_line_length or warning.end_column <= opts.max_line_length) then
       return true
@@ -206,11 +268,12 @@ local function filters(opts, warning)
       return true
    end
 
-   if warning.code:match("11.") and warning.indirect and not opts.globals[warning.name] then
+   if warning.code:match("1[14].") and warning.indirect and get_field_status(
+         opts, warning, warning.previous_indexing_len) == "undefined" then
       return true
    end
 
-   if warning.code:match("11.") and not warning.module and opts.globals[warning.name] then
+   if warning.code:match("1[14].") and not warning.module and get_field_status(opts, warning) ~= "undefined" then
       return true
    end
 
@@ -231,12 +294,12 @@ local function filter_file_report(report)
    for _, pair in ipairs(report) do
       local issue, opts = pair[1], pair[2]
 
-      if (issue.code:match("11[12]") and not issue.module and opts.read_globals[issue.name]) then
+      if issue.code:match("11[12]") and not issue.module and get_field_status(opts, issue) == "read_only" then
          issue.code = "12" .. issue.code:sub(3, 3)
       end
 
-      if issue.code == "631" then
-         issue.max_length = opts.max_line_length
+      if issue.code:match("11[23]") and get_field_status(opts, issue, 1) ~= "undefined" then
+         issue.code = "14" .. issue.code:sub(3, 3)
       end
 
       if issue.code:match("0..") then
@@ -245,6 +308,14 @@ local function filter_file_report(report)
          end
       else
          if not filters(opts, issue) then
+            if issue.code == "631" then
+               issue.max_length = opts.max_line_length
+            end
+
+            if issue.code:match("1[24][23]") then
+               issue.field = get_field_string(issue)
+            end
+
             table.insert(res, issue)
          end
       end
