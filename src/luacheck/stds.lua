@@ -2,6 +2,19 @@ local utils = require "luacheck.utils"
 
 local stds = {}
 
+stds.vlc = {
+  -- https://github.com/videolan/vlc/blob/e66dd3187e557c364399fae1a6a13dcf953c2ca9/modules/lua/services_discovery.c#L155-L252
+  "config", "openSub", "vlc", "collectgarbage",
+  "string", "table", "tonumber", "tostring", "type",
+}
+
+stds.redis = {
+  -- https://redis.io/commands/eval#available-libraries
+  -- https://github.com/antirez/redis/blob/0dbfb1d154b0df28bbdb16a59ae7342d4a3f9281/src/scripting.c#L820-L836
+  "redis", "KEYS", "ARGV",
+  "bitop", "cjson", "cmsgpack", "math", "string", "struct", "table",
+}
+
 stds.busted = {
    "describe", "insulate", "expose", "it", "pending", "before_each", "after_each",
    "lazy_setup", "lazy_teardown", "strict_setup", "strict_teardown", "setup", "teardown",
