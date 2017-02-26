@@ -584,7 +584,7 @@ Total: 1 warning / 0 errors in 1 file
 Checking spec/samples/read_globals.lua            5 warnings
 
     spec/samples/read_globals.lua:1:1: setting read-only global variable 'string'
-    spec/samples/read_globals.lua:2:1: setting read-only field 'append' of global 'table'
+    spec/samples/read_globals.lua:2:1: setting undefined field 'append' of global 'table'
     spec/samples/read_globals.lua:5:1: setting read-only global variable 'bar'
     spec/samples/read_globals.lua:6:1: mutating non-standard global variable 'baz'
     spec/samples/read_globals.lua:6:21: accessing undefined variable 'baz'
@@ -598,7 +598,7 @@ Total: 5 warnings / 0 errors in 1 file
 Checking spec/samples/indirect_globals.lua        3 warnings
 
     spec/samples/indirect_globals.lua:2:11-16: accessing undefined variable 'global'
-    spec/samples/indirect_globals.lua:5:1-8: indirectly setting read-only field 'concat.foo.bar' of global 'table'
+    spec/samples/indirect_globals.lua:5:1-8: indirectly setting undefined field 'concat.foo.bar' of global 'table'
     spec/samples/indirect_globals.lua:5:32-37: accessing undefined variable 'global'
 
 Total: 3 warnings / 0 errors in 1 file
@@ -621,7 +621,7 @@ Total: 2 warnings / 0 errors in 1 file
 Checking spec/samples/read_globals.lua            5 warnings
 
     spec/samples/read_globals.lua:1:1: (W121) setting read-only global variable 'string'
-    spec/samples/read_globals.lua:2:1: (W122) setting read-only field 'append' of global 'table'
+    spec/samples/read_globals.lua:2:1: (W142) setting undefined field 'append' of global 'table'
     spec/samples/read_globals.lua:5:1: (W121) setting read-only global variable 'bar'
     spec/samples/read_globals.lua:6:1: (W112) mutating non-standard global variable 'baz'
     spec/samples/read_globals.lua:6:21: (W113) accessing undefined variable 'baz'

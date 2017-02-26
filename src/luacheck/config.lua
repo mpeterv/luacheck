@@ -149,14 +149,14 @@ local function add_relative_loader(conf)
       return try_load(modpath..".lua") or try_load(modpath..utils.dir_sep.."init.lua"), modname
    end
 
-   table.insert(package.loaders or package.searchers, 1, loader)
+   table.insert(package.loaders or package.searchers, 1, loader) -- luacheck: compat
    return loader
 end
 
 local function remove_relative_loader(loader)
-   for i, func in ipairs(package.loaders or package.searchers) do
+   for i, func in ipairs(package.loaders or package.searchers) do -- luacheck: compat
       if func == loader then
-         table.remove(package.loaders or package.searchers, i)
+         table.remove(package.loaders or package.searchers, i) -- luacheck: compat
          return
       end
    end

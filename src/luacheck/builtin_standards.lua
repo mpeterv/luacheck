@@ -2,109 +2,262 @@ local standards = require "luacheck.standards"
 
 local builtin_standards = {}
 
-builtin_standards.min = {
-   globals = {
-      "_G", "package"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "collectgarbage", "coroutine",
-      "debug", "dofile", "error", "getmetatable", "io", "ipairs", "load",
-      "loadfile", "math", "next", "os", "pairs", "pcall",
-      "print", "rawequal", "rawget", "rawset", "require", "select", "setmetatable",
-      "string", "table", "tonumber", "tostring", "type", "xpcall"
+local function def_to_std(def)
+   return {read_globals = def.fields}
+end
+
+local function add_defs(...)
+   local res = {}
+
+   for _, def in ipairs({...}) do
+      standards.add_std_table(res, def_to_std(def))
+   end
+
+   return res
+end
+
+local empty = {}
+
+local function def_fields(...)
+   local fields = {}
+
+   for _, field in ipairs({...}) do
+      fields[field] = empty
+   end
+
+   return {fields = fields}
+end
+
+local string_defs = {}
+
+string_defs.min = def_fields("byte", "char", "dump", "find", "format", "gmatch",
+   "gsub", "len", "lower", "match", "rep", "reverse", "sub", "upper")
+
+string_defs.lua51 = add_defs(string_defs.min, def_fields("gfind"))
+string_defs.lua52 = string_defs.min
+string_defs.lua53 = add_defs(string_defs.min, def_fields("pack", "packsize", "unpack"))
+string_defs.luajit = string_defs.lua51
+
+local file_defs = {}
+
+file_defs.min = {
+   fields = {
+      __gc = empty,
+      __index = {other_fields = true},
+      __tostring = empty,
+      close = empty,
+      flush = empty,
+      lines = empty,
+      read = empty,
+      seek = empty,
+      setvbuf = empty,
+      write = empty
    }
 }
 
-builtin_standards.lua51 = {
-   globals = {
-      "_G", "package"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "collectgarbage", "coroutine",
-      "debug", "dofile", "error", "gcinfo", "getfenv", "getmetatable", "io", "ipairs", "load",
-      "loadfile", "loadstring", "math", "module", "newproxy", "next", "os", "pairs", "pcall",
-      "print", "rawequal", "rawget", "rawset", "require", "select", "setfenv", "setmetatable",
-      "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"
-   }
-}
+file_defs.lua51 = file_defs.min
+file_defs.lua52 = file_defs.min
+file_defs.lua53 = add_defs(file_defs.min, {fields = {__name = string_defs.lua53}})
+file_defs.luajit = file_defs.min
 
-builtin_standards.lua52 = {
-   globals = {
-      "_ENV", "_G", "package"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "bit32",
-      "collectgarbage", "coroutine", "debug", "dofile", "error", "getmetatable", "io", "ipairs",
-      "load", "loadfile", "math", "next", "os", "pairs", "pcall", "print", "rawequal", "rawget",
-      "rawlen", "rawset", "require", "select", "setmetatable", "string", "table", "tonumber",
-      "tostring", "type", "xpcall"
-   }
-}
+local function make_min_def(method_defs)
+   local string_def = string_defs[method_defs]
+   local file_def = file_defs[method_defs]
 
-builtin_standards.lua52c = {
-   globals = {
-      "_ENV", "_G", "package"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "bit32",
-      "collectgarbage", "coroutine", "debug", "dofile", "error", "getmetatable", "io", "ipairs",
-      "load", "loadfile", "loadstring", "math", "module", "next", "os", "pairs", "pcall", "print",
-      "rawequal", "rawget", "rawlen", "rawset", "require", "select", "setmetatable", "string",
-      "table", "tonumber", "tostring", "type", "unpack", "xpcall"
+   return {
+      fields = {
+         _G = {other_fields = true, read_only = false},
+         _VERSION = string_def,
+         arg = {other_fields = true},
+         assert = empty,
+         collectgarbage = empty,
+         coroutine = def_fields("create", "resume", "running", "status", "wrap", "yield"),
+         debug = def_fields("debug", "gethook", "getinfo", "getlocal", "getmetatable", "getregistry",
+            "getupvalue", "sethook", "setlocal", "setmetatable", "setupvalue", "traceback"),
+         dofile = empty,
+         error = empty,
+         getmetatable = empty,
+         io = {
+            fields = {
+               close = empty,
+               flush = empty,
+               input = empty,
+               lines = empty,
+               open = empty,
+               output = empty,
+               popen = empty,
+               read = empty,
+               stderr = file_def,
+               stdin = file_def,
+               stdout = file_def,
+               tmpfile = empty,
+               type = empty,
+               write = empty
+            }
+         },
+         ipairs = empty,
+         load = empty,
+         loadfile = empty,
+         math = def_fields("abs", "acos", "asin", "atan", "ceil", "cos",
+            "deg", "exp", "floor", "fmod", "huge", "log",
+            "max", "min", "modf", "pi", "rad", "random", "randomseed",
+            "sin", "sqrt", "tan"),
+         next = empty,
+         os = def_fields("clock", "date", "difftime", "execute", "exit", "getenv",
+            "remove", "rename", "setlocale", "time", "tmpname"),
+         package = {
+            fields = {
+               config = string_def,
+               cpath = {fields = string_def.fields, read_only = false},
+               loaded = {other_fields = true, read_only = false},
+               loadlib = empty,
+               path = {fields = string_def.fields, read_only = false},
+               preload = {other_fields = true, read_only = false}
+            }
+         },
+         pairs = empty,
+         pcall = empty,
+         print = empty,
+         rawequal = empty,
+         rawget = empty,
+         rawset = empty,
+         require = empty,
+         select = empty,
+         setmetatable = empty,
+         string = string_def,
+         table = def_fields("concat", "insert", "remove", "sort"),
+         tonumber = empty,
+         tostring = empty,
+         type = empty,
+         xpcall = empty
+      }
    }
-}
+end
 
-builtin_standards.lua53 = {
-   globals = {
-      "_ENV", "_G", "package"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "collectgarbage",
-      "coroutine", "debug", "dofile", "error", "getmetatable", "io", "ipairs", "load", "loadfile",
-      "math", "next", "os", "pairs", "pcall", "print", "rawequal", "rawget", "rawlen", "rawset",
-      "require", "select", "setmetatable", "string", "table", "tonumber", "tostring", "type",
-      "utf8", "xpcall"
-   }
-}
+local bit32_def = def_fields("arshift", "band", "bnot", "bor", "btest", "bxor", "extract",
+   "lrotate", "lshift", "replace", "rrotate", "rshift")
 
-builtin_standards.lua53c = {
-   globals = {
-      "_ENV", "_G", "package"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "bit32",
-      "collectgarbage", "coroutine", "debug", "dofile", "error", "getmetatable", "io", "ipairs",
-      "load", "loadfile", "math", "next", "os", "pairs", "pcall", "print", "rawequal", "rawget",
-      "rawlen", "rawset", "require", "select", "setmetatable", "string", "table", "tonumber",
-      "tostring", "type", "utf8", "xpcall"
-   }
-}
+local lua_defs = {}
 
-builtin_standards.luajit = {
-   globals = {
-      "_G", "package"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "bit", "collectgarbage", "coroutine",
-      "debug", "dofile", "error", "gcinfo", "getfenv", "getmetatable", "io", "ipairs", "jit",
-      "load", "loadfile", "loadstring", "math", "module", "newproxy", "next", "os", "pairs",
-      "pcall", "print", "rawequal", "rawget", "rawset", "require", "select", "setfenv",
-      "setmetatable", "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"
+lua_defs.min = make_min_def("min")
+lua_defs.lua51 = add_defs(make_min_def("lua51"), {
+   fields = {
+      debug = def_fields("getfenv", "setfenv"),
+      gcinfo = empty,
+      getfenv = empty,
+      loadstring = empty,
+      math = def_fields("atan2", "cosh", "frexp", "ldexp", "log10", "mod", "pow", "sinh", "tanh"),
+      module = empty,
+      newproxy = empty,
+      package = {
+         fields = {
+            loaders = {other_fields = true, read_only = false},
+            seeall = empty
+         }
+      },
+      setfenv = empty,
+      table = def_fields("foreach", "foreachi", "getn", "maxn", "setn"),
+      unpack = empty
    }
-}
+})
+lua_defs.lua52 = add_defs(make_min_def("lua52"), {
+   fields = {
+      _ENV = {other_fields = true, read_only = false},
+      bit32 = bit32_def,
+      debug = def_fields("getuservalue", "setuservalue", "upvalueid", "upvaluejoin"),
+      math = def_fields("atan2", "cosh", "frexp", "ldexp", "pow", "sinh", "tanh"),
+      package = {
+         fields = {
+            searchers = {other_fields = true, read_only = false},
+            searchpath = empty
+         }
+      },
+      rawlen = empty,
+      table = def_fields("pack", "unpack")
+   }
+})
+lua_defs.lua52c = add_defs(lua_defs.lua52, {
+   fields = {
+      loadstring = empty,
+      math = def_fields("log10"),
+      module = empty,
+      package = {
+         fields = {
+            loaders = {other_fields = true, read_only = false},
+            seeall = empty
+         }
+      },
+      table = def_fields("maxn"),
+      unpack = empty
+   }
+})
+lua_defs.lua53 = add_defs(make_min_def("lua53"), {
+   fields = {
+      _ENV = {other_fields = true, read_only = false},
+      coroutine = def_fields("isyieldable"),
+      debug = def_fields("getuservalue", "setuservalue", "upvalueid", "upvaluejoin"),
+      math = def_fields("maxinteger", "mininteger", "tointeger", "type", "ult"),
+      package = {
+         fields = {
+            searchers = {other_fields = true, read_only = false},
+            searchpath = empty
+         }
+      },
+      rawlen = empty,
+      table = def_fields("move", "pack", "unpack"),
+      utf8 = {
+         fields = {
+            char = empty,
+            charpattern = string_defs.lua53,
+            codepoint = empty,
+            codes = empty,
+            len = empty,
+            offset = empty
+         }
+      }
+   }
+})
+lua_defs.lua53c = add_defs(lua_defs.lua53, {
+   fields = {
+      bit32 = bit32_def,
+      math = def_fields("atan2", "cosh", "frexp", "ldexp", "log10", "pow", "sinh", "tanh")
+   }
+})
+lua_defs.luajit = add_defs(make_min_def("luajit"), {
+   fields = {
+      bit = def_fields("arshift", "band", "bnot", "bor", "bswap", "bxor", "lshift", "rol", "ror",
+         "rshift", "tobit", "tohex"),
+      debug = def_fields("getfenv", "setfenv", "upvalueid", "upvaluejoin"),
+      gcinfo = empty,
+      getfenv = empty,
+      jit = {other_fields = true},
+      loadstring = empty,
+      math = def_fields("atan2", "cosh", "frexp", "ldexp", "log10", "mod", "pow", "sinh", "tanh"),
+      module = empty,
+      newproxy = empty,
+      package = {
+         fields = {
+            loaders = {other_fields = true, read_only = false},
+            searchpath = empty,
+            seeall = empty
+         }
+      },
+      setfenv = empty,
+      table = def_fields("foreach", "foreachi", "getn", "maxn"),
+      unpack = empty
+   }
+})
+lua_defs.ngx_lua = add_defs(lua_defs.luajit, {
+   fields = {
+      ngx = {other_fields = true, read_only = false},
+      ndk = {other_fields = true}
+   }
+})
+lua_defs.max = add_defs(lua_defs.lua51, lua_defs.lua52, lua_defs.lua53, lua_defs.luajit)
 
-builtin_standards.ngx_lua = {
-   globals = {
-      "_G", "package", "ngx"
-   },
-   read_globals = {
-      "_VERSION", "arg", "assert", "bit", "collectgarbage", "coroutine",
-      "debug", "dofile", "error", "gcinfo", "getfenv", "getmetatable", "io", "ipairs", "jit",
-      "load", "loadfile", "loadstring", "math", "module", "newproxy", "ndk", "next", "os",
-      "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "require", "select", "setfenv",
-      "setmetatable", "string", "table", "tonumber", "tostring", "type", "unpack", "xpcall"
-   }
-}
+for name, def in pairs(lua_defs) do
+   builtin_standards[name] = def_to_std(def)
+end
 
 builtin_standards.busted = {
    read_globals = {
@@ -120,16 +273,6 @@ builtin_standards.rockspec = {
       "dependencies", "external_dependencies", "source", "build"
    }
 }
-
-local function make_max_std()
-   local final_max_std = {}
-
-   for _, std in ipairs({"lua51", "lua52", "lua53", "luajit"}) do
-      standards.add_std_table(final_max_std, builtin_standards[std])
-   end
-
-   return {read_globals = final_max_std.fields}
-end
 
 local function make_globals_std()
    local globals_std = {globals = {}, read_globals = {}}
@@ -154,7 +297,6 @@ local function make_globals_std()
    return globals_std
 end
 
-builtin_standards.max = make_max_std()
 builtin_standards._G = make_globals_std()
 builtin_standards.none = {}
 
