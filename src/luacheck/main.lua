@@ -50,7 +50,8 @@ together with used ones.]]):target("unused_secondaries"):action("store_false")
       parser:option("--std", [[Set standard globals. <std> can be one of:
    _G (default) - globals of the current Lua
       interpreter;
-   lua51 - globals of Lua 5.1;
+   lua51 - globals of Lua 5.1 without deprecated ones;
+   lua5c - globals of Lua 5.1;
    lua52 - globals of Lua 5.2;
    lua52c - globals of Lua 5.2 with LUA_COMPAT_ALL;
    lua53 - globals of Lua 5.3;

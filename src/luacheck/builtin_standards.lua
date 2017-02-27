@@ -140,13 +140,12 @@ local bit32_def = def_fields("arshift", "band", "bnot", "bor", "btest", "bxor", 
 local lua_defs = {}
 
 lua_defs.min = make_min_def("min")
-lua_defs.lua51 = add_defs(make_min_def("lua51"), {
+lua_defs.lua51 = add_defs(make_min_def("lua52"), {
    fields = {
       debug = def_fields("getfenv", "setfenv"),
-      gcinfo = empty,
       getfenv = empty,
       loadstring = empty,
-      math = def_fields("atan2", "cosh", "frexp", "ldexp", "log10", "mod", "pow", "sinh", "tanh"),
+      math = def_fields("atan2", "cosh", "frexp", "ldexp", "log10", "pow", "sinh", "tanh"),
       module = empty,
       newproxy = empty,
       package = {
@@ -156,8 +155,15 @@ lua_defs.lua51 = add_defs(make_min_def("lua51"), {
          }
       },
       setfenv = empty,
-      table = def_fields("foreach", "foreachi", "getn", "maxn", "setn"),
+      table = def_fields("maxn"),
       unpack = empty
+   }
+})
+lua_defs.lua51c = add_defs(lua_defs.lua51, make_min_def("lua51"), {
+   fields = {
+      gcinfo = empty,
+      math = def_fields("mod"),
+      table = def_fields("foreach", "foreachi", "getn", "setn")
    }
 })
 lua_defs.lua52 = add_defs(make_min_def("lua52"), {
@@ -253,7 +259,7 @@ lua_defs.ngx_lua = add_defs(lua_defs.luajit, {
       ndk = {other_fields = true}
    }
 })
-lua_defs.max = add_defs(lua_defs.lua51, lua_defs.lua52, lua_defs.lua53, lua_defs.luajit)
+lua_defs.max = add_defs(lua_defs.lua51c, lua_defs.lua52c, lua_defs.lua53c, lua_defs.luajit)
 
 for name, def in pairs(lua_defs) do
    builtin_standards[name] = def_to_std(def)
