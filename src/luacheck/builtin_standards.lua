@@ -233,6 +233,7 @@ lua_defs.luajit = add_defs(make_min_def("luajit"), {
    fields = {
       bit = def_fields("arshift", "band", "bnot", "bor", "bswap", "bxor", "lshift", "rol", "ror",
          "rshift", "tobit", "tohex"),
+      coroutine = def_fields("isyieldable"),
       debug = def_fields("getfenv", "setfenv", "upvalueid", "upvaluejoin"),
       gcinfo = empty,
       getfenv = empty,
@@ -249,7 +250,7 @@ lua_defs.luajit = add_defs(make_min_def("luajit"), {
          }
       },
       setfenv = empty,
-      table = def_fields("foreach", "foreachi", "getn", "maxn"),
+      table = def_fields("clear", "foreach", "foreachi", "getn", "maxn", "move", "new"),
       unpack = empty
    }
 })
