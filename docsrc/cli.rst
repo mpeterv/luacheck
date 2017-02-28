@@ -69,18 +69,20 @@ Option                                  Meaning
 ``--no-self``                           Filter out warnings related to implicit ``self`` argument.
 ``--std <std>``                         Set standard globals. ``<std>`` can be one of:
 
-                                        * ``_G`` - globals of the Lua interpreter ``luacheck`` runs on (default);
-                                        * ``lua51`` - globals of Lua 5.1;
+                                        * ``lua51`` - globals of Lua 5.1 without deprecated ones;
+                                        * ``lua51c`` - globals of Lua 5.1;
                                         * ``lua52`` - globals of Lua 5.2;
                                         * ``lua52c`` - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;
                                         * ``lua53`` - globals of Lua 5.3; 
                                         * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2; 
                                         * ``luajit`` - globals of LuaJIT 2.0;
                                         * ``ngx_lua`` - globals of Openresty `lua-nginx-module <https://github.com/openresty/lua-nginx-module>`_ with LuaJIT 2.0;
-                                        * ``rockspec`` - globals allowed in rockspecs;
                                         * ``min`` - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
                                         * ``max`` - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0;
+                                        * ``_G``  (default) - same as ``lua51c``, ``lua52c``, ``lua53c``, or ``luajit`` depending on version of Lua used
+                                          to run ``luacheck`` or same as ``max`` if couldn't detect the version;
                                         * ``busted`` - globals added by Busted 2.0;
+                                        * ``rockspec`` - globals allowed in rockspecs;
                                         * ``none`` - no standard globals.
 
                                         See :ref:`stds`
@@ -154,7 +156,7 @@ Unless already anchored, patterns matching variable names are anchored at both s
 Sets of standard globals
 ------------------------
 
-CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51+lua52+lua53``. Leading plus sign adds new sets to default one instead of replacing it. For instance, ``--std +busted`` is suitable for checking test files that use `Busted <http://olivinelabs.com/busted/>`_ testing framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
+CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51c+lua52c+lua53c+luajit``. Leading plus sign adds new sets to default one instead of replacing it. For instance, ``--std +busted`` is suitable for checking test files that use `Busted <http://olivinelabs.com/busted/>`_ testing framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
 
 Formatters
 ----------
