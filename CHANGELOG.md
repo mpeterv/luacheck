@@ -2,13 +2,30 @@
 
 ## 0.19.0 (unreleased)
 
+### Breaking changes
+
+* New format for defining standard sets of globals that can
+  describe all allowed fields of each global.
+
 ### New features and improvements
 
+* Luacheck can now detect mutations and accesses of specific fields
+  within globals. Standard global definitions have been updated
+  to provide precise lists of allowed fields. This also
+  works through local aliases (e.g. `local t = table; t.upsert()`
+  produces a warning, but `local t = table; t.insert()` does not).
+* All options that operate on lists of global names can now use
+  field names as well. E.g. `--not-globals string.len` undefines
+  standard field `string.len`. Additionally, config options
+  `globals`, `new_globals`, `read_globals`, `new_read_globals`
+  can use a table-based format to define trees of allowed fields.
 * Lines that are longer than some maximum length are now reported.
   Default limit is 120. Limit can be changed using `max_line_length`
   option.
 * Warnings related to trailing whitespace in comments
   and inside string literals now use separate warning codes.
+* Luacheck no longer reports a crash with a long traceback when
+  interrupted, instead it simply exits with an error message.
 
 ### Fixes
 
