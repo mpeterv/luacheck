@@ -14,8 +14,10 @@ Code Description
 112  Mutating an undefined global variable.
 113  Accessing an undefined global variable.
 121  Setting a read-only global variable.
-122  Mutating a read-only global variable.
+122  Setting a read-only field of a global variable.
 131  Unused implicitly defined global variable.
+142  Setting an undefined field of a global variable.
+143  Accessing an undefined field of a global variable.
 211  Unused local variable.
 212  Unused argument.
 213  Unused loop variable.
@@ -58,12 +60,23 @@ Code Description
 Global variables
 ----------------
 
-For each file, Luacheck builds list of defined globals which can be used there. By default only globals from Lua standard library are defined; custom globals can be added using ``--globals`` CLI option or ``globals`` config option, and version of standard library can be selected using ``--std`` CLI option or ``std`` config option. When an undefined global is set, mutated or accessed, Luacheck produces a warning.
+For each file, Luacheck builds list of defined globals and fields which can be used there. By default only globals from Lua standard library are defined; custom globals can be added using ``--globals`` CLI option or ``globals`` config option, and version of standard library can be selected using ``--std`` CLI option or ``std`` config option. When an undefined global or field is set, mutated or accessed, Luacheck produces a warning.
 
 Read-only globals
 ^^^^^^^^^^^^^^^^^
 
-By default, all standard globals except ``_G`` and ``package`` are marked as read-only, so that setting or mutating them produces a warning. Custom read-only globals can be added using ``--read-globals`` CLI option or ``read_globals`` config option.
+By default, most standard globals and fields are marked as read-only, so that setting them produces a warning. Custom read-only globals and fields can be added using ``--read-globals`` CLI option or ``read_globals`` config option, or using a custom set of globals. See :ref:`custom_stds`
+
+Globals and fields that are not read-only by default:
+
+* ``_G``
+* ``_ENV`` (treated as a global by Luacheck)
+* ``package.path``
+* ``package.cpath``
+* ``package.loaded``
+* ``package.preload``
+* ``package.loaders``
+* ``package.searchers``
 
 .. _implicitlydefinedglobals:
 
@@ -152,7 +165,7 @@ The following control flow and data flow issues are detected:
 * Empty blocks.
 * Empty statements (semicolons without preceding statements).
 
-Whitespace issues
+Formatting issues
 -----------------
 
-Luacheck detects some common whitespace issues, such as trailing whitespace.
+Luacheck detects some common formatting issues, such as trailing whitespace and lines that are too long.

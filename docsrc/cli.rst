@@ -151,6 +151,11 @@ Pattern Matching warnings
 
 Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows one to filter warnings by category (e.g. ``--only 1`` focuses ``luacheck`` on global-related warnings).
 
+Defining extra globals and fields
+---------------------------------
+
+CLI options ``--globals``, ``--new-globals``, ``--read-globals``, ``--new-read-globals``, and corresponding config options add new allowed globals or fields. E.g. ``--read-globals foo --globals foo.bar`` allows accessing ``foo`` global and mutating its ``bar`` field. ``--not-globals`` also operates on globals and fields and removes definitions of both standard and custom globals.
+
 .. _stds:
 
 Sets of standard globals
