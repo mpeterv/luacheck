@@ -1,5 +1,6 @@
 local luacheck = require "luacheck"
 local argparse = require "luacheck.argparse"
+local builtin_standards = require "luacheck.builtin_standards"
 local config = require "luacheck.config"
 local options = require "luacheck.options"
 local expand_rockspec = require "luacheck.expand_rockspec"
@@ -47,11 +48,19 @@ together with used ones.]]):target("unused_secondaries"):action("store_false")
       parser:flag("--no-self", "Filter out warnings related to implicit self argument.")
          :target("self"):action("store_false")
 
-      parser:option("--std", [[Set standard globals. <std> can be one of:
-   _G (default) - globals of the current Lua
-      interpreter;
+      local default_std_name = "max"
+
+      for _, name in ipairs({"lua51c", "lua52c", "lua53c", "luajit"}) do
+         if builtin_standards._G == builtin_standards[name] then
+            default_std_name = name
+            break
+         end
+      end
+
+      parser:option("--std", ([[Set standard globals, default is _G.
+<std> can be one of:
    lua51 - globals of Lua 5.1 without deprecated ones;
-   lua5c - globals of Lua 5.1;
+   lua51c - globals of Lua 5.1;
    lua52 - globals of Lua 5.2;
    lua52c - globals of Lua 5.2 with LUA_COMPAT_ALL;
    lua53 - globals of Lua 5.3;
@@ -59,15 +68,19 @@ together with used ones.]]):target("unused_secondaries"):action("store_false")
    luajit - globals of LuaJIT 2.0;
    ngx_lua - globals of Openresty lua-nginx-module
       with LuaJIT 2.0;
-   rockspec - globals allowed in rockspecs;
    min - intersection of globals of Lua 5.1, Lua 5.2,
       Lua 5.3 and LuaJIT 2.0;
    max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3
       and LuaJIT 2.0;
+   _G - same as lua51c, lua52c, lua53c, or luajit
+      depending on version of Lua used to run luacheck
+      or same as max if couldn't detect the version.
+      Currently %s;
    busted - globals added by Busted 2.0;
+   rockspec - globals allowed in rockspecs;
    none - no standard globals.
 
-   Sets can be combined using "+".]])
+   Sets can be combined using "+".]]):format(default_std_name))
       parser:option("--globals", "Add custom globals on top of standard ones.")
          :args "*"
          :count "*"

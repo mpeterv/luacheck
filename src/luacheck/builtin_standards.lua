@@ -266,6 +266,22 @@ for name, def in pairs(lua_defs) do
    builtin_standards[name] = def_to_std(def)
 end
 
+local function detect_default_std()
+   if rawget(_G, "jit") then
+      return "luajit"
+   elseif _VERSION == "Lua 5.1" then
+      return "lua51c"
+   elseif _VERSION == "Lua 5.2" then
+      return "lua52c"
+   elseif _VERSION == "Lua 5.3" then
+      return "lua53c"
+   else
+      return "max"
+   end
+end
+
+builtin_standards._G = builtin_standards[detect_default_std()]
+
 builtin_standards.busted = {
    read_globals = {
       "describe", "insulate", "expose", "it", "pending", "before_each", "after_each",
@@ -281,30 +297,6 @@ builtin_standards.rockspec = {
    }
 }
 
-local function make_globals_std()
-   local globals_std = {globals = {}, read_globals = {}}
-
-   for global in pairs(_G) do
-      if global == "_G" or global == "package" then
-         table.insert(globals_std.globals, global)
-      else
-         table.insert(globals_std.read_globals, global)
-      end
-   end
-
-   local function has_env()
-      local _ENV = {} -- luacheck: ignore
-      return not _G
-   end
-
-   if has_env() then
-      table.insert(globals_std.globals, "_ENV")
-   end
-
-   return globals_std
-end
-
-builtin_standards._G = make_globals_std()
 builtin_standards.none = {}
 
 return builtin_standards
