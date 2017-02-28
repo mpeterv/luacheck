@@ -616,6 +616,43 @@ Total: 2 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/indirect_globals.lua --std=min --globals table.concat.foo --ranges --no-config")
    end)
 
+   it("detects issues related to global fields", function()
+      assert.equal([[
+Checking spec/samples/global_fields.lua           13 warnings / 1 error
+
+    spec/samples/global_fields.lua:2:16: indirectly accessing undefined field 'upsert' of global 'table'
+    spec/samples/global_fields.lua:8:1: indirectly setting undefined field 'insert.foo' of global 'table'
+    spec/samples/global_fields.lua:23:7: accessing undefined field 'gfind' of global 'string'
+    spec/samples/global_fields.lua:27:7: accessing undefined field 'find' of global 'string'
+    spec/samples/global_fields.lua:32:7: accessing undefined variable 'server'
+    spec/samples/global_fields.lua:33:7: accessing undefined variable 'server'
+    spec/samples/global_fields.lua:34:1: mutating non-standard global variable 'server'
+    spec/samples/global_fields.lua:35:1: mutating non-standard global variable 'server'
+    spec/samples/global_fields.lua:36:1: mutating non-standard global variable 'server'
+    spec/samples/global_fields.lua:37:7: accessing undefined variable 'server'
+    spec/samples/global_fields.lua:38:1: mutating non-standard global variable 'server'
+    spec/samples/global_fields.lua:40:1: invalid inline option
+    spec/samples/global_fields.lua:41:1: mutating non-standard global variable 'server'
+    spec/samples/global_fields.lua:42:1: mutating non-standard global variable 'server'
+
+Total: 13 warnings / 1 error in 1 file
+]], get_output "spec/samples/global_fields.lua --no-config")
+
+      assert.equal([[
+Checking spec/samples/global_fields.lua           7 warnings
+
+    spec/samples/global_fields.lua:2:16: indirectly accessing undefined field 'upsert' of global 'table'
+    spec/samples/global_fields.lua:8:1: indirectly setting undefined field 'insert.foo' of global 'table'
+    spec/samples/global_fields.lua:23:7: accessing undefined field 'gfind' of global 'string'
+    spec/samples/global_fields.lua:27:7: accessing undefined field 'find' of global 'string'
+    spec/samples/global_fields.lua:34:1: setting undefined field 'foo' of global 'server'
+    spec/samples/global_fields.lua:35:1: setting undefined field 'bar.?' of global 'server'
+    spec/samples/global_fields.lua:37:7: accessing undefined field 'baz.abcd' of global 'server'
+
+Total: 7 warnings / 0 errors in 1 file
+]], get_output "spec/samples/global_fields.lua --config=spec/configs/custom_fields_config.luacheckrc")
+   end)
+
    it("allows showing warning codes", function()
       assert.equal([[
 Checking spec/samples/read_globals.lua            5 warnings
@@ -1020,7 +1057,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
    end)
 
    it("expands folders", function()
-      assert.matches("^Total: %d+ warnings / %d+ errors in 23 files\n$", get_output "spec/samples -qqq --no-config")
+      assert.matches("^Total: %d+ warnings / %d+ errors in 23 files\n$", get_output "spec/samples -qqq --no-config --exclude-files spec/samples/global_fields.lua")
    end)
 
    it("uses --include-files when expanding folders", function()
@@ -1182,7 +1219,7 @@ Checking spec/samples/unused_secondaries.lua      4 warnings
 
 Total: 63 warnings / 4 errors in 16 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
-            get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq")
+            get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files spec/samples/global_fields.lua")
          end)
 
          it("loads exclude_files option correctly from upper directory", function()
@@ -1203,7 +1240,7 @@ Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
 Total: 63 warnings / 4 errors in 16 files
-]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq", "spec/samples/"))
+]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua", "spec/samples/"))
          end)
 
          it("combines excluded files from config and cli", function()
@@ -1222,7 +1259,7 @@ Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
 Total: 55 warnings / 4 errors in 14 files
-]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files " .. quote("./read*"), "spec/samples/"))
+]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 
          it("allows defining custom stds", function()
