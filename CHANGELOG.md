@@ -14,6 +14,9 @@
   to provide precise lists of allowed fields. This also
   works through local aliases (e.g. `local t = table; t.upsert()`
   produces a warning, but `local t = table; t.insert()` does not).
+* Default set of allowed globals is now equal to globals normally
+  provided by version of Lua used to run Luacheck, instead of
+  all globals set in the interpreter while it runs Luacheck.
 * All options that operate on lists of global names can now use
   field names as well. E.g. `--not-globals string.len` undefines
   standard field `string.len`. Additionally, config options
