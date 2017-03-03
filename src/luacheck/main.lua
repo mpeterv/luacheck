@@ -81,36 +81,37 @@ together with used ones.]]):target("unused_secondaries"):action("store_false")
    none - no standard globals.
 
    Sets can be combined using "+".]]):format(default_std_name))
-      parser:option("--globals", "Add custom globals on top of standard ones.")
+      parser:option("--globals", [[Add custom global variables (e.g. foo) or
+fields (e.g. foo.bar) on top of standard ones.]])
          :args "*"
          :count "*"
-         :argname "<global>"
+         :argname "<name>"
          :action "concat"
          :init(nil)
-      parser:option("--read-globals", "Add read-only globals.")
+      parser:option("--read-globals", "Add read-only global variables or fields.")
          :args "*"
          :count "*"
-         :argname "<global>"
+         :argname "<name>"
          :action "concat"
          :init(nil)
-      parser:option("--new-globals", [[Set custom globals. Removes custom globals added
-previously.]])
+      parser:option("--new-globals", [[Set custom global variables or fields. Removes
+custom globals added previously.]])
          :args "*"
          :count "*"
-         :argname "<global>"
+         :argname "<name>"
          :action "concat"
          :init(nil)
-      parser:option("--new-read-globals", [[Set read-only globals. Removes read-only globals added
-previously.]])
+      parser:option("--new-read-globals", [[Set read-only global variables or fields. Removes
+read-only globals added previously.]])
          :args "*"
          :count "*"
-         :argname "<global>"
+         :argname "<name>"
          :action "concat"
          :init(nil)
-      parser:option("--not-globals", "Remove custom and standard globals.")
+      parser:option("--not-globals", "Remove custom and standard global variables or fields.")
          :args "*"
          :count "*"
-         :argname "<global>"
+         :argname "<name>"
          :action "concat"
          :init(nil)
       parser:flag("-c --compat", "Equivalent to --std max.")

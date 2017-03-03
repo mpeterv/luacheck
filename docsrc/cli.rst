@@ -86,11 +86,11 @@ Option                                  Meaning
                                         * ``none`` - no standard globals.
 
                                         See :ref:`stds`
-``--globals [<global>] ...``            Add custom globals on top of standard ones.
-``--read-globals [<global>] ...``       Add read-only globals.
-``--new-globals [<global>] ...``        Set custom globals. Removes custom globals added previously.
-``--new-read-globals [<global>] ...``   Set read-only globals. Removes read-only globals added previously.
-``--not-globals [<global>] ...``        Remove custom and standard globals.
+``--globals [<name>] ...``              Add custom global variables or fields on top of standard ones. See :ref:`fields`
+``--read-globals [<name>] ...``         Add read-only global variables or fields.
+``--new-globals [<name>] ...``          Set custom global variables or fields. Removes custom globals added previously.
+``--new-read-globals [<name>] ...``     Set read-only global variables or fields. Removes read-only globals added previously.
+``--not-globals [<name>] ...``          Remove custom and standard global variables or fields.
 ``-c | --compat``                       Equivalent to ``--std max``.
 ``-d | --allow-defined``                Allow defining globals implicitly by setting them.
 
@@ -150,6 +150,8 @@ Pattern Matching warnings
 ======= =========================================================================
 
 Unless already anchored, patterns matching variable names are anchored at both sides and patterns matching warning codes are anchored at their beginnings. This allows one to filter warnings by category (e.g. ``--only 1`` focuses ``luacheck`` on global-related warnings).
+
+.. _fields:
 
 Defining extra globals and fields
 ---------------------------------
