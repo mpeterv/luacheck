@@ -38,7 +38,7 @@ If it is not possible to install [LuaFileSystem](http://keplerproject.github.io/
 
 For manual installation, only a Lua interpreter binary is required.
 
-1. Download and unpack latest Luacheck release ([.zip](https://github.com/mpeterv/luacheck/archive/0.18.0.zip), [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.18.0.tar.gz)).
+1. Download and unpack latest Luacheck release ([.zip](https://github.com/mpeterv/luacheck/archive/0.19.0.zip), [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.19.0.tar.gz)).
 2. Run `install.lua <path>` script using the Lua interpreter. If Lua interpreter is not in `PATH`, invoke it using absolute path.
 3. Add `<path>/bin` to PATH or run Luacheck as `<path>/bin/luacheck`.
 
@@ -107,7 +107,7 @@ Documentation can be built using [Sphinx](http://sphinx-doc.org/): `sphinx-build
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.18.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.19.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 
