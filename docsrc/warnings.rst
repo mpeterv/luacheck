@@ -55,6 +55,7 @@ Code Description
 613  Trailing whitespace in a string.
 614  Trailing whitespace in a comment.
 621  Inconsistent indentation (``SPACE`` followed by ``TAB``).
+631  Line is too long.
 ==== =================================================================
 
 Global variables
