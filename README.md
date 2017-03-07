@@ -91,6 +91,7 @@ There are a few plugins which allow using Luacheck directly inside an editor, sh
 * For Atom there is [linter-luacheck](https://atom.io/packages/linter-luacheck) which requires [AtomLinter](https://github.com/atom-community/linter);
 * For Emacs, [Flycheck](http://www.flycheck.org/) contains [luacheck checker](http://www.flycheck.org/en/latest/languages.html#lua);
 * For Brackets, there is [linter.luacheck](https://github.com/Malcolm3141/brackets-luacheck) extension.
+* For Visual Studio code there is [vscode-luacheck](https://marketplace.visualstudio.com/items?itemName=dwenegar.vscode-luacheck) extension.
 
 If you are a plugin developer, see [recommended way of using Luacheck in a plugin](http://luacheck.readthedocs.org/en/stable/cli.html#stable-interface-for-editor-plugins-and-tools).
 
