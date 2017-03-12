@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.19.1 (2017-03-12)
+
+### Miscellaneous
+
+* Added warning code for `line is too long` warnings to documentation.
+* Added binary executable file for Windows.
+
 ## 0.19.0 (2017-03-03)
 
 ### Breaking changes
@@ -32,7 +39,7 @@
 
 ### Fixes
 
-* Fixes inconsistent indentation not being detected on lines
+* Fixed inconsistent indentation not being detected on lines
   with trailing whitespace.
 
 ## 0.18.0 (2017-01-10)
