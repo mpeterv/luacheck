@@ -110,22 +110,41 @@ function fs.find_file(path, file)
    end
 end
 
+local get_mode
+
+if fs.has_lfs then
+   function get_mode(path)
+      return fs.lfs.attributes(path, "mode")
+   end
+else
+   local mode_cmd
+
+   if utils.is_windows then
+      mode_cmd = [[if exist "%s\*" (echo directory) else (if exist "%s" echo "file")]]
+   else
+      mode_cmd = [[if [ -d '%s' ]; then echo directory; elif [ -f '%s' ]; then echo file; fi]]
+   end
+
+   function get_mode(path)
+      local cmd = mode_cmd:format(path, path)
+      local fh = io.popen(cmd)
+      local mode = fh:read("*a")
+      fh:close()
+      return mode:match("^(%S*)")
+   end
+end
+
+-- Returns whether path points to a directory.
+function fs.is_dir(path)
+   return get_mode(path) == "directory"
+end
+
+-- Returns whether path points to a file.
+function fs.is_file(path)
+   return get_mode(path) == "file"
+end
+
 if not fs.has_lfs then
-   function fs.is_dir(_)
-      return false
-   end
-
-   function fs.is_file(path)
-      local fh = io.open(path)
-
-      if fh then
-         fh:close()
-         return true
-      else
-         return false
-      end
-   end
-
    function fs.extract_files(_, _)
       return {}
    end
@@ -145,16 +164,6 @@ if not fs.has_lfs then
    end
 
    return fs
-end
-
--- Returns whether path points to a directory.
-function fs.is_dir(path)
-   return fs.lfs.attributes(path, "mode") == "directory"
-end
-
--- Returns whether path points to a file.
-function fs.is_file(path)
-   return fs.lfs.attributes(path, "mode") == "file"
 end
 
 -- Returns list of all files in directory matching pattern.

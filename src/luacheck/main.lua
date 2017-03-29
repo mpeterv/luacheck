@@ -258,14 +258,18 @@ patterns.]])
          if file == "-" then
             add(io.stdin)
          elseif fs.is_dir(file) then
-            local extracted, err = fs.extract_files(file, dir_pattern)
+            if fs.has_lfs then
+               local extracted, err = fs.extract_files(file, dir_pattern)
 
-            if extracted then
-               for _, nested_file in ipairs(extracted) do
-                  add(nested_file)
+               if extracted then
+                  for _, nested_file in ipairs(extracted) do
+                     add(nested_file)
+                  end
+               elseif add(file) then
+                  bad_files[#res] = {fatal = "I/O", msg = err}
                end
             elseif add(file) then
-               bad_files[#res] = {fatal = "I/O", msg = err}
+               bad_files[#res] = {fatal = "I/O", msg = "LuaFileSystem required to check directories"}
             end
          elseif file:sub(-#".rockspec") == ".rockspec" then
             local related_files, err, msg = expand_rockspec(file)
