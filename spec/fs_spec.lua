@@ -95,10 +95,11 @@ for _, fs_name in ipairs({"lua_fs", "lfs_fs"}) do
       end)
 
       describe("get_mode", function()
-         local tricky_path = "spec/'"
+         local tricky_path = "spec" .. utils.dir_sep .. "'"
 
          it("returns 'file' for a file", function()
-            assert(io.open(tricky_path, "w"))
+            local fh = assert(io.open(tricky_path, "w"))
+            fh:close()
             finally(function() assert(os.remove(tricky_path)) end)
             assert.equal("file", base_fs.get_mode(tricky_path))
          end)
