@@ -13,7 +13,8 @@ else
 end
 
 if fs.has_lfs then
-   version.lfs = fs.lfs._VERSION
+   local lfs = require "lfs"
+   version.lfs = lfs._VERSION
 else
    version.lfs = "Not found"
 end

@@ -355,7 +355,7 @@ patterns.]])
       for i, file in ipairs(files) do
          if not bad_files[i] and file ~= io.stdin then
             table.insert(cache_files, file)
-            local mtime = fs.mtime(file)
+            local mtime = fs.get_mtime(file)
             table.insert(cache_mtimes, mtime)
             sparse_mtimes[i] = mtime
          end

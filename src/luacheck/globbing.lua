@@ -5,7 +5,7 @@ local utils = require "luacheck.utils"
 -- Hidden files are not treated specially. Special characters can't be escaped.
 local globbing = {}
 
-local cur_dir = fs.current_dir()
+local cur_dir = fs.get_current_dir()
 
 local function is_regular_path(glob)
    return not glob:find("[*?%[]")

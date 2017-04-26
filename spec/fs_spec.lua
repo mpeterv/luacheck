@@ -40,19 +40,19 @@ describe("fs", function()
       end)
    end)
 
-   describe("mtime", function()
+   describe("get_mtime", function()
       it("returns modification time as a number", function()
-         assert.number(fs.mtime("spec/folder/foo"))
+         assert.number(fs.get_mtime("spec/folder/foo"))
       end)
 
       it("returns nil for non-existent files", function()
-         assert.is_nil(fs.mtime("spec/folder/non-existent"))
+         assert.is_nil(fs.get_mtime("spec/folder/non-existent"))
       end)
    end)
 
-   describe("current_dir", function()
+   describe("get_current_dir", function()
       it("returns absolute path to current directory", function()
-         local current_dir = fs.current_dir()
+         local current_dir = fs.get_current_dir()
          assert.string(current_dir)
          assert.not_equal("", (fs.split_base(current_dir)))
          assert.is_true(fs.is_file(current_dir .. "spec/folder/foo"))
@@ -61,18 +61,18 @@ describe("fs", function()
 
    describe("find_file", function()
       it("finds file in a directory", function()
-         local path = fs.current_dir() .. P"spec/folder"
+         local path = fs.get_current_dir() .. P"spec/folder"
          assert.equal(path, fs.find_file(path, "foo"))
       end)
 
       it("finds file in a parent directory", function()
-         local path = fs.current_dir() .. P"spec/folder"
+         local path = fs.get_current_dir() .. P"spec/folder"
          assert.equal(path, fs.find_file(fs.join(path, "folder1"), "foo"))
       end)
 
       it("returns nil if can't find file", function()
          assert.is_nil(
-            fs.find_file(fs.current_dir(), "this file shouldn't exist or it will make luacheck testsuite break"))
+            fs.find_file(fs.get_current_dir(), "this file shouldn't exist or it will make luacheck testsuite break"))
       end)
    end)
 end)

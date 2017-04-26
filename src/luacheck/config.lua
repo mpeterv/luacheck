@@ -170,7 +170,7 @@ function config.load_config(path)
    local is_default_path = not path
    path = path or config.default_path
 
-   local current_dir = fs.current_dir()
+   local current_dir = fs.get_current_dir()
    local abs_conf_dir, rel_conf_dir = fs.find_file(current_dir, path)
 
    if not abs_conf_dir then
