@@ -63,7 +63,8 @@ local message_formats = {
    ["312"] = "value of argument {name!} is unused",
    ["313"] = "value of loop variable {name!} is unused",
    ["314"] = function(w)
-      return "value assigned to " .. (w.index and "index" or "field") .. " {field!} is unused"
+      local target = w.index and "index" or "field"
+      return "value assigned to " .. target .. " {field!} is overwritten on line {overwritten_line} before use"
    end,
    ["321"] = "accessing uninitialized variable {name!}",
    ["331"] = "value assigned to variable {name!} is mutated but never accessed",

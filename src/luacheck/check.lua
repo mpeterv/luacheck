@@ -136,11 +136,13 @@ function ChState:warn_unused_value(value, mutated)
    }, value.type == "arg" and value.var.self)
 end
 
-function ChState:warn_unused_field_value(node)
+function ChState:warn_unused_field_value(node, overwriting_node)
    self:warn({
       code = "314",
       field = node.field,
       index = node.is_index,
+      overwritten_line = overwriting_node.location.line,
+      overwritten_column = overwriting_node.location.column,
       line = node.location.line,
       column = node.location.column,
       end_column = node.location.column + #node.first_token - 1

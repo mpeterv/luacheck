@@ -597,7 +597,7 @@ function LinState:scan_expr_Table(item, node)
 
       if field then
          if key_to_node[key] then
-            self.chstate:warn_unused_field_value(key_to_node[key])
+            self.chstate:warn_unused_field_value(key_to_node[key], pair)
          end
 
          key_to_node[key] = pair

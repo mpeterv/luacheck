@@ -450,10 +450,14 @@ end
 
    it("detects duplicated fields in table literals", function()
       assert.same({
-         {code = "314", field = "key", line = 3, column = 4, end_column = 4},
-         {code = "314", field = "2", index = true, line = 6, column = 4, end_column = 4},
-         {code = "314", field = "key", line = 7, column = 4, end_column = 6},
-         {code = "314", field = "0.2e1", line = 9, column = 4, end_column = 4}
+         {code = "314", field = "key", line = 3, column = 4, end_column = 4,
+            overwritten_line = 7, overwritten_column = 4},
+         {code = "314", field = "2", index = true, line = 6, column = 4, end_column = 4,
+            overwritten_line = 9, overwritten_column = 4},
+         {code = "314", field = "key", line = 7, column = 4, end_column = 6,
+            overwritten_line = 8, overwritten_column = 4},
+         {code = "314", field = "0.2e1", line = 9, column = 4, end_column = 4,
+            overwritten_line = 10, overwritten_column = 4}
       }, check[[
 local x, y, z = 1, 2, 3
 return {
