@@ -14,7 +14,7 @@ local utils = require "luacheck.utils"
 
 local function critical(msg)
    io.stderr:write("Critical error: "..msg.."\n")
-   os.exit(3)
+   os.exit(4)
 end
 
 local function main()
@@ -520,7 +520,7 @@ patterns.]])
    local ok, args = parser:pparse()
    if not ok then
       io.stderr:write(("%s\n\nError: %s\n"):format(parser:get_usage(), args))
-      os.exit(3)
+      os.exit(4)
    end
 
    local conf
@@ -557,8 +557,10 @@ patterns.]])
    local exit_code
 
    if report.fatals > 0 then
+      exit_code = 3
+   elseif report.errors > 0 then
       exit_code = 2
-   elseif report.warnings > 0 or report.errors > 0 then
+   elseif report.warnings > 0 then
       exit_code = 1
    else
       exit_code = 0

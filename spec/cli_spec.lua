@@ -55,7 +55,7 @@ describe("cli", function()
    end)
 
    it("handles invalid options", function()
-      assert.equal(3, get_exitcode "--invalid-option")
+      assert.equal(4, get_exitcode "--invalid-option")
    end)
 
    it("works for correct files", function()
@@ -390,7 +390,7 @@ Checking s/samples/absent_code.lua                I/O error
 
 Total: 0 warnings / 1 error in 1 file, couldn't check 1 file
 ]], get_output "spec/samples/python_code.lua s/samples/absent_code.lua --no-config")
-      assert.equal(2, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua --no-config")
+      assert.equal(3, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua --no-config")
    end)
 
    it("expands rockspecs", function()
@@ -1314,14 +1314,14 @@ Total: 1 warning / 0 errors in 1 file
             assert.matches([[
 Critical error: Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error %(line 2: .*%)
 ]], get_output "spec/samples/empty.lua --config=spec/configs/bad_config.luacheckrc")
-            assert.equal(3, get_exitcode "spec/samples/empty.lua --config=spec/configs/bad_config.luacheckrc")
+            assert.equal(4, get_exitcode "spec/samples/empty.lua --config=spec/configs/bad_config.luacheckrc")
          end)
 
          it("raises critical error on non-existent config", function()
             assert.equal([[
 Critical error: Couldn't find configuration file spec/configs/config_404.luacheckrc
 ]], get_output "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
-            assert.equal(3, get_exitcode "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
+            assert.equal(4, get_exitcode "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
          end)
       end)
 
