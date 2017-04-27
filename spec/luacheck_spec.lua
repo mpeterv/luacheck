@@ -528,11 +528,12 @@ describe("get_message", function()
          overwritten_line = 2
       }))
 
-      assert.equal("value assigned to index '42' is unused", luacheck.get_message({
+      assert.equal("value assigned to index '42' is overwritten on line 2 before use", luacheck.get_message({
          code = "314",
          name = "11037",
          field = "42",
-         index = true
+         index = true,
+         overwritten_line = 2
       }))
 
       assert.equal("message goes here", luacheck.get_message({
