@@ -14,6 +14,16 @@ local function prefix_if_indirect(fmt)
    end
 end
 
+local function unused_or_overwritten(fmt)
+   return function(w)
+      if w.overwritten_line then
+         return fmt .. " is overwritten on line {overwritten_line} before use"
+      else
+         return fmt .. " is unused"
+      end
+   end
+end
+
 local message_formats = {
    ["011"] = "{msg}",
    ["021"] = "invalid inline option",
@@ -59,9 +69,9 @@ local message_formats = {
    ["232"] = "argument {name!} is never accessed",
    ["233"] = "loop variable {name!} is never accessed",
    ["241"] = "variable {name!} is mutated but never accessed",
-   ["311"] = "value assigned to variable {name!} is unused",
-   ["312"] = "value of argument {name!} is unused",
-   ["313"] = "value of loop variable {name!} is unused",
+   ["311"] = unused_or_overwritten("value assigned to variable {name!}"),
+   ["312"] = unused_or_overwritten("value of argument {name!}"),
+   ["313"] = unused_or_overwritten("value of loop variable {name!}"),
    ["314"] = function(w)
       local target = w.index and "index" or "field"
       return "value assigned to " .. target .. " {field!} is overwritten on line {overwritten_line} before use"

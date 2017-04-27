@@ -296,19 +296,36 @@ for i in pairs{} do end
 
    it("detects unused values", function()
       assert.same({
-         {code = "311", name = "a", line = 3, column = 4, end_column = 4},
-         {code = "311", name = "a", line = 5, column = 4, end_column = 4},
-         {code = "113", name = "print", indexing = {"print"}, line = 9, column = 1, end_column = 5}
+         {code = "311", name = "a", line = 3, column = 4, end_column = 4, overwritten_line = 3, overwritten_column = 7},
+         {code = "311", name = "a", line = 3, column = 7, end_column = 7, overwritten_line = 8, overwritten_column = 1},
+         {code = "311", name = "a", line = 5, column = 4, end_column = 4, overwritten_line = 8, overwritten_column = 1}
       }, check[[
 local a
 if ... then
-   a = 2
+   a, a = 2, 4
 else
    a = 3
 end
 
 a = 5
-print(a)
+return a
+]])
+   end)
+
+   it("does not provide overwriting location if value can reach end of scope", function()
+      assert.same({
+         {code = "311", name = "a", line = 4, column = 4, end_column = 4},
+         {code = "311", name = "a", line = 7, column = 7, end_column = 7}
+      }, check[[
+do
+   local a = 1
+   (...)(a)
+   a = 2
+
+   if ... then
+      a = 3
+   end
+end
 ]])
    end)
 
@@ -343,7 +360,8 @@ return a, b
 
    it("considers a variable initialized if short rhs ends with potential multivalue", function()
       assert.same({
-         {code = "311", name = "b", line = 2, column = 13, end_column = 13, secondary = true}
+         {code = "311", name = "b", line = 2, column = 13, end_column = 13, secondary = true,
+            overwritten_line = 3, overwritten_column = 4}
       }, check[[
 return function(...)
    local a, b = ...
@@ -475,8 +493,10 @@ return {
 
    it("considers a variable assigned even if it can't get a value due to short rhs (it still gets nil)", function()
       assert.same({
-         {code = "311", name = "a", line = 1, column = 7, end_column = 7},
-         {code = "311", name = "b", line = 1, column = 10, end_column = 10},
+         {code = "311", name = "a", line = 1, column = 7, end_column = 7,
+            overwritten_line = 2, overwritten_column = 1},
+         {code = "311", name = "b", line = 1, column = 10, end_column = 10,
+            overwritten_line = 2, overwritten_column = 4},
          {code = "532", line = 2, column = 6, end_column = 6}
       }, check[[
 local a, b = "foo", "bar"
@@ -487,8 +507,10 @@ return a, b
 
    it("reports vartype == var when the unused value is not the initial", function()
       assert.same({
-         {code = "312", name = "b", line = 1, column = 23, end_column = 23},
-         {code = "311", name = "a", line = 2, column = 4, end_column = 4}
+         {code = "312", name = "b", line = 1, column = 23, end_column = 23,
+            overwritten_line = 4, overwritten_column = 4},
+         {code = "311", name = "a", line = 2, column = 4, end_column = 4,
+            overwritten_line = 3, overwritten_column = 4}
       }, check[[
 local function foo(a, b)
    a = a or "default"

@@ -195,8 +195,8 @@ Checking spec/samples/unused_code.lua             9 warnings
     spec/samples/unused_code.lua:7:11: unused loop variable 'a'
     spec/samples/unused_code.lua:7:14: unused loop variable 'b'
     spec/samples/unused_code.lua:7:17: unused loop variable 'c'
-    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is unused
-    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is unused
+    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is overwritten on line 14 before use
+    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is overwritten on line 15 before use
     spec/samples/unused_code.lua:21:7: variable 'z' is never accessed
 
 Total: 14 warnings / 0 errors in 3 files
@@ -322,8 +322,8 @@ Checking spec/samples/unused_code.lua             9 warnings
     spec/samples/unused_code.lua:7:11: unused loop variable 'a'
     spec/samples/unused_code.lua:7:14: unused loop variable 'b'
     spec/samples/unused_code.lua:7:17: unused loop variable 'c'
-    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is unused
-    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is unused
+    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is overwritten on line 14 before use
+    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is overwritten on line 15 before use
     spec/samples/unused_code.lua:21:7: variable 'z' is never accessed
 
 Total: 9 warnings / 0 errors in 1 file
@@ -335,8 +335,8 @@ Total: 9 warnings / 0 errors in 1 file
 Checking spec/samples/unused_code.lua             4 warnings
 
     spec/samples/unused_code.lua:5:13: unused variable 'q'
-    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is unused
-    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is unused
+    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is overwritten on line 14 before use
+    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is overwritten on line 15 before use
     spec/samples/unused_code.lua:21:7: variable 'z' is never accessed
 
 Total: 4 warnings / 0 errors in 1 file
@@ -866,8 +866,8 @@ Checking spec/samples/unused_code.lua             9 warnings
     spec/samples/unused_code.lua:7:11: unused loop variable 'a'
     spec/samples/unused_code.lua:7:14: unused loop variable 'b'
     spec/samples/unused_code.lua:7:17: unused loop variable 'c'
-    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is unused
-    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is unused
+    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is overwritten on line 14 before use
+    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is overwritten on line 15 before use
     spec/samples/unused_code.lua:21:7: variable 'z' is never accessed
 
 Total: 16 warnings / 1 error in 4 files
@@ -1166,8 +1166,8 @@ Checking spec/samples/unused_code.lua             7 warnings
     spec/samples/unused_code.lua:7:11: unused loop variable 'a'
     spec/samples/unused_code.lua:7:14: unused loop variable 'b'
     spec/samples/unused_code.lua:7:17: unused loop variable 'c'
-    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is unused
-    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is unused
+    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is overwritten on line 14 before use
+    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is overwritten on line 15 before use
 
 Total: 8 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/unused_secondaries.lua spec/samples/unused_code.lua --config=spec/configs/multioverride_config.luacheckrc")

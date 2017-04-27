@@ -31,6 +31,9 @@ end
 -- of items, i.e. when propogation followed some path from it to previous item
 local function value_propogation_callback(line, stack, index, item, visited, var, value)
    if not item then
+      -- Value reach end of line, so even if it's overwritten by a single assignment it's
+      -- not dominated by it.
+      value.overwriting_item = false
       register_value(line.last_live_values, var, value)
       return true
    end
@@ -45,10 +48,25 @@ local function value_propogation_callback(line, stack, index, item, visited, var
       end
    end
 
-   local stop_and_save = not visited[index] and (
-      not in_scope(var, index) or item.set_variables and item.set_variables[var])
+   local is_overwritten = item.set_variables and item.set_variables[var]
+   local out_of_scope = not in_scope(var, index)
+   local stop_and_save = not visited[index] and (out_of_scope or is_overwritten)
 
    if stack[index] or stop_and_save then
+      if is_overwritten then
+         if value.overwriting_item ~= false then
+            if value.overwriting_item and value.overwriting_item ~= item then
+               value.overwriting_item = false
+            else
+               value.overwriting_item = item
+            end
+         end
+      elseif out_of_scope then
+         -- Value reach end of scope, so even if it's overwritten by a single assignment it's
+         -- not dominated by it.
+         value.overwriting_item = false
+      end
+
       if not item.live_values then
          item.live_values = {}
       end
@@ -190,6 +208,28 @@ local function externally_accessible(value)
    return value.type ~= "var" or (value.node and externally_accessible_tags[value.node.tag])
 end
 
+local function find_overwriting_lhs_node(item, value)
+   for _, node in ipairs(item.lhs) do
+      if node.var == value.var then
+         return node
+      end
+   end
+end
+
+local function get_overwriting_node_in_dup_assignment(item, value)
+   local after_value_node
+
+   for _, node in ipairs(item.lhs) do
+      if node.var == value.var then
+         if after_value_node then
+            return node
+         elseif node.location == value.location then
+            after_value_node = true
+         end
+      end
+   end
+end
+
 -- Emits warnings for variable.
 local function check_var(chstate, var)
    if is_function_var(var) then
@@ -229,7 +269,19 @@ local function check_var(chstate, var)
       for _, value in ipairs(var.values) do
          if not value.empty then
             if not value.used and not value.mutated then
-               chstate:warn_unused_value(value)
+               local overwriting_node
+
+               if value.overwriting_item then
+                  overwriting_node = find_overwriting_lhs_node(value.overwriting_item, value)
+
+                  if overwriting_node == value.node then
+                     overwriting_node = nil
+                  end
+               else
+                  overwriting_node = get_overwriting_node_in_dup_assignment(value.item, value)
+               end
+
+               chstate:warn_unused_value(value, false, overwriting_node)
             elseif not value.used and not externally_accessible(value) then
                if var.accessed or not no_values_externally_accessible then
                   chstate:warn_unused_value(value, true)

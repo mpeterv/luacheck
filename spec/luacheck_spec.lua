@@ -250,14 +250,18 @@ describe("check_strings", function()
                name = "self",
                line = 3,
                column = 11,
-               end_column = 11
+               end_column = 11,
+               overwritten_line = 4,
+               overwritten_column = 4
             },
             {
                code = "311",
                name = "self",
                line = 4,
                column = 4,
-               end_column = 7
+               end_column = 7,
+               overwritten_line = 5,
+               overwritten_column = 4
             },
             {
                code = "511",
