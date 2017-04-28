@@ -76,6 +76,7 @@ together with used ones.]]):target("unused_secondaries"):action("store_false")
       depending on version of Lua used to run luacheck
       or same as max if couldn't detect the version.
       Currently %s;
+   love - globals added by LOVE (love2d);
    busted - globals added by Busted 2.0;
    rockspec - globals allowed in rockspecs;
    none - no standard globals.
