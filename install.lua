@@ -109,6 +109,7 @@ for _, filename in ipairs {
       "options.lua",
       "inline_options.lua",
       "builtin_standards.lua",
+      "love_standard.lua",
       "expand_rockspec.lua",
       "multithreading.lua",
       "cache.lua",

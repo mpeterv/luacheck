@@ -290,6 +290,8 @@ builtin_standards.busted = {
    }
 }
 
+builtin_standards.love = require "luacheck.love_standard"
+
 builtin_standards.rockspec = {
    globals = {
       "rockspec_format", "package", "version", "description", "supported_platforms",
