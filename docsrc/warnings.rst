@@ -1,7 +1,7 @@
 List of warnings
 ================
 
-Warnings produced by Luacheck are categorized using three-digit warning codes. Warning codes can be displayed in CLI output using ``--codes`` CLI option or ``codes`` config option. Errors also have codes starting with zero.
+Warnings produced by Luacheck are categorized using three-digit warning codes. Warning codes can be displayed in CLI output using ``--codes`` CLI option or ``codes`` config option. Errors also have codes starting with zero; unlike warnings, they can not be ignored.
 
 ==== =================================================================
 Code Description
@@ -58,8 +58,8 @@ Code Description
 631  Line is too long.
 ==== =================================================================
 
-Global variables
-----------------
+Global variables (1xx)
+----------------------
 
 For each file, Luacheck builds list of defined globals and fields which can be used there. By default only globals from Lua standard library are defined; custom globals can be added using ``--globals`` CLI option or ``globals`` config option, and version of standard library can be selected using ``--std`` CLI option or ``std`` config option. When an undefined global or field is set, mutated or accessed, Luacheck produces a warning.
 
@@ -93,8 +93,8 @@ Modules
 
 Files can be marked as modules using ``-m``/``--module`` CLI option or ``module`` config option to simulate semantics of the deprecated `module <http://www.lua.org/manual/5.1/manual.html#pdf-module>`_ function. Globals implicitly defined inside a module are considired part of its interface, are not visible outside and are not reported as unused. Assignments to other globals are not allowed, even to defined ones.
 
-Unused variables and values
----------------------------
+Unused variables (2xx) and values (3xx)
+---------------------------------------
 
 Luacheck generates warnings for all unused local variables except one named ``_``. It also detects variables which are set but never accessed or accessed but never set.
 
@@ -137,8 +137,8 @@ A variable is secondary if all values assigned to it are secondary. In the snipp
 
 Warnings related to unused secondary values and variables can be removed using ``-s``/``--no-unused-secondaries`` CLI option or ``unused_secondaries`` config option.
 
-Shadowing declarations
-----------------------
+Shadowing declarations (4xx)
+----------------------------
 
 Luacheck detects declarations of local variables shadowing previous declarations, unless the variable is named ``_``. If the previous declaration is in the same scope as the new one, it is called redefining.
 
@@ -155,18 +155,71 @@ Note that it is **not** necessary to define a new local variable when overwritin
       x = x or "default" -- good
    end
 
-Control flow and data flow issues
----------------------------------
+Control flow and data flow issues (5xx)
+---------------------------------------
 
-The following control flow and data flow issues are detected:
+Unreachable code
+^^^^^^^^^^^^^^^^
 
-* Unreachable code and loops that can be executed at most once (e.g. due to an unconditional break);
-* Unused labels;
-* Unbalanced assignments;
-* Empty blocks.
-* Empty statements (semicolons without preceding statements).
+Luacheck detects unreachable code. It also detects it if end of a loop block is unreachable, which means that the loop can be executed at most once:
 
-Formatting issues
------------------
+.. code-block:: lua
+   :linenos:
 
-Luacheck detects some common formatting issues, such as trailing whitespace and lines that are too long.
+   for i = 1, 100 do
+      -- Break statement is outside the `if` block,
+      -- so that the loop always stops after the first iteration.
+      if cond(i) then f() end break
+   end
+
+Unused labels
+^^^^^^^^^^^^^
+
+Labels that are not used by any ``goto`` statements are reported as unused.
+
+Unbalanced assignments
+^^^^^^^^^^^^^^^^^^^^^^
+
+If an assignment has left side and right side with different lengths, the assignment is unbalanced and Luacheck warns about it.
+
+An exception is initializing several local variables in a single statement while leaving some uninitialized:
+
+.. code-block:: lua
+   :linenos:
+
+   local a, b, c = nil -- Effectively sets `a`, `b`, and `c` to nil, no warning.
+
+Empty blocks
+^^^^^^^^^^^^
+
+Luacheck warns about empty ``do`` ``end`` blocks and empty ``if`` branches (``then`` ``else``, ``then`` ``elseif``, and ``then`` ``end``).
+
+Empty statements
+^^^^^^^^^^^^^^^^
+
+In Lua 5.2+ semicolons are considered statements and can appear even when not following normal statements. Such semicolons
+produce Luacheck warnings as they are completely useless.
+
+Formatting issues (6xx)
+-----------------------
+
+Whitespace issues
+^^^^^^^^^^^^^^^^^
+
+Luacheck warns about trailing whitespace and inconsistent indentation (``SPACE`` followed by ``TAB``).
+
+Line length limits
+^^^^^^^^^^^^^^^^^^
+
+Luacheck warns about lines that are longer then some limit. Default limit is ``120`` characters. It's possible
+to change this limit using ``--max-line-length`` CLI option or disable the check completely with
+``--no-max-line-length``; there are similar config and inline options.
+
+Additionally, separate limits can be set for three different type of lines:
+
+* "String" lines have their line ending inside a string, typically a long string using ``[[...]]`` syntax.
+* "Comment" lines have their line ending inside a long comment (``--[[...]]``), or end with a short comment using normal ``--...`` syntax.
+* "Code" lines are all other lines.
+
+These types of lines are limited using CLI options named ``--[no-]max-string-line-length``, ``--[no-]max-comment-line-length``,
+and ``--[no-]max-code-line-length``, with similar config and inline options.
