@@ -1,10 +1,30 @@
 # Change Log
 
+## 0.20.0 (unreleased)
+
+### Breaking changes
+
+* `luacheck` now exits with `2` instead of `1` if there are syntax errors
+  or invalid inline options present. It now exits with `3` instead of
+  `2` if I/O errors are present. It now exits with `4` instead of `3`
+  on a critical error (#94).
+
+### New features and improvements
+
+* New `love` std set containing globals added by Love2D framework (#108).
+* For warnings about unused values and fields, if the value is always
+  overwritten by a single other value, location of the overwriting
+  assignment is mentioned in the warning message (#106).
+* When attempting to check a directory while LuaFileSystem is not installed,
+  `luacheck` now mentions that LuaFileSystem is required in the error
+  message (#103).
+* Improved warning message for unbalanced assignment warnings (#104).
+
 ## 0.19.1 (2017-03-12)
 
 ### Miscellaneous
 
-* Added warning code for `line is too long` warnings to documentation.
+* Added warning code for `line is too long` warnings to documentation (#98).
 * Added binary executable file for Windows.
 
 ## 0.19.0 (2017-03-03)
