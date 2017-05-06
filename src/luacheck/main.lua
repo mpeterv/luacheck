@@ -184,6 +184,17 @@ Otherwise, the pattern matches warning code.]])
          parser:flag("--no-config", "Do not look up configuration file.")
       )
 
+      parser:mutex(
+         parser:option("--default-config", ([[
+Path to configuration file to use if
+--[no-]config is not used and
+project-specific %s is not found.
+(default: %s)]]):format(config.default_path, config.global_path or "could not detect"))
+            :default(config.global_path)
+            :show_default(false),
+         parser:flag("--no-default-config", "Do not use default configuration file.")
+      )
+
       parser:option("--filename", [[Use another filename in output and for selecting
 configuration overrides.]])
 
@@ -554,7 +565,7 @@ patterns.]])
       conf = config.empty_config
    else
       local err
-      conf, err = config.load_config(args.config)
+      conf, err = config.load_config(args.config, not args.no_default_config and args.default_config)
 
       if not conf then
          critical(err)

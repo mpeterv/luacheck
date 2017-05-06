@@ -1332,6 +1332,75 @@ Checking spec/samples/globals.lua                 1 warning
 Total: 1 warning / 0 errors in 1 file
 ]], get_output "spec/samples/globals.lua --config=spec/configs/import_config.luacheckrc")
          end)
+
+         describe("global path", function()
+            setup(function()
+               os.rename(".luacheckrc", ".luacheckrc.bak")
+            end)
+
+            teardown(function()
+               os.rename(".luacheckrc.bak", ".luacheckrc")
+            end)
+
+            it("uses global path as fallback if --[no-]config is not used", function()
+               assert.equal([[
+Checking spec/samples/compat.lua                  OK
+
+Total: 0 warnings / 0 errors in 1 file
+]], get_output "spec/samples/compat.lua --default-config=spec/configs/global_config.luacheckrc")
+            end)
+
+            it("detects errors in global path config", function()
+               assert.equal([[
+Critical error: Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error (line 2: syntax error near 'method_missing')
+]], get_output "spec/samples/compat.lua --default-config=spec/configs/bad_config.luacheckrc")
+            end)
+
+            it("does not use global path config if it is missing", function()
+               assert.equal([[
+Checking spec/samples/compat.lua                  2 warnings
+
+    spec/samples/compat.lua:1:2: accessing undefined variable 'setfenv'
+    spec/samples/compat.lua:1:22: accessing undefined variable 'setfenv'
+
+Total: 2 warnings / 0 errors in 1 file
+]], get_output "spec/samples/compat.lua --std=lua52 --default-config=spec/configs/config_404.luacheckrc")
+            end)
+
+            it("does not use global path as fallback if --no-default-config is not used", function()
+               assert.equal([[
+Checking spec/samples/compat.lua                  2 warnings
+
+    spec/samples/compat.lua:1:2: accessing undefined variable 'setfenv'
+    spec/samples/compat.lua:1:22: accessing undefined variable 'setfenv'
+
+Total: 2 warnings / 0 errors in 1 file
+]], get_output "spec/samples/compat.lua --std=lua52 --no-default-config")
+            end)
+
+
+            it("does not use global path as fallback if --config is used", function()
+               assert.equal([[
+Files: 1
+Warnings: 2
+Errors: 0
+Quiet: 0
+Color: false
+Codes: true
+]], get_output "spec/samples/compat.lua --default-config=spec/configs/global_config.luacheckrc --config=spec/configs/cli_specific_config.luacheckrc")
+            end)
+
+            it("does not use global path as fallback if --no-config is used", function()
+               assert.equal([[
+Checking spec/samples/compat.lua                  2 warnings
+
+    spec/samples/compat.lua:1:2: accessing undefined variable 'setfenv'
+    spec/samples/compat.lua:1:22: accessing undefined variable 'setfenv'
+
+Total: 2 warnings / 0 errors in 1 file
+]], get_output "spec/samples/compat.lua --std=lua52 --default-config=spec/configs/global_config.luacheckrc --no-config")
+            end)
+         end)
       end)
 
       describe("error handling", function()
