@@ -105,6 +105,12 @@ Option                                  Meaning
                                         See :ref:`modules`
 ``--max-line-length <length``           Set maximum allowed line length (default: 120).
 ``--no-max-line-length``                Do not limit line length.
+``--max-code-line-length <length``      Set maximum allowed length for lines ending with code (default: 120).
+``--no-max-code-line-length``           Do not limit code line length.
+``--max-string-line-length <length``    Set maximum allowed length for lines within a string (default: 120).
+``--no-max-string-line-length``         Do not limit string line length.
+``--max-comment-line-length <length``   Set maximum allowed length for comment lines (default: 120).
+``--no-max-comment-line-length``        Do not limit comment line length.
 ``--ignore | -i <patt> [<patt>] ...``   Filter out warnings matching patterns.
 ``--enable | -e <patt> [<patt>] ...``   Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``     Filter out warnings not matching patterns.

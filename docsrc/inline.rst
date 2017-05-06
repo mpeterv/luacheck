@@ -5,30 +5,33 @@ Luacheck supports setting some options directly in the checked files using inlin
 
 An inline configuration comment starts with ``luacheck:`` label, possibly after some whitespace. The body of the comment should contain comma separated options, where option invocation consists of its name plus space separated arguments. It can also contain notes enclosed in balanced parentheses, which are ignored. The following options are supported:
 
-================== ============================================================
-Option             Number of arguments
-================== ============================================================
-global             0
-unused             0
-redefined          0
-unused args        0
-unused secondaries 0
-self               0
-compat             0
-module             0
-allow defined      0
-allow defined top  0
-max line length    1 (with ``no`` and no arguments disables line length checks)
-std                1
-globals            0+
-new globals        0+
-read globals       0+
-new read globals   0+
-not globals        0+
-ignore             0+ (without arguments everything is ignored)
-enable             1+
-only               1+
-================== ============================================================
+======================= ====================================================================
+Option                  Number of arguments
+======================= ====================================================================
+global                  0
+unused                  0
+redefined               0
+unused args             0
+unused secondaries      0
+self                    0
+compat                  0
+module                  0
+allow defined           0
+allow defined top       0
+max line length         1 (with ``no`` and no arguments disables line length checks)
+max code line length    1 (with ``no`` and no arguments disables code line length checks)
+max string line length  1 (with ``no`` and no arguments disables string line length checks)
+max comment line length 1 (with ``no`` and no arguments disables comment line length checks)
+std                     1
+globals                 0+
+new globals             0+
+read globals            0+
+new read globals        0+
+not globals             0+
+ignore                  0+ (without arguments everything is ignored)
+enable                  1+
+only                    1+
+======================= ====================================================================
 
 Options that take no arguments can be prefixed with ``no`` to invert their meaning. E.g. ``--luacheck: no unused args`` disables unused argument warnings.
 
