@@ -1351,8 +1351,8 @@ Total: 0 warnings / 0 errors in 1 file
             end)
 
             it("detects errors in global path config", function()
-               assert.equal([[
-Critical error: Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error (line 2: syntax error near 'method_missing')
+               assert.matches([[
+Critical error: Couldn't load configuration from spec/configs/bad_config.luacheckrc: syntax error %(line 2: .* near 'method_missing'%)
 ]], get_output "spec/samples/compat.lua --default-config=spec/configs/bad_config.luacheckrc")
             end)
 
