@@ -903,7 +903,7 @@ Total: 16 warnings / 1 error in 4 files
          local cache = utils.read_file(tmpname)
          assert.string(cache)
 
-         -- luacheck: push no max line length
+         -- luacheck: push no max string line length
          local format_version, good_mtime, bad_mtime, python_mtime = cache:match((([[
 
 (%d+)
