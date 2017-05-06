@@ -2,7 +2,15 @@ local fs = {}
 
 local utils = require "luacheck.utils"
 
-fs.has_lfs, fs.lfs = pcall(require, "lfs")
+fs.has_lfs = pcall(require, "lfs")
+
+local base_fs
+
+if fs.has_lfs then
+   base_fs = require "luacheck.lfs_fs"
+else
+   base_fs = require "luacheck.lua_fs"
+end
 
 local function ensure_dir_sep(path)
    if path:sub(-1) ~= utils.dir_sep then
@@ -12,17 +20,15 @@ local function ensure_dir_sep(path)
    return path
 end
 
-if utils.is_windows then
-   function fs.split_base(path)
+function fs.split_base(path)
+   if utils.is_windows then
       if path:match("^%a:\\") then
          return path:sub(1, 3), path:sub(4)
       else
-         -- Disregard UNC stuff for now.
+         -- Disregard UNC paths and relative paths with drive letter.
          return "", path
       end
-   end
-else
-   function fs.split_base(path)
+   else
       if path:match("^/") then
          if path:match("^//") then
             return "//", path:sub(3)
@@ -85,6 +91,14 @@ function fs.is_subpath(path, subpath)
    return rest1 == rest2 or rest2:sub(#rest1 + 1, #rest1 + 1) == utils.dir_sep
 end
 
+function fs.is_dir(path)
+   return base_fs.get_mode(path) == "directory"
+end
+
+function fs.is_file(path)
+   return base_fs.get_mode(path) == "file"
+end
+
 -- Searches for file starting from path, going up until the file
 -- is found or root directory is reached.
 -- Path must be absolute.
@@ -110,60 +124,14 @@ function fs.find_file(path, file)
    end
 end
 
-if not fs.has_lfs then
-   function fs.is_dir(_)
-      return false
-   end
-
-   function fs.is_file(path)
-      local fh = io.open(path)
-
-      if fh then
-         fh:close()
-         return true
-      else
-         return false
-      end
-   end
-
-   function fs.extract_files(_, _)
-      return {}
-   end
-
-   function fs.mtime(_)
-      return 0
-   end
-
-   local pwd_command = utils.is_windows and "cd" or "pwd"
-
-   function fs.current_dir()
-      local fh = io.popen(pwd_command)
-      local current_dir = fh:read("*a")
-      fh:close()
-      -- Remove extra newline at the end.
-      return ensure_dir_sep(current_dir:sub(1, -2))
-   end
-
-   return fs
-end
-
--- Returns whether path points to a directory.
-function fs.is_dir(path)
-   return fs.lfs.attributes(path, "mode") == "directory"
-end
-
--- Returns whether path points to a file.
-function fs.is_file(path)
-   return fs.lfs.attributes(path, "mode") == "file"
-end
-
 -- Returns list of all files in directory matching pattern.
 -- Returns nil, error message on error.
 function fs.extract_files(dir_path, pattern)
+   assert(fs.has_lfs)
    local res = {}
 
    local function scan(dir)
-      local ok, iter, state, var = pcall(fs.lfs.dir, dir)
+      local ok, iter, state, var = pcall(base_fs.dir_iter, dir)
 
       if not ok then
          local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
@@ -198,13 +166,14 @@ function fs.extract_files(dir_path, pattern)
 end
 
 -- Returns modification time for a file.
-function fs.mtime(path)
-   return fs.lfs.attributes(path, "modification")
+function fs.get_mtime(path)
+   assert(fs.has_lfs)
+   return base_fs.get_mtime(path)
 end
 
--- Returns absolute path to current working directory.
-function fs.current_dir()
-   return ensure_dir_sep(assert(fs.lfs.currentdir()))
+-- Returns absolute path to current working directory, with trailing directory separator.
+function fs.get_current_dir()
+   return ensure_dir_sep(base_fs.get_current_dir())
 end
 
 return fs

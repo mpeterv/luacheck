@@ -121,7 +121,9 @@ for _, filename in ipairs {
       "argparse.lua",
       "whitespace.lua",
       "detect_globals.lua",
-      "standards.lua"} do
+      "standards.lua",
+      "lua_fs.lua",
+      "lfs_fs.lua"} do
    copy("src" .. dirsep .. "luacheck" .. dirsep .. filename, luacheck_lib_dir)
 end
 

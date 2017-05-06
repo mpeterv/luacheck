@@ -1,24 +1,22 @@
+local lfs = require "lfs"
+
 local config = require "luacheck.config"
 local fs = require "luacheck.fs"
 local P = fs.normalize
-local cur_dir = fs.has_lfs and fs.lfs.currentdir()
+local cur_dir = lfs.currentdir()
 
 local function nest(dir, func)
-   if not fs.has_lfs then
-      pending("uses lfs")
-   end
-
    local backed = false
 
    local function back()
       if not backed then
-         fs.lfs.chdir(cur_dir)
+         lfs.chdir(cur_dir)
          backed = true
       end
    end
 
    finally(back)
-   fs.lfs.chdir(dir)
+   lfs.chdir(dir)
    func()
    back()
 end

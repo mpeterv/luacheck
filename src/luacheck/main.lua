@@ -14,7 +14,7 @@ local utils = require "luacheck.utils"
 
 local function critical(msg)
    io.stderr:write("Critical error: "..msg.."\n")
-   os.exit(3)
+   os.exit(4)
 end
 
 local function main()
@@ -259,14 +259,18 @@ patterns.]])
          if file == "-" then
             add(io.stdin)
          elseif fs.is_dir(file) then
-            local extracted, err = fs.extract_files(file, dir_pattern)
+            if fs.has_lfs then
+               local extracted, err = fs.extract_files(file, dir_pattern)
 
-            if extracted then
-               for _, nested_file in ipairs(extracted) do
-                  add(nested_file)
+               if extracted then
+                  for _, nested_file in ipairs(extracted) do
+                     add(nested_file)
+                  end
+               elseif add(file) then
+                  bad_files[#res] = {fatal = "I/O", msg = err}
                end
             elseif add(file) then
-               bad_files[#res] = {fatal = "I/O", msg = err}
+               bad_files[#res] = {fatal = "I/O", msg = "LuaFileSystem required to check directories"}
             end
          elseif file:sub(-#".rockspec") == ".rockspec" then
             local related_files, err, msg = expand_rockspec(file)
@@ -352,7 +356,7 @@ patterns.]])
       for i, file in ipairs(files) do
          if not bad_files[i] and file ~= io.stdin then
             table.insert(cache_files, file)
-            local mtime = fs.mtime(file)
+            local mtime = fs.get_mtime(file)
             table.insert(cache_mtimes, mtime)
             sparse_mtimes[i] = mtime
          end
@@ -517,7 +521,7 @@ patterns.]])
    local ok, args = parser:pparse()
    if not ok then
       io.stderr:write(("%s\n\nError: %s\n"):format(parser:get_usage(), args))
-      os.exit(3)
+      os.exit(4)
    end
 
    local conf
@@ -554,8 +558,10 @@ patterns.]])
    local exit_code
 
    if report.fatals > 0 then
+      exit_code = 3
+   elseif report.errors > 0 then
       exit_code = 2
-   elseif report.warnings > 0 or report.errors > 0 then
+   elseif report.warnings > 0 then
       exit_code = 1
    else
       exit_code = 0

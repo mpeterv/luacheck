@@ -250,14 +250,18 @@ describe("check_strings", function()
                name = "self",
                line = 3,
                column = 11,
-               end_column = 11
+               end_column = 11,
+               overwritten_line = 4,
+               overwritten_column = 4
             },
             {
                code = "311",
                name = "self",
                line = 4,
                column = 4,
-               end_column = 7
+               end_column = 7,
+               overwritten_line = 5,
+               overwritten_column = 4
             },
             {
                code = "511",
@@ -521,17 +525,19 @@ describe("get_message", function()
          label = "fail"
       }))
 
-      assert.equal("value assigned to field 'actual' is unused", luacheck.get_message({
+      assert.equal("value assigned to field 'actual' is overwritten on line 2 before use", luacheck.get_message({
          code = "314",
          name = "unrelated",
-         field = "actual"
+         field = "actual",
+         overwritten_line = 2
       }))
 
-      assert.equal("value assigned to index '42' is unused", luacheck.get_message({
+      assert.equal("value assigned to index '42' is overwritten on line 2 before use", luacheck.get_message({
          code = "314",
          name = "11037",
          field = "42",
-         index = true
+         index = true,
+         overwritten_line = 2
       }))
 
       assert.equal("message goes here", luacheck.get_message({
