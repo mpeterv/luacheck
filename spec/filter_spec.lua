@@ -638,16 +638,18 @@ describe("filter", function()
       assert.same({
          {
             {code = "631", line = 2, column = 1, end_column = 121, max_length = 120},
-            {code = "631", line = 5, column = 1, end_column = 21, max_length = 20}
+            {code = "631", line = 5, column = 1, end_column = 18, line_ending = "string", max_length = 15}
          }
       }, filter_full({
          {
             events = {
                {options = {max_line_length = 20}, line = 3, column = 1},
+               {options = {max_string_line_length = 15}, line = 4, column = 1},
                {options = {max_line_length = false}, line = 6, column = 1}
             },
             per_line_options = {},
-            line_lengths = {120, 121, 15, 20, 21, 15, 200}
+            line_lengths = {120, 121, 15, 20, 18, 15, 200},
+            line_endings = {[5] = "string"}
          }
       }, {}))
    end)

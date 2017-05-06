@@ -908,7 +908,8 @@ return foo;
          per_line_options = {
             [2] = {{options = {ignore = {"foo"}}, line = 2, column = 16, end_column = 38}}
          },
-         line_lengths = {28, 38, 16, 17, 19, 17, 32, 16, 3}
+         line_lengths = {28, 38, 16, 17, 19, 17, 32, 16, 3},
+         line_endings = {"comment", "comment", "comment", nil, "comment", "comment", nil, "comment", nil}
       }, check_full[[
 -- luacheck: push ignore bar
 local foo, bar -- luacheck: ignore foo

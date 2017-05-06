@@ -78,6 +78,9 @@ options.variadic_inline_options = {
 options.all_options = {
    std = std_or_array_of_strings,
    max_line_length = number_or_false,
+   max_code_line_length = number_or_false,
+   max_string_line_length = number_or_false,
+   max_comment_line_length = number_or_false,
    inline = boolean
 }
 
@@ -259,6 +262,34 @@ local function get_scalar_opt(opts_stack, option, default)
    return default
 end
 
+local line_length_suboptions = {"max_code_line_length", "max_string_line_length", "max_comment_line_length"}
+
+local function get_max_line_opts(opts_stack)
+   local res = {max_line_length = 120}
+
+   for _, opt_name in ipairs(line_length_suboptions) do
+      res[opt_name] = res.max_line_length
+   end
+
+   for _, opts in ipairs(opts_stack) do
+      if opts.max_line_length ~= nil then
+         res.max_line_length = opts.max_line_length
+
+         for _, opt_name in ipairs(line_length_suboptions) do
+            res[opt_name] = opts.max_line_length
+         end
+      end
+
+      for _, opt_name in ipairs(line_length_suboptions) do
+         if opts[opt_name] ~= nil then
+            res[opt_name] = opts[opt_name]
+         end
+      end
+   end
+
+   return res
+end
+
 local function anchor_pattern(pattern, only_start)
    if not pattern then
       return
@@ -361,8 +392,7 @@ local scalar_options = {
    inline = true,
    module = false,
    allow_defined = false,
-   allow_defined_top = false,
-   max_line_length = 120
+   allow_defined_top = false
 }
 
 -- Returns normalized options.
@@ -379,6 +409,8 @@ function options.normalize(opts_stack)
       res[option] = get_scalar_opt(opts_stack, option, default)
    end
 
+   local max_line_opts = get_max_line_opts(opts_stack)
+   utils.update(res, max_line_opts)
    res.rules = normalize_patterns(get_rules(opts_stack))
    return res
 end

@@ -33,6 +33,9 @@ local function add_closure_boundaries(ast, events)
    end
 end
 
+local max_line_length_opts = utils.array_to_set({
+   "max_line_length", "max_code_line_length", "max_string_line_length", "max_comment_line_length"})
+
 -- Parses inline option body, returns options or nil.
 local function get_options(body)
    local opts = {}
@@ -70,13 +73,13 @@ local function get_options(body)
                   -- Array option with 'no' prefix is invalid.
                   return
                end
-            elseif name == "max_line_length" then
-               -- Either `max line length <number>` or `no max line length`.
+            elseif max_line_length_opts[name] then
+               -- Either `max [type] line length <number>` or `no max [type] line length`.
                if flag and #args == 1 and tonumber(args[1]) then
-                  opts.max_line_length = tonumber(args[1])
+                  opts[name] = tonumber(args[1])
                   break
                elseif not flag and #args == 0 then
-                  opts.max_line_length = false
+                  opts[name] = false
                   break
                else
                   return

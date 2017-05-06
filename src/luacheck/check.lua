@@ -238,7 +238,7 @@ local function check_or_throw(src)
    reachability(chstate, line)
    detect_globals(chstate, line)
    local events, per_line_opts = inline_options.get_events(ast, comments, code_lines, chstate.warnings)
-   return {events = events, per_line_options = per_line_opts, line_lengths = line_lengths}
+   return {events = events, per_line_options = per_line_opts, line_lengths = line_lengths, line_endings = line_endings}
 end
 
 --- Checks source.

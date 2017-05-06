@@ -259,9 +259,17 @@ local function get_field_status(opts, warning, depth)
    return defined and (read_only and "read_only" or "global") or "undefined"
 end
 
+local function get_max_line_length(opts, warning)
+   return opts["max_" .. (warning.line_ending or "code") .. "_line_length"]
+end
+
 local function filters(opts, warning)
-   if warning.code == "631" and (not opts.max_line_length or warning.end_column <= opts.max_line_length) then
-      return true
+   if warning.code == "631" then
+      local max_line_length = get_max_line_length(opts, warning)
+
+      if (not max_line_length or warning.end_column <= max_line_length) then
+         return true
+      end
    end
 
    if warning.code:match("[234]..") and warning.name == "_" and not warning.useless then
@@ -309,7 +317,7 @@ local function filter_file_report(report)
       else
          if not filters(opts, issue) then
             if issue.code == "631" then
-               issue.max_length = opts.max_line_length
+               issue.max_length = get_max_line_length(opts, issue)
             end
 
             if issue.code:match("1[24][23]") then
@@ -420,6 +428,7 @@ local function add_long_line_warnings(report)
                code = "631",
                line = line_number,
                column = 1,
+               line_ending = file_report.line_endings[line_number],
                end_column = length
             })
          end

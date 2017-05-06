@@ -129,6 +129,30 @@ their files.]])
          :action "store_false"
          :target "max_line_length"
 
+      parser:option("--max-code-line-length", [[Set maximum allowed length for lines
+ending with code (default: 120).]])
+         :argname "<length>"
+         :convert(tonumber)
+      parser:flag("--no-max-code-line-length", "Do not limit code line length.")
+         :action "store_false"
+         :target "max_code_line_length"
+
+      parser:option("--max-string-line-length", [[Set maximum allowed length for lines
+within a string (default: 120).]])
+         :argname "<length>"
+         :convert(tonumber)
+      parser:flag("--no-max-string-line-length", "Do not limit string line length.")
+         :action "store_false"
+         :target "max_string_line_length"
+
+      parser:option("--max-comment-line-length", [[Set maximum allowed length for
+comment lines (default: 120).]])
+         :argname "<length>"
+         :convert(tonumber)
+      parser:flag("--no-max-comment-line-length", "Do not limit comment line length.")
+         :action "store_false"
+         :target "max_comment_line_length"
+
       parser:option("--ignore -i", [[Filter out warnings matching these patterns.
 If a pattern contains slash, part before slash matches
 warning code and part after it matches name of related

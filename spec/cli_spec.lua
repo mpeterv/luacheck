@@ -550,33 +550,58 @@ Total: 6 warnings / 0 errors in 1 file
 
    it("detects lines that are too long", function()
       assert.equal([[
-Checking spec/samples/line_length.lua             4 warnings
+Checking spec/samples/line_length.lua             8 warnings
 
     spec/samples/line_length.lua:2:1: line is too long (123 > 120)
     spec/samples/line_length.lua:3:1: line is too long (164 > 120)
-    spec/samples/line_length.lua:8:1: line is too long (132 > 120)
-    spec/samples/line_length.lua:10:1: line is too long (85 > 80)
+    spec/samples/line_length.lua:8:1: line is too long (134 > 120)
+    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
+    spec/samples/line_length.lua:18:1: line is too long (132 > 120)
+    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
 
-Total: 4 warnings / 0 errors in 1 file
+Total: 8 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/line_length.lua --no-config")
 
       assert.equal([[
-Checking spec/samples/line_length.lua             3 warnings
+Checking spec/samples/line_length.lua             7 warnings
 
     spec/samples/line_length.lua:3:1: line is too long (164 > 130)
-    spec/samples/line_length.lua:8:1: line is too long (132 > 130)
-    spec/samples/line_length.lua:10:1: line is too long (85 > 80)
+    spec/samples/line_length.lua:8:1: line is too long (134 > 130)
+    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
+    spec/samples/line_length.lua:18:1: line is too long (132 > 130)
+    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
 
-Total: 3 warnings / 0 errors in 1 file
+Total: 7 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/line_length.lua --no-config --max-line-length=130")
 
       assert.equal([[
-Checking spec/samples/line_length.lua             1 warning
+Checking spec/samples/line_length.lua             4 warnings
 
-    spec/samples/line_length.lua:10:1: line is too long (85 > 80)
+    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
+    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
 
-Total: 1 warning / 0 errors in 1 file
+Total: 4 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/line_length.lua --no-config --no-max-line-length")
+
+      assert.equal([[
+Checking spec/samples/line_length.lua             7 warnings
+
+    spec/samples/line_length.lua:2:1: line is too long (123 > 120)
+    spec/samples/line_length.lua:3:1: line is too long (164 > 120)
+    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
+    spec/samples/line_length.lua:18:1: line is too long (132 > 120)
+    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
+
+Total: 7 warnings / 0 errors in 1 file
+]], get_output "spec/samples/line_length.lua --no-config --no-max-string-line-length")
    end)
 
    it("detects issues related to read-only globals", function()
@@ -884,10 +909,10 @@ Total: 16 warnings / 1 error in 4 files
 (%d+)
 spec/samples/good_code.lua
 (%d+)
-return {{},{},{19,0,23,17,3,0,30,25,26,3,0,15}}
+return {{},{},{19,0,23,17,3,0,30,25,26,3,0,15},{[4]="comment"}}
 spec/samples/bad_code.lua
 (%d+)
-local A,B,C="package","embrace","hepler";return {{{"112",A,1,1,7,[23]={A,"loaded",true}},{"211","helper",3,16,21,[10]=true},{"212","...",3,23,25},{"111",B,7,10,16,[11]=true,[23]={B}},{"412","opt",8,10,12,7,18},{"113",C,9,11,16,[23]={C}}},{},{24,0,26,9,3,0,21,31,26,3,0}}
+local A,B,C="package","embrace","hepler";return {{{"112",A,1,1,7,[23]={A,"loaded",true}},{"211","helper",3,16,21,[10]=true},{"212","...",3,23,25},{"111",B,7,10,16,[11]=true,[23]={B}},{"412","opt",8,10,12,7,18},{"113",C,9,11,16,[23]={C}}},{},{24,0,26,9,3,0,21,31,26,3,0},{[4]="comment"}}
 spec/samples/python_code.lua
 (%d+)
 return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{},{}}
@@ -1209,7 +1234,7 @@ Checking spec/samples/global_inline_options.lua   3 warnings
 Checking spec/samples/globals.lua                 2 warnings
 Checking spec/samples/indirect_globals.lua        3 warnings
 Checking spec/samples/inline_options.lua          7 warnings / 2 errors
-Checking spec/samples/line_length.lua             4 warnings
+Checking spec/samples/line_length.lua             8 warnings
 Checking spec/samples/python_code.lua             1 error
 Checking spec/samples/read_globals.lua            5 warnings
 Checking spec/samples/read_globals_inline_options.lua 3 warnings
@@ -1217,7 +1242,7 @@ Checking spec/samples/redefined.lua               7 warnings
 Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
 
-Total: 63 warnings / 4 errors in 16 files
+Total: 67 warnings / 4 errors in 16 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files spec/samples/global_fields.lua")
          end)
@@ -1231,7 +1256,7 @@ Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
 Checking indirect_globals.lua                     3 warnings
 Checking inline_options.lua                       7 warnings / 2 errors
-Checking line_length.lua                          4 warnings
+Checking line_length.lua                          8 warnings
 Checking python_code.lua                          1 error
 Checking read_globals.lua                         5 warnings
 Checking read_globals_inline_options.lua          3 warnings
@@ -1239,7 +1264,7 @@ Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 63 warnings / 4 errors in 16 files
+Total: 67 warnings / 4 errors in 16 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua", "spec/samples/"))
          end)
 
@@ -1252,13 +1277,13 @@ Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
 Checking indirect_globals.lua                     3 warnings
 Checking inline_options.lua                       7 warnings / 2 errors
-Checking line_length.lua                          4 warnings
+Checking line_length.lua                          8 warnings
 Checking python_code.lua                          1 error
 Checking redefined.lua                            7 warnings
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 55 warnings / 4 errors in 14 files
+Total: 59 warnings / 4 errors in 14 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 
