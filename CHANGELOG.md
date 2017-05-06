@@ -11,6 +11,12 @@
 
 ### New features and improvements
 
+* New `--[no-]max-code-line-length`, `--[no-]max-string-line-length`,
+  `--[no-]max-comment-line-length` CLI options and corresponding
+  config and inline options that limit line length only for subsets of lines
+  based on line type: string lines have their line endings within a string,
+  comment lines have their line endings within a comment, other lines
+  are code lines (#100).
 * New `love` std set containing globals added by Love2D framework (#108).
 * For warnings about unused values and fields, if the value is always
   overwritten by a single other value, location of the overwriting
