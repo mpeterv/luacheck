@@ -11,6 +11,14 @@
 
 ### New features and improvements
 
+* If project-specific `.luacheckrc` is not found, `luacheck` will now use
+  config from some global location if it is present there. Default global
+  location is
+  `%USERPROFILE%\Local Settings\Application Data\Luacheck\Config\.luacheckrc`
+  on Windows and `$XDG_CONFIG_HOME/luacheck/.luacheckrc` or
+  `~/.config/luacheck/.luacheckrc` on other systems.
+  This behaviour can be tweaked with `--default-config` and
+  `--no-default-config` options (#102).
 * New `--[no-]max-code-line-length`, `--[no-]max-string-line-length`,
   `--[no-]max-comment-line-length` CLI options and corresponding
   config and inline options that limit line length only for subsets of lines
