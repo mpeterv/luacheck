@@ -5,6 +5,8 @@ Configuration file
 
 Config is simply a Lua script executed by ``luacheck``. It may set various options by assigning to globals or by returning a table with option names as keys.
 
+Options loaded from config have the lowest priority: it's possible to overwrite them with CLI options or inline options.
+
 .. _options:
 
 Config options
