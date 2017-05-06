@@ -41,9 +41,10 @@ The output of ``luacheck`` consists of separate reports for each checked file an
 ``luacheck`` chooses exit code as follows:
 
 * Exit code is ``0`` if no warnings or errors occurred.
-* Exit code is ``1`` if some warnings or syntax errors occured.
-* Exit code is ``2`` if some files couldn't be checked, typically due to an incorrect file name.
-* Exit code is ``3`` if there was a critical error (invalid CLI arguments, config, or cache file).
+* Exit code is ``1`` if some warnings occured but there were no syntax errors or invalid inline options.
+* Exit code is ``2`` if there were some syntax errors or invalid inline options.
+* Exit code is ``3`` if some files couldn't be checked, typically due to an incorrect file name.
+* Exit code is ``4`` if there was a critical error (invalid CLI arguments, config, or cache file).
 
 .. _cliopts:
 
