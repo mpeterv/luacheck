@@ -176,7 +176,7 @@ if utils.is_windows then
    end
 
    if local_app_data_dir then
-      global_config_dir = fs.join(local_app_data_dir, "Luacheck", "Config")
+      global_config_dir = fs.join(local_app_data_dir, "Luacheck")
    end
 else
    local config_home_dir = os.getenv("XDG_CONFIG_HOME")

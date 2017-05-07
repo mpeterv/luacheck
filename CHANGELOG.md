@@ -14,7 +14,7 @@
 * If project-specific `.luacheckrc` is not found, `luacheck` will now use
   config from some global location if it is present there. Default global
   location is
-  `%USERPROFILE%\Local Settings\Application Data\Luacheck\Config\.luacheckrc`
+  `%USERPROFILE%\Local Settings\Application Data\Luacheck\.luacheckrc`
   on Windows and `$XDG_CONFIG_HOME/luacheck/.luacheckrc` or
   `~/.config/luacheck/.luacheckrc` on other systems.
   This behaviour can be tweaked with `--default-config` and
