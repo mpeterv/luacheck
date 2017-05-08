@@ -162,37 +162,51 @@ local function remove_relative_loader(loader)
    end
 end
 
-local global_config_dir
+local function get_global_config_dir()
+   if utils.is_windows then
+      local local_app_data_dir = os.getenv("LOCALAPPDATA")
 
-if utils.is_windows then
-   local local_app_data_dir = os.getenv("LOCALAPPDATA")
+      if not local_app_data_dir then
+         local user_profile_dir = os.getenv("USERPROFILE")
 
-   if not local_app_data_dir then
-      local user_profile_dir = os.getenv("USERPROFILE")
-
-      if user_profile_dir then
-         local_app_data_dir = fs.join(fs.join(user_profile_dir, "Local Settings"), "Application Data")
+         if user_profile_dir then
+            local_app_data_dir = fs.join(user_profile_dir, "Local Settings", "Application Data")
+         end
       end
-   end
 
-   if local_app_data_dir then
-      global_config_dir = fs.join(local_app_data_dir, "Luacheck")
-   end
-else
-   local config_home_dir = os.getenv("XDG_CONFIG_HOME")
-
-   if not config_home_dir then
-      local home_dir = os.getenv("HOME")
-
-      if home_dir then
-         config_home_dir = fs.join(home_dir, ".config")
+      if local_app_data_dir then
+         return fs.join(local_app_data_dir, "Luacheck")
       end
-   end
+   else
+      local fh = assert(io.popen("uname -s"))
+      local system = fh:read("*l")
+      fh:close()
 
-   if config_home_dir then
-      global_config_dir = fs.join(config_home_dir, "luacheck")
+      if system == "Darwin" then
+         local home_dir = os.getenv("HOME")
+
+         if home_dir then
+            return fs.join(home_dir, "Library", "Application Support", "Luacheck")
+         end
+      else
+         local config_home_dir = os.getenv("XDG_CONFIG_HOME")
+
+         if not config_home_dir then
+            local home_dir = os.getenv("HOME")
+
+            if home_dir then
+               config_home_dir = fs.join(home_dir, ".config")
+            end
+         end
+
+         if config_home_dir then
+            return fs.join(config_home_dir, "luacheck")
+         end
+      end
    end
 end
+
+local global_config_dir = get_global_config_dir()
 
 if global_config_dir then
    config.global_path = fs.join(global_config_dir, ".luacheckrc")
