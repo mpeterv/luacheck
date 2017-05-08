@@ -68,12 +68,22 @@ function fs.normalize(path)
    end
 end
 
-function fs.join(base, path)
+local function join_two_paths(base, path)
    if base == "" or is_absolute(path) then
       return path
    else
-      return ensure_dir_sep(base)..path
+      return ensure_dir_sep(base) .. path
    end
+end
+
+function fs.join(base, ...)
+   local res = base
+
+   for i = 1, select("#", ...) do
+      res = join_two_paths(res, select(i, ...))
+   end
+
+   return res
 end
 
 function fs.is_subpath(path, subpath)

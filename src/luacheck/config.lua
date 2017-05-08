@@ -145,7 +145,7 @@ end
 
 local function add_relative_loader(conf)
    local function loader(modname)
-      local modpath = fs.join(conf.rel_dir, modname:gsub("%.", utils.dir_sep))
+      local modpath = fs.join(conf.rel_dir, (modname:gsub("%.", utils.dir_sep)))
       return try_load(modpath..".lua") or try_load(modpath..utils.dir_sep.."init.lua"), modname
    end
 
