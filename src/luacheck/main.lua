@@ -184,13 +184,15 @@ Otherwise, the pattern matches warning code.]])
          parser:flag("--no-config", "Do not look up configuration file.")
       )
 
+      local default_global_path = config.get_default_global_path()
+
       parser:mutex(
          parser:option("--default-config", ([[
 Path to configuration file to use if
 --[no-]config is not used and
 project-specific %s is not found.
-(default: %s)]]):format(config.default_path, config.global_path or "could not detect"))
-            :default(config.global_path)
+(default: %s)]]):format(config.default_path, default_global_path or "could not detect"))
+            :default(default_global_path)
             :show_default(false),
          parser:flag("--no-default-config", "Do not use default configuration file.")
       )

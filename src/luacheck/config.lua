@@ -206,13 +206,16 @@ local function get_global_config_dir()
    end
 end
 
-local global_config_dir = get_global_config_dir()
+config.default_path = ".luacheckrc"
 
-if global_config_dir then
-   config.global_path = fs.join(global_config_dir, ".luacheckrc")
+function config.get_default_global_path()
+   local global_config_dir = get_global_config_dir()
+
+   if global_config_dir then
+      return fs.join(global_config_dir, config.default_path)
+   end
 end
 
-config.default_path = ".luacheckrc"
 config.empty_config = {empty = true}
 
 -- Loads config from path, returns config object or nil and error message.
