@@ -119,8 +119,11 @@ Option                                  Meaning
 ``--no-config``                         Do not look up custom configuration file.
 ``--default-config <config>``           Default path to custom configuration file, to be used if ``--[no-]config`` is not used and ``.luacheckrc`` is not found.
 
-                                        Default value for this option is ``%USERPROFILE%\Local Settings\Application Data\Luacheck\.luacheckrc`` on Windows
-                                        and ``$XDG_CONFIG_HOME/luacheck/.luacheckrc`` or ``~/.config/luacheck/.luacheckrc`` on other systems.
+                                        Default global location is:
+
+                                        * ``%LOCALAPPDATA%\Luacheck\.luacheckrc`` on Windows;
+                                        * ``~/Library/Application Support/Luacheck/.luacheckrc`` on OS X/macOS;
+                                        * ``$XDG_CONFIG_HOME/luacheck/.luacheckrc`` or ``~/.config/luacheck/.luacheckrc`` on other systems.
 ``--no-default-config``                 Do not use fallback configuration file.
 ``--filename <filename>``               Use another filename in output, for selecting
                                         configuration overrides and for file filtering.

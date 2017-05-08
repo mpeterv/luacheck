@@ -4,8 +4,8 @@ Configuration file
 ``luacheck`` tries to load configuration from ``.luacheckrc`` file in the current directory. If not found, it will look for it in the parent directory and so on, going up until it reaches file system root. Path to config can be set using ``--config`` option, in which case it will be used during recursive loading. Config loading can be disabled using ``--no-config`` flag.
 
 If neither of ``--config``, ``--no-config``, and ``--no-default-config`` options are used, ``luacheck`` will attempt to load configuration from value of ``--default-config`` option,
-or ``%USERPROFILE%\Local Settings\Application Data\Luacheck\.luacheckrc`` on Windows and ``$XDG_CONFIG_HOME/luacheck/.luacheckrc`` or ``~/.config/luacheck/.luacheckrc``
-on other systems by default.
+or ``%LOCALAPPDATA%\Luacheck\.luacheckrc`` on Windows, ``~/Library/Application Support/Luacheck/.luacheckrc`` on OS X/macOS, and ``$XDG_CONFIG_HOME/luacheck/.luacheckrc``
+or ``~/.config/luacheck/.luacheckrc`` on other systems by default.
 
 Config is simply a Lua script executed by ``luacheck``. It may set various options by assigning to globals or by returning a table with option names as keys.
 
