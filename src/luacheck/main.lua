@@ -12,9 +12,17 @@ local fs = require "luacheck.fs"
 local globbing = require "luacheck.globbing"
 local utils = require "luacheck.utils"
 
+local exit_codes = {
+   ok = 0,
+   warnings = 1,
+   errors = 2,
+   fatals = 3,
+   critical = 4
+}
+
 local function critical(msg)
    io.stderr:write("Critical error: "..msg.."\n")
-   os.exit(4)
+   os.exit(exit_codes.critical)
 end
 
 local function main()
@@ -246,7 +254,7 @@ patterns.]])
       parser:flag("--no-color", "Do not color output.")
 
       parser:flag("-v --version", "Show version info and exit.")
-         :action(function() print(version.string) os.exit(0) end)
+         :action(function() print(version.string) os.exit(exit_codes.ok) end)
 
       return parser
    end
@@ -558,7 +566,7 @@ patterns.]])
    local ok, args = parser:pparse()
    if not ok then
       io.stderr:write(("%s\n\nError: %s\n"):format(parser:get_usage(), args))
-      os.exit(4)
+      os.exit(exit_codes.critical)
    end
 
    local conf
@@ -592,19 +600,15 @@ patterns.]])
 
    io.stdout:write(output)
 
-   local exit_code
-
    if report.fatals > 0 then
-      exit_code = 3
+      os.exit(exit_codes.fatals)
    elseif report.errors > 0 then
-      exit_code = 2
+      os.exit(exit_codes.errors)
    elseif report.warnings > 0 then
-      exit_code = 1
+      os.exit(exit_codes.warnings)
    else
-      exit_code = 0
+      os.exit(exit_codes.ok)
    end
-
-   os.exit(exit_code)
 end
 
 local _, error_wrapper = utils.try(main)
