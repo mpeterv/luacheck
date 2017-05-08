@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.20.0 (unreleased)
+## 0.20.0 (2017-05-08)
 
 ### Breaking changes
 
