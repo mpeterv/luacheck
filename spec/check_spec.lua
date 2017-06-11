@@ -890,7 +890,6 @@ return foo;
    end)
 
    it("emits events, per-line options, and line lengths", function()
-      assert:set_parameter("TableFormatLevel", math.huge)
       assert.same({
          events = {
             {push = true, line = 1, column = 1, end_column = 28},
