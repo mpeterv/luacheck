@@ -923,6 +923,32 @@ end
 ]])
    end)
 
+   it("emits correct inline option error messages", function()
+      assert.same({
+         {code = "023", line = 1, column = 1, end_column = 16},
+         {code = "022", line = 2, column = 1, end_column = 17},
+         {code = "021", msg = "unknown inline option 'something strange'", line = 3, column = 1, end_column = 30},
+         {code = "021", msg = "inline option 'std' expects 1 argument, 0 given", line = 4, column = 1, end_column = 16},
+         {code = "021", msg = "inline option 'std' expects 1 argument, 3 given", line = 5, column = 1, end_column = 30},
+         {code = "021", msg = "inline option 'no unused' expects 0 arguments, 2 given",
+            line = 6, column = 1, end_column = 43},
+         {code = "021", msg = "unknown inline option 'no ignore anything please'",
+            line = 7, column = 1, end_column = 38},
+         {code = "021", msg = "empty inline option", line = 8, column = 1, end_column = 12},
+         {code = "021", msg = "empty inline option invocation", line = 9, column = 1, end_column = 38}
+      }, check_full[[
+-- luacheck: pop
+-- luacheck: push
+-- luacheck: something strange
+-- luacheck: std
+-- luacheck: std lua51 + lua52
+-- luacheck: no unused, no unused very much
+-- luacheck: no ignore anything please
+-- luacheck:
+-- luacheck: no unused, , no redefined
+]].events)
+   end)
+
    it("handles argparse sample", function()
       assert.table(check(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
    end)
