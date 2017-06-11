@@ -36,65 +36,114 @@ end
 local max_line_length_opts = utils.array_to_set({
    "max_line_length", "max_code_line_length", "max_string_line_length", "max_comment_line_length"})
 
--- Parses inline option body, returns options or nil.
+local function is_valid_option_name(name)
+   if name == "std" or options.variadic_inline_options[name] then
+      return true
+   end
+
+   name = name:gsub("^no_", "")
+   return options.nullary_inline_options[name] or max_line_length_opts[name]
+end
+
+-- Splits a token array for an inline option invocation into
+-- option name and argument array, or nil if invocation is invalid.
+local function split_invocation(tokens)
+   -- Name of the option can be split into several space separated tokens.
+   -- Since some valid names are prefixes of some other names
+   -- (e.g. `unused` and `unused arguments`), the longest prefix of token
+   -- array that is a valid option name should be considered.
+   local cur_name
+   local last_valid_name
+   local last_valid_name_end_index
+
+   for i, token in ipairs(tokens) do
+      cur_name = cur_name and (cur_name .. "_" .. token) or token
+
+      if is_valid_option_name(cur_name) then
+         last_valid_name = cur_name
+         last_valid_name_end_index = i
+      end
+   end
+
+   if not last_valid_name then
+      return
+   end
+
+   local args = {}
+
+   for i = last_valid_name_end_index + 1, #tokens do
+      table.insert(args, tokens[i])
+   end
+
+   return last_valid_name, args
+end
+
+local function unexpected_num_args(name, args, expected)
+   return ("inline option '%s' expects %d argument%s, %d given"):format(
+      name, expected, expected == 1 and "" or "s", #args)
+end
+
+-- Parses inline option body, returns options or nil and error message.
 local function get_options(body)
    local opts = {}
 
-   for _, name_and_args in ipairs(utils.split(body, ",")) do
-      local args = utils.split(name_and_args)
-      local name = table.remove(args, 1)
+   local parts = utils.split(body, ",")
+
+   for _, name_and_args in ipairs(parts) do
+      local tokens = utils.split(name_and_args)
+      local name, args = split_invocation(tokens)
 
       if not name then
-         return
+         if #tokens == 0 then
+            return nil, (#parts == 1) and "empty inline option" or "empty inline option invocation"
+         else
+            return nil, ("unknown inline option '%s'"):format(table.concat(tokens, " "))
+         end
       end
 
       if name == "std" then
          if #args ~= 1 then
-            return
+            return nil, unexpected_num_args(name, args, 1)
          end
 
          opts.std = args[1]
       elseif name == "ignore" and #args == 0 then
          opts.ignore = {".*"}
+      elseif options.variadic_inline_options[name] then
+         opts[name] = args
       else
-         local flag = true
+         local full_name = name:gsub("_", " ")
+         local subs
+         name, subs = name:gsub("^no_", "")
+         local flag = subs == 0
 
-         if name == "no" then
-            flag = false
-            name = table.remove(args, 1)
-         end
+         if options.nullary_inline_options[name] then
+            if #args ~= 0 then
+               return nil, unexpected_num_args(full_name, args, 0)
+            end
 
-         while true do
-            if options.variadic_inline_options[name] then
-               if flag then
-                  opts[name] = args
-                  break
-               else
-                  -- Array option with 'no' prefix is invalid.
-                  return
+            opts[name] = flag
+         else
+            assert(max_line_length_opts[name])
+
+            if flag then
+               if #args ~= 1 then
+                  return nil, unexpected_num_args(full_name, args, 1)
                end
-            elseif max_line_length_opts[name] then
-               -- Either `max [type] line length <number>` or `no max [type] line length`.
-               if flag and #args == 1 and tonumber(args[1]) then
-                  opts[name] = tonumber(args[1])
-                  break
-               elseif not flag and #args == 0 then
-                  opts[name] = false
-                  break
-               else
-                  return
+
+               local value = tonumber(args[1])
+
+               if not value then
+                  return nil, ("inline option '%s' expects number as argument"):format(name)
                end
-            elseif #args == 0 then
-               if options.nullary_inline_options[name] then
-                  opts[name] = flag
-                  break
-               else
-                  -- Consumed all arguments but didn't find a valid option name.
-                  return
-               end
+
+               opts[name] = value
             else
-               -- Join name with next argument,
-               name = name.."_"..table.remove(args, 1)
+               if #args ~= 0 then
+                  return nil, unexpected_num_args(full_name, args, 0)
+               end
+
+               opts[name] = false
             end
          end
       end
@@ -103,9 +152,10 @@ local function get_options(body)
    return opts
 end
 
-local function invalid_options_error(event)
+local function invalid_options_error(event, msg)
    return {
       code = "021",
+      msg = msg,
       line = event.line,
       column = event.column,
       end_column = event.end_column
@@ -130,11 +180,11 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
       end
    end
 
-   local opts = get_options(body)
+   local opts, err = get_options(body)
    local event = {options = opts, line = location.line, column = location.column, end_column = end_column}
 
    if not opts then
-      table.insert(events, invalid_options_error(event))
+      table.insert(events, invalid_options_error(event, err))
       return
    end
 
@@ -270,6 +320,10 @@ local function stack_to_array(stack)
    return res
 end
 
+local function invalid_option_value(invalid_opt)
+   return ("invalid value of inline option '%s'"):format(invalid_opt)
+end
+
 -- Validates inline options within events and per-line options.
 -- Returns a new array of events and a new per-line option map
 -- with invalid options replaced with errors.
@@ -282,8 +336,14 @@ function inline_options.validate_options(events, per_line_opts)
    local added_errors = false
 
    for i, event in ipairs(events) do
-      if event.options and not options.validate(options.all_options, event.options) then
-         new_events[i] = invalid_options_error(event)
+      if event.options then
+         local valid, invalid_opt = options.validate(options.all_options, event.options)
+
+         if valid then
+            new_events[i] = event
+         else
+            new_events[i] = invalid_options_error(event, invalid_option_value(invalid_opt))
+         end
       else
          new_events[i] = event
       end
@@ -291,14 +351,16 @@ function inline_options.validate_options(events, per_line_opts)
 
    for line, line_events in pairs(per_line_opts) do
       for _, event in ipairs(line_events) do
-         if options.validate(options.all_options, event.options) then
+         local valid, invalid_opt = options.validate(options.all_options, event.options)
+
+         if valid then
             if not new_per_line_opts[line] then
                new_per_line_opts[line] = {}
             end
 
             table.insert(new_per_line_opts[line], event)
          else
-            table.insert(new_events, invalid_options_error(event))
+            table.insert(new_events, invalid_options_error(event, invalid_option_value(invalid_opt)))
             added_errors = true
          end
       end

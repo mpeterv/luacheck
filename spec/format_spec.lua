@@ -58,7 +58,7 @@ Total: 2 warnings / 1 error in 4 files]], format({
 Checking foo.lua                                  1 warning / 1 error
 
     foo.lua:2:7: unused global variable 'foo'
-    foo.lua:3:10: invalid inline option
+    foo.lua:3:10: bad, bad inline option
 
 Checking baz.lua                                  Syntax error
 
@@ -85,6 +85,7 @@ Total: 2 warnings / 1 error in 3 files, couldn't check 1 file]], format({
       },
       {
          code = "021",
+         msg = "bad, bad inline option",
          line = 3,
          column = 10
       }

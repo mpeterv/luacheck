@@ -26,7 +26,7 @@ end
 
 local message_formats = {
    ["011"] = "{msg}",
-   ["021"] = "invalid inline option",
+   ["021"] = "{msg}",
    ["022"] = "unpaired push directive",
    ["023"] = "unpaired pop directive",
    ["111"] = function(w)

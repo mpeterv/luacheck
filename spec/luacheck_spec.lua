@@ -303,6 +303,7 @@ do return t end
             },
             {
                code = "021",
+               msg = "unknown inline option 'some invalid comment'",
                line = 6,
                column = 10,
                end_column = 14
