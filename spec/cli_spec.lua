@@ -552,14 +552,14 @@ Total: 6 warnings / 0 errors in 1 file
       assert.equal([[
 Checking spec/samples/line_length.lua             8 warnings
 
-    spec/samples/line_length.lua:2:1: line is too long (123 > 120)
-    spec/samples/line_length.lua:3:1: line is too long (164 > 120)
-    spec/samples/line_length.lua:8:1: line is too long (134 > 120)
-    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
-    spec/samples/line_length.lua:18:1: line is too long (132 > 120)
-    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
-    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
-    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
+    spec/samples/line_length.lua:2:121: line is too long (123 > 120)
+    spec/samples/line_length.lua:3:121: line is too long (164 > 120)
+    spec/samples/line_length.lua:8:121: line is too long (134 > 120)
+    spec/samples/line_length.lua:13:41: line is too long (47 > 40)
+    spec/samples/line_length.lua:18:121: line is too long (132 > 120)
+    spec/samples/line_length.lua:22:81: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:101: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:121: line is too long (125 > 120)
 
 Total: 8 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/line_length.lua --no-config")
@@ -567,13 +567,13 @@ Total: 8 warnings / 0 errors in 1 file
       assert.equal([[
 Checking spec/samples/line_length.lua             7 warnings
 
-    spec/samples/line_length.lua:3:1: line is too long (164 > 130)
-    spec/samples/line_length.lua:8:1: line is too long (134 > 130)
-    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
-    spec/samples/line_length.lua:18:1: line is too long (132 > 130)
-    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
-    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
-    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
+    spec/samples/line_length.lua:3:131: line is too long (164 > 130)
+    spec/samples/line_length.lua:8:131: line is too long (134 > 130)
+    spec/samples/line_length.lua:13:41: line is too long (47 > 40)
+    spec/samples/line_length.lua:18:131: line is too long (132 > 130)
+    spec/samples/line_length.lua:22:81: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:101: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:121: line is too long (125 > 120)
 
 Total: 7 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/line_length.lua --no-config --max-line-length=130")
@@ -581,10 +581,10 @@ Total: 7 warnings / 0 errors in 1 file
       assert.equal([[
 Checking spec/samples/line_length.lua             4 warnings
 
-    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
-    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
-    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
-    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
+    spec/samples/line_length.lua:13:41: line is too long (47 > 40)
+    spec/samples/line_length.lua:22:81: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:101: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:121: line is too long (125 > 120)
 
 Total: 4 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/line_length.lua --no-config --no-max-line-length")
@@ -592,13 +592,13 @@ Total: 4 warnings / 0 errors in 1 file
       assert.equal([[
 Checking spec/samples/line_length.lua             7 warnings
 
-    spec/samples/line_length.lua:2:1: line is too long (123 > 120)
-    spec/samples/line_length.lua:3:1: line is too long (164 > 120)
-    spec/samples/line_length.lua:13:1: line is too long (47 > 40)
-    spec/samples/line_length.lua:18:1: line is too long (132 > 120)
-    spec/samples/line_length.lua:22:1: line is too long (85 > 80)
-    spec/samples/line_length.lua:26:1: line is too long (104 > 100)
-    spec/samples/line_length.lua:29:1: line is too long (125 > 120)
+    spec/samples/line_length.lua:2:121: line is too long (123 > 120)
+    spec/samples/line_length.lua:3:121: line is too long (164 > 120)
+    spec/samples/line_length.lua:13:41: line is too long (47 > 40)
+    spec/samples/line_length.lua:18:121: line is too long (132 > 120)
+    spec/samples/line_length.lua:22:81: line is too long (85 > 80)
+    spec/samples/line_length.lua:26:101: line is too long (104 > 100)
+    spec/samples/line_length.lua:29:121: line is too long (125 > 120)
 
 Total: 7 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/line_length.lua --no-config --no-max-string-line-length")
