@@ -110,6 +110,7 @@ for _, filename in ipairs {
       "inline_options.lua",
       "builtin_standards.lua",
       "love_standard.lua",
+      "ngx_standard.lua",
       "expand_rockspec.lua",
       "multithreading.lua",
       "cache.lua",

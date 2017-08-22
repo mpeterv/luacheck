@@ -40,6 +40,7 @@ build = {
       ["luacheck.lua_fs"] = "src/luacheck/lua_fs.lua",
       ["luacheck.main"] = "src/luacheck/main.lua",
       ["luacheck.multithreading"] = "src/luacheck/multithreading.lua",
+      ["luacheck.ngx_standard"] = "src/luacheck/ngx_standard.lua",
       ["luacheck.options"] = "src/luacheck/options.lua",
       ["luacheck.parser"] = "src/luacheck/parser.lua",
       ["luacheck.reachability"] = "src/luacheck/reachability.lua",
