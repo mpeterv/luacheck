@@ -208,23 +208,23 @@ Whitespace issues
 
 Luacheck warns about trailing whitespace and inconsistent indentation (``SPACE`` followed by ``TAB``).
 
-Some examples of trailing white space Luacheck will find
+Some examples of trailing whitespace Luacheck finds:
 
 .. code-block:: lua
    :linenos:
-   
-   -- white space example
+
+   -- Whitespace example.
    print("Hello")
 
    print("World")
 
-Here
+Here:
 
-* Any tabs or spaces after the end of either ``)`` would be cosidered trailing
-* Any tabs or spaces after the ``e`` in the comment would be considered trailing
-* The empty line between the two ``print`` statements would also be considered a form of trailing whitespace
+* Any tabs or spaces after either ``)`` would be considered trailing.
+* Any tabs or spaces after the ``.`` in the comment would be considered trailing
+* Any tabs or spaces on the empty line between the two ``print`` statements would also be considered a form of trailing whitespace.
 
-Trailing whitespace in any of these forms can be a nuisance to developers navigating around a file and is forbidden in many formatting styles.
+Trailing whitespace in any of these forms is useless, can be a nuisance to developers navigating around a file, and is forbidden in many formatting styles.
 
 Line length limits
 ^^^^^^^^^^^^^^^^^^
