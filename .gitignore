@@ -4,3 +4,4 @@ luacov.stats.out
 luacov.report.out
 doc
 build
+package
