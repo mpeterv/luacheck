@@ -2,7 +2,9 @@ local standards = require "luacheck.standards"
 
 local empty = {}
 
-return {
+-- Globals added by lua-nginx-module 0.10.10 in internal definition table format.
+-- Will be added to `luajit` std to form `ngx_lua` std.
+local ngx_defs = {
    fields = {
       ngx = {
          fields = {
@@ -134,3 +136,5 @@ return {
       },
    },
 }
+
+return ngx_defs

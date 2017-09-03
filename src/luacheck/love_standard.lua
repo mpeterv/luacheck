@@ -1,6 +1,7 @@
 local standards = require "luacheck.standards"
 
-local empty, read_write = {}, { read_only = false }
+local empty = {}
+local read_write = {read_only = false}
 
 local love = {
    fields = {
@@ -111,6 +112,7 @@ local love = {
    }
 }
 
+-- `love` standard contains only `love` global, so return it here directly using normal std format.
 return {
-   read_globals = { love = love }
+   read_globals = {love = love}
 }
