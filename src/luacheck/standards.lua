@@ -218,4 +218,17 @@ function standards.finalize(final_std)
    infer_deep_read_only_statuses(final_std, true)
 end
 
+local empty = {}
+
+-- Returns a definition table containing empty fields with given names.
+function standards.def_fields(...)
+   local fields = {}
+
+   for _, field in ipairs({...}) do
+      fields[field] = empty
+   end
+
+   return {fields = fields}
+end
+
 return standards

@@ -1,14 +1,6 @@
+local standards = require "luacheck.standards"
+
 local empty = {}
-
-local function def_fields(...)
-   local fields = {}
-
-   for _, field in ipairs({...}) do
-      fields[field] = empty
-   end
-
-   return {fields = fields}
-end
 
 return {
    fields = {
@@ -80,11 +72,11 @@ return {
             INFO = empty,
             DEBUG = empty,
             ctx = {other_fields = true, read_only = false},
-            location = def_fields("capture", "capture_multi"),
+            location = standards.def_fields("capture", "capture_multi"),
             status = {read_only = false},
             header = {other_fields = true, read_only = false},
-            resp = def_fields("get_headers"),
-            req = def_fields("is_internal", "start_time", "http_version", "raw_header",
+            resp = standards.def_fields("get_headers"),
+            req = standards.def_fields("is_internal", "start_time", "http_version", "raw_header",
                "get_method", "set_method", "set_uri", "set_uri_args", "get_uri_args",
                "get_post_args", "get_headers", "set_header", "clear_header", "read_body",
                "discard_body", "get_body_data", "get_body_file", "set_body_data",
@@ -123,16 +115,16 @@ return {
             http_time = empty,
             parse_http_time = empty,
             is_subrequest = empty,
-            re = def_fields("match", "find", "gmatch", "sub", "gsub"),
+            re = standards.def_fields("match", "find", "gmatch", "sub", "gsub"),
             shared = {other_fields = true, read_only = false},
-            socket = def_fields("udp", "tcp", "connect", "stream"),
+            socket = standards.def_fields("udp", "tcp", "connect", "stream"),
             get_phase = empty,
-            thread = def_fields("spawn", "wait", "kill"),
+            thread = standards.def_fields("spawn", "wait", "kill"),
             on_abort = empty,
-            timer = def_fields("at", "every", "running_count", "pending_count"),
-            config = def_fields("subsystem", "debug", "prefix", "nginx_version",
+            timer = standards.def_fields("at", "every", "running_count", "pending_count"),
+            config = standards.def_fields("subsystem", "debug", "prefix", "nginx_version",
                "nginx_configure", "ngx_lua_version"),
-            worker = def_fields("pid", "count", "id", "exiting"),
+            worker = standards.def_fields("pid", "count", "id", "exiting"),
          },
       },
       ndk = {
