@@ -2,6 +2,9 @@ local standards = require "luacheck.standards"
 
 local empty = {}
 
+local luajit_string_def = standards.def_fields("byte", "char", "dump", "find", "format", "gmatch",
+   "gsub", "len", "lower", "match", "rep", "reverse", "sub", "upper")
+
 -- Globals added by lua-nginx-module 0.10.10 in internal definition table format.
 -- Will be added to `luajit` std to form `ngx_lua` std.
 local ngx_defs = {
@@ -124,8 +127,16 @@ local ngx_defs = {
             thread = standards.def_fields("spawn", "wait", "kill"),
             on_abort = empty,
             timer = standards.def_fields("at", "every", "running_count", "pending_count"),
-            config = standards.def_fields("subsystem", "debug", "prefix", "nginx_version",
-               "nginx_configure", "ngx_lua_version"),
+            config = {
+               fields = {
+                  subsystem = luajit_string_def,
+                  debug = empty,
+                  prefix = empty,
+                  nginx_version = empty,
+                  nginx_configure = empty,
+                  ngx_lua_version = empty,
+               }
+            },
             worker = standards.def_fields("pid", "count", "id", "exiting"),
          },
       },
