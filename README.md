@@ -37,13 +37,13 @@ If it is not possible to install [LuaFileSystem](http://keplerproject.github.io/
 ### Binary download
 
 For Windows there is experimental single-file 64-bit binary distribution, bundling Lua 5.3.4, Luacheck, LuaFileSystem, and LuaLanes using [LuaStatic](https://github.com/ers35/luastatic):
-[download](https://github.com/mpeterv/luacheck/releases/download/0.20.0/luacheck.exe), [build script](https://gist.github.com/mpeterv/93cf0c71a1ae4138141b0abadc43b525).
+[download](https://github.com/mpeterv/luacheck/releases/download/0.21.0/luacheck.exe).
 
 ### Manual installation
 
 For manual installation, only a Lua interpreter binary is required.
 
-1. Download and unpack latest Luacheck release ([.zip](https://github.com/mpeterv/luacheck/archive/0.20.0.zip), [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.20.0.tar.gz)).
+1. Download and unpack latest Luacheck release ([.zip](https://github.com/mpeterv/luacheck/archive/0.21.0.zip), [.tar.gz](https://github.com/mpeterv/luacheck/archive/0.21.0.tar.gz)).
 2. Run `install.lua <path>` script using the Lua interpreter. If Lua interpreter is not in `PATH`, invoke it using absolute path.
 3. Add `<path>/bin` to PATH or run Luacheck as `<path>/bin/luacheck`.
 
@@ -113,7 +113,7 @@ Documentation can be built using [Sphinx](http://sphinx-doc.org/): `sphinx-build
 
 ## Development
 
-Luacheck is currently in development. The latest released version is 0.20.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
+Luacheck is currently in development. The latest released version is 0.21.0. The interface of the `luacheck` module may change between minor releases. The command line interface is fairly stable.
 
 Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questions. Any pull requests are welcome, too.
 
