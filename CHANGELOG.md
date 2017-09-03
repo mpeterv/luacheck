@@ -1,5 +1,24 @@
 # Change Log
 
+## 0.21.0 (unreleased)
+
+### New features and improvements
+
+* Column range for `line is too long` warning now starts at the first
+  character beyond the length limit instead of the very first character
+  of the line (#117).
+* Error messages for invalid inline options are now a bit better, including
+  reason why an inline option invocation is invalid and what is the name
+  of the option at fault.
+* `ngx_lua` std now contains full API definition for lua-nginx-module 0.10.10,
+  so that operations on unknown fields within `ngx` global
+  are now reported (#118).
+
+### Fixes
+
+* `luacheck` no longer aborts on internal error while checking files
+  in parallel.
+
 ## 0.20.0 (2017-05-08)
 
 ### Breaking changes
