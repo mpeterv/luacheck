@@ -263,4 +263,15 @@ describe("standards", function()
          }, tree)
       end)
    end)
+
+   describe("def_fields", function()
+      it("returns a definition table containing empty fields with given names", function()
+         assert.same({
+            fields = {
+               foo = {},
+               bar = {}
+            }
+         }, standards.def_fields("foo", "bar"))
+      end)
+   end)
 end)
