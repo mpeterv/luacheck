@@ -3,3 +3,4 @@ bin/luacheck
 luacov.stats.out
 luacov.report.out
 doc
+build
