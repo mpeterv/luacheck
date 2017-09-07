@@ -14,6 +14,7 @@ local ngx_defs = {
             arg = {other_fields = true, read_only = false},
             var = {other_fields = true, read_only = false},
             OK = empty,
+            ERROR = empty,
             AGAIN = empty,
             DONE = empty,
             DECLINED = empty,
