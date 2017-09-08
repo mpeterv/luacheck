@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.21.1 (unreleased)
+
+### Fixes
+
+* Added missing definition of `ngx.ERROR` constant to `ngx_lua` std (#123).
+
 ## 0.21.0 (2017-09-04)
 
 ### New features and improvements
