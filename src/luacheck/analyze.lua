@@ -62,6 +62,19 @@ local function add_resolutions(line, items, var, value, is_mutation)
    end
 end
 
+-- Connects all accesses (and mutations) in `access_line` with corresponding
+-- assignments in `set_line`.
+local function cross_resolve_closures(access_line, set_line)
+   for var, setting_items in pairs(set_line.set_upvalues) do
+      for _, setting_item in ipairs(setting_items) do
+         add_resolutions(access_line, access_line.accessed_upvalues[var],
+            var, setting_item.set_variables[var])
+         add_resolutions(access_line, access_line.mutated_upvalues[var],
+            var, setting_item.set_variables[var], true)
+      end
+   end
+end
+
 local function in_scope(var, index)
    return (var.scope_start <= index) and (index <= var.scope_end)
 end
@@ -135,7 +148,6 @@ local function closure_creation_propagation_callback(line, _, item, propagated_l
    end
 
    -- Closure creation reaches this item, apply its effects.
-   -- TODO: refactor the following using some helpers.
 
    -- Accesses (and mutations) of upvalues in the propagated closure
    -- can resolve to assignments in the item.
@@ -146,18 +158,15 @@ local function closure_creation_propagation_callback(line, _, item, propagated_l
       end
    end
 
-   -- Accesses (and mutations) of upvalues in the propagated closure
-   -- can resolve to assignments in closures created in the item.
    if item.lines then
       for _, created_line in ipairs(item.lines) do
-         for var, setting_items in pairs(created_line.set_upvalues) do
-            for _, setting_item in ipairs(setting_items) do
-               add_resolutions(propagated_line, propagated_line.accessed_upvalues[var],
-                  var, setting_item.set_variables[var])
-               add_resolutions(propagated_line, propagated_line.mutated_upvalues[var],
-                  var, setting_item.set_variables[var], true)
-            end
-         end
+         -- Accesses (and mutations) of upvalues in the propagated closure
+         -- can resolve to assignments in closures created in the item.
+         cross_resolve_closures(propagated_line, created_line)
+
+         -- Accesses (and mutations) of upvalues in closures created in the item
+         -- can resolve to assignments in the propagated closure.
+         cross_resolve_closures(created_line, propagated_line)
       end
    end
 
@@ -173,21 +182,6 @@ local function closure_creation_propagation_callback(line, _, item, propagated_l
       if item.mutations and item.mutations[var] then
          for _, setting_item in ipairs(setting_items) do
             add_resolution(line, item, var, setting_item.set_variables[var], true)
-         end
-      end
-   end
-
-   -- Accesses (and mutations) of upvalues in closures created in the item
-   -- can resolve to assignments in the propagated closure.
-   if item.lines then
-      for _, created_line in ipairs(item.lines) do
-         for var, setting_items in pairs(propagated_line.set_upvalues) do
-            for _, setting_item in ipairs(setting_items) do
-               add_resolutions(created_line, created_line.accessed_upvalues[var],
-                  var, setting_item.set_variables[var])
-               add_resolutions(created_line, created_line.mutated_upvalues[var],
-                  var, setting_item.set_variables[var], true)
-            end
          end
       end
    end
