@@ -82,8 +82,7 @@ end
 -- Called when main assignment propagation reaches a line item.
 local function main_assignment_propagation_callback(line, index, item, var, value)
    -- Check entrance condition.
-   -- TODO: check if `not item` can be removed, dummy tail index should always be out of scope.
-   if not item or not in_scope(var, index) then
+   if not in_scope(var, index) then
       -- Assignment reaches the end of variable scope, so it can't be dominated by any assignment.
       value.overwriting_item = false
       return true
