@@ -133,7 +133,7 @@ local function propagate_main_assignments(line)
                -- Assignments are not live at their own item, because assignments take effect only after all accesses
                -- are evaluated. Items with assignments can't be jumps, so they have a single following item
                -- with incremented index.
-               core_utils.walk_line_once(line, {}, i + 1, main_assignment_propagation_callback, var, value)
+               core_utils.walk_line(line, {}, i + 1, main_assignment_propagation_callback, var, value)
             end
          end
       end
@@ -195,7 +195,7 @@ local function propagate_closure_creations(line)
       if item.lines then
          for _, created_line in ipairs(item.lines) do
             -- Closures are live at the item they are created, as they can be called immediately.
-            core_utils.walk_line_once(line, {}, i, closure_creation_propagation_callback, created_line)
+            core_utils.walk_line(line, {}, i, closure_creation_propagation_callback, created_line)
          end
       end
    end
