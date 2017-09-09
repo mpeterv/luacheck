@@ -124,7 +124,10 @@ local function main_assignment_propagation_callback(line, index, item, var, valu
 end
 
 -- Connects main assignments with main accesses and closure accesses in reachable closures.
--- TODO: overwriting_item description
+-- Additionally, sets `overwriting_item` field of values to an item with an assignment overwriting
+-- the value, but only if the overwriting is not avoidable (i.e. it's impossible to reach end of function
+-- from the first assignment without going through the second one). Otherwise value of the field may be
+-- `false` or `nil`.
 local function propagate_main_assignments(line)
    for i, item in ipairs(line.items) do
       if item.set_variables then
