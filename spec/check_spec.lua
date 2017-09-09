@@ -536,6 +536,36 @@ end
 ]])
    end)
 
+   it("detects unused local value referred to from closure in incompatible branch", function()
+      assert.same({
+         {code = "311", name = "a", line = 4, column = 4, end_column = 4},
+         {code = "321", name = "a", line = 6, column = 28, end_column = 28}
+      }, check[[
+local a
+
+if (...)() then
+   a = 1
+else
+   (...)(function() return a end)
+end
+]])
+   end)
+
+   it("detects unused upvalue value referred to from closure in incompatible branch", function()
+      assert.same({
+         {code = "311", name = "a", line = 4, column = 21, end_column = 21},
+         {code = "321", name = "a", line = 6, column = 28, end_column = 28}
+      }, check[[
+local a
+
+if (...)() then
+   (...)(function() a = 1 end)
+else
+   (...)(function() return a end)
+end
+]])
+   end)
+
    it("handles upvalues before infinite loops", function()
       assert.same({
          {code = "221", name = "x", line = 1, column = 7, end_column = 7},
