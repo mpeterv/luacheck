@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.21.1 (unreleased)
+## 0.21.1 (2017-09-10)
 
 ### Fixes
 
