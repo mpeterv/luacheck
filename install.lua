@@ -100,7 +100,6 @@ for _, filename in ipairs {
       "config.lua",
       "linearize.lua",
       "analyze.lua",
-      "reachability.lua",
       "core_utils.lua",
       "check.lua",
       "parser.lua",
@@ -125,7 +124,9 @@ for _, filename in ipairs {
       "standards.lua",
       "lua_fs.lua",
       "lfs_fs.lua",
-      "detect_unused_rec_funcs.lua"} do
+      "detect_unused_rec_funcs.lua",
+      "detect_unreachable_code.lua",
+      "detect_uninit_access.lua"} do
    copy("src" .. dirsep .. "luacheck" .. dirsep .. filename, luacheck_lib_dir)
 end
 

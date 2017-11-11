@@ -1,11 +1,12 @@
 local parser = require "luacheck.parser"
 local linearize = require "luacheck.linearize"
 local analyze = require "luacheck.analyze"
-local reachability = require "luacheck.reachability"
 local inline_options = require "luacheck.inline_options"
 local utils = require "luacheck.utils"
 local check_whitespace = require "luacheck.whitespace"
 local detect_globals = require "luacheck.detect_globals"
+local detect_uninit_access = require "luacheck.detect_uninit_access"
+local detect_unreachable_code = require "luacheck.detect_unreachable_code"
 local detect_unused_rec_funcs = require "luacheck.detect_unused_rec_funcs"
 
 local function is_secondary(value)
@@ -236,9 +237,12 @@ local function check_or_throw(src)
    local line_lengths = utils.map(function(s) return #s end, lines)
    check_whitespace(chstate, lines, line_endings)
    analyze(chstate, line)
-   reachability(chstate, line)
+
    detect_globals(chstate, line)
+   detect_uninit_access(chstate, line)
+   detect_unreachable_code(chstate, line)
    detect_unused_rec_funcs(chstate, line)
+
    local events, per_line_opts = inline_options.get_events(ast, comments, code_lines, chstate.warnings)
    return {events = events, per_line_options = per_line_opts, line_lengths = line_lengths, line_endings = line_endings}
 end
