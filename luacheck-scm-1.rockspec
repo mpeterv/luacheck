@@ -27,6 +27,7 @@ build = {
       ["luacheck.config"] = "src/luacheck/config.lua",
       ["luacheck.core_utils"] = "src/luacheck/core_utils.lua",
       ["luacheck.detect_globals"] = "src/luacheck/detect_globals.lua",
+      ["luacheck.detect_unused_rec_funcs"] = "src/luacheck/detect_unused_rec_funcs.lua",
       ["luacheck.expand_rockspec"] = "src/luacheck/expand_rockspec.lua",
       ["luacheck.filter"] = "src/luacheck/filter.lua",
       ["luacheck.format"] = "src/luacheck/format.lua",

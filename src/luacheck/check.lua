@@ -6,6 +6,7 @@ local inline_options = require "luacheck.inline_options"
 local utils = require "luacheck.utils"
 local check_whitespace = require "luacheck.whitespace"
 local detect_globals = require "luacheck.detect_globals"
+local detect_unused_rec_funcs = require "luacheck.detect_unused_rec_funcs"
 
 local function is_secondary(value)
    return value.secondaries and value.secondaries.used
@@ -237,6 +238,7 @@ local function check_or_throw(src)
    analyze(chstate, line)
    reachability(chstate, line)
    detect_globals(chstate, line)
+   detect_unused_rec_funcs(chstate, line)
    local events, per_line_opts = inline_options.get_events(ast, comments, code_lines, chstate.warnings)
    return {events = events, per_line_options = per_line_opts, line_lengths = line_lengths, line_endings = line_endings}
 end

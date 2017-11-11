@@ -32,6 +32,15 @@ function core_utils.is_definition(opts, warning)
    return opts.allow_defined or (opts.allow_defined_top and warning.top)
 end
 
+-- Returns `true` if a variable should be reported as a function instead of simply local,
+-- `false` otherwise.
+-- A variable is considered a function if it has a single assignment and the value is a function,
+-- or if there is a forward declaration with a function assignment later.
+function core_utils.is_function_var(var)
+   return (#var.values == 1 and var.values[1].type == "func") or (
+      #var.values == 2 and var.values[1].empty and var.values[2].type == "func")
+end
+
 local function event_priority(event)
    -- Inline option boundaries have priority over inline option declarations
    -- so that `-- luacheck: push ignore foo` is interpreted correctly (push first).
