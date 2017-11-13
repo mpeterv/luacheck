@@ -844,6 +844,45 @@ end end
 ]])
    end)
 
+   it("handles accesses with no reaching values", function()
+      assert.same({
+         {code = "511", line = 4, column = 1, end_column = 1}
+      }, check[[
+local var = "foo"
+(...)(var)
+do return end
+(...)(var)
+]])
+   end)
+
+   it("handles upvalue accesses with no reaching values", function()
+      assert.same({
+         {code = "511", line = 4, column = 1, end_column = 1}
+      }, check[[
+local var = "foo"
+(...)(var)
+do return end
+(...)(function()
+   return var
+end)
+]])
+   end)
+
+   it("handles upvalue accesses with no reaching values in a nested function", function()
+      assert.same({
+         {code = "511", line = 5, column = 4, end_column = 4}
+      }, check[[
+return function(...)
+   local var = "foo"
+   (...)(var)
+   do return end
+   (...)(function()
+      return var
+   end)
+end
+]])
+   end)
+
    it("does not detect accessing unitialized variables incorrectly in loops", function()
       assert.same({
          {code = "113", name = "get", indexing = {"get"}, line = 4, column = 8, end_column = 10}
