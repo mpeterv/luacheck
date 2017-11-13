@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.21.2 (unreleased)
+## 0.21.2 (2017-11-13)
 
 ### Fixes
 
