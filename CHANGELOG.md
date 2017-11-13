@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.21.2 (unreleased)
+
+### Fixes
+
+* Fixed error when an upvalue is accessed from an unreachable closure (#139).
+
 ## 0.21.1 (2017-09-10)
 
 ### Fixes
