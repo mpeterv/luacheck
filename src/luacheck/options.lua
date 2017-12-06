@@ -81,6 +81,7 @@ options.all_options = {
    max_code_line_length = number_or_false,
    max_string_line_length = number_or_false,
    max_comment_line_length = number_or_false,
+   max_cyclomatic_complexity = number_or_false,
    inline = boolean
 }
 
@@ -290,6 +291,16 @@ local function get_max_line_opts(opts_stack)
    return res
 end
 
+local function get_max_cyclomatic_complexity(opts_stack)
+    local max_cyclomatic_complexity = 10
+    for _, opts in ipairs(opts_stack) do
+        if opts.max_cyclomatic_complexity ~= nil then
+            max_cyclomatic_complexity = opts.max_cyclomatic_complexity
+        end
+    end
+    return max_cyclomatic_complexity
+end
+
 local function anchor_pattern(pattern, only_start)
    if not pattern then
       return
@@ -412,6 +423,8 @@ function options.normalize(opts_stack)
    local max_line_opts = get_max_line_opts(opts_stack)
    utils.update(res, max_line_opts)
    res.rules = normalize_patterns(get_rules(opts_stack))
+   res.max_cyclomatic_complexity = get_max_cyclomatic_complexity(opts_stack)
+
    return res
 end
 

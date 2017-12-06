@@ -8,6 +8,7 @@ local detect_globals = require "luacheck.detect_globals"
 local detect_uninit_access = require "luacheck.detect_uninit_access"
 local detect_unreachable_code = require "luacheck.detect_unreachable_code"
 local detect_unused_rec_funcs = require "luacheck.detect_unused_rec_funcs"
+local detect_cyclomatic_complexity = require "luacheck.detect_cyclomatic_complexity"
 
 local function is_secondary(value)
    return value.secondaries and value.secondaries.used
@@ -224,6 +225,23 @@ function ChState:warn_empty_statement(location)
    })
 end
 
+function ChState:warn_cyclomatic_complexity(line, complexity)
+    local name = ""
+    if line.node.value and line.node.value.var then
+        name = line.node.value.var.name
+    end
+    
+    local location = line.node.location
+    self:warn({
+        code = "711",
+        name = name,
+        line = location.line,
+        column = location.column,
+        end_column = location.column,
+        complexity = complexity,
+    })
+end
+
 local function check_or_throw(src)
    local ast, comments, code_lines, line_endings, semicolons = parser.parse(src)
    local chstate = ChState()
@@ -242,6 +260,7 @@ local function check_or_throw(src)
    detect_uninit_access(chstate, line)
    detect_unreachable_code(chstate, line)
    detect_unused_rec_funcs(chstate, line)
+   detect_cyclomatic_complexity(chstate, line)
 
    local events, per_line_opts = inline_options.get_events(ast, comments, code_lines, chstate.warnings)
    return {events = events, per_line_options = per_line_opts, line_lengths = line_lengths, line_endings = line_endings}

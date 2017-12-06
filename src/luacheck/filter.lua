@@ -263,12 +263,23 @@ local function get_max_line_length(opts, warning)
    return opts["max_" .. (warning.line_ending or "code") .. "_line_length"]
 end
 
+local function get_max_cyclomatic_complexity(opts,  warning)
+   return opts["max_cyclomatic_complexity"]
+end
+
 local function filters(opts, warning)
    if warning.code == "631" then
       local max_line_length = get_max_line_length(opts, warning)
 
       if (not max_line_length or warning.end_column <= max_line_length) then
          return true
+      end
+   end
+
+   if warning.code == "711" then
+      local max_cyclomatic_complexity = get_max_cyclomatic_complexity(opts, warning)
+      if (not max_cyclomatic_complexity or warning.complexity <= max_cyclomatic_complexity) then
+          return true
       end
    end
 
@@ -325,6 +336,9 @@ local function filter_file_report(report)
                issue.field = get_field_string(issue)
             end
 
+            if issue.code == "711" then
+               issue.max_complexity = get_max_cyclomatic_complexity(opts, issue)
+            end
             table.insert(res, issue)
          end
       end

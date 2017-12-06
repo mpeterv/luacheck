@@ -101,7 +101,8 @@ local message_formats = {
    ["613"] = "trailing whitespace in a string",
    ["614"] = "trailing whitespace in a comment",
    ["621"] = "inconsistent indentation (SPACE followed by TAB)",
-   ["631"] = "line is too long ({end_column} > {max_length})"
+   ["631"] = "line is too long ({end_column} > {max_length})",
+   ["711"] = "function {name!} is too complicated ({complexity} > {max_complexity})",
 }
 
 local function get_message_format(warning)

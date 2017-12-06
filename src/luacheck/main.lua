@@ -161,6 +161,16 @@ comment lines (default: 120).]])
          :action "store_false"
          :target "max_comment_line_length"
 
+      parser:option("--max-cyclomatic-complexity", [[Set maximum cyclomatic complexity for
+functions (default: 10).]])
+         :argname "<complexity>"
+         :convert(tonumber)
+         :init(10)
+         
+      parser:flag("--no-max-cyclomatic-complexity", "Do not limit function cyclomatic complexity.")
+         :action "store_false"
+         :target "max_cyclomatic_complexity"
+
       parser:option("--ignore -i", [[Filter out warnings matching these patterns.
 If a pattern contains slash, part before slash matches
 warning code and part after it matches name of related
