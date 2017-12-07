@@ -230,7 +230,7 @@ function ChState:warn_cyclomatic_complexity(line, complexity)
     if line.node.value and line.node.value.var then
         name = line.node.value.var.name
     end
-    
+
     local location = line.node.location
     self:warn({
         code = "711",

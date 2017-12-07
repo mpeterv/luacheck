@@ -263,7 +263,7 @@ local function get_max_line_length(opts, warning)
    return opts["max_" .. (warning.line_ending or "code") .. "_line_length"]
 end
 
-local function get_max_cyclomatic_complexity(opts,  warning)
+local function get_max_cyclomatic_complexity(opts)
    return opts["max_cyclomatic_complexity"]
 end
 

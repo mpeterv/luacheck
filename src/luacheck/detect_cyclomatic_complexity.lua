@@ -75,28 +75,24 @@ end
 -- stmt while: {condition, block}
 function CyclomaticComplexityMetric:calc_stmt_While(node)
     self:incr_decisions(1)
-
     self:calc_stmts(node[2])
 end
 
 -- stmt repeat: {block, condition}
 function CyclomaticComplexityMetric:calc_stmt_Repeat(node)
     self:incr_decisions(1)
-    
     self:calc_stmts(node[1])
 end
 
 -- stmt forin: {iter_vars, expression_list, block}
 function CyclomaticComplexityMetric:calc_stmt_Forin(node)
     self:incr_decisions(1)
-
     self:calc_stmts(node[3])
 end
 
 -- stmt fornum: {first_var, expression, expression, expression[optional], block}
 function CyclomaticComplexityMetric:calc_stmt_Fornum(node)
     self:incr_decisions(1)
-
     self:calc_stmts(node[5] or node[4])
 end
 
@@ -126,9 +122,9 @@ end
 
 local function detect_cyclomatic_complexity(chstate, line)
     local ccmetric = CyclomaticComplexityMetric()
-    for _, line in ipairs(line.lines) do
-        local complexity = ccmetric:calculate(line)
-        chstate:warn_cyclomatic_complexity(line, complexity)
+    for _, subline in ipairs(line.lines) do
+        local complexity = ccmetric:calculate(subline)
+        chstate:warn_cyclomatic_complexity(subline, complexity)
     end
 end
 return detect_cyclomatic_complexity
