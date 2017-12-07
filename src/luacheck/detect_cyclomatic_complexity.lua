@@ -3,11 +3,7 @@ local utils = require "luacheck.utils"
 local CyclomaticComplexityMetric = utils.class()
 
 function CyclomaticComplexityMetric:incr_decisions(count)
-    if self.count then
-        self.count = self.count + count
-    else
-        self.count = count
-    end
+    self.count = self.count + count
 end
 
 function CyclomaticComplexityMetric:calc_expr_Op(node)
@@ -124,7 +120,6 @@ function CyclomaticComplexityMetric:calculate(line)
     -- reset
     self.count = 0
     self:calc_stmts(line.node[2])
-    local stmts = self.count
     self:calc_items(line.items)
     return self.count + 1
 end

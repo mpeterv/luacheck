@@ -226,7 +226,7 @@ function ChState:warn_empty_statement(location)
 end
 
 function ChState:warn_cyclomatic_complexity(line, complexity)
-    local name = ""
+    local name
     if line.node.value and line.node.value.var then
         name = line.node.value.var.name
     end
