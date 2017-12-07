@@ -292,7 +292,7 @@ local function get_max_line_opts(opts_stack)
 end
 
 local function get_max_cyclomatic_complexity(opts_stack)
-    local max_cyclomatic_complexity = 10
+    local max_cyclomatic_complexity = false
     for _, opts in ipairs(opts_stack) do
         if opts.max_cyclomatic_complexity ~= nil then
             max_cyclomatic_complexity = opts.max_cyclomatic_complexity
