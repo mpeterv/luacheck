@@ -26,6 +26,7 @@ build = {
       ["luacheck.check"] = "src/luacheck/check.lua",
       ["luacheck.config"] = "src/luacheck/config.lua",
       ["luacheck.core_utils"] = "src/luacheck/core_utils.lua",
+      ["luacheck.detect_cyclomatic_complexity"] = "src/luacheck/detect_cyclomatic_complexity.lua",
       ["luacheck.detect_globals"] = "src/luacheck/detect_globals.lua",
       ["luacheck.detect_uninit_access"] = "src/luacheck/detect_uninit_access.lua",
       ["luacheck.detect_unreachable_code"] = "src/luacheck/detect_unreachable_code.lua",
