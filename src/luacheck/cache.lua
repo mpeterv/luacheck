@@ -16,7 +16,7 @@ local option_fields = {
    "unused_secondaries", "allow_defined", "allow_defined_top", "module",
    "read_globals", "new_globals", "new_read_globals", "enable", "only", "not_globals",
    "max_line_length", "max_code_line_length", "max_string_line_length", "max_comment_line_length",
-   "max_cyclomatic_complexity",
+   "complexity", "max_cyclomatic_complexity",
 }
 
 local event_fields = {

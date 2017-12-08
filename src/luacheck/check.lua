@@ -226,20 +226,20 @@ function ChState:warn_empty_statement(location)
 end
 
 function ChState:warn_cyclomatic_complexity(line, complexity)
-    local name
-    if line.node.value and line.node.value.var then
-        name = line.node.value.var.name
-    end
+   local name
+   if line.node.value and line.node.value.var then
+      name = line.node.value.var.name
+   end
 
-    local location = line.node.location
-    self:warn({
-        code = "711",
-        name = name,
-        line = location.line,
-        column = location.column,
-        end_column = location.column,
-        complexity = complexity,
-    })
+   local location = line.node.location
+   self:warn({
+      code = "711",
+      name = name,
+      line = location.line,
+      column = location.column,
+      end_column = location.column,
+      complexity = complexity,
+   })
 end
 
 local function check_or_throw(src)

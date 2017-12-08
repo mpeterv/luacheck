@@ -292,13 +292,13 @@ local function get_max_line_opts(opts_stack)
 end
 
 local function get_max_cyclomatic_complexity(opts_stack)
-    local max_cyclomatic_complexity = false
-    for _, opts in ipairs(opts_stack) do
-        if opts.max_cyclomatic_complexity ~= nil then
-            max_cyclomatic_complexity = opts.max_cyclomatic_complexity
-        end
-    end
-    return max_cyclomatic_complexity
+   local max_cyclomatic_complexity = false
+   for _, opts in ipairs(opts_stack) do
+      if opts.max_cyclomatic_complexity ~= nil then
+         max_cyclomatic_complexity = opts.max_cyclomatic_complexity
+      end
+   end
+   return max_cyclomatic_complexity
 end
 
 local function anchor_pattern(pattern, only_start)

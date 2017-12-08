@@ -1,17 +1,17 @@
 local raw_check = require "luacheck.check"
 
 local function ignore711(events)
-    for i = #events, 1, -1 do
-        if events[i].code == "711" then
-            table.remove(events,  i)
-        end
-    end
+   for i = #events, 1, -1 do
+      if events[i].code == "711" then
+         table.remove(events,  i)
+      end
+   end
 end
 
 local check_full = function(src)
-    local report = raw_check(src)
-    ignore711(report.events)
-    return report
+   local report = raw_check(src)
+   ignore711(report.events)
+   return report
 end
 
 local function check(src)
@@ -1018,106 +1018,106 @@ return foo;
 
    it("detects cyclomatic complexity(statment if)", function()
       assert.same({
-	     {code = "711", line = 1, column = 8, end_column = 8, complexity = 8},
+	      {code = "711", line = 1, column = 8, end_column = 8, complexity = 8},
       }, check711[[
 return function(year, month)
-    if month == 1 then
-        return 31
-    elseif month == 2 then
-        if year%4 == 0 then
-            return 29
-        end
-        return 28
-    elseif (month <= 7 and month % 2 == 1) or (month >=8 and month % 2 == 0) then
-        return 31
-    else
-        return 30
-    end
+   if month == 1 then
+      return 31
+   elseif month == 2 then
+      if year%4 == 0 then
+         return 29
+      end
+      return 28
+   elseif (month <= 7 and month % 2 == 1) or (month >=8 and month % 2 == 0) then
+      return 31
+   else
+      return 30
+   end
 end
 ]])
    end)
 
    it("detects cyclomatic complexity(statment while)", function()
       assert.same({
-	     {code = "711", line = 1, column = 8, end_column = 8, complexity = 4},
+	      {code = "711", line = 1, column = 8, end_column = 8, complexity = 4},
       }, check711[[
 return function(to)
-    local i,j = 0,0
-    local total = 0
-    while to > 0 and i < to do
-        while j < to do
-            j = j + 1
-            total = total + 1
-        end
-        i = i + 1
-    end
-    return total
+   local i,j = 0,0
+   local total = 0
+   while to > 0 and i < to do
+      while j < to do
+         j = j + 1
+         total = total + 1
+      end
+      i = i + 1
+   end
+   return total
 end
 ]])
    end)
 
    it("detects cyclomatic complexity(statment repeat)", function()
       assert.same({
-	     {code = "711", line = 1, column = 8, end_column = 8, complexity = 4},
+	      {code = "711", line = 1, column = 8, end_column = 8, complexity = 4},
       }, check711[[
 return function(to)
-    local i,j = 0,0
-    local total = 0
+   local i,j = 0,0
+   local total = 0
 
-    repeat
-        repeat
-            j = j + 1
-            total = total + 1
-        until j >= to
-        i = i + 1
-    until i >= to or to <= 0
+   repeat
+      repeat
+         j = j + 1
+         total = total + 1
+      until j >= to
+      i = i + 1
+   until i >= to or to <= 0
 
-    return total
+   return total
 end
 ]])
    end)
 
    it("detects cyclomatic complexity(statment forin)", function()
       assert.same({
-	     {code = "711", line = 1, column = 8, end_column = 8, complexity = 7},
-	     {code = "711", line = 2, column = 16, end_column = 16, complexity = 1, name = "pairs"},
+         {code = "711", line = 1, column = 8, end_column = 8, complexity = 7},
+         {code = "711", line = 2, column = 16, end_column = 16, complexity = 1, name = "pairs"},
       }, check711[[
 return function(t)
 	local pairs = function()end
-    for k1 in t and pairs(t) or pairs({}) do
-        for k2 in pairs(t) do
-			if k1 and k2 then
-				return k1 + k2
-			end
-        end
-    end
+   for k1 in t and pairs(t) or pairs({}) do
+      for k2 in pairs(t) do
+      if k1 and k2 then
+         return k1 + k2
+      end
+      end
+   end
 end
 ]])
    end)
 
    it("detects cyclomatic complexity(statment fornum)", function()
       assert.same({
-	     {code = "711", line = 1, column = 8, end_column = 8, complexity = 6},
+	      {code = "711", line = 1, column = 8, end_column = 8, complexity = 6},
       }, check711[[
 return function(t)
-    for i = 1, t > 10 and 10 or t do
-        for j = 1, t do
-			if i + j == i * j then
-				return i
-			end
-        end
-    end
+   for i = 1, t > 10 and 10 or t do
+      for j = 1, t do
+         if i + j == i * j then
+            return i
+         end
+      end
+   end
 end
 ]])
    end)
 
    it("detects cyclomatic complexity(expr)", function()
       assert.same({
-	     {code = "711", line = 1, column = 8, end_column = 8, complexity = 5},
+	      {code = "711", line = 1, column = 8, end_column = 8, complexity = 5},
       }, check711[[
 return function(v)
-	local v1 = v and 3 or 4
-    return v1==3 and true or false
+   local v1 = v and 3 or 4
+   return v1==3 and true or false
 end
 ]])
    end)
