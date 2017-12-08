@@ -120,6 +120,7 @@ for _, filename in ipairs {
       "utils.lua",
       "argparse.lua",
       "whitespace.lua",
+      "detect_cyclomatic_complexity.lua",
       "detect_globals.lua",
       "standards.lua",
       "lua_fs.lua",

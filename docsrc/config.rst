@@ -46,6 +46,7 @@ Option                      Type                                     Default val
 ``max_code_line_length``    Number or ``false``                      ``120``
 ``max_string_line_length``  Number or ``false``                      ``120``
 ``max_comment_line_length`` Number or ``false``                      ``120``
+``max_cyclomatic_complexity`` Number or ``false``                    ``10``
 ``ignore``                  Array of patterns (see :ref:`patterns`)  ``{}``
 ``enable``                  Array of patterns                        ``{}``
 ``only``                    Array of patterns                        (Do not filter)
