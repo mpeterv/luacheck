@@ -103,7 +103,9 @@ local message_formats = {
    ["621"] = "inconsistent indentation (SPACE followed by TAB)",
    ["631"] = "line is too long ({end_column} > {max_length})",
    ["711"] = function(w)
-      if w.name then
+      if w.name == "[main]" then
+         return "main chunk is too complicated ({complexity} > {max_complexity})"
+      elseif w.name then
          return "function {name!} is too complicated ({complexity} > {max_complexity})"
       else
          return "function is too complicated ({complexity} > {max_complexity})"

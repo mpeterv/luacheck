@@ -110,7 +110,7 @@ end
 
 -- Cyclomatic complexity of a function equals to the number of decision points plus 1
 function CyclomaticComplexityMetric:calculate(line)
-   assert(line.node.tag == "Function", line.node.tag)
+   -- assert(line.node.tag == "Function", line.node.tag)
 
    -- reset
    self.count = 0
@@ -121,9 +121,10 @@ end
 
 local function detect_cyclomatic_complexity(chstate, line)
    local ccmetric = CyclomaticComplexityMetric()
+   chstate:warn_cyclomatic_complexity(line, ccmetric:calculate(line), true)
+
    for _, subline in ipairs(line.lines) do
-      local complexity = ccmetric:calculate(subline)
-      chstate:warn_cyclomatic_complexity(subline, complexity)
+      chstate:warn_cyclomatic_complexity(subline, ccmetric:calculate(subline))
    end
 end
 return detect_cyclomatic_complexity
