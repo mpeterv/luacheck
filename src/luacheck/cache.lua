@@ -16,14 +16,14 @@ local option_fields = {
    "unused_secondaries", "allow_defined", "allow_defined_top", "module",
    "read_globals", "new_globals", "new_read_globals", "enable", "only", "not_globals",
    "max_line_length", "max_code_line_length", "max_string_line_length", "max_comment_line_length",
-   "complexity", "max_cyclomatic_complexity",
+   "max_cyclomatic_complexity",
 }
 
 local event_fields = {
    "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "secondary",
    "self", "func", "top", "msg", "index", "recursive", "mutually_recursive", "useless",
    "field", "label", "push", "pop", "options", "indirect", "indexing", "previous_indexing_len",
-   "overwritten_line", "overwritten_column"
+   "overwritten_line", "overwritten_column", "complexity"
 }
 
 -- Recursively replace string keys with integer keys.
