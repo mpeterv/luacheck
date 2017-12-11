@@ -16,42 +16,42 @@ Options loaded from config have the lowest priority: it's possible to overwrite 
 Config options
 --------------
 
-=========================== ======================================== ===================
-Option                      Type                                     Default value
-=========================== ======================================== ===================
-``color``                   Boolean                                  ``true``
-``codes``                   Boolean                                  ``false``
-``formatter``               String or function                       ``"default"``
-``cache``                   Boolean or string                        ``false``
-``jobs``                    Positive integer                         ``1``
-``exclude_files``           Array of strings                         ``{}``
-``include_files``           Array of strings                         (Include all files)
-``global``                  Boolean                                  ``true``
-``unused``                  Boolean                                  ``true``
-``redefined``               Boolean                                  ``true``
-``unused_args``             Boolean                                  ``true``
-``unused_secondaries``      Boolean                                  ``true``
-``self``                    Boolean                                  ``true``
-``std``                     String or set of standard globals        ``"_G"``
-``globals``                 Array of strings or field definition map ``{}``
-``new_globals``             Array of strings or field definition map (Do not overwrite)
-``read_globals``            Array of strings or field definition map ``{}``
-``new_read_globals``        Array of strings or field definition map (Do not overwrite)
-``not_globals``             Array of strings                         ``{}``
-``compat``                  Boolean                                  ``false``
-``allow_defined``           Boolean                                  ``false``
-``allow_defined_top``       Boolean                                  ``false``
-``module``                  Boolean                                  ``false``
-``max_line_length``         Number or ``false``                      ``120``
-``max_code_line_length``    Number or ``false``                      ``120``
-``max_string_line_length``  Number or ``false``                      ``120``
-``max_comment_line_length`` Number or ``false``                      ``120``
-``max_cyclomatic_complexity`` Number or ``false``                    ``10``
-``ignore``                  Array of patterns (see :ref:`patterns`)  ``{}``
-``enable``                  Array of patterns                        ``{}``
-``only``                    Array of patterns                        (Do not filter)
-``inline``                  Boolean                                  ``true``
-=========================== ======================================== ===================
+============================= ======================================== ===================
+Option                        Type                                     Default value
+============================= ======================================== ===================
+``color``                     Boolean                                  ``true``
+``codes``                     Boolean                                  ``false``
+``formatter``                 String or function                       ``"default"``
+``cache``                     Boolean or string                        ``false``
+``jobs``                      Positive integer                         ``1``
+``exclude_files``             Array of strings                         ``{}``
+``include_files``             Array of strings                         (Include all files)
+``global``                    Boolean                                  ``true``
+``unused``                    Boolean                                  ``true``
+``redefined``                 Boolean                                  ``true``
+``unused_args``               Boolean                                  ``true``
+``unused_secondaries``        Boolean                                  ``true``
+``self``                      Boolean                                  ``true``
+``std``                       String or set of standard globals        ``"_G"``
+``globals``                   Array of strings or field definition map ``{}``
+``new_globals``               Array of strings or field definition map (Do not overwrite)
+``read_globals``              Array of strings or field definition map ``{}``
+``new_read_globals``          Array of strings or field definition map (Do not overwrite)
+``not_globals``               Array of strings                         ``{}``
+``compat``                    Boolean                                  ``false``
+``allow_defined``             Boolean                                  ``false``
+``allow_defined_top``         Boolean                                  ``false``
+``module``                    Boolean                                  ``false``
+``max_line_length``           Number or ``false``                      ``120``
+``max_code_line_length``      Number or ``false``                      ``120``
+``max_string_line_length``    Number or ``false``                      ``120``
+``max_comment_line_length``   Number or ``false``                      ``120``
+``max_cyclomatic_complexity`` Number or ``false``                      ``false``
+``ignore``                    Array of patterns (see :ref:`patterns`)  ``{}``
+``enable``                    Array of patterns                        ``{}``
+``only``                      Array of patterns                        (Do not filter)
+``inline``                    Boolean                                  ``true``
+============================= ======================================== ===================
 
 An example of a config which makes ``luacheck`` ensure that only globals from the portable intersection of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:
 
