@@ -1090,7 +1090,7 @@ end
       assert.same({
          {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
          {code = "711", line = 1, column = 8, end_column = 8, complexity = 7},
-         {code = "711", line = 2, column = 16, end_column = 16, complexity = 1, name = "pairs"},
+         {code = "711", line = 2, column = 18, end_column = 18, complexity = 1, name = "pairs"},
       }, check711[[
 return function(t)
    local pairs = function()end
