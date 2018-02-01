@@ -161,11 +161,10 @@ comment lines (default: 120).]])
          :action "store_false"
          :target "max_comment_line_length"
 
-      parser:option("--max-cyclomatic-complexity", [[Set maximum cyclomatic complexity for
-functions (default: false, recommanded: 10).]])
+      parser:option("--max-cyclomatic-complexity", "Set maximum cyclomatic complexity for functions.")
          :argname "<complexity>"
          :convert(tonumber)
-      parser:flag("--no-max-cyclomatic-complexity", "Do not limit function cyclomatic complexity.")
+      parser:flag("--no-max-cyclomatic-complexity", "Do not limit function cyclomatic complexity (default).")
          :action "store_false"
          :target "max_cyclomatic_complexity"
 
