@@ -121,10 +121,10 @@ end
 
 local function detect_cyclomatic_complexity(chstate, line)
    local ccmetric = CyclomaticComplexityMetric()
-   chstate:warn_cyclomatic_complexity(line, ccmetric:calculate(line), true)
+   chstate:warn_cyclomatic_complexity(line.node, ccmetric:calculate(line))
 
    for _, subline in ipairs(line.lines) do
-      chstate:warn_cyclomatic_complexity(subline, ccmetric:calculate(subline))
+      chstate:warn_cyclomatic_complexity(subline.node, ccmetric:calculate(subline))
    end
 end
 return detect_cyclomatic_complexity

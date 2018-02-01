@@ -1018,14 +1018,14 @@ return foo;
 
    it("detects cyclomatic complexity(main)", function()
       assert.same({
-         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
+         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
       }, check711[[]])
    end)
 
    it("detects cyclomatic complexity(statment if)", function()
       assert.same({
-         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
-         {code = "711", line = 1, column = 8, end_column = 8, complexity = 8},
+         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
+         {code = "711", line = 1, column = 8, end_column = 15, complexity = 8, function_type = "function"},
       }, check711[[
 return function(year, month)
    if month == 1 then
@@ -1046,8 +1046,8 @@ end
 
    it("detects cyclomatic complexity(statment while)", function()
       assert.same({
-         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
-         {code = "711", line = 1, column = 8, end_column = 8, complexity = 4},
+         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
+         {code = "711", line = 1, column = 8, end_column = 15, complexity = 4, function_type = "function"},
       }, check711[[
 return function(to)
    local i,j = 0,0
@@ -1066,8 +1066,8 @@ end
 
    it("detects cyclomatic complexity(statment repeat)", function()
       assert.same({
-         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
-         {code = "711", line = 1, column = 8, end_column = 8, complexity = 4},
+         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
+         {code = "711", line = 1, column = 8, end_column = 15, complexity = 4, function_type = "function"},
       }, check711[[
 return function(to)
    local i,j = 0,0
@@ -1088,9 +1088,10 @@ end
 
    it("detects cyclomatic complexity(statment forin)", function()
       assert.same({
-         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
-         {code = "711", line = 1, column = 8, end_column = 8, complexity = 7},
-         {code = "711", line = 2, column = 18, end_column = 18, complexity = 1, name = "pairs"},
+         {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
+         {code = "711", line = 1, column = 8, end_column = 15, complexity = 7, function_type = "function"},
+         {code = "711", line = 2, column = 18, end_column = 25, complexity = 1,
+            function_type = "function", function_name = "pairs"},
       }, check711[[
 return function(t)
    local pairs = function()end
@@ -1107,8 +1108,8 @@ end
 
    it("detects cyclomatic complexity(statment fornum)", function()
       assert.same({
-        {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
-        {code = "711", line = 1, column = 8, end_column = 8, complexity = 6},
+        {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
+        {code = "711", line = 1, column = 8, end_column = 15, complexity = 6, function_type = "function"},
       }, check711[[
 return function(t)
    for i = 1, t > 10 and 10 or t do
@@ -1124,8 +1125,8 @@ end
 
    it("detects cyclomatic complexity(expr)", function()
       assert.same({
-        {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, name="[main]"},
-        {code = "711", line = 1, column = 8, end_column = 8, complexity = 5},
+        {code = "711", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
+        {code = "711", line = 1, column = 8, end_column = 15, complexity = 5, function_type = "function"},
       }, check711[[
 return function(v)
    local v1 = v and 3 or 4

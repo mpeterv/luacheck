@@ -1,6 +1,7 @@
 local parser = require "luacheck.parser"
 local linearize = require "luacheck.linearize"
 local analyze = require "luacheck.analyze"
+local name_functions = require "luacheck.name_functions"
 local inline_options = require "luacheck.inline_options"
 local utils = require "luacheck.utils"
 local check_whitespace = require "luacheck.whitespace"
@@ -225,33 +226,31 @@ function ChState:warn_empty_statement(location)
    })
 end
 
-function ChState:warn_cyclomatic_complexity(closure, complexity, main)
-   local name, line, column
-   if main then
-      name = '[main]'
-      line = 1
-      column = 1
+function ChState:warn_cyclomatic_complexity(node, complexity)
+   local warning = {
+      code = "711",
+      complexity = complexity
+   }
+
+   if node.location then
+      warning.line = node.location.line
+      warning.column = node.location.column
+      warning.end_column = node.location.column + #"function" - 1
+      warning.function_name = node.name
+      warning.function_type = node[1][1] and node[1][1].implicit and "method" or "function"
    else
-      local location = closure.node.location
-      line = location.line
-      column = location.column
-      if closure.node.value and closure.node.value.var then
-         name = closure.node.value.var.name
-      end
+      warning.line = 1
+      warning.column = 1
+      warning.end_column = 1
+      warning.function_type = "main_chunk"
    end
 
-   self:warn({
-      code = "711",
-      name = name,
-      line = line,
-      column = column,
-      end_column = column,
-      complexity = complexity,
-   })
+   self:warn(warning)
 end
 
 local function check_or_throw(src)
    local ast, comments, code_lines, line_endings, semicolons = parser.parse(src)
+   name_functions(ast)
    local chstate = ChState()
    local line = linearize(chstate, ast)
 
