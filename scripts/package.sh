@@ -17,7 +17,7 @@ echo
 echo "=== Creating rockspec for Luacheck $version ==="
 echo
 
-luarocks new-version ../luacheck-scm-1.rockspec --tag="$version"
+luarocks new-version ../luacheck-dev-1.rockspec --tag="$version"
 
 echo
 echo "=== Copying Luacheck files ==="

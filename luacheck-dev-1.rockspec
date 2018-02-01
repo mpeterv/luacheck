@@ -1,5 +1,5 @@
 package = "luacheck"
-version = "scm-1"
+version = "dev-1"
 source = {
    url = "git+https://github.com/mpeterv/luacheck.git"
 }
