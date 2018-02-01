@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.22.0 (unreleased)
+
+### New features
+
+* Added detection of cyclomatic complexity, with warnings emitted for
+  functions with complexity higher than a configurable limit; disabled
+  by default (#141).
+
 ## 0.21.2 (2017-11-13)
 
 ### Fixes
