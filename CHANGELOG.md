@@ -8,6 +8,11 @@
   functions with complexity higher than a configurable limit; disabled
   by default (#141).
 
+### Fixes
+
+* Fixed errors or incorrect reporting when unused mutually recursive functions
+  have other values assigned to their local variables.
+
 ## 0.21.2 (2017-11-13)
 
 ### Fixes

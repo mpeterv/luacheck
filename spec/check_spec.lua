@@ -250,6 +250,25 @@ end
 ]])
    end)
 
+   it("detects unused mutually recursive functions as values", function()
+      assert.same({
+         {code = "311", name = "odd", line = 5, column = 10, end_column = 12},
+         {code = "311", name = "even", line = 9, column = 10, end_column = 13}
+      }, check[[
+local even = 2
+local odd = 3
+(...)(even, odd)
+
+function odd(x)
+   return x == 1 or even(x - 1)
+end
+
+function even(x)
+   return x == 0 or odd(x - 1) or even(x)
+end
+]])
+   end)
+
    it("does not incorrectly detect unused recursive functions inside unused functions", function()
       assert.same({
          {code = "211", name = "unused", func = true, line = 1, column = 16, end_column = 21}

@@ -1,5 +1,27 @@
 local utils = require "luacheck.utils"
 
+local function new_cyclomatic_complexity_warning(node, complexity)
+   local warning = {
+      code = "711",
+      complexity = complexity
+   }
+
+   if node.location then
+      warning.line = node.location.line
+      warning.column = node.location.column
+      warning.end_column = node.location.column + #"function" - 1
+      warning.function_name = node.name
+      warning.function_type = node[1][1] and node[1][1].implicit and "method" or "function"
+   else
+      warning.line = 1
+      warning.column = 1
+      warning.end_column = 1
+      warning.function_type = "main_chunk"
+   end
+
+   return warning
+end
+
 local CyclomaticComplexityMetric = utils.class()
 
 function CyclomaticComplexityMetric:incr_decisions(count)
@@ -108,23 +130,22 @@ function CyclomaticComplexityMetric:calc_stmts(stmts)
    end
 end
 
--- Cyclomatic complexity of a function equals to the number of decision points plus 1
-function CyclomaticComplexityMetric:calculate(line)
-   -- assert(line.node.tag == "Function", line.node.tag)
-
-   -- reset
-   self.count = 0
+-- Cyclomatic complexity of a function equals to the number of decision points plus 1.
+function CyclomaticComplexityMetric:report(chstate, line)
+   self.count = 1
    self:calc_stmts(line.node[2])
    self:calc_items(line.items)
+   table.insert(chstate.warnings, new_cyclomatic_complexity_warning(line.node, self.count))
    return self.count + 1
 end
 
-local function detect_cyclomatic_complexity(chstate, line)
+local function detect_cyclomatic_complexity(chstate)
    local ccmetric = CyclomaticComplexityMetric()
-   chstate:warn_cyclomatic_complexity(line.node, ccmetric:calculate(line))
+   ccmetric:report(chstate, chstate.main_line)
 
-   for _, subline in ipairs(line.lines) do
-      chstate:warn_cyclomatic_complexity(subline.node, ccmetric:calculate(subline))
+   for _, nested_line in ipairs(chstate.main_line.lines) do
+      ccmetric:report(chstate, nested_line)
    end
 end
+
 return detect_cyclomatic_complexity

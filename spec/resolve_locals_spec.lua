@@ -1,35 +1,6 @@
-local analyze = require "luacheck.analyze"
 local linearize = require "luacheck.linearize"
 local parser = require "luacheck.parser"
-local utils = require "luacheck.utils"
-
-local ChState = utils.class()
-
-function ChState.__init() end
-function ChState.warn_redefined() end
-function ChState.warn_global() end
-function ChState.warn_unused_label() end
-function ChState.warn_unused_variable() end
-function ChState.warn_unused_value() end
-function ChState.warn_unset() end
-
-local function get_line_(src)
-   local ast = parser.parse(src)
-   local chstate = ChState()
-   return linearize(chstate, ast)
-end
-
-local function get_line(src)
-   local ok, res = pcall(get_line_, src)
-
-   if ok then
-      return res
-   elseif type(res) == "table" then
-      return nil
-   else
-      error(res, 0)
-   end
-end
+local resolve_locals = require "luacheck.resolve_locals"
 
 local function used_variables_to_string(item)
    local buf = {}
@@ -49,12 +20,14 @@ local function used_variables_to_string(item)
 end
 
 local function get_used_variables_as_string(src)
-   local line = get_line(src)
-   analyze(line)
+   local ast = parser.parse(src)
+   local chstate = {ast = ast, warnings = {}}
+   linearize(chstate)
+   resolve_locals(chstate)
 
    local buf = {}
 
-   for _, item in ipairs(line.items) do
+   for _, item in ipairs(chstate.main_line.items) do
       if item.accesses and next(item.accesses) then
          assert.is_table(item.used_values)
          table.insert(buf, used_variables_to_string(item))
@@ -64,7 +37,7 @@ local function get_used_variables_as_string(src)
    return table.concat(buf, "\n")
 end
 
-describe("analyze", function()
+describe("resolve_locals", function()
    describe("when resolving values", function()
       it("resolves values in linear cases", function()
          assert.equal([[

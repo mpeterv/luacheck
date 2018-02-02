@@ -1,9 +1,63 @@
 local parser = require "luacheck.parser"
 local utils = require "luacheck.utils"
 
+local function new_unused_field_value_warning(node, overwriting_node)
+   return {
+      code = "314",
+      field = node.field,
+      index = node.is_index,
+      overwritten_line = overwriting_node.location.line,
+      overwritten_column = overwriting_node.location.column,
+      line = node.location.line,
+      column = node.location.column,
+      end_column = node.location.column + #node.first_token - 1
+   }
+end
+
+local type_codes = {
+   var = "1",
+   func = "1",
+   arg = "2",
+   loop = "3",
+   loopi = "3"
+}
+
+local function new_redefined_warning(var, prev_var, is_same_scope)
+   return {
+      code = "4" .. (is_same_scope and "1" or (var.line == prev_var.line and "2" or "3")) .. type_codes[prev_var.type],
+      name = var.name,
+      line = var.location.line,
+      column = var.location.column,
+      end_column = var.location.column + (var.self and #":" or #var.name) - 1,
+      self = var.self and prev_var.self,
+      prev_line = prev_var.location.line,
+      prev_column = prev_var.location.column
+   }
+end
+
+local function new_unused_label_warning(label)
+   return {
+      code = "521",
+      label = label.name,
+      line = label.location.line,
+      column = label.location.column,
+      end_column = label.end_column
+   }
+end
+
+local function new_unbalanced_assignment_warning(node)
+   local has_shorter_lhs = #node[1] < #node[2]
+
+   return {
+      code = "53" .. (has_shorter_lhs and "1" or "2"),
+      line = node.equals_location.line,
+      column = node.equals_location.column,
+      end_column = node.equals_location.column
+   }
+end
+
 local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"})
 
--- Who needs classes anyway.
 local function new_line(node, parent, value)
    return {
       accessed_upvalues = {}, -- Maps variables to arrays of accessing items.
@@ -172,7 +226,7 @@ function LinState:leave_scope()
 
    for name, label in pairs(left_scope.labels) do
       if not label.used and not pseudo_labels[name] then
-         self.chstate:warn_unused_label(label)
+         table.insert(self.chstate.warnings, new_unused_label_warning(label))
       end
    end
 
@@ -186,10 +240,13 @@ function LinState:register_var(node, type_)
    local prev_var = self:resolve_var(var.name)
 
    if prev_var then
-      local same_scope = self.scopes.top.vars[var.name]
-      self.chstate:warn_redefined(var, prev_var, same_scope)
+      local is_same_scope = self.scopes.top.vars[var.name]
 
-      if same_scope then
+      if var.name ~= "..." then
+         table.insert(self.chstate.warnings, new_redefined_warning(var, prev_var, is_same_scope))
+      end
+
+      if is_same_scope then
          prev_var.scope_end = self.lines.top.items.size
       end
    end
@@ -233,20 +290,30 @@ function LinState:register_label(name, location, end_column)
    self.scopes.top.labels[name] = new_label(self.lines.top, name, location, end_column)
 end
 
--- `node` is assignment node (`Local or `Set).
-function LinState:check_balance(node)
-   if node[2] then
-      if #node[1] < #node[2] then
-         self.chstate:warn_unbalanced(node.equals_location, true)
-      elseif (#node[1] > #node[2]) and node.tag ~= "Local" and not is_unpacking(node[2][#node[2]]) then
-         self.chstate:warn_unbalanced(node.equals_location)
-      end
+function LinState:check_assignment_balance(node)
+   local lhs = node[1]
+   local rhs = node[2]
+
+   if not rhs then
+      return
+   end
+
+   if (#lhs < #rhs) or ((#lhs > #rhs) and node.tag == "Set" and not is_unpacking(rhs[#rhs])) then
+      table.insert(self.chstate.warnings, new_unbalanced_assignment_warning(node))
    end
 end
 
+-- Block is either a `Do` statement or a `Then` block within an `If` statement.
 function LinState:check_empty_block(block)
    if #block == 0 then
-      self.chstate:warn_empty_block(block.location, block.tag == "Do")
+      local is_do_block = block.tag == "Do"
+
+      table.insert(self.chstate.warnings, {
+         code = "54" .. (is_do_block and "1" or "2"),
+         line = block.location.line,
+         column = block.location.column,
+         end_column = block.location.column + (is_do_block and #"do" or #"then") - 1
+      })
    end
 end
 
@@ -425,7 +492,7 @@ LinState.emit_stmt_Call = LinState.emit_expr
 LinState.emit_stmt_Invoke = LinState.emit_expr
 
 function LinState:emit_stmt_Local(node)
-   self:check_balance(node)
+   self:check_assignment_balance(node)
    local item = new_local_item(node[1], node[2], node.location, node.first_token)
    self:emit(item)
 
@@ -444,7 +511,7 @@ function LinState:emit_stmt_Localrec(node)
 end
 
 function LinState:emit_stmt_Set(node)
-   self:check_balance(node)
+   self:check_assignment_balance(node)
    local item = new_set_item(node[1], node[2], node.location, node.first_token)
    self:scan_exprs(item, node[2])
 
@@ -597,7 +664,7 @@ function LinState:scan_expr_Table(item, node)
 
       if field then
          if key_to_node[key] then
-            self.chstate:warn_unused_field_value(key_to_node[key], pair)
+            table.insert(self.chstate.warnings, new_unused_field_value_warning(key_to_node[key], pair))
          end
 
          key_to_node[key] = pair
@@ -694,14 +761,13 @@ function LinState:scan_expr_Function(item, node)
    end
 end
 
--- Builds linear representation of AST and returns it.
--- Emits warnings: global, redefined/shadowed, unused field, unused label, unbalanced assignment, empty block.
-local function linearize(chstate, ast)
+-- Builds linear representation of AST and assigns it as `chstate.main_line`.
+-- Adds warnings: redefined/shadowed, unused field, unused label, unbalanced assignment, empty block.
+local function linearize(chstate)
    local linstate = LinState(chstate)
-   local line = linstate:build_line({{{tag = "Dots", "..."}}, ast})
+   chstate.main_line = linstate:build_line({{{tag = "Dots", "..."}}, chstate.ast})
    assert(linstate.lines.size == 0)
    assert(linstate.scopes.size == 0)
-   return line
 end
 
 return linearize

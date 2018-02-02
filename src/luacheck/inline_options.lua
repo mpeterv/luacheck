@@ -300,10 +300,10 @@ end
 -- and option events carry inline option tables themselves.
 -- Inline option errors have codes `02[123]`, issued for invalid option syntax,
 -- unpaired push directives and unpaired pop directives.
-function inline_options.get_events(ast, comments, code_lines, warnings)
-   local events = utils.update({}, warnings)
-   add_closure_boundaries(ast, events)
-   local per_line_opts = add_inline_options(events, comments, code_lines)
+function inline_options.get_events(chstate)
+   local events = utils.update({}, chstate.warnings)
+   add_closure_boundaries(chstate.ast, events)
+   local per_line_opts = add_inline_options(events, chstate.comments, chstate.code_lines)
    core_utils.sort_by_location(events)
    mark_unpaired_boundaries(events)
    events = filter_useless_boundaries(events)

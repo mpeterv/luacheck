@@ -1,3 +1,13 @@
+local function new_uninit_warning(node, is_mutation)
+   return {
+      code = is_mutation and "341" or "321",
+      name = node[1],
+      line = node.location.line,
+      column = node.location.column,
+      end_column = node.location.column + #node[1] - 1
+   }
+end
+
 local function detect_uninit_access_in_line(chstate, line)
    for _, item in ipairs(line.items) do
       for _, action_key in ipairs({"accesses", "mutations"}) do
@@ -23,7 +33,7 @@ local function detect_uninit_access_in_line(chstate, line)
 
                      if all_possible_values_empty then
                         for _, accessing_node in ipairs(accessing_nodes) do
-                           chstate:warn_uninit(accessing_node, action_key == "mutations")
+                           table.insert(chstate.warnings, new_uninit_warning(accessing_node, action_key == "mutations"))
                         end
                      end
                   end
@@ -34,11 +44,11 @@ local function detect_uninit_access_in_line(chstate, line)
    end
 end
 
--- Detects accesses that don't resolve to any values except initial empty one.
-local function detect_uninit_access(chstate, line)
-   detect_uninit_access_in_line(chstate, line)
+-- Adds warnings for accesses that don't resolve to any values except initial empty one.
+local function detect_uninit_access(chstate)
+   detect_uninit_access_in_line(chstate, chstate.main_line)
 
-   for _, nested_line in ipairs(line.lines) do
+   for _, nested_line in ipairs(chstate.main_line.lines) do
       detect_uninit_access_in_line(chstate, nested_line)
    end
 end

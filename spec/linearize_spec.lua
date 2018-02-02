@@ -1,20 +1,11 @@
 local linearize = require "luacheck.linearize"
 local parser = require "luacheck.parser"
-local utils = require "luacheck.utils"
-
-local ChState = utils.class()
-
-function ChState.__init() end
-function ChState.warn_redefined() end
-function ChState.warn_global() end
-function ChState.warn_unused_label() end
-function ChState.warn_unbalanced() end
-function ChState.warn_empty_block() end
 
 local function get_line_(src)
    local ast = parser.parse(src)
-   local chstate = ChState()
-   return linearize(chstate, ast)
+   local chstate = {ast = ast, warnings = {}}
+   linearize(chstate)
+   return chstate.main_line
 end
 
 local function get_line(src)

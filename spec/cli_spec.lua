@@ -915,7 +915,7 @@ spec/samples/bad_code.lua
 local A,B,C,D,E,F="package","711","helper","function","embrace","hepler";return {{{"112",A,1,1,7,[23]={A,"loaded",true}},{B,[3]=1,[4]=1,[5]=1,[27]=1,[29]="main_chunk"},{B,[3]=3,[4]=7,[5]=14,[27]=1,[28]=C,[29]=D},{"211",C,3,16,21,[10]=true},{"212","...",3,23,25},{B,[3]=7,[4]=1,[5]=8,[27]=2,[28]=E,[29]=D},{"111",E,7,10,16,[11]=true,[23]={E}},{"412","opt",8,10,12,7,18},{"113",F,9,11,16,[23]={F}}},{},{24,0,26,9,3,0,21,31,26,3,0},{[4]="comment"}}
 spec/samples/python_code.lua
 (%d+)
-return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{},{}}
+return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{},{},{}}
 ]]):gsub("[%[%]]", "%%%0")))
          -- luacheck: pop
 
@@ -934,10 +934,10 @@ return {{{"011",[3]=1,[4]=6,[5]=15,[12]="expected '=' near '__future__'"}},{},{}
 %s
 spec/samples/python_code.lua
 %s
-return {{{"111", "global", 1, 1, [23]={"global"}}, {"321", "uninit", 6, 8}},{},{}}
+return {{{"111", "global", 1, 1, [23]={"global"}}, {"321", "uninit", 6, 8}},{},{},{}}
 spec/samples/good_code.lua
 %s
-return {{{"011",[3]=5,[4]=7,[12]="this code is actually bad"}},{},{}}
+return {{{"011",[3]=5,[4]=7,[12]="this code is actually bad"}},{},{},{}}
 spec/samples/bad_code.lua
 %s
 return {{},{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))

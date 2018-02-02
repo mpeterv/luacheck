@@ -1,5 +1,28 @@
 local core_utils = require "luacheck.core_utils"
 
+local function new_unused_rec_func_var_warning(value, is_self_recursive)
+   return {
+      code = "211",
+      name = value.var.name,
+      line = value.location.line,
+      column = value.location.column,
+      end_column = value.location.column + #value.var.name - 1,
+      func = true,
+      mutually_recursive = not is_self_recursive or nil,
+      recursive = is_self_recursive or nil
+   }
+end
+
+local function new_unused_rec_func_value_warning(value)
+   return {
+      code = "311",
+      name = value.var.name,
+      line = value.location.line,
+      column = value.location.column,
+      end_column = value.location.column + #value.var.name - 1
+   }
+end
+
 local function mark_reachable_lines(edges, marked, line)
    for connected_line in pairs(edges[line]) do
       if not marked[connected_line] then
@@ -10,13 +33,15 @@ local function mark_reachable_lines(edges, marked, line)
 end
 
 -- Detects and reports unused recursive and mutually recursive functions.
-local function detect_unused_rec_funcs(chstate, line)
+local function detect_unused_rec_funcs(chstate)
    -- Build a graph of usage relations of all closures.
    -- Closure A is used by closure B iff either B is parent
    -- of A and A is not assigned to a local/upvalue, or
    -- B uses local/upvalue value that is A.
    -- Closures not reachable from root closure are unused,
    -- report corresponding values/variables if not done already.
+
+   local line = chstate.main_line
 
    -- Initialize edges maps.
    local forward_edges = {[line] = {}}
@@ -77,13 +102,13 @@ local function detect_unused_rec_funcs(chstate, line)
                value = mut_rec_line.node.value
 
                if value then
-                  -- Report this closure as simply recursive or mutually recursive.
-                  local simply_recursive = forward_edges[mut_rec_line][mut_rec_line]
+                  -- Report this closure as self recursive or mutually recursive.
+                  local is_self_recursive = forward_edges[mut_rec_line][mut_rec_line]
 
                   if core_utils.is_function_var(value.var) then
-                     chstate:warn_unused_variable(value, true, simply_recursive)
+                     table.insert(chstate.warnings, new_unused_rec_func_var_warning(value, is_self_recursive))
                   else
-                     chstate:warn_unused_value(value, true, simply_recursive)
+                     table.insert(chstate.warnings, new_unused_rec_func_value_warning(value))
                   end
                end
             end

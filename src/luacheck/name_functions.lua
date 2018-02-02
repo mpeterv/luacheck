@@ -64,8 +64,8 @@ end
 -- * Function assigned to a field: "foo.bar.baz".
 --   Function can be in a table assigned to a variable or a field, e.g. `foo.bar = {baz = function() ... end}`.
 -- * Otherwise: `nil`.
-local function name_functions(ast)
-   handle_nodes(ast)
+local function name_functions(chstate)
+   handle_nodes(chstate.ast)
 end
 
 return name_functions

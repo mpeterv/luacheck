@@ -141,7 +141,6 @@ local function propagate_main_assignments(line)
    end
 end
 
-
 -- Called when closure creation propagation reaches a line item.
 local function closure_creation_propagation_callback(line, _, item, propagated_line)
    if not item then
@@ -209,12 +208,12 @@ end
 
 
 -- Finds reaching assignments for all local variable accesses.
-local function analyze(line)
-   analyze_line(line)
+local function resolve_locals(chstate)
+   analyze_line(chstate.main_line)
 
-   for _, nested_line in ipairs(line.lines) do
+   for _, nested_line in ipairs(chstate.main_line.lines) do
       analyze_line(nested_line)
    end
 end
 
-return analyze
+return resolve_locals

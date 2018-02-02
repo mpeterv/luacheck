@@ -1,5 +1,47 @@
 local utils = require "luacheck.utils"
 
+local action_codes = {
+   set = "1",
+   mutate = "2",
+   access = "3"
+}
+
+-- `index` describes an indexing, where `index[1]` is a global node
+-- and other items describe keys: each one is a string node, "not_string",
+-- or "unknown". `node` is literal base node that's indexed.
+-- E.g. in `local a = table.a; a.b = "c"` `node` is `a` node of the second
+-- statement and `index` describes `table.a.b`.
+-- `index.previous_indexing_len` is optional length of prefix of `index` array representing last assignment
+-- in the aliasing chain, e.g. `2` in the previous example (because last indexing is `table.a`).
+local function new_global_warning(node, index, is_lhs, is_top_scope)
+   local global = index[1]
+   local action = is_lhs and (#index == 1 and "set" or "mutate") or "access"
+
+   local indexing = {}
+
+   for i, field in ipairs(index) do
+      if field == "unknown" then
+         indexing[i] = true
+      elseif field == "not_string" then
+         indexing[i] = false
+      else
+         indexing[i] = field[1]
+      end
+   end
+
+   return {
+      code = "11" .. action_codes[action],
+      name = global[1],
+      indexing = indexing,
+      previous_indexing_len = index.previous_indexing_len,
+      line = node.location.line,
+      column = node.location.column,
+      end_column = node.location.column + #node[1] - 1,
+      top = is_top_scope and (action == "set") or nil,
+      indirect = node ~= global or nil
+   }
+end
+
 local function resolved_to_index(resolution)
    return resolution ~= "unknown" and resolution ~= "not_string" and resolution.tag ~= "String"
 end
@@ -129,7 +171,7 @@ local function detect_in_node(chstate, item, node, is_top_line, is_lhs)
       end
 
       if resolved_to_index(resolution) then
-         chstate:warn_global(node, resolution, is_lhs, is_top_line)
+         table.insert(chstate.warnings, new_global_warning(node, resolution, is_lhs, is_top_line))
       end
    elseif node.tag ~= "Function" then
       for _, nested_node in ipairs(node) do
@@ -161,12 +203,12 @@ local function detect_in_line(chstate, line, is_top_line)
    end
 end
 
--- Detects assignments, field accesses and mutations of global variables,
+-- Adds warnings for assignments, field accesses, and mutations of global variables,
 -- tracing through localizing assignments such as `local t = table`.
-local function detect_globals(chstate, line)
-   detect_in_line(chstate, line, true)
+local function detect_globals(chstate)
+   detect_in_line(chstate, chstate.main_line, true)
 
-   for _, nested_line in ipairs(line.lines) do
+   for _, nested_line in ipairs(chstate.main_line.lines) do
       detect_in_line(chstate, nested_line)
    end
 end

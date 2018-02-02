@@ -1,6 +1,77 @@
 local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
 
+local function is_secondary(value)
+   return value.secondaries and value.secondaries.used
+end
+
+local type_codes = {
+   var = "1",
+   func = "1",
+   arg = "2",
+   loop = "3",
+   loopi = "3"
+}
+
+local function new_unused_var_warning(value, is_useless)
+   return {
+      code = "21" .. type_codes[value.var.type],
+      name = value.var.name,
+      line = value.location.line,
+      column = value.location.column,
+      end_column = value.location.column + (value.var.self and #":" or #value.var.name) - 1,
+      secondary = is_secondary(value) or nil,
+      func = (value.type == "func") or nil,
+      self = value.var.self,
+      useless = value.var.name == "_" and is_useless or nil
+   }
+end
+
+local function new_unset_var_warning(var)
+   return {
+      code = "221",
+      name = var.name,
+      line = var.location.line,
+      column = var.location.column,
+      end_column = var.location.column + #var.name - 1
+   }
+end
+
+local function new_unaccessed_var_warning(var, was_mutated)
+   -- Mark as secondary if all assigned values are secondary.
+   -- It is guaranteed that there are at least two values.
+   local secondary = true
+
+   for _, value in ipairs(var.values) do
+      if not value.empty and not is_secondary(value) then
+         secondary = nil
+         break
+      end
+   end
+
+   return {
+      code = "2" .. (was_mutated and "4" or "3") .. type_codes[var.type],
+      name = var.name,
+      line = var.location.line,
+      column = var.location.column,
+      end_column = var.location.column + (var.self and #":" or #var.name) - 1,
+      secondary = secondary
+   }
+end
+
+local function new_unused_value_warning(value, was_mutated, overwriting_node)
+   return {
+      code = "3" .. (was_mutated and "3" or "1") .. type_codes[value.type],
+      name = value.var.name,
+      overwritten_line = overwriting_node and overwriting_node.location.line,
+      overwritten_column = overwriting_node and overwriting_node.location.column,
+      line = value.location.line,
+      column = value.location.column,
+      end_column = value.location.column + (value.type == "arg" and value.var.self and #":" or #value.var.name) - 1,
+      secondary = is_secondary(value) or nil
+   }
+end
+
 local externally_accessible_tags = utils.array_to_set({"Id", "Index", "Call", "Invoke", "Op", "Paren", "Dots"})
 
 local function externally_accessible(value)
@@ -34,22 +105,22 @@ local function check_var(chstate, var)
       local value = var.values[2] or var.values[1]
 
       if not value.used then
-         chstate:warn_unused_variable(value)
+         table.insert(chstate.warnings, new_unused_var_warning(value))
       end
    elseif #var.values == 1 then
       if not var.values[1].used then
          if var.values[1].mutated then
             if not externally_accessible(var.values[1]) then
-               chstate:warn_unaccessed(var, true)
+               table.insert(chstate.warnings, new_unaccessed_var_warning(var, true))
             end
          else
-            chstate:warn_unused_variable(var.values[1], nil, nil, var.values[1].empty)
+            table.insert(chstate.warnings, new_unused_var_warning(var.values[1], var.values[1].empty))
          end
       elseif var.values[1].empty then
-         chstate:warn_unset(var)
+         table.insert(chstate.warnings, new_unset_var_warning(var))
       end
    elseif not var.accessed and not var.mutated then
-      chstate:warn_unaccessed(var)
+      table.insert(chstate.warnings, new_unaccessed_var_warning(var))
    else
       local no_values_externally_accessible = true
 
@@ -60,7 +131,7 @@ local function check_var(chstate, var)
       end
 
       if not var.accessed and no_values_externally_accessible then
-         chstate:warn_unaccessed(var, true)
+         table.insert(chstate.warnings, new_unaccessed_var_warning(var, true))
       end
 
       for _, value in ipairs(var.values) do
@@ -78,10 +149,10 @@ local function check_var(chstate, var)
                   overwriting_node = get_overwriting_node_in_dup_assignment(value.item, value)
                end
 
-               chstate:warn_unused_value(value, false, overwriting_node)
+               table.insert(chstate.warnings, new_unused_value_warning(value, false, overwriting_node))
             elseif not value.used and not externally_accessible(value) then
                if var.accessed or not no_values_externally_accessible then
-                  chstate:warn_unused_value(value, true)
+                  table.insert(chstate.warnings, new_unused_value_warning(value, true))
                end
             end
          end
@@ -104,10 +175,10 @@ end
 
 -- Detects unused local variables and their values as well as locals that
 -- are accessed but never set or set but never accessed.
-local function detect_unused_locals(chstate, line)
-   detect_unused_locals_in_line(chstate, line)
+local function detect_unused_locals(chstate)
+   detect_unused_locals_in_line(chstate, chstate.main_line)
 
-   for _, nested_line in ipairs(line.lines) do
+   for _, nested_line in ipairs(chstate.main_line.lines) do
       detect_unused_locals_in_line(chstate, nested_line)
    end
 end
