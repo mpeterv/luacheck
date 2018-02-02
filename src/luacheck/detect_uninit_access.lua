@@ -5,24 +5,26 @@ local function detect_uninit_access_in_line(chstate, line)
 
          if item_var_map then
             for var, accessing_nodes in pairs(item_var_map) do
-               -- `var.empty` is set during general local variable reporting if the variable is never set.
-               -- In this case, reporting all its accesses as uninitialized is redundant.
                -- If there are no values at all reaching this access, not even the empty one,
                -- this item (or a closure containing it) is not reachable from variable definition.
                -- It will be reported as unreachable code, no need to report uninitalized accesses in it.
-               if not var.empty and item.used_values[var] then
-                  local all_possible_values_empty = true
+               if item.used_values[var] then
+                  -- If this variable is has only one, empty value then it's already reported as never set,
+                  -- no need to report each access.
+                  if not (#var.values == 1 and var.values[1].empty) then
+                     local all_possible_values_empty = true
 
-                  for _, possible_value in ipairs(item.used_values[var]) do
-                     if not possible_value.empty then
-                        all_possible_values_empty = false
-                        break
+                     for _, possible_value in ipairs(item.used_values[var]) do
+                        if not possible_value.empty then
+                           all_possible_values_empty = false
+                           break
+                        end
                      end
-                  end
 
-                  if all_possible_values_empty then
-                     for _, accessing_node in ipairs(accessing_nodes) do
-                        chstate:warn_uninit(accessing_node, action_key == "mutations")
+                     if all_possible_values_empty then
+                        for _, accessing_node in ipairs(accessing_nodes) do
+                           chstate:warn_uninit(accessing_node, action_key == "mutations")
+                        end
                      end
                   end
                end

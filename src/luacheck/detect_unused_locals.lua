@@ -46,7 +46,6 @@ local function check_var(chstate, var)
             chstate:warn_unused_variable(var.values[1], nil, nil, var.values[1].empty)
          end
       elseif var.values[1].empty then
-         var.empty = true
          chstate:warn_unset(var)
       end
    elseif not var.accessed and not var.mutated then
