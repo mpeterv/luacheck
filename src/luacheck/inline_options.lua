@@ -33,8 +33,8 @@ local function add_closure_boundaries(ast, events)
    end
 end
 
-local max_line_length_opts = utils.array_to_set({
-   "max_line_length", "max_code_line_length", "max_string_line_length", "max_comment_line_length"})
+local limit_opts = utils.array_to_set({"max_line_length", "max_code_line_length", "max_string_line_length",
+   "max_comment_line_length", "max_cyclomatic_complexity"})
 
 local function is_valid_option_name(name)
    if name == "std" or options.variadic_inline_options[name] then
@@ -42,7 +42,7 @@ local function is_valid_option_name(name)
    end
 
    name = name:gsub("^no_", "")
-   return options.nullary_inline_options[name] or max_line_length_opts[name]
+   return options.nullary_inline_options[name] or limit_opts[name]
 end
 
 -- Splits a token array for an inline option invocation into
@@ -124,7 +124,7 @@ local function get_options(body)
 
             opts[name] = flag
          else
-            assert(max_line_length_opts[name])
+            assert(limit_opts[name])
 
             if flag then
                if #args ~= 1 then
