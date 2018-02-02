@@ -289,9 +289,9 @@ local function escape_xml(str)
    return str
 end
 
-local formatters = {}
+format.builtin_formatters = {}
 
-function formatters.default(report, file_names, opts)
+function format.builtin_formatters.default(report, file_names, opts)
    local buf = {}
 
    if opts.quiet <= 2 then
@@ -321,7 +321,7 @@ function formatters.default(report, file_names, opts)
    return table.concat(buf, "\n")
 end
 
-function formatters.TAP(report, file_names, opts)
+function format.builtin_formatters.TAP(report, file_names, opts)
    opts.color = false
    local buf = {}
 
@@ -341,7 +341,7 @@ function formatters.TAP(report, file_names, opts)
    return table.concat(buf, "\n")
 end
 
-function formatters.JUnit(report, file_names)
+function format.builtin_formatters.JUnit(report, file_names)
    -- JUnit formatter doesn't support any options.
    local opts = {}
    local buf = {[[<?xml version="1.0" encoding="UTF-8"?>]]}
@@ -381,7 +381,7 @@ function formatters.JUnit(report, file_names)
    return table.concat(buf, "\n")
 end
 
-function formatters.plain(report, file_names, opts)
+function format.builtin_formatters.plain(report, file_names, opts)
    opts.color = false
    local buf = {}
 
@@ -406,7 +406,7 @@ end
 --    `options.codes`: should output warning codes? Default: false.
 --    `options.ranges`: should output token end column? Default: false.
 function format.format(report, file_names, options)
-   return formatters[options.formatter or "default"](report, file_names, {
+   return format.builtin_formatters[options.formatter or "default"](report, file_names, {
       quiet = options.quiet or 0,
       color = (options.color ~= false) and color_support,
       codes = options.codes,

@@ -542,10 +542,8 @@ patterns.]])
       end
    end
 
-   local builtin_formatters = utils.array_to_set({"TAP", "JUnit", "plain", "default"})
-
    local function pformat(report, file_names, conf, args)
-      if builtin_formatters[args.formatter] then
+      if format.builtin_formatters[args.formatter] then
          return format.format(report, file_names, args)
       end
 
