@@ -30,6 +30,7 @@ build = {
       ["luacheck.detect_globals"] = "src/luacheck/detect_globals.lua",
       ["luacheck.detect_uninit_access"] = "src/luacheck/detect_uninit_access.lua",
       ["luacheck.detect_unreachable_code"] = "src/luacheck/detect_unreachable_code.lua",
+      ["luacheck.detect_unused_locals"] = "src/luacheck/detect_unused_locals.lua",
       ["luacheck.detect_unused_rec_funcs"] = "src/luacheck/detect_unused_rec_funcs.lua",
       ["luacheck.expand_rockspec"] = "src/luacheck/expand_rockspec.lua",
       ["luacheck.filter"] = "src/luacheck/filter.lua",

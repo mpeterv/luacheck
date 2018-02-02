@@ -50,7 +50,7 @@ end
 
 local function get_used_variables_as_string(src)
    local line = get_line(src)
-   analyze(ChState(), line)
+   analyze(line)
 
    local buf = {}
 

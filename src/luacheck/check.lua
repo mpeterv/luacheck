@@ -8,6 +8,7 @@ local check_whitespace = require "luacheck.whitespace"
 local detect_globals = require "luacheck.detect_globals"
 local detect_uninit_access = require "luacheck.detect_uninit_access"
 local detect_unreachable_code = require "luacheck.detect_unreachable_code"
+local detect_unused_locals = require "luacheck.detect_unused_locals"
 local detect_unused_rec_funcs = require "luacheck.detect_unused_rec_funcs"
 local detect_cyclomatic_complexity = require "luacheck.detect_cyclomatic_complexity"
 
@@ -261,9 +262,10 @@ local function check_or_throw(src)
    local lines = utils.split_lines(src)
    local line_lengths = utils.map(function(s) return #s end, lines)
    check_whitespace(chstate, lines, line_endings)
-   analyze(chstate, line)
+   analyze(line)
 
    detect_globals(chstate, line)
+   detect_unused_locals(chstate, line)
    detect_uninit_access(chstate, line)
    detect_unreachable_code(chstate, line)
    detect_unused_rec_funcs(chstate, line)
