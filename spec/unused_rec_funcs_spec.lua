@@ -32,6 +32,12 @@ end
 ]])
    end)
 
+   it("handles functions defined without a local value", function()
+      assert_warnings({}, [[
+print(function() return function() end end)
+]])
+   end)
+
    it("detects unused mutually recursive functions", function()
       assert_warnings({
          {code = "211", name = "odd", func = true, mutually_recursive = true, line = 3, column = 16, end_column = 18},
