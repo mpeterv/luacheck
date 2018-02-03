@@ -1148,8 +1148,9 @@ end
         {code = "711", line = 1, column = 8, end_column = 15, complexity = 5, function_type = "function"},
       }, check711[[
 return function(v)
-   local v1 = v and 3 or 4
-   return v1==3 and true or false
+   local v1 = v and v*3 or 4
+   local t = {v1 == 3 and v*v or v/3}
+   return t
 end
 ]])
    end)

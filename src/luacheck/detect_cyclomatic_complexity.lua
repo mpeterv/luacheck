@@ -28,29 +28,21 @@ function CyclomaticComplexityMetric:incr_decisions(count)
    self.count = self.count + count
 end
 
-function CyclomaticComplexityMetric:calc_expr_Op(node)
-   if node[1] == "and" or node[1] == "or" then
+function CyclomaticComplexityMetric:calc_expr(node)
+   if node.tag == "Op" and (node[1] == "and" or node[1] == "or") then
       self:incr_decisions(1)
    end
 
-   self:calc_expr(node[2])
-   if node[3] then
-      self:calc_expr(node[3])
+   if node.tag ~= "Function" then
+      self:calc_exprs(node)
    end
 end
 
--- expr: {operator, expression, expression}
-function CyclomaticComplexityMetric:calc_expr(node)
-   local f = self["calc_expr_" .. node.tag]
-   if f then
-      f(self, node)
-   end
-end
-
--- exprs: {expr, expr, ...}
 function CyclomaticComplexityMetric:calc_exprs(exprs)
    for _, expr in ipairs(exprs) do
-      self:calc_expr(expr)
+      if type(expr) == "table" then
+         self:calc_expr(expr)
+      end
    end
 end
 
