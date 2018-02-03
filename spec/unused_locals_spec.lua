@@ -142,6 +142,19 @@ end
 ]])
    end)
 
+   it("does not provide overwriting location if the value overwrites itself", function()
+      assert_warnings({
+         {code = "311", name = "a", line = 5, column = 4, end_column = 4}
+      }, [[
+local a = 1
+print(a)
+
+while true do
+   a = 2
+end
+]])
+   end)
+
    it("does not detect unused value when it and a closure using it can live together", function()
       assert_warnings({}, [[
 local a = 3

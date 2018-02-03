@@ -78,7 +78,7 @@ local function externally_accessible(value)
    return value.type ~= "var" or (value.node and externally_accessible_tags[value.node.tag])
 end
 
-local function find_overwriting_lhs_node(item, value)
+local function get_overwriting_lhs_node(item, value)
    for _, node in ipairs(item.lhs) do
       if node.var == value.var then
          return node
@@ -86,7 +86,7 @@ local function find_overwriting_lhs_node(item, value)
    end
 end
 
-local function get_overwriting_node_in_dup_assignment(item, value)
+local function get_second_overwriting_lhs_node(item, value)
    local after_value_node
 
    for _, node in ipairs(item.lhs) do
@@ -140,13 +140,11 @@ local function check_var(chstate, var)
                local overwriting_node
 
                if value.overwriting_item then
-                  overwriting_node = find_overwriting_lhs_node(value.overwriting_item, value)
-
-                  if overwriting_node == value.node then
-                     overwriting_node = nil
+                  if value.overwriting_item ~= value.item then
+                     overwriting_node = get_overwriting_lhs_node(value.overwriting_item, value)
                   end
                else
-                  overwriting_node = get_overwriting_node_in_dup_assignment(value.item, value)
+                  overwriting_node = get_second_overwriting_lhs_node(value.item, value)
                end
 
                table.insert(chstate.warnings, new_unused_value_warning(value, false, overwriting_node))
