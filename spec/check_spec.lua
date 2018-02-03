@@ -3,12 +3,12 @@ local raw_check = require "luacheck.check"
 local function ignore711(events)
    for i = #events, 1, -1 do
       if events[i].code == "711" then
-         table.remove(events,  i)
+         table.remove(events, i)
       end
    end
 end
 
-local check_full = function(src)
+local function check_full(src)
    local report = raw_check(src)
    ignore711(report.events)
    return report
