@@ -276,4 +276,13 @@ else
 end
 ]])
    end)
+
+   it("detects unset variables", function()
+      assert_warnings({
+         {code = "221", name = "a", line = 1, column = 7, end_column = 7}
+      }, [[
+local a
+return a
+]])
+   end)
 end)

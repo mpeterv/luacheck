@@ -225,15 +225,6 @@ end
 ]])
    end)
 
-   it("detects unset variables", function()
-      assert.same({
-         {code = "221", name = "a", line = 1, column = 7, end_column = 7}
-      }, check[[
-local a
-return a
-]])
-   end)
-
    it("detects unused labels", function()
       assert.same({
          {code = "521", label = "fail", line = 2, column = 4, end_column = 11}
