@@ -7,6 +7,9 @@
 * Added detection of cyclomatic complexity, with warnings emitted for
   functions with complexity higher than a configurable limit; disabled
   by default (#141).
+* Added a built-in formatter printing warnings and errors in a format
+  understood by MSBuild/Visual Studio if `luacheck` is
+  used as a custom build step (#142).
 
 ### Fixes
 
