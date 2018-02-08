@@ -1050,6 +1050,17 @@ not ok 7 spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter JUnit --no-config")
    end)
 
+   it("has built-in Visual Studio aware formatter", function()
+      assert.equal([[
+spec/samples/bad_code.lua(3,16) : warning W211: unused function 'helper'
+spec/samples/bad_code.lua(3,23) : warning W212: unused variable length argument
+spec/samples/bad_code.lua(7,10) : warning W111: setting non-standard global variable 'embrace'
+spec/samples/bad_code.lua(8,10) : warning W412: variable 'opt' was previously defined as an argument on line 7
+spec/samples/bad_code.lua(9,11) : warning W113: accessing undefined variable 'hepler'
+spec/samples/python_code.lua(1,6) : error E011: expected '=' near '__future__'
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter visual_studio --no-config")
+   end)
+
    it("has built-in simple warning-per-line formatter", function()
       assert.equal("", get_output "spec/samples/good_code.lua --std=lua52 --formatter plain --no-config")
 
