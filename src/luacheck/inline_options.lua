@@ -320,14 +320,10 @@ local function stack_to_array(stack)
    return res
 end
 
-local function invalid_option_value(invalid_opt)
-   return ("invalid value of inline option '%s'"):format(invalid_opt)
-end
-
 -- Validates inline options within events and per-line options.
 -- Returns a new array of events and a new per-line option map
 -- with invalid options replaced with errors.
--- This is require because of `std` option which has to be validated
+-- This is required because of `std` option which has to be validated
 -- at join/filter time, not at check time, because of possible
 -- custom stds.
 function inline_options.validate_options(events, per_line_opts)
@@ -337,12 +333,12 @@ function inline_options.validate_options(events, per_line_opts)
 
    for i, event in ipairs(events) do
       if event.options then
-         local valid, invalid_opt = options.validate(options.all_options, event.options)
+         local ok, err = options.validate(options.all_options, event.options)
 
-         if valid then
+         if ok then
             new_events[i] = event
          else
-            new_events[i] = invalid_options_error(event, invalid_option_value(invalid_opt))
+            new_events[i] = invalid_options_error(event, err)
          end
       else
          new_events[i] = event
@@ -351,16 +347,16 @@ function inline_options.validate_options(events, per_line_opts)
 
    for line, line_events in pairs(per_line_opts) do
       for _, event in ipairs(line_events) do
-         local valid, invalid_opt = options.validate(options.all_options, event.options)
+         local ok, err = options.validate(options.all_options, event.options)
 
-         if valid then
+         if ok then
             if not new_per_line_opts[line] then
                new_per_line_opts[line] = {}
             end
 
             table.insert(new_per_line_opts[line], event)
          else
-            table.insert(new_events, invalid_options_error(event, invalid_option_value(invalid_opt)))
+            table.insert(new_events, invalid_options_error(event, err))
             added_errors = true
          end
       end

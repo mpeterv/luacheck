@@ -2,36 +2,49 @@ local standards = require "luacheck.standards"
 
 describe("standards", function()
    describe("validate_std_table", function()
-      it("returns falsy value if argument is not a table", function()
-         assert.falsy(standards.validate_std_table("foo"))
+      it("returns false and an error message if argument table has wrong field types", function()
+         local ok, err = standards.validate_std_table({globals = "all of them"})
+         assert.is_false(ok)
+         assert.equal("in field .globals: globals table expected, got string", err)
+
+         ok, err = standards.validate_std_table({read_globals = "yes"})
+         assert.is_false(ok)
+         assert.equal("in field .read_globals: globals table expected, got string", err)
       end)
 
-      it("returns falsy value if argument table has wrong field types", function()
-         assert.falsy(standards.validate_std_table({globals = "all of them"}))
-         assert.falsy(standards.validate_std_table({read_globals = "yes"}))
+      it("returns false and an error message if argument table has invalid definitions as values", function()
+         local ok, err = standards.validate_std_table({globals = {foo = "bar"}})
+         assert.is_false(ok)
+         assert.equal("in field .globals.foo: global description table expected, got string", err)
       end)
 
-      it("returns falsy value if argument table has invalid definitions as values", function()
-         assert.falsy(standards.validate_std_table({globals = {foo = "bar"}}))
+      it("returns false and an error message if argument table has invalid names as values", function()
+         local ok, err = standards.validate_std_table({globals = {12345}})
+         assert.is_false(ok)
+         assert.equal("in field .globals[1]: string expected as global name, got number", err)
       end)
 
-      it("returns falsy value if argument table has invalid names as values", function()
-         assert.falsy(standards.validate_std_table({globals = {12345}}))
-      end)
+      it("returns false and an error message if definition tables have wrong field types", function()
+         local ok, err = standards.validate_std_table({globals = {foo = {read_only = "not_really"}}})
+         assert.is_false(ok)
+         assert.equal("in field .globals.foo: invalid value of option 'read_only': boolean expected, got string", err)
 
-      it("returns falsy value if definition tables have wrong field types", function()
-         assert.falsy(standards.validate_std_table({globals = {foo = {read_only = "not_really"}}}))
-         assert.falsy(standards.validate_std_table({read_globals = {bar = {other_fields = 0}}}))
+         ok, err = standards.validate_std_table({read_globals = {bar = {other_fields = 0}}})
+         assert.is_false(ok)
+         assert.equal(
+            "in field .read_globals.bar: invalid value of option 'other_fields': boolean expected, got number", err)
       end)
 
       it("detects invalid nested definitions", function()
-         assert.falsy(standards.validate_std_table({globals = {foo = {fields = {bar = 12345}}}}))
+         local ok, err = standards.validate_std_table({globals = {foo = {fields = {bar = 12345}}}})
+         assert.is_false(ok)
+         assert.equal("in field .globals.foo.fields.bar: field description table expected, got number", err)
       end)
 
-      it("returns thruthy value if argument std table is valid", function()
-         assert.truthy(standards.validate_std_table({}))
-         assert.truthy(standards.validate_std_table({unrelated = 123}))
-         assert.truthy(standards.validate_std_table(
+      it("returns true if argument std table is valid", function()
+         assert.is_true(standards.validate_std_table({}))
+         assert.is_true(standards.validate_std_table({unrelated = 123}))
+         assert.is_true(standards.validate_std_table(
             {globals = {"foo", bar = {read_only = true, other_fields = false}}}
          ))
       end)

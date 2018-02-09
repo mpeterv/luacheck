@@ -350,35 +350,42 @@ function utils.map(func, array)
    return res
 end
 
--- Returns predicate checking type.
+-- Returns validator checking type.
 function utils.has_type(type_)
    return function(x)
-      return type(x) == type_
+      if type(x) == type_ then
+         return true
+      else
+         return false, ("%s expected, got %s"):format(type_, type(x))
+      end
    end
 end
 
--- Returns predicate checking that value is an array with
--- elements of type.
+-- Returns validator checking two type possibilities.
+function utils.has_either_type(type1, type2)
+   return function(x)
+      if type(x) == type1 or type(x) == type2 then
+         return true
+      else
+         return false, ("%s or %s expected, got %s"):format(type1, type2, type(x))
+      end
+   end
+end
+
+-- Returns validator checking that value is an array with elements of type.
 function utils.array_of(type_)
    return function(x)
       if type(x) ~= "table" then
-         return false
+         return false, ("array of %ss expected, got %s"):format(type_, type(x))
       end
 
-      for _, item in ipairs(x) do
+      for index, item in ipairs(x) do
          if type(item) ~= type_ then
-            return false
+            return false, ("array of %ss expected, got %s at index [%d]"):format(type_, type(item), index)
          end
       end
 
       return true
-   end
-end
-
--- Returns predicate chacking if value satisfies on of predicates.
-function utils.either(pred1, pred2)
-   return function(x)
-      return pred1(x) or pred2(x)
    end
 end
 

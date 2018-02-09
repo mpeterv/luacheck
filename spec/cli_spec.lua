@@ -656,7 +656,7 @@ Checking spec/samples/global_fields.lua           13 warnings / 1 error
     spec/samples/global_fields.lua:36:1: mutating non-standard global variable 'server'
     spec/samples/global_fields.lua:37:7: accessing undefined variable 'server'
     spec/samples/global_fields.lua:38:1: mutating non-standard global variable 'server'
-    spec/samples/global_fields.lua:40:1: invalid value of inline option 'std'
+    spec/samples/global_fields.lua:40:1: invalid value of option 'std': unknown std 'my_server'
     spec/samples/global_fields.lua:41:1: mutating non-standard global variable 'server'
     spec/samples/global_fields.lua:42:1: mutating non-standard global variable 'server'
 

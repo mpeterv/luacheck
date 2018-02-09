@@ -7,6 +7,9 @@ local utils = require "luacheck.utils"
 local boolean = utils.has_type("boolean")
 local array_of_strings = utils.array_of("string")
 
+-- Validates std string.
+-- Returns an array of std names with `add` field if there is `+` at the beginning of the string.
+-- On validation error returns `nil` and an error message.
 function options.split_std(std)
    local parts = utils.split(std, "+")
 
@@ -19,7 +22,7 @@ function options.split_std(std)
       parts[i] = utils.strip(part)
 
       if not builtin_standards[parts[i]] then
-         return
+         return nil, ("unknown std '%s'"):format(parts[i])
       end
    end
 
@@ -27,15 +30,36 @@ function options.split_std(std)
 end
 
 local function std_or_array_of_strings(x)
-   return (type(x) == "string" and options.split_std(x)) or standards.validate_std_table(x)
+   if type(x) == "string" then
+      local ok, err = options.split_std(x)
+      return not not ok, err
+   elseif type(x) == "table" then
+      return standards.validate_std_table(x)
+   else
+      return false, "string or table expected, got " .. type(x)
+   end
 end
 
 local function field_map(x)
-   return standards.validate_std_table({globals = x})
+   if type(x) == "table" then
+      return standards.validate_globals_table(x)
+   else
+      return false, "table expected, got " .. type(x)
+   end
 end
 
 local function number_or_false(x)
-   return x == false or type(x) == "number"
+   if type(x) == "number" then
+      return true
+   elseif type(x) == "boolean" then
+      if x then
+         return false, "number or false expected, got true"
+      else
+         return true
+      end
+   else
+      return false, "number or false expected, got " .. type(x)
+   end
 end
 
 options.nullary_inline_options = {
@@ -75,28 +99,28 @@ options.all_options = {
 utils.update(options.all_options, options.nullary_inline_options)
 utils.update(options.all_options, options.variadic_inline_options)
 
--- Returns true if opts is valid option_set.
--- Otherwise returns false and, optionally, name of the problematic option.
+-- Returns true if opts is valid option_set or is nil.
+-- Otherwise returns false and an error message.
 function options.validate(option_set, opts)
    if opts == nil then
       return true
    end
 
-   local ok, is_valid, invalid_opt = pcall(function()
-      assert(type(opts) == "table")
+   if type(opts) ~= "table" then
+      return false, "option table expected, got " .. type(opts)
+   end
 
-      for option, validator in utils.sorted_pairs(option_set) do
-         if opts[option] ~= nil then
-            if not validator(opts[option]) then
-               return false, option
-            end
+   for option, validator in utils.sorted_pairs(option_set) do
+      if opts[option] ~= nil then
+         local ok, err = validator(opts[option])
+
+         if not ok then
+            return false, ("invalid value of option '%s': %s"):format(option, err)
          end
       end
+   end
 
-      return true
-   end)
-
-   return ok and is_valid, invalid_opt
+   return true
 end
 
 -- Option stack is an array of options with options closer to end

@@ -58,12 +58,24 @@ local function remove_env_mt(env, special_values)
    utils.update(env, special_values)
 end
 
+local function jobs_validator(x)
+   if type(x) == "number" then
+      if math.floor(x) == x and x >= 1 then
+         return true
+      else
+         return false, ("positive integer expected, got %.20g"):format(x)
+      end
+   else
+      return false, "positive integer expected, got " .. type(x)
+   end
+end
+
 local top_options = {
    color = utils.has_type("boolean"),
    codes = utils.has_type("boolean"),
-   formatter = utils.either(utils.has_type("string"), utils.has_type("function")),
-   cache = utils.either(utils.has_type("string"), utils.has_type("boolean")),
-   jobs = function(x) return type(x) == "number" and math.floor(x) == x and x >= 1 end,
+   formatter = utils.has_either_type("string", "function"),
+   cache = utils.has_either_type("string", "boolean"),
+   jobs = jobs_validator,
    files = utils.has_type("table"),
    stds = utils.has_type("table"),
    exclude_files = utils.array_of("string"),
@@ -72,36 +84,25 @@ local top_options = {
 
 utils.update(top_options, options.all_options)
 
--- Returns error or nil if options are valid.
-local function validate_options(option_set, opts)
-   local ok, invalid_field = options.validate(option_set, opts)
+-- Returns true if config is valid, false and error message otherwise.
+local function validate_config(conf)
+   local ok, err = options.validate(top_options, conf)
 
    if not ok then
-      if invalid_field then
-         return ("invalid value of option '%s'"):format(invalid_field)
-      else
-         return "validation error"
-      end
-   end
-end
-
--- Returns error or nil if config is valid.
-local function validate_config(conf)
-   local top_err = validate_options(top_options, conf)
-
-   if top_err then
-      return top_err
+      return false, err
    end
 
    for path, opts in pairs(conf.files) do
       if type(path) == "string" then
-         local override_err = validate_options(options.all_options, opts)
+         ok, err = options.validate(options.all_options, opts)
 
-         if override_err then
-            return ("%s in options for path '%s'"):format(override_err, path)
+         if not ok then
+            return false, ("invalid options for path '%s': %s"):format(path, err)
          end
       end
    end
+
+   return true
 end
 
 -- Returns table with field `globs` containing sorted normalized globs
@@ -270,10 +271,10 @@ function config.load_config(path, global_path)
       utils.update(builtin_standards, env.stds)
    end
 
-   local err = validate_config(env)
+   local validate_ok, validate_err = validate_config(env)
 
-   if err then
-      return nil, ("Couldn't load configuration from %s: %s"):format(conf_path, err)
+   if not validate_ok then
+      return nil, ("Couldn't load configuration from %s: %s"):format(conf_path, validate_err)
    end
 
    conf.options = env

@@ -37,11 +37,14 @@ describe("luacheck", function()
 
    it("panics on bad options", function()
       assert.has_error(function() luacheck({"foo"}, "bar") end,
-         "bad argument #2 to 'luacheck.check_files' (table or nil expected, got string)")
+         "bad argument #2 to 'luacheck.check_files' (option table expected, got string)")
       assert.has_error(function() luacheck({"foo"}, {globals = "bar"}) end,
-         "bad argument #2 to 'luacheck.check_files' (invalid value of option 'globals')")
+         "bad argument #2 to 'luacheck.check_files' (invalid value of option 'globals': table expected, got string)")
+      -- luacheck: no max line length
       assert.has_error(function() luacheck({"foo"}, {{unused = 123}}) end,
-         "bad argument #2 to 'luacheck.check_files' (invalid value of option 'unused')")
+         "bad argument #2 to 'luacheck.check_files' (invalid options at index [1]: invalid value of option 'unused': boolean expected, got number)")
+      assert.has_error(function() luacheck({"foo"}, {{{}, {unused = 123}}}) end,
+         "bad argument #2 to 'luacheck.check_files' (invalid options at index [1][2]: invalid value of option 'unused': boolean expected, got number)")
    end)
 
    it("works on empty list", function()
@@ -186,11 +189,12 @@ describe("check_strings", function()
 
    it("panics on bad options", function()
       assert.has_error(function() luacheck.check_strings({"foo"}, "bar") end,
-         "bad argument #2 to 'luacheck.check_strings' (table or nil expected, got string)")
+         "bad argument #2 to 'luacheck.check_strings' (option table expected, got string)")
       assert.has_error(function() luacheck.check_strings({"foo"}, {globals = "bar"}) end,
-         "bad argument #2 to 'luacheck.check_strings' (invalid value of option 'globals')")
+         "bad argument #2 to 'luacheck.check_strings' (invalid value of option 'globals': table expected, got string)")
+      -- luacheck: no max line length
       assert.has_error(function() luacheck.check_strings({"foo"}, {{unused = 123}}) end,
-         "bad argument #2 to 'luacheck.check_strings' (invalid value of option 'unused')")
+         "bad argument #2 to 'luacheck.check_strings' (invalid options at index [1]: invalid value of option 'unused': boolean expected, got number)")
    end)
 
    it("works on empty list", function()
@@ -457,11 +461,12 @@ describe("process_reports", function()
 
    it("panics on bad options", function()
       assert.has_error(function() luacheck.process_reports({{}}, "bar") end,
-         "bad argument #2 to 'luacheck.process_reports' (table or nil expected, got string)")
+         "bad argument #2 to 'luacheck.process_reports' (option table expected, got string)")
+      -- luacheck: no max line length
       assert.has_error(function() luacheck.process_reports({{}}, {globals = "bar"}) end,
-         "bad argument #2 to 'luacheck.process_reports' (invalid value of option 'globals')")
+         "bad argument #2 to 'luacheck.process_reports' (invalid value of option 'globals': table expected, got string)")
       assert.has_error(function() luacheck.process_reports({{}}, {{unused = 123}}) end,
-         "bad argument #2 to 'luacheck.process_reports' (invalid value of option 'unused')")
+         "bad argument #2 to 'luacheck.process_reports' (invalid options at index [1]: invalid value of option 'unused': boolean expected, got number)")
    end)
 
    it("processes reports", function()

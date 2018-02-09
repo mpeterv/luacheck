@@ -14,36 +14,51 @@ describe("options", function()
          }))
       end)
 
-      it("returns false if options are invalid", function()
-         assert.is_false(options.validate(options.all_options, {
+      it("returns false and an error message if options are invalid", function()
+         local ok, err = options.validate(options.all_options, {
             globals = 3,
             redefined = false
-         }))
+         })
+         assert.is_false(ok)
+         assert.equal("invalid value of option 'globals': table expected, got number", err)
 
-         assert.is_false(options.validate(options.all_options, {
+         ok, err = options.validate(options.all_options, {
             globals = {3}
-         }))
+         })
+         assert.is_false(ok)
+         assert.equal(
+            "invalid value of option 'globals': in field [1]: string expected as global name, got number", err)
 
-         assert.is_false(options.validate(options.all_options, function() end))
+         ok, err = options.validate(options.all_options, function() end)
+         assert.is_false(ok)
+         assert.equal("option table expected, got function", err)
 
-         assert.is_false(options.validate(options.all_options, {
+         ok, err = options.validate(options.all_options, {
             unused = 0
-         }))
-      end)
+         })
+         assert.is_false(ok)
+         assert.equal("invalid value of option 'unused': boolean expected, got number", err)
 
-      it("additionally returns name of the problematic field", function()
-         assert.equal("globals", select(2, options.validate(options.all_options, {
-            globals = 3,
+         ok, err = options.validate(options.all_options, {
+            max_line_length = true,
             redefined = false
-         })))
+         })
+         assert.is_false(ok)
+         assert.equal("invalid value of option 'max_line_length': number or false expected, got true", err)
 
-         assert.equal("globals", select(2, options.validate(options.all_options, {
-            globals = {3}
-         })))
+         ok, err = options.validate(options.all_options, {
+            max_line_length = "foo",
+            redefined = false
+         })
+         assert.is_false(ok)
+         assert.equal("invalid value of option 'max_line_length': number or false expected, got string", err)
 
-         assert.equal("unused", select(2, options.validate(options.all_options, {
-            unused = 0
-         })))
+         ok, err = options.validate(options.all_options, {
+            std = "+lua51+luaaot",
+            redefined = false
+         })
+         assert.is_false(ok)
+         assert.equal("invalid value of option 'std': unknown std 'luaaot'", err)
       end)
    end)
 

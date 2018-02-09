@@ -8,18 +8,14 @@ local luacheck = {
    _VERSION = "0.21.2"
 }
 
-local function raw_validate_options(fname, opts)
-   assert(opts == nil or type(opts) == "table",
-      ("bad argument #2 to '%s' (table or nil expected, got %s)"):format(fname, type(opts))
-   )
-
-   local ok, invalid_field = options.validate(options.all_options, opts)
+local function raw_validate_options(fname, opts, context)
+   local ok, err = options.validate(options.all_options, opts)
 
    if not ok then
-      if invalid_field then
-         error(("bad argument #2 to '%s' (invalid value of option '%s')"):format(fname, invalid_field))
+      if context then
+         error(("bad argument #2 to '%s' (%s: %s)"):format(fname, context, err))
       else
-         error(("bad argument #2 to '%s'"):format(fname))
+         error(("bad argument #2 to '%s' (%s)"):format(fname, err))
       end
    end
 end
@@ -29,11 +25,11 @@ local function validate_options(fname, items, opts)
 
    if opts ~= nil then
       for i in ipairs(items) do
-         raw_validate_options(fname, opts[i])
+         raw_validate_options(fname, opts[i], ("invalid options at index [%d]"):format(i))
 
          if opts[i] ~= nil then
-            for _, nested_opts in ipairs(opts[i]) do
-               raw_validate_options(fname, nested_opts)
+            for j, nested_opts in ipairs(opts[i]) do
+               raw_validate_options(fname, nested_opts, ("invalid options at index [%d][%d]"):format(i, j))
             end
          end
       end
