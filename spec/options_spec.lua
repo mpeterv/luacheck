@@ -59,6 +59,21 @@ describe("options", function()
          })
          assert.is_false(ok)
          assert.equal("invalid value of option 'std': unknown std 'luaaot'", err)
+
+         ok, err = options.validate(options.all_options, {
+            std = {read_globals = {1}},
+            redefined = false
+         })
+         assert.is_false(ok)
+         assert.equal(
+            "invalid value of option 'std': in field .read_globals[1]: string expected as global name, got number", err)
+
+         ok, err = options.validate(options.all_options, {
+            std = 123,
+            redefined = false
+         })
+         assert.is_false(ok)
+         assert.equal("invalid value of option 'std': string or table expected, got number", err)
       end)
    end)
 
