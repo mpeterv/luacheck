@@ -36,7 +36,7 @@ If it is not possible to install [LuaFileSystem](http://keplerproject.github.io/
 
 ### Binary download
 
-For Windows there is experimental single-file 64-bit binary distribution, bundling Lua 5.3.4, Luacheck, LuaFileSystem, and LuaLanes using [LuaStatic](https://github.com/ers35/luastatic):
+For Windows there is single-file 64-bit binary distribution, bundling Lua 5.3.4, Luacheck, LuaFileSystem, and LuaLanes using [LuaStatic](https://github.com/ers35/luastatic):
 [download](https://github.com/mpeterv/luacheck/releases/download/0.21.2/luacheck.exe).
 
 ### Manual installation
