@@ -82,6 +82,9 @@ local function check(src)
          line = res.err.line,
          column = res.err.column,
          end_column = res.err.end_column,
+         prev_line = res.err.prev_line,
+         prev_column = res.err.prev_column,
+         prev_end_column = res.err.prev_end_column,
          msg = res.err.msg
       }
 

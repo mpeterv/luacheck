@@ -24,15 +24,21 @@ end
 
 parser.SyntaxError = utils.class()
 
-function parser.SyntaxError:__init(loc, end_column, msg)
+function parser.SyntaxError:__init(loc, end_column, msg, prev_loc, prev_end_column)
    self.line = loc.line
    self.column = loc.column
    self.end_column = end_column
    self.msg = msg
+
+   if prev_loc then
+      self.prev_line = prev_loc.line
+      self.prev_column = prev_loc.column
+      self.prev_end_column = prev_end_column
+   end
 end
 
-function parser.syntax_error(loc, end_column, msg)
-   error(parser.SyntaxError(loc, end_column, msg), 0)
+function parser.syntax_error(loc, end_column, msg, prev_loc, prev_end_column)
+   error(parser.SyntaxError(loc, end_column, msg, prev_loc, prev_end_column), 0)
 end
 
 local function token_body_or_line(state)
@@ -98,7 +104,7 @@ local function token_name(token)
    return token_names[token] or lexer.quote(token)
 end
 
-local function parse_error(state, msg)
+local function parse_error(state, msg, prev_loc, prev_end_column)
    local token_repr, end_column
 
    if state.token == "eof" then
@@ -110,7 +116,7 @@ local function parse_error(state, msg)
       token_repr = lexer.quote(token_repr)
    end
 
-   parser.syntax_error(state, end_column, msg .. " near " .. token_repr)
+   parser.syntax_error(state, end_column, msg .. " near " .. token_repr, prev_loc, prev_end_column)
 end
 
 local function check_token(state, token)
@@ -131,15 +137,15 @@ local function test_and_skip_token(state, token)
    end
 end
 
-local function check_closing_token(state, opening_token, closing_token, opening_line)
+local function check_closing_token(state, opening_token, closing_token, opening_loc)
    if state.token ~= closing_token then
       local err = "expected " .. token_name(closing_token)
 
-      if opening_line ~= state.line then
-         err = err .. " (to close " .. token_name(opening_token) .. " on line " .. tostring(opening_line) .. ")"
+      if opening_loc.line ~= state.line then
+         err = err .. " (to close " .. token_name(opening_token) .. " on line " .. tostring(opening_loc.line) .. ")"
       end
 
-      parse_error(state, err)
+      parse_error(state, err, opening_loc, opening_loc.column + #opening_token - 1)
    end
 
    skip_token(state)
@@ -202,7 +208,7 @@ simple_expressions["..."] = atom("Dots")
 
 simple_expressions["{"] = function(state)
    local ast_node = new_ast_node(state, "Table")
-   local start_line = state.line
+   local start_location = location(state)
    skip_token(state)
    local is_inside_parentheses = false
 
@@ -238,7 +244,7 @@ simple_expressions["{"] = function(state)
             first_key_token = "["
             skip_token(state)
             lhs = parse_expression(state)
-            check_closing_token(state, "[", "]", item_location.line)
+            check_closing_token(state, "[", "]", item_location)
             check_and_skip_token(state, "=")
             rhs = parse_expression(state)
          else
@@ -256,14 +262,14 @@ simple_expressions["{"] = function(state)
       end
    until not (test_and_skip_token(state, ",") or test_and_skip_token(state, ";"))
 
-   check_closing_token(state, "{", "}", start_line)
+   check_closing_token(state, "{", "}", start_location)
    opt_add_parens(ast_node, is_inside_parentheses)
    return ast_node
 end
 
 -- Parses argument list and the statements.
 local function parse_function(state, func_location)
-   local paren_line = state.line
+   local paren_location = location(state)
    check_and_skip_token(state, "(")
    local args = {}
 
@@ -280,10 +286,10 @@ local function parse_function(state, func_location)
       until not test_and_skip_token(state, ",")
    end
 
-   check_closing_token(state, "(", ")", paren_line)
+   check_closing_token(state, "(", ")", paren_location)
    local body = parse_block(state)
    local end_location = location(state)
-   check_closing_token(state, "function", "end", func_location.line)
+   check_closing_token(state, "function", "end", func_location)
    return init_ast_node({args, body, end_location = end_location}, func_location, "Function")
 end
 
@@ -296,10 +302,10 @@ end
 local calls = {}
 
 calls["("] = function(state)
-   local paren_line = state.line
+   local paren_location = location(state)
    skip_token(state) -- Skip "(".
    local args = (state.token == ")") and {} or parse_expression_list(state)
-   check_closing_token(state, "(", ")", paren_line)
+   check_closing_token(state, "(", ")", paren_location)
    return args
 end
 
@@ -318,10 +324,10 @@ suffixes["."] = function(state, lhs)
 end
 
 suffixes["["] = function(state, lhs)
-   local bracket_line = state.line
+   local bracket_location = location(state)
    skip_token(state)  -- Skip "[".
    local rhs = parse_expression(state)
-   check_closing_token(state, "[", "]", bracket_line)
+   check_closing_token(state, "[", "]", bracket_location)
    return init_ast_node({lhs, rhs}, lhs.location, "Index")
 end
 
@@ -350,11 +356,11 @@ local function parse_simple_expression(state, kind, no_literals)
 
    if state.token == "(" then
       in_parens = true
-      local paren_line = state.line
+      local paren_location = location(state)
       skip_token(state)
       local _
       expression, _, first_token = parse_expression(state)
-      check_closing_token(state, "(", ")", paren_line)
+      check_closing_token(state, "(", ")", paren_location)
    elseif state.token == "name" then
       expression = parse_id(state)
       first_token = expression[1]
@@ -477,8 +483,8 @@ end
 local statements = {}
 
 statements["if"] = function(state, loc)
-   local start_line, start_token
-   local next_line, next_token = loc.line, "if"
+   local start_location, start_token
+   local next_location, next_token = loc, "if"
    local ast_node = init_ast_node({}, loc, "If")
 
    repeat
@@ -486,18 +492,18 @@ statements["if"] = function(state, loc)
       local branch_location = location(state)
       check_and_skip_token(state, "then")
       ast_node[#ast_node+1] = parse_block(state, branch_location)
-      start_line, start_token = next_line, next_token
-      next_line, next_token = state.line, state.token
+      start_location, start_token = next_location, next_token
+      next_location, next_token = location(state), state.token
    until not test_and_skip_token(state, "elseif")
 
    if state.token == "else" then
-      start_line, start_token = next_line, next_token
+      start_location, start_token = next_location, next_token
       local branch_location = location(state)
       skip_token(state)
       ast_node[#ast_node+1] = parse_block(state, branch_location)
    end
 
-   check_closing_token(state, start_token, "end", start_line)
+   check_closing_token(state, start_token, "end", start_location)
    return ast_node
 end
 
@@ -505,13 +511,13 @@ statements["while"] = function(state, loc)
    local condition = parse_expression(state, "condition")
    check_and_skip_token(state, "do")
    local block = parse_block(state)
-   check_closing_token(state, "while", "end", loc.line)
+   check_closing_token(state, "while", "end", loc)
    return init_ast_node({condition, block}, loc, "While")
 end
 
 statements["do"] = function(state, loc)
    local ast_node = init_ast_node(parse_block(state), loc, "Do")
-   check_closing_token(state, "do", "end", loc.line)
+   check_closing_token(state, "do", "end", loc)
    return ast_node
 end
 
@@ -552,13 +558,13 @@ statements["for"] = function(state, loc)
       parse_error(state, "expected '=', ',' or 'in'")
    end
 
-   check_closing_token(state, "for", "end", loc.line)
+   check_closing_token(state, "for", "end", loc)
    return ast_node
 end
 
 statements["repeat"] = function(state, loc)
    local block = parse_block(state)
-   check_closing_token(state, "repeat", "until", loc.line)
+   check_closing_token(state, "repeat", "until", loc)
    local condition = parse_expression(state, "condition", true)
    return init_ast_node({block, condition}, loc, "Repeat")
 end
@@ -744,8 +750,9 @@ end
 -- Returns AST (in almost MetaLua format), array of comments - tables {comment = string, location = location},
 -- set of line numbers containing code, map of types of tokens wrapping line endings (nil, "string", or "comment"),
 -- and array of locations of empty statements (semicolons).
--- On error throws {line = line, column = column, end_column = end_column, msg = msg} - an instance
--- of parser.SyntaxError.
+-- On error throws an instance of parser.SyntaxError: a table with required fields `line`, `column`,
+-- `end_column`, and `msg`, and also optional fields `prev_line`, `prev_column`, and `prev_end_column` if the error
+-- refers to some other location.
 function parser.parse(src)
    local state = new_state(src)
    skip_token(state)

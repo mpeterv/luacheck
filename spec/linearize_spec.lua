@@ -91,7 +91,8 @@ describe("linearize", function()
       end)
 
       it("detects duplicate labels", function()
-         assert.same({line = 2, column = 1, end_column = 8, msg = "label 'fail' already defined on line 1"},
+         assert.same({line = 2, column = 1, end_column = 8, prev_line = 1, prev_column = 1, prev_end_column = 8,
+            msg = "label 'fail' already defined on line 1"},
             get_line("::fail::\n::fail::"))
       end)
 

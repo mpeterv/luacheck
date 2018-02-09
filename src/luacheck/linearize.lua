@@ -283,10 +283,12 @@ function LinState:check_var(node)
 end
 
 function LinState:register_label(name, location, end_column)
-   if self.scopes.top.labels[name] then
+   local prev_label = self.scopes.top.labels[name]
+
+   if prev_label then
       assert(not pseudo_labels[name])
       parser.syntax_error(location, end_column, ("label '%s' already defined on line %d"):format(
-         name, self.scopes.top.labels[name].location.line))
+         name, prev_label.location.line), prev_label.location, prev_label.end_column)
    end
 
    self.scopes.top.labels[name] = new_label(self.lines.top, name, location, end_column)

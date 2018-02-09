@@ -90,13 +90,15 @@ describe("parser", function()
 
    it("parses do end correctly", function()
       assert.same({tag = "Do"}, get_node("do end"))
-      assert.same({line = 1, column = 3, end_column = 3, msg = "expected 'end' near <eof>"}, get_error("do"))
-      assert.same(
-         {line = 1, column = 4, end_column = 8, msg = "expected 'end' near 'until'"},
+      assert.same({line = 1, column = 3, end_column = 3, prev_line = 1, prev_column = 1, prev_end_column = 2,
+         msg = "expected 'end' near <eof>"},
+         get_error("do"))
+      assert.same({line = 1, column = 4, end_column = 8, prev_line = 1, prev_column = 1, prev_end_column = 2,
+         msg = "expected 'end' near 'until'"},
          get_error("do until false")
       )
-      assert.same(
-         {line = 2, column = 1, end_column = 5, msg = "expected 'end' (to close 'do' on line 1) near 'until'"},
+      assert.same({line = 2, column = 1, end_column = 5, prev_line = 1, prev_column = 1, prev_end_column = 2,
+         msg = "expected 'end' (to close 'do' on line 1) near 'until'"},
          get_error("do\nuntil false")
       )
    end)
@@ -108,12 +110,12 @@ describe("parser", function()
                   }, get_node("while true do end"))
       assert.same({line = 1, column = 6, end_column = 6, msg = "expected condition near <eof>"}, get_error("while"))
       assert.same({line = 1, column = 11, end_column = 11, msg = "expected 'do' near <eof>"}, get_error("while true"))
-      assert.same(
-         {line = 1, column = 14, end_column = 14, msg = "expected 'end' near <eof>"},
+      assert.same({line = 1, column = 14, end_column = 14, prev_line = 1, prev_column = 1, prev_end_column = 5,
+         msg = "expected 'end' near <eof>"},
          get_error("while true do")
       )
-      assert.same(
-         {line = 2, column = 3, end_column = 3, msg = "expected 'end' (to close 'while' on line 1) near <eof>"},
+      assert.same({line = 2, column = 3, end_column = 3, prev_line = 1, prev_column = 1, prev_end_column = 5,
+         msg = "expected 'end' (to close 'while' on line 1) near <eof>"},
          get_error("while true\ndo")
       )
       assert.same(
@@ -131,9 +133,11 @@ describe("parser", function()
                      {},
                      {tag = "True"}
                   }, get_node("repeat until true"))
-      assert.same({line = 1, column = 7, end_column = 7, msg = "expected 'until' near <eof>"}, get_error("repeat"))
-      assert.same(
-         {line = 3, column = 1, end_column = 1, msg = "expected 'until' (to close 'repeat' on line 1) near <eof>"},
+      assert.same({line = 1, column = 7, end_column = 7, prev_line = 1, prev_column = 1, prev_end_column = 6,
+         msg = "expected 'until' near <eof>"},
+         get_error("repeat"))
+      assert.same({line = 3, column = 1, end_column = 1, prev_line = 1, prev_column = 1, prev_end_column = 6,
+         msg = "expected 'until' (to close 'repeat' on line 1) near <eof>"},
          get_error("repeat\n--")
       )
       assert.same(
@@ -154,12 +158,11 @@ describe("parser", function()
                      }, get_node("if true then end"))
          assert.same({line = 1, column = 3, end_column = 3, msg = "expected condition near <eof>"}, get_error("if"))
          assert.same({line = 1, column = 8, end_column = 8, msg = "expected 'then' near <eof>"}, get_error("if true"))
-         assert.same(
-            {line = 1, column = 13, end_column = 13, msg = "expected 'end' near <eof>"},
-            get_error("if true then")
+         assert.same({line = 1, column = 13, end_column = 13, prev_line = 1, prev_column = 1, prev_end_column = 2,
+            msg = "expected 'end' near <eof>"}, get_error("if true then")
          )
-         assert.same(
-            {line = 2, column = 5, end_column = 5, msg = "expected 'end' (to close 'if' on line 1) near <eof>"},
+         assert.same({line = 2, column = 5, end_column = 5, prev_line = 1, prev_column = 1, prev_end_column = 2,
+            msg = "expected 'end' (to close 'if' on line 1) near <eof>"},
             get_error("if true\nthen")
          )
          assert.same(
@@ -178,16 +181,16 @@ describe("parser", function()
                         {},
                         {}
                      }, get_node("if true then else end"))
-         assert.same(
-            {line = 1, column = 18, end_column = 18, msg = "expected 'end' near <eof>"},
+         assert.same({line = 1, column = 18, end_column = 18, prev_line = 1, prev_column = 14, prev_end_column = 17,
+            msg = "expected 'end' near <eof>"},
             get_error("if true then else")
          )
-         assert.same(
-            {line = 3, column = 1, end_column = 1, msg = "expected 'end' (to close 'else' on line 2) near <eof>"},
+         assert.same({line = 3, column = 1, end_column = 1, prev_line = 2, prev_column = 6, prev_end_column = 9,
+            msg = "expected 'end' (to close 'else' on line 2) near <eof>"},
             get_error("if true\nthen else\n")
          )
-         assert.same(
-            {line = 1, column = 19, end_column = 22, msg = "expected 'end' near 'else'"},
+         assert.same({line = 1, column = 19, end_column = 22, prev_line = 1, prev_column = 14, prev_end_column = 17,
+            msg = "expected 'end' near 'else'"},
             get_error("if true then else else end")
          )
       end)
@@ -207,8 +210,8 @@ describe("parser", function()
             {line = 1, column = 21, end_column = 24, msg = "expected condition near 'then'"},
             get_error("if true then elseif then end")
          )
-         assert.same(
-            {line = 2, column = 5, end_column = 5, msg = "expected 'end' (to close 'elseif' on line 1) near <eof>"},
+         assert.same({line = 2, column = 5, end_column = 5, prev_line = 1, prev_column = 14, prev_end_column = 19,
+            msg = "expected 'end' (to close 'elseif' on line 1) near <eof>"},
             get_error("if true then elseif a\nthen")
          )
       end)
@@ -221,8 +224,8 @@ describe("parser", function()
                         {},
                         {}
                      }, get_node("if true then elseif false then else end"))
-         assert.same(
-            {line = 1, column = 36, end_column = 36, msg = "expected 'end' near <eof>"},
+         assert.same({line = 1, column = 36, end_column = 36, prev_line = 1, prev_column = 32, prev_end_column = 35,
+            msg = "expected 'end' near <eof>"},
             get_error("if true then elseif false then else")
          )
       end)
@@ -252,12 +255,12 @@ describe("parser", function()
             {line = 1, column = 11, end_column = 12, msg = "expected ',' near 'do'"},
             get_error("for i = 2 do end")
          )
-         assert.same(
-            {line = 1, column = 15, end_column = 15, msg = "expected 'end' near <eof>"},
+         assert.same({line = 1, column = 15, end_column = 15, prev_line = 1, prev_column = 1, prev_end_column = 3,
+            msg = "expected 'end' near <eof>"},
             get_error("for i=1, #t do")
          )
-         assert.same(
-            {line = 2, column = 4, end_column = 4, msg = "expected 'end' (to close 'for' on line 1) near <eof>"},
+         assert.same({line = 2, column = 4, end_column = 4, prev_line = 1, prev_column = 1, prev_end_column = 3,
+            msg = "expected 'end' (to close 'for' on line 1) near <eof>"},
             get_error("for i=1, #t do\na()")
          )
          assert.same(
@@ -332,12 +335,12 @@ describe("parser", function()
             {line = 1, column = 12, end_column = 12, msg = "expected argument near <eof>"},
             get_error("function a(")
          )
-         assert.same(
-            {line = 1, column = 13, end_column = 13, msg = "expected 'end' near <eof>"},
+         assert.same({line = 1, column = 13, end_column = 13, prev_line = 1, prev_column = 1, prev_end_column = 8,
+            msg = "expected 'end' near <eof>"},
             get_error("function a()")
          )
-         assert.same(
-            {line = 2, column = 2, end_column = 2, msg = "expected 'end' (to close 'function' on line 1) near <eof>"},
+         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 1, prev_end_column = 8,
+            msg = "expected 'end' (to close 'function' on line 1) near <eof>"},
             get_error("function a(\n)")
          )
          assert.same(
@@ -381,20 +384,20 @@ describe("parser", function()
             {line = 1, column = 15, end_column = 15, msg = "expected argument near ')'"},
             get_error("function a(b, ) end")
          )
-         assert.same(
-            {line = 1, column = 13, end_column = 13, msg = "expected ')' near '.'"},
+         assert.same({line = 1, column = 13, end_column = 13, prev_line = 1, prev_column = 11, prev_end_column = 11,
+            msg = "expected ')' near '.'"},
             get_error("function a(b.c) end")
          )
-         assert.same(
-            {line = 2, column = 2, end_column = 2, msg = "expected ')' (to close '(' on line 1) near '.'"},
+         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 11, prev_end_column = 11,
+            msg = "expected ')' (to close '(' on line 1) near '.'"},
             get_error("function a(\nb.c) end")
          )
          assert.same(
             {line = 1, column = 12, end_column = 12, msg = "expected argument near '('"},
             get_error("function a((b)) end")
          )
-         assert.same(
-            {line = 1, column = 15, end_column = 15, msg = "expected ')' near ','"},
+         assert.same({line = 1, column = 15, end_column = 15, prev_line = 1, prev_column = 11, prev_end_column = 11,
+            msg = "expected ')' near ','"},
             get_error("function a(..., ...) end")
          )
       end)
@@ -646,10 +649,14 @@ describe("parser", function()
                      }, get_node("(a)(b)()"))
          assert.same({line = 1, column = 2, end_column = 2, msg = "expected expression near ')'"}, get_error("()()"))
          assert.same({line = 1, column = 3, end_column = 3, msg = "expected expression near <eof>"}, get_error("a("))
-         assert.same({line = 1, column = 4, end_column = 4, msg = "expected ')' near <eof>"}, get_error("a(b"))
-         assert.same({line = 2, column = 2, end_column = 2, msg = "expected ')' (to close '(' on line 1) near <eof>"},
+         assert.same({line = 1, column = 4, end_column = 4, prev_line = 1, prev_column = 2, prev_end_column = 2,
+            msg = "expected ')' near <eof>"},
+            get_error("a(b"))
+         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 2, prev_end_column = 2,
+            msg = "expected ')' (to close '(' on line 1) near <eof>"},
             get_error("a(\nb"))
-         assert.same({line = 2, column = 1, end_column = 2, msg = "expected ')' (to close '(' on line 1) near 'cc'"},
+         assert.same({line = 2, column = 1, end_column = 2, prev_line = 1, prev_column = 1, prev_end_column = 1,
+            msg = "expected ')' (to close '(' on line 1) near 'cc'"},
             get_error("(a\ncc"))
          assert.same({line = 1, column = 1, end_column = 1, msg = "expected statement near '1'"}, get_error("1()"))
          assert.same({line = 1, column = 1, end_column = 5, msg = "expected statement near ''foo''"},
@@ -752,12 +759,17 @@ describe("parser", function()
             get_error("return {;}"))
          assert.same({line = 1, column = 9, end_column = 9, msg = "expected expression near <eof>"},
             get_error("return {"))
-         assert.same({line = 1, column = 11, end_column = 13, msg = "expected '}' near 'end'"},
+         assert.same({line = 1, column = 11, end_column = 13, prev_line = 1, prev_column = 8, prev_end_column = 8,
+            msg = "expected '}' near 'end'"},
             get_error("return {a end"))
-         assert.same({line = 2, column = 1, end_column = 3, msg = "expected '}' (to close '{' on line 1) near 'end'"},
+         assert.same({line = 2, column = 1, end_column = 3, prev_line = 1, prev_column = 8, prev_end_column = 8,
+            msg = "expected '}' (to close '{' on line 1) near 'end'"},
             get_error("return {a\nend"))
-         assert.same({line = 1, column = 11, end_column = 11, msg = "expected ']' near <eof>"}, get_error("return {[a"))
-         assert.same({line = 2, column = 2, end_column = 2, msg = "expected ']' (to close '[' on line 1) near <eof>"},
+         assert.same({line = 1, column = 11, end_column = 11, prev_line = 1, prev_column = 9, prev_end_column = 9,
+            msg = "expected ']' near <eof>"},
+            get_error("return {[a"))
+         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 9, prev_end_column = 9,
+            msg = "expected ']' (to close '[' on line 1) near <eof>"},
             get_error("return {[\na"))
          assert.same({line = 1, column = 11, end_column = 11, msg = "expected expression near ','"},
             get_error("return {a,,}"))

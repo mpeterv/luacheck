@@ -362,7 +362,10 @@ return f --[=[
                msg = "label 'b' already defined on line 1",
                line = 1,
                column = 7,
-               end_column = 11
+               end_column = 11,
+               prev_line = 1,
+               prev_column = 1,
+               prev_end_column = 5
             }
          },
          {
