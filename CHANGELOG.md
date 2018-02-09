@@ -2,7 +2,7 @@
 
 ## 0.22.0 (unreleased)
 
-### New features
+### New features and improvements
 
 * Added detection of cyclomatic complexity, with warnings emitted for
   functions with complexity higher than a configurable limit; disabled
@@ -10,6 +10,13 @@
 * Added a built-in formatter printing warnings and errors in a format
   understood by MSBuild/Visual Studio if `luacheck` is
   used as a custom build step (#142).
+* `luacheck` module now adds `prev_line`, `prev_column`, and `prev_end_column`
+  fields to syntax error events if they refer to some extra location:
+  redefined label errors point to the previous definition,
+  unpaired tokens such as `function`/`end` point to the the first token (#134).
+* `luacheck` module now adds `prev_end_column` field to warning events that
+  already have `prev_line` and `prev_column` fields, and `overwritten_end_column`
+  for warnings with `overwritten_line` and `overwritten_column`.
 
 ### Fixes
 
