@@ -71,7 +71,6 @@ local top_options = {
 }
 
 utils.update(top_options, options.all_options)
-options.add_order(top_options)
 
 -- Returns error or nil if options are valid.
 local function validate_options(option_set, opts)

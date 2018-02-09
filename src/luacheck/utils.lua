@@ -213,6 +213,30 @@ function utils.ripairs(array)
    return ripairs_iterator, array, #array + 1
 end
 
+function utils.sorted_pairs(t)
+   local keys = {}
+
+   for key in pairs(t) do
+      table.insert(keys, key)
+   end
+
+   table.sort(keys)
+
+   local index = 1
+
+   return function()
+      local key = keys[index]
+
+      if key == nil then
+         return
+      end
+
+      index = index + 1
+
+      return key, t[key]
+   end
+end
+
 function utils.unprefix(str, prefix)
    if str:sub(1, #prefix) == prefix then
       return str:sub(#prefix + 1)

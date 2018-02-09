@@ -177,6 +177,19 @@ describe("utils", function()
       end)
    end)
 
+   describe("sorted_pairs", function()
+      it("returns sorted pairs", function()
+         local t = {foo = 1, bar = 3, baz = 5, zero = 0, something = "nothing"}
+         local iterated = {}
+
+         for k, v in utils.sorted_pairs(t) do
+            table.insert(iterated, {k, v})
+         end
+
+         assert.same({{"bar", 3}, {"baz", 5}, {"foo", 1}, {"something", "nothing"}, {"zero", 0}}, iterated)
+      end)
+   end)
+
    describe("after", function()
       it("returns substring after match", function()
          assert.equal("foo bar: baz", utils.after("bar: foo bar: baz", "bar:%s*"))

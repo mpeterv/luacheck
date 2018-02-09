@@ -38,19 +38,6 @@ local function number_or_false(x)
    return x == false or type(x) == "number"
 end
 
-function options.add_order(option_set)
-   local opts = {}
-
-   for option in pairs(option_set) do
-      if type(option) == "string" then
-         table.insert(opts, option)
-      end
-   end
-
-   table.sort(opts)
-   utils.update(option_set, opts)
-end
-
 options.nullary_inline_options = {
    global = boolean,
    unused = boolean,
@@ -87,7 +74,6 @@ options.all_options = {
 
 utils.update(options.all_options, options.nullary_inline_options)
 utils.update(options.all_options, options.variadic_inline_options)
-options.add_order(options.all_options)
 
 -- Returns true if opts is valid option_set.
 -- Otherwise returns false and, optionally, name of the problematic option.
@@ -99,9 +85,9 @@ function options.validate(option_set, opts)
    local ok, is_valid, invalid_opt = pcall(function()
       assert(type(opts) == "table")
 
-      for _, option in ipairs(option_set) do
+      for option, validator in utils.sorted_pairs(option_set) do
          if opts[option] ~= nil then
-            if not option_set[option](opts[option]) then
+            if not validator(opts[option]) then
                return false, option
             end
          end
