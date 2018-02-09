@@ -120,6 +120,28 @@ describe("config", function()
       end)
    end)
 
+   it("returns nil, error on invalid config", function()
+      local conf, err = config.load_config(P"spec/configs/invalid_config.luacheckrc")
+      assert.is_nil(conf)
+      assert.equal("Couldn't load configuration from "..P"spec/configs/invalid_config.luacheckrc"..
+         ": invalid value of option 'ignore': array of strings expected, got string", err)
+
+      nest("spec/configs/project", function()
+         local nested_conf, nested_err = config.load_config(P"spec/configs/invalid_config.luacheckrc")
+         assert.is_nil(nested_conf)
+         assert.equal("Couldn't load configuration from "..P"../../../spec/configs/invalid_config.luacheckrc"..
+            ": invalid value of option 'ignore': array of strings expected, got string", nested_err)
+      end)
+   end)
+
+   it("returns nil, error on invalid custom std within config", function()
+      local conf, err = config.load_config(P"spec/configs/bad_custom_std_config.luacheckrc")
+      assert.is_nil(conf)
+      -- luacheck: no max line length
+      assert.equal("Couldn't load configuration from "..P"spec/configs/bad_custom_std_config.luacheckrc"..
+         ": invalid custom std 'my_std': in field .read_globals.foo.fields[1]: string expected as field name, got number", err)
+   end)
+
    it("returns nil, error on config with invalid override", function()
       local conf, err = config.load_config(P"spec/configs/invalid_override_config.luacheckrc")
       assert.is_nil(conf)

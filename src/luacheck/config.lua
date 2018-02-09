@@ -2,6 +2,7 @@ local options = require "luacheck.options"
 local builtin_standards = require "luacheck.builtin_standards"
 local fs = require "luacheck.fs"
 local globbing = require "luacheck.globbing"
+local standards = require "luacheck.standards"
 local utils = require "luacheck.utils"
 
 local config = {}
@@ -268,7 +269,34 @@ function config.load_config(path, global_path)
    if type(env.stds) == "table" then
       -- Ideally config shouldn't mutate global builtin standards module,
       -- not if `luacheck.config` becomes public interface.
-      utils.update(builtin_standards, env.stds)
+      local std_names = {}
+
+      for std_name in pairs(env.stds) do
+         if type(std_name) == "string" then
+            table.insert(std_names, std_name)
+         end
+      end
+
+      table.sort(std_names)
+
+      for _, std_name in ipairs(std_names) do
+         local std_table = env.stds[std_name]
+
+         if type(std_table) ~= "table" then
+            return nil, (
+               "Couldn't load configuration from %s: expected table as value for custom std '%s', got %s"):format(
+                  conf_path, std_name, type(std_table))
+         end
+
+         local std_validate_ok, std_validate_err = standards.validate_std_table(std_table)
+
+         if not std_validate_ok then
+            return nil, ("Couldn't load configuration from %s: invalid custom std '%s': %s"):format(
+                  conf_path, std_name, std_validate_err)
+         end
+
+         builtin_standards[std_name] = std_table
+      end
    end
 
    local validate_ok, validate_err = validate_config(env)
