@@ -17,6 +17,9 @@
 * `luacheck` module now adds `prev_end_column` field to warning events that
   already have `prev_line` and `prev_column` fields, and `overwritten_end_column`
   for warnings with `overwritten_line` and `overwritten_column`.
+* Improved error messages for invalid options and config: when an option is
+  invalid, extra context is provided instead of just the name.
+* Custom stds are now validated on config load.
 
 ### Fixes
 
