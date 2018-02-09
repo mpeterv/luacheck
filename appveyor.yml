@@ -18,9 +18,5 @@ build_script:
   - hererocks here --%LUA% -r latest
   - luarocks make
   - luarocks install busted
-  - luarocks install cluacov
-  - luarocks install luacov-coveralls
 
-test_script: busted -c
-
-after_test: luacov-coveralls -v
+test_script: busted
