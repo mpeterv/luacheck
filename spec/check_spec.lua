@@ -26,13 +26,13 @@ describe("check", function()
    it("detects duplicated fields in table literals", function()
       assert.same({
          {code = "314", field = "key", line = 3, column = 4, end_column = 4,
-            overwritten_line = 7, overwritten_column = 4},
+            overwritten_line = 7, overwritten_column = 4, overwritten_end_column = 6},
          {code = "314", field = "2", index = true, line = 6, column = 4, end_column = 4,
-            overwritten_line = 9, overwritten_column = 4},
+            overwritten_line = 9, overwritten_column = 4, overwritten_end_column = 4},
          {code = "314", field = "key", line = 7, column = 4, end_column = 6,
-            overwritten_line = 8, overwritten_column = 4},
+            overwritten_line = 8, overwritten_column = 4, overwritten_end_column = 6},
          {code = "314", field = "0.2e1", line = 9, column = 4, end_column = 4,
-            overwritten_line = 10, overwritten_column = 4}
+            overwritten_line = 10, overwritten_column = 4, overwritten_end_column = 4}
       }, check[[
 local x, y, z = 1, 2, 3
 return {
@@ -51,9 +51,9 @@ return {
    it("considers a variable assigned even if it can't get a value due to short rhs (it still gets nil)", function()
       assert.same({
          {code = "311", name = "a", line = 1, column = 7, end_column = 7,
-            overwritten_line = 2, overwritten_column = 1},
+            overwritten_line = 2, overwritten_column = 1, overwritten_end_column = 1},
          {code = "311", name = "b", line = 1, column = 10, end_column = 10,
-            overwritten_line = 2, overwritten_column = 4},
+            overwritten_line = 2, overwritten_column = 4, overwritten_end_column = 4},
          {code = "532", line = 2, column = 6, end_column = 6}
       }, check[[
 local a, b = "foo", "bar"
@@ -65,9 +65,9 @@ return a, b
    it("reports vartype == var when the unused value is not the initial", function()
       assert.same({
          {code = "312", name = "b", line = 1, column = 23, end_column = 23,
-            overwritten_line = 4, overwritten_column = 4},
+            overwritten_line = 4, overwritten_column = 4, overwritten_end_column = 4},
          {code = "311", name = "a", line = 2, column = 4, end_column = 4,
-            overwritten_line = 3, overwritten_column = 4}
+            overwritten_line = 3, overwritten_column = 4, overwritten_end_column = 4}
       }, check[[
 local function foo(a, b)
    a = a or "default"
@@ -138,7 +138,8 @@ goto loop
    it("detects redefinition in the same scope", function()
       assert.same({
          {code = "211", name = "foo", line = 1, column = 7, end_column = 9},
-         {code = "411", name = "foo", line = 2, column = 7, end_column = 9, prev_line = 1, prev_column = 7},
+         {code = "411", name = "foo", line = 2, column = 7, end_column = 9,
+            prev_line = 1, prev_column = 7, prev_end_column = 9},
          {code = "113", name = "print", indexing = {"print"}, line = 3, column = 1, end_column = 5}
       }, check[[
 local foo
@@ -151,7 +152,8 @@ print(foo)
       assert.same({
          {code = "212", name = "foo", line = 1, column = 17, end_column = 19},
          {code = "212", name = "...", line = 1, column = 22, end_column = 24},
-         {code = "412", name = "foo", line = 2, column = 10, end_column = 12, prev_line = 1, prev_column = 17}
+         {code = "412", name = "foo", line = 2, column = 10, end_column = 12,
+            prev_line = 1, prev_column = 17, prev_end_column = 19}
       }, check[[
 return function(foo, ...)
    local foo = 1
@@ -165,7 +167,7 @@ end
          {code = "212", name = "self", line = 2, column = 11, end_column = 11, self = true},
          {code = "212", name = "self", line = 4, column = 14, end_column = 14, self = true},
          {code = "432", name = "self", line = 4, column = 14, end_column = 14, self = true,
-            prev_line = 2, prev_column = 11}
+            prev_line = 2, prev_column = 11, prev_end_column = 11}
       }, check[[
 local t = {}
 function t:f()
@@ -179,7 +181,8 @@ return t
       assert.same({
          {code = "212", name = "self", line = 2, column = 14, end_column = 17},
          {code = "212", name = "self", line = 4, column = 14, end_column = 14, self = true},
-         {code = "432", name = "self", line = 4, column = 14, end_column = 14, prev_line = 2, prev_column = 14}
+         {code = "432", name = "self", line = 4, column = 14, end_column = 14,
+            prev_line = 2, prev_column = 14, prev_end_column = 17}
       }, check[[
 local t = {}
 function t.f(self)
@@ -193,7 +196,8 @@ return t
       assert.same({
          {code = "212", name = "self", line = 2, column = 11, end_column = 11, self = true},
          {code = "212", name = "self", line = 4, column = 17, end_column = 20},
-         {code = "432", name = "self", line = 4, column = 17, end_column = 20, prev_line = 2, prev_column = 11}
+         {code = "432", name = "self", line = 4, column = 17, end_column = 20,
+            prev_line = 2, prev_column = 11, prev_end_column = 11}
       }, check[[
 local t = {}
 function t:f()
@@ -207,8 +211,10 @@ return t
 
    it("detects shadowing definitions", function()
       assert.same({
-         {code = "431", name = "a", line = 4, column = 10, end_column = 10, prev_line = 1, prev_column = 7},
-         {code = "421", name = "a", line = 7, column = 13, end_column = 13, prev_line = 4, prev_column = 10}
+         {code = "431", name = "a", line = 4, column = 10, end_column = 10,
+            prev_line = 1, prev_column = 7, prev_end_column = 7},
+         {code = "421", name = "a", line = 7, column = 13, end_column = 13,
+            prev_line = 4, prev_column = 10, prev_end_column = 10}
       }, check[[
 local a = 46
 

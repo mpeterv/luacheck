@@ -109,9 +109,12 @@ for i in pairs{} do end
 
    it("detects unused values", function()
       assert_warnings({
-         {code = "311", name = "a", line = 3, column = 4, end_column = 4, overwritten_line = 3, overwritten_column = 7},
-         {code = "311", name = "a", line = 3, column = 7, end_column = 7, overwritten_line = 8, overwritten_column = 1},
-         {code = "311", name = "a", line = 5, column = 4, end_column = 4, overwritten_line = 8, overwritten_column = 1}
+         {code = "311", name = "a", line = 3, column = 4, end_column = 4,
+            overwritten_line = 3, overwritten_column = 7, overwritten_end_column = 7},
+         {code = "311", name = "a", line = 3, column = 7, end_column = 7,
+            overwritten_line = 8, overwritten_column = 1, overwritten_end_column = 1},
+         {code = "311", name = "a", line = 5, column = 4, end_column = 4,
+            overwritten_line = 8, overwritten_column = 1, overwritten_end_column = 1}
       }, [[
 local a
 if ... then
@@ -185,7 +188,7 @@ return a, b
    it("considers a variable initialized if short rhs ends with potential multivalue", function()
       assert_warnings({
          {code = "311", name = "b", line = 2, column = 13, end_column = 13, secondary = true,
-            overwritten_line = 3, overwritten_column = 4}
+            overwritten_line = 3, overwritten_column = 4, overwritten_end_column = 4}
       }, [[
 return function(...)
    local a, b = ...

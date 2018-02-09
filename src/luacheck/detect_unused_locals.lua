@@ -65,6 +65,7 @@ local function new_unused_value_warning(value, was_mutated, overwriting_node)
       name = value.var.name,
       overwritten_line = overwriting_node and overwriting_node.location.line,
       overwritten_column = overwriting_node and overwriting_node.location.column,
+      overwritten_end_column = overwriting_node and (overwriting_node.location.column + #value.var.name - 1),
       line = value.location.line,
       column = value.location.column,
       end_column = value.location.column + (value.type == "arg" and value.var.self and #":" or #value.var.name) - 1,

@@ -18,7 +18,7 @@ describe("cache", function()
 
       it("returns serialized result", function()
          assert.same(
-            [[return {{{"111","foo",5,100,102,[23]={"faa"}},{"211","bar",4,1,3,[8]=true},{"011",[4]=100000,[12]="near '\"'"}},{}}]],
+            [[return {{{"111","foo",5,100,102,[24]={"faa"}},{"211","bar",4,1,3,[9]=true},{"011",[4]=100000,[13]="near '\"'"}},{}}]],
             cache.serialize({
                events = {
                   {code = "111", name = "foo", indexing = {"faa"}, line = 5, column = 100, end_column = 102},
@@ -32,7 +32,7 @@ describe("cache", function()
 
       it("puts repeating string values into locals", function()
          assert.same(
-            [[local A,B="111","foo";return {{{A,B,5,100},{A,B,6,100,[8]=true},{"011",[4]=100000,[12]="near '\"'"}},{},{}}]],
+            [[local A,B="111","foo";return {{{A,B,5,100},{A,B,6,100,[9]=true},{"011",[4]=100000,[13]="near '\"'"}},{},{}}]],
             cache.serialize({
                events = {
                   {code = "111", name = "foo", line = 5, column = 100},
@@ -92,7 +92,7 @@ describe("cache", function()
       end)
 
       it("handles error result", function()
-         assert.same('return {{{"011",[3]=2,[4]=4,[12]="message"}},{},{}}', cache.serialize({
+         assert.same('return {{{"011",[3]=2,[4]=4,[13]="message"}},{},{}}', cache.serialize({
             events = {
                {code = "011", line = 2, column = 4, msg = "message"}
             },

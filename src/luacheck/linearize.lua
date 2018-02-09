@@ -8,6 +8,7 @@ local function new_unused_field_value_warning(node, overwriting_node)
       index = node.is_index,
       overwritten_line = overwriting_node.location.line,
       overwritten_column = overwriting_node.location.column,
+      overwritten_end_column = overwriting_node.location.column + #overwriting_node.first_token - 1,
       line = node.location.line,
       column = node.location.column,
       end_column = node.location.column + #node.first_token - 1
@@ -31,7 +32,8 @@ local function new_redefined_warning(var, prev_var, is_same_scope)
       end_column = var.location.column + (var.self and #":" or #var.name) - 1,
       self = var.self and prev_var.self,
       prev_line = prev_var.location.line,
-      prev_column = prev_var.location.column
+      prev_column = prev_var.location.column,
+      prev_end_column = prev_var.location.column + (prev_var.self and #":" or #prev_var.name) - 1
    }
 end
 

@@ -8,6 +8,7 @@ local function strip_locations(report)
          event.end_column = nil
          event.prev_line = nil
          event.prev_column = nil
+         event.prev_end_column = nil
       end
    end
 
@@ -252,7 +253,8 @@ describe("check_strings", function()
                column = 11,
                end_column = 11,
                overwritten_line = 4,
-               overwritten_column = 4
+               overwritten_column = 4,
+               overwritten_end_column = 7
             },
             {
                code = "311",
@@ -261,7 +263,8 @@ describe("check_strings", function()
                column = 4,
                end_column = 7,
                overwritten_line = 5,
-               overwritten_column = 4
+               overwritten_column = 4,
+               overwritten_end_column = 7
             },
             {
                code = "511",
