@@ -19,12 +19,12 @@ matrix:
 
 install:
   - pip install --user hererocks
+  - pip install --user codecov
   - hererocks here --$LUA -r https://github.com/mpeterv/luarocks@upgrade-install
   - export PATH="$PWD/here/bin:$PATH"
   - luarocks install lanes --upgrade --upgrade-deps
   - luarocks install busted --upgrade --upgrade-deps
   - luarocks install cluacov --upgrade --upgrade-deps
-  - luarocks install luacov-coveralls --upgrade --upgrade-deps
 
 script:
   - busted -c
@@ -36,4 +36,6 @@ script:
   - path/to/luacheck/bin/luacheck spec/*.lua
   - mv src2 src
 
-after_success: luacov-coveralls -v
+after_script:
+  - luacov
+  - codecov -f luacov.report.out -X gcov
