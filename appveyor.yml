@@ -17,7 +17,6 @@ build_script:
   - hererocks here --%LUA% -r latest
   - call here\bin\activate
   - luarocks install busted
-  - luarocks install lanes
   - luarocks install cluacov
 
 test_script: busted -c
