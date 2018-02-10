@@ -18,7 +18,7 @@ build_script:
   - call here\bin\activate
   - luarocks install busted
   - luarocks install lanes
-  - luarocks intall cluacov
+  - luarocks install cluacov
 
 test_script: busted -c
 
