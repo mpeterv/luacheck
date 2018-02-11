@@ -7,162 +7,6 @@ local utils = require "luacheck.utils"
 
 local config = {}
 
--- Config must support special metatables for some keys:
--- autovivification for `files`, fallback to built-in stds for `stds`.
-
-local special_mts = {
-   stds = {__index = builtin_standards},
-   files = {__index = function(files, key)
-      files[key] = {}
-      return files[key]
-   end}
-}
-
-local function make_config_env_mt()
-   local env_mt = {}
-   local special_values = {}
-
-   for key, mt in pairs(special_mts) do
-      special_values[key] = setmetatable({}, mt)
-   end
-
-   function env_mt.__index(_, key)
-      if special_mts[key] then
-         return special_values[key]
-      else
-         return _G[key]
-      end
-   end
-
-   function env_mt.__newindex(env, key, value)
-      if special_mts[key] then
-         if type(value) == "table" then
-            setmetatable(value, special_mts[key])
-         end
-
-         special_values[key] = value
-      else
-         rawset(env, key, value)
-      end
-   end
-
-   return env_mt, special_values
-end
-
-local function make_config_env()
-   local mt, special_values = make_config_env_mt()
-   return setmetatable({}, mt), special_values
-end
-
-local function remove_env_mt(env, special_values)
-   setmetatable(env, nil)
-   utils.update(env, special_values)
-end
-
-local function jobs_validator(x)
-   if type(x) == "number" then
-      if math.floor(x) == x and x >= 1 then
-         return true
-      else
-         return false, ("positive integer expected, got %.20g"):format(x)
-      end
-   else
-      return false, "positive integer expected, got " .. type(x)
-   end
-end
-
-local top_options = {
-   color = utils.has_type("boolean"),
-   codes = utils.has_type("boolean"),
-   formatter = utils.has_either_type("string", "function"),
-   cache = utils.has_either_type("string", "boolean"),
-   jobs = jobs_validator,
-   files = utils.has_type("table"),
-   stds = utils.has_type("table"),
-   exclude_files = utils.array_of("string"),
-   include_files = utils.array_of("string")
-}
-
-utils.update(top_options, options.all_options)
-
--- Returns true if config is valid, false and error message otherwise.
-local function validate_config(conf)
-   local ok, err = options.validate(top_options, conf)
-
-   if not ok then
-      return false, err
-   end
-
-   for path, opts in pairs(conf.files) do
-      if type(path) == "string" then
-         ok, err = options.validate(options.all_options, opts)
-
-         if not ok then
-            return false, ("invalid options for path '%s': %s"):format(path, err)
-         end
-      end
-   end
-
-   return true
-end
-
--- Returns table with field `globs` containing sorted normalized globs
--- used in overrides and `options` mapping these globs to options.
-local function normalize_overrides(files, abs_conf_dir)
-   local overrides = {globs = {}, options = {}}
-
-   local orig_globs = {}
-
-   for glob in pairs(files) do
-      table.insert(orig_globs, glob)
-   end
-
-   table.sort(orig_globs)
-
-   for _, orig_glob in ipairs(orig_globs) do
-      local glob = fs.normalize(fs.join(abs_conf_dir, orig_glob))
-
-      if not overrides.options[glob] then
-         table.insert(overrides.globs, glob)
-      end
-
-      overrides.options[glob] = files[orig_glob]
-   end
-
-   table.sort(overrides.globs, globbing.compare)
-   return overrides
-end
-
-local function try_load(path)
-   local src = utils.read_file(path)
-
-   if not src then
-      return
-   end
-
-   local func, err = utils.load(src, nil, "@"..path)
-   return err or func
-end
-
-local function add_relative_loader(conf)
-   local function loader(modname)
-      local modpath = fs.join(conf.rel_dir, (modname:gsub("%.", utils.dir_sep)))
-      return try_load(modpath..".lua") or try_load(modpath..utils.dir_sep.."init.lua"), modname
-   end
-
-   table.insert(package.loaders or package.searchers, 1, loader) -- luacheck: compat
-   return loader
-end
-
-local function remove_relative_loader(loader)
-   for i, func in ipairs(package.loaders or package.searchers) do -- luacheck: compat
-      if func == loader then
-         table.remove(package.loaders or package.searchers, i) -- luacheck: compat
-         return
-      end
-   end
-end
-
 local function get_global_config_dir()
    if utils.is_windows then
       local local_app_data_dir = os.getenv("LOCALAPPDATA")
@@ -217,44 +61,170 @@ function config.get_default_global_path()
    end
 end
 
-config.empty_config = {empty = true}
+-- A single config is represented by a table with fields:
+-- * `options`: table with all config scope options, including `stds` and `files`.
+-- * `config_path`: optional path to file from which config was loaded, used only in error messages.
+-- * `anchor_dir`: absolute path to directory relative to which config was loaded,
+--   or nil if the config is not anchored. Paths within a config are adjusted to be absolute
+--   relative to anchor directory, or current directory if it's not anchored.
+--   As current directory can change between config usages, this adjustment happens on demand.
 
--- Loads config from path, returns config object or nil and error message.
-function config.load_config(path, global_path)
+-- Returns config path and optional anchor directory or nil and optional error message.
+local function locate_config(path, global_path)
+   if path == false then
+      return
+   end
+
    local is_default_path = not path
    path = path or config.default_path
 
-   local current_dir = fs.get_current_dir()
-   local abs_conf_dir, rel_conf_dir = fs.find_file(current_dir, path)
+   if fs.is_absolute(path) then
+      return path
+   end
 
-   if not abs_conf_dir then
-      if is_default_path then
-         if global_path and fs.is_file(global_path) then
-            abs_conf_dir = current_dir
-            rel_conf_dir = ""
-            path = global_path
-         else
-            return config.empty_config
-         end
+   local current_dir = fs.get_current_dir()
+   local anchor_dir, rel_dir = fs.find_file(current_dir, path)
+
+   if anchor_dir then
+      return fs.join(rel_dir, path), anchor_dir
+   end
+
+   if not is_default_path then
+      return nil, ("Couldn't find configuration file %s"):format(path)
+   end
+
+   if global_path == false then
+      return
+   end
+
+   global_path = global_path or config.get_default_global_path()
+
+   if global_path and fs.is_file(global_path) then
+      return global_path
+   end
+end
+
+local function try_load(path)
+   local src = utils.read_file(path)
+
+   if not src then
+      return
+   end
+
+   local func, err = utils.load(src, nil, "@"..path)
+   return err or func
+end
+
+local function add_relative_loader(anchor_dir)
+   if not anchor_dir then
+      return
+   end
+
+   local function loader(modname)
+      local modpath = fs.join(anchor_dir, (modname:gsub("%.", utils.dir_sep)))
+      return try_load(modpath..".lua") or try_load(modpath..utils.dir_sep.."init.lua"), modname
+   end
+
+   table.insert(package.loaders or package.searchers, 1, loader) -- luacheck: compat
+   return loader
+end
+
+local function remove_relative_loader(loader)
+   if not loader then
+      return
+   end
+
+   for i, func in ipairs(package.loaders or package.searchers) do -- luacheck: compat
+      if func == loader then
+         table.remove(package.loaders or package.searchers, i) -- luacheck: compat
+         return
+      end
+   end
+end
+
+-- Requires module from config anchor directory.
+-- Returns success flag and module or error message.
+function config.relative_require(anchor_dir, modname)
+   local loader = add_relative_loader(anchor_dir)
+   local ok, mod_or_err = pcall(require, modname)
+   remove_relative_loader(loader)
+   return ok, mod_or_err
+end
+
+-- Config must support special metatables for some keys:
+-- autovivification for `files`, fallback to built-in stds for `stds`.
+
+local special_mts = {
+   stds = {__index = builtin_standards},
+   files = {__index = function(files, key)
+      files[key] = {}
+      return files[key]
+   end}
+}
+
+local function make_config_env_mt()
+   local env_mt = {}
+   local special_values = {}
+
+   for key, mt in pairs(special_mts) do
+      special_values[key] = setmetatable({}, mt)
+   end
+
+   function env_mt.__index(_, key)
+      if special_mts[key] then
+         return special_values[key]
       else
-         return nil, "Couldn't find configuration file "..path
+         return _G[key]
       end
    end
 
-   local conf = {
-      abs_dir = abs_conf_dir,
-      rel_dir = rel_conf_dir,
-      cur_dir = current_dir
-   }
+   function env_mt.__newindex(env, key, value)
+      if special_mts[key] then
+         if type(value) == "table" then
+            setmetatable(value, special_mts[key])
+         end
 
-   local conf_path = fs.join(rel_conf_dir, path)
+         special_values[key] = value
+      else
+         rawset(env, key, value)
+      end
+   end
+
+   return env_mt, special_values
+end
+
+local function make_config_env()
+   local mt, special_values = make_config_env_mt()
+   return setmetatable({}, mt), special_values
+end
+
+local function remove_env_mt(env, special_values)
+   setmetatable(env, nil)
+   utils.update(env, special_values)
+end
+
+-- Loads config from a file, if possible.
+-- `path` and `global_path` can be nil (will use default), false (will disable loading), or a string.
+-- Doesn't validate the config.
+-- Returns a table or nil and an error message.
+function config.load_config(path, global_path)
+   local config_path, anchor_dir = locate_config(path, global_path)
+
+   if not config_path then
+      if anchor_dir then
+         return nil, anchor_dir
+      else
+         return {options = {}}
+      end
+   end
+
    local env, special_values = make_config_env()
-   local loader = add_relative_loader(conf)
-   local load_ok, ret, load_err = utils.load_config(conf_path, env)
+   local loader = add_relative_loader(anchor_dir)
+   local load_ok, ret, load_err = utils.load_config(config_path, env)
    remove_relative_loader(loader)
 
    if not load_ok then
-      return nil, ("Couldn't load configuration from %s: %s error (%s)"):format(conf_path, ret, load_err)
+      return nil, ("Couldn't load configuration from %s: %s error (%s)"):format(config_path, ret, load_err)
    end
 
    -- Support returning some options from config instead of setting them as globals.
@@ -265,13 +235,25 @@ function config.load_config(path, global_path)
 
    remove_env_mt(env, special_values)
 
-   -- Update stds before validating config - std validation relies on that.
-   if type(env.stds) == "table" then
-      -- Ideally config shouldn't mutate global builtin standards module,
-      -- not if `luacheck.config` becomes public interface.
+   return {options = env, config_path = config_path, anchor_dir = anchor_dir}
+end
+
+function config.table_to_config(opts)
+   return {options = opts}
+end
+
+-- Validates custom stds within a config table and adds them to stds map.
+-- Returns true on success or nil and an error message on error.
+local function add_stds_from_config(conf, stds)
+   if conf.options.stds ~= nil then
+      if type(conf.options.stds) ~= "table" then
+         return nil, ("invalid option 'stds': table expected, got %s"):format(type(conf.options.stds))
+      end
+
+      -- Validate stds in sorted order for deterministic output when more than one std is invalid.
       local std_names = {}
 
-      for std_name in pairs(env.stds) do
+      for std_name in pairs(conf.options.stds) do
          if type(std_name) == "string" then
             table.insert(std_names, std_name)
          end
@@ -280,86 +262,242 @@ function config.load_config(path, global_path)
       table.sort(std_names)
 
       for _, std_name in ipairs(std_names) do
-         local std_table = env.stds[std_name]
+         local std = conf.options.stds[std_name]
 
-         if type(std_table) ~= "table" then
-            return nil, (
-               "Couldn't load configuration from %s: expected table as value for custom std '%s', got %s"):format(
-                  conf_path, std_name, type(std_table))
+         if type(std) ~= "table" then
+            return nil, ("invalid custom std '%s': table expected, got %s"):format(std_name, type(std))
          end
 
-         local std_validate_ok, std_validate_err = standards.validate_std_table(std_table)
+         local ok, err = standards.validate_std_table(std)
 
-         if not std_validate_ok then
-            return nil, ("Couldn't load configuration from %s: invalid custom std '%s': %s"):format(
-                  conf_path, std_name, std_validate_err)
+         if not ok then
+            return nil, ("invalid custom std '%s': %s"):format(std_name, err)
          end
 
-         builtin_standards[std_name] = std_table
+         stds[std_name] = std
       end
    end
 
-   local validate_ok, validate_err = validate_config(env)
-
-   if not validate_ok then
-      return nil, ("Couldn't load configuration from %s: %s"):format(conf_path, validate_err)
-   end
-
-   conf.options = env
-   conf.overrides = normalize_overrides(env.files, abs_conf_dir)
-   return conf
+   return true
 end
 
--- Adjusts path starting from config dir to start from current directory.
-function config.relative_path(conf, path)
-   if conf.empty then
-      return path
+local function error_prefix(conf)
+   if conf.config_path then
+      return ("in config loaded from %s: "):format(conf.config_path)
    else
-      return fs.join(conf.rel_dir, path)
+      return ""
    end
 end
 
--- Requires module from config directory.
--- Returns success flag and module or error message.
-function config.relative_require(conf, modname)
-   local loader
-
-   if not conf.empty then
-      loader = add_relative_loader(conf)
-   end
-
-   local ok, mod_or_err = pcall(require, modname)
-
-   if not conf.empty then
-      remove_relative_loader(loader)
-   end
-
-   return ok, mod_or_err
-end
-
--- Returns top-level options.
-function config.get_top_options(conf)
-   return conf.empty and {} or conf.options
-end
-
--- Returns array of options for a file.
-function config.get_options(conf, file)
-   if conf.empty then
-      return {}
-   end
-
-   local res = {conf.options}
-
-   if type(file) ~= "string" then
-      return res
-   end
-
-   local path = fs.normalize(fs.join(conf.cur_dir, file))
-
-   for _, override_glob in ipairs(conf.overrides.globs) do
-      if globbing.match(override_glob, path) then
-         table.insert(res, conf.overrides.options[override_glob])
+local function quiet_validator(x)
+   if type(x) == "number" then
+      if math.floor(x) == x and x >= 0 and x <= 3 then
+         return true
+      else
+         return false, ("integer in range 0..3 expected, got %.20g"):format(x)
       end
+   else
+      return false, ("integer in range 0..3 expected, got %s"):format(type(x))
+   end
+end
+
+local function jobs_validator(x)
+   if type(x) == "number" then
+      if math.floor(x) == x and x >= 1 then
+         return true
+      else
+         return false, ("positive integer expected, got %.20g"):format(x)
+      end
+   else
+      return false, ("positive integer expected, got %s"):format(type(x))
+   end
+end
+
+config.format_options = {
+   quiet = quiet_validator,
+   color = utils.has_type("boolean"),
+   codes = utils.has_type("boolean"),
+   ranges = utils.has_type("boolean"),
+   formatter = utils.has_either_type("string", "function")
+}
+
+local top_options = {
+   cache = utils.has_either_type("string", "boolean"),
+   jobs = jobs_validator,
+   files = utils.has_type("table"),
+   stds = utils.has_type("table"),
+   exclude_files = utils.array_of("string"),
+   include_files = utils.array_of("string")
+}
+
+utils.update(top_options, config.format_options)
+utils.update(top_options, options.all_options)
+
+-- Returns true if config is valid, nil and error message otherwise.
+local function validate_config(conf, stds)
+   local ok, err = options.validate(top_options, conf.options, stds)
+
+   if not ok then
+      return nil, err
+   end
+
+   if conf.options.files then
+      for path, opts in pairs(conf.options.files) do
+         if type(path) == "string" then
+            ok, err = options.validate(options.all_options, opts, stds)
+
+            if not ok then
+               return nil, ("invalid options for path '%s': %s"):format(path, err)
+            end
+         end
+      end
+   end
+
+   return true
+end
+
+local ConfigStack = utils.class()
+
+function ConfigStack:__init(configs, stds)
+   self._configs = configs
+   self._stds = stds
+end
+
+function ConfigStack:get_stds()
+   return self._stds
+end
+
+-- Accepts an array of config tables, as returned from `load_config` and `table_to_config`.
+-- Assumes that configs closer to end of the array override configs closer to beginning.
+-- Returns an instance of `ConfigStack`. On validation error returns nil and an error message.
+function config.stack_configs(configs)
+   -- First, collect and validate stds from all configs, they are required to validate `std` option.
+   local stds = utils.update({}, builtin_standards)
+
+   for _, conf in ipairs(configs) do
+      local ok, err = add_stds_from_config(conf, stds)
+
+      if not ok then
+         return nil, error_prefix(conf) .. err
+      end
+   end
+
+   for _, conf in ipairs(configs) do
+      local ok, err = validate_config(conf, stds)
+
+      if not ok then
+         return nil, error_prefix(conf) .. err
+      end
+   end
+
+   return ConfigStack(configs, stds)
+end
+
+-- Returns a table of top-level config options, except `files` and `stds`.
+function ConfigStack:get_top_options()
+   local res = {
+      quiet = 0,
+      color = true,
+      codes = false,
+      ranges = false,
+      formatter = "default",
+      cache = false,
+      jobs = false,
+      include_files = {},
+      exclude_files = {}
+   }
+
+   local current_dir = fs.get_current_dir()
+   local last_anchor_dir
+
+   for _, conf in ipairs(self._configs) do
+      for _, option in ipairs({"quiet", "color", "codes", "ranges", "jobs"}) do
+         if conf.options[option] ~= nil then
+            res[option] = conf.options[option]
+         end
+      end
+
+      -- It's not immediately obvious relatively to which config formatter modules
+      -- should be resolved when they are specified in a config without an anchor dir.
+      -- For now, use the last anchor directory available, that should result
+      -- in reasonable behaviour in the current case of a single anchored config (loaded from file)
+      -- + a single not anchored config (loaded from CLI options).
+      last_anchor_dir = conf.anchor_dir or last_anchor_dir
+
+      if conf.options.formatter ~= nil then
+         res.formatter = conf.options.formatter
+         res.formatter_anchor_dir = last_anchor_dir
+      end
+
+      -- Path options, on the other hand, are interpreted relatively to the current directory
+      -- when specified in a config without anchor. Behaviour similar to formatter could also
+      -- make sense, but this is consistent with pre 0.22.0 behaviou
+      local anchor_dir = conf.anchor_dir or current_dir
+
+      for _, option in ipairs({"include_files", "exclude_files"}) do
+         if conf.options[option] ~= nil then
+            for _, glob in ipairs(conf.options[option]) do
+               table.insert(res[option], fs.normalize(fs.join(anchor_dir, glob)))
+            end
+         end
+      end
+
+      if conf.options.cache ~= nil then
+         if conf.options.cache == true then
+            if not res.cache then
+               res.cache = fs.normalize(fs.join(last_anchor_dir or current_dir, ".luacheckcache"))
+            end
+         elseif conf.options.cache == false then
+            res.cache = false
+         else
+            res.cache = fs.normalize(fs.join(anchor_dir, conf.options.cache))
+         end
+      end
+   end
+
+   return res
+end
+
+local function add_applying_overrides(option_stack, conf, filename)
+   if not filename or not conf.options.files then
+      return
+   end
+
+   local current_dir = fs.get_current_dir()
+   local abs_filename = fs.normalize(fs.join(current_dir, filename))
+   local anchor_dir = conf.anchor_dir or current_dir
+
+   local matching_pairs = {}
+
+   for glob, opts in pairs(conf.options.files) do
+      if type(glob) == "string" then
+         local abs_glob = fs.normalize(fs.join(anchor_dir, glob))
+
+         if globbing.match(abs_glob, abs_filename) then
+            table.insert(matching_pairs, {
+               abs_glob = abs_glob,
+               opts = opts
+            })
+         end
+      end
+   end
+
+   table.sort(matching_pairs, function(pair1, pair2)
+      return globbing.compare(pair1.abs_glob, pair2.abs_glob)
+   end)
+
+   for _, pair in ipairs(matching_pairs) do
+      table.insert(option_stack, pair.opts)
+   end
+end
+
+-- Returns an option stack applicable to a file with given name, or in general if name is not given.
+function ConfigStack:get_options(filename)
+   local res = {}
+
+   for _, conf in ipairs(self._configs) do
+      table.insert(res, conf.options)
+      add_applying_overrides(res, conf, filename)
    end
 
    return res

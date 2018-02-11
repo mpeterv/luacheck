@@ -361,6 +361,23 @@ function utils.has_type(type_)
    end
 end
 
+-- Returns validator checking type and allowing false.
+function utils.has_type_or_false(type_)
+   return function(x)
+      if type(x) == type_ then
+         return true
+      elseif type(x) == "boolean" then
+         if x then
+            return false, ("%s or false expected, got true"):format(type_)
+         else
+            return true
+         end
+      else
+         return false, ("%s or false expected, got %s"):format(type_, type(x))
+      end
+   end
+end
+
 -- Returns validator checking two type possibilities.
 function utils.has_either_type(type1, type2)
    return function(x)

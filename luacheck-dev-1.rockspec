@@ -50,6 +50,7 @@ build = {
       ["luacheck.options"] = "src/luacheck/options.lua",
       ["luacheck.parser"] = "src/luacheck/parser.lua",
       ["luacheck.resolve_locals"] = "src/luacheck/resolve_locals.lua",
+      ["luacheck.runner"] = "src/luacheck/runner.lua",
       ["luacheck.standards"] = "src/luacheck/standards.lua",
       ["luacheck.utils"] = "src/luacheck/utils.lua",
       ["luacheck.version"] = "src/luacheck/version.lua"

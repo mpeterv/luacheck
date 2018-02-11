@@ -65,6 +65,7 @@ local worker_gen = lanes.gen("*", protected_worker_task)
 
 -- Maps func over array, performing at most jobs calls in parallel.
 function multithreading.pmap(func, array, jobs)
+   jobs = jobs or multithreading.default_jobs
    jobs = math.min(jobs, #array)
 
    if jobs < 2 then

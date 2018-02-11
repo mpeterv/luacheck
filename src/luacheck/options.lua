@@ -5,12 +5,13 @@ local standards = require "luacheck.standards"
 local utils = require "luacheck.utils"
 
 local boolean = utils.has_type("boolean")
+local number_or_false = utils.has_type_or_false("number")
 local array_of_strings = utils.array_of("string")
 
 -- Validates std string.
 -- Returns an array of std names with `add` field if there is `+` at the beginning of the string.
 -- On validation error returns `nil` and an error message.
-function options.split_std(std)
+local function split_std(std, stds)
    local parts = utils.split(std, "+")
 
    if parts[1]:match("^%s*$") then
@@ -21,7 +22,7 @@ function options.split_std(std)
    for i, part in ipairs(parts) do
       parts[i] = utils.strip(part)
 
-      if not builtin_standards[parts[i]] then
+      if not stds[parts[i]] then
          return nil, ("unknown std '%s'"):format(parts[i])
       end
    end
@@ -29,9 +30,9 @@ function options.split_std(std)
    return parts
 end
 
-local function std_or_array_of_strings(x)
+local function std_or_array_of_strings(x, stds)
    if type(x) == "string" then
-      local ok, err = options.split_std(x)
+      local ok, err = split_std(x, stds)
       return not not ok, err
    elseif type(x) == "table" then
       return standards.validate_std_table(x)
@@ -45,20 +46,6 @@ local function field_map(x)
       return standards.validate_globals_table(x)
    else
       return false, "table expected, got " .. type(x)
-   end
-end
-
-local function number_or_false(x)
-   if type(x) == "number" then
-      return true
-   elseif type(x) == "boolean" then
-      if x then
-         return false, "number or false expected, got true"
-      else
-         return true
-      end
-   else
-      return false, "number or false expected, got " .. type(x)
    end
 end
 
@@ -101,7 +88,7 @@ utils.update(options.all_options, options.variadic_inline_options)
 
 -- Returns true if opts is valid option_set or is nil.
 -- Otherwise returns false and an error message.
-function options.validate(option_set, opts)
+function options.validate(option_set, opts, stds)
    if opts == nil then
       return true
    end
@@ -110,9 +97,11 @@ function options.validate(option_set, opts)
       return false, "option table expected, got " .. type(opts)
    end
 
+   stds = stds or builtin_standards
+
    for option, validator in utils.sorted_pairs(option_set) do
       if opts[option] ~= nil then
-         local ok, err = validator(opts[option])
+         local ok, err = validator(opts[option], stds)
 
          if not ok then
             return false, ("invalid value of option '%s': %s"):format(option, err)
@@ -127,14 +116,14 @@ end
 -- overriding options closer to beginning.
 
 -- Extracts sequence of active std tables from an option stack.
-local function get_std_tables(opts_stack)
+local function get_std_tables(opts_stack, stds)
    local base_std
    local add_stds = {}
    local no_compat = false
 
    for _, opts in utils.ripairs(opts_stack) do
       if opts.compat and not no_compat then
-         base_std = builtin_standards.max
+         base_std = stds.max
          break
       elseif opts.compat == false then
          no_compat = true
@@ -145,10 +134,10 @@ local function get_std_tables(opts_stack)
             base_std = opts.std
             break
          else
-            local parts = options.split_std(opts.std)
+            local parts = split_std(opts.std, stds)
 
             for _, part in ipairs(parts) do
-               table.insert(add_stds, builtin_standards[part])
+               table.insert(add_stds, stds[part])
             end
 
             if not parts.add then
@@ -159,7 +148,7 @@ local function get_std_tables(opts_stack)
       end
    end
 
-   table.insert(add_stds, 1, base_std or builtin_standards._G)
+   table.insert(add_stds, 1, base_std or stds._G)
    return add_stds
 end
 
@@ -209,9 +198,9 @@ end
 -- it's possible to use field names in array part as a shortcut:
 -- `{fields = {"foo"}}` is equivalent to `{fields = {foo = {}}}` or `{fields = {foo = {other_fields = true}}}`
 -- in top level fields tables.
-local function get_final_std(opts_stack)
+local function get_final_std(opts_stack, stds)
    local final_std = {}
-   local std_tables = get_std_tables(opts_stack)
+   local std_tables = get_std_tables(opts_stack, stds)
 
    for _, std_table in ipairs(std_tables) do
       standards.add_std_table(final_std, std_table)
@@ -413,9 +402,10 @@ local scalar_options = {
 --    unused_secondaries, self, inline, module, allow_defined, allow_defined_top: booleans;
 --    max_line_length: number or false;
 --    rules: see get_rules.
-function options.normalize(opts_stack)
+function options.normalize(opts_stack, stds)
    local res = {}
-   res.std = get_final_std(opts_stack)
+   stds = stds or builtin_standards
+   res.std = get_final_std(opts_stack, stds)
 
    for option, default in pairs(scalar_options) do
       res[option] = get_scalar_opt(opts_stack, option, default)

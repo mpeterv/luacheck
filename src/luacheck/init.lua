@@ -8,8 +8,8 @@ local luacheck = {
    _VERSION = "0.21.2"
 }
 
-local function raw_validate_options(fname, opts, context)
-   local ok, err = options.validate(options.all_options, opts)
+local function raw_validate_options(fname, opts, stds, context)
+   local ok, err = options.validate(options.all_options, opts, stds)
 
    if not ok then
       if context then
@@ -20,16 +20,16 @@ local function raw_validate_options(fname, opts, context)
    end
 end
 
-local function validate_options(fname, items, opts)
+local function validate_options(fname, items, opts, stds)
    raw_validate_options(fname, opts)
 
    if opts ~= nil then
       for i in ipairs(items) do
-         raw_validate_options(fname, opts[i], ("invalid options at index [%d]"):format(i))
+         raw_validate_options(fname, opts[i], stds, ("invalid options at index [%d]"):format(i))
 
          if opts[i] ~= nil then
             for j, nested_opts in ipairs(opts[i]) do
-               raw_validate_options(fname, nested_opts, ("invalid options at index [%d][%d]"):format(i, j))
+               raw_validate_options(fname, nested_opts, stds, ("invalid options at index [%d][%d]"):format(i, j))
             end
          end
       end
@@ -46,11 +46,11 @@ end
 -- Applies options to reports. Reports with .fatal field are unchanged.
 -- Options are applied to reports[i] in order: options, options[i], options[i][1], options[i][2], ...
 -- Returns new array of reports, adds .warnings, .errors and .fatals fields to this array.
-function luacheck.process_reports(reports, opts)
+function luacheck.process_reports(reports, opts, stds)
    local msg = ("bad argument #1 to 'luacheck.process_reports' (table expected, got %s)"):format(type(reports))
    assert(type(reports) == "table", msg)
-   validate_options("luacheck.process_reports", reports, opts)
-   local report = filter.filter(reports, opts)
+   validate_options("luacheck.process_reports", reports, opts, stds)
+   local report = filter.filter(reports, opts, stds)
    report.warnings = 0
    report.errors = 0
    report.fatals = 0

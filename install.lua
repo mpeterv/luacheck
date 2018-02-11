@@ -127,6 +127,7 @@ for _, filename in ipairs({
       "options.lua",
       "parser.lua",
       "resolve_locals.lua",
+      "runner.lua",
       "standards.lua",
       "utils.lua",
       "version.lua"}) do

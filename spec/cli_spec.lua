@@ -999,6 +999,24 @@ Codes: true
 ]], get_output("samples/good_code.lua samples/bad_code.lua --formatter spec.formatters.custom_formatter -q --codes --no-color --no-config", "spec/"))
    end)
 
+   it("allows using format options in config", function()
+      assert.equal([[Checking spec/samples/bad_code.lua                5 warnings
+
+    spec/samples/bad_code.lua:3:16-21: (W211) unused function 'helper'
+    spec/samples/bad_code.lua:3:23-25: (W212) unused variable length argument
+    spec/samples/bad_code.lua:7:10-16: (W111) setting non-standard global variable 'embrace'
+    spec/samples/bad_code.lua:8:10-12: (W412) variable 'opt' was previously defined as an argument on line 7
+    spec/samples/bad_code.lua:9:11-16: (W113) accessing undefined variable 'hepler'
+
+Total: 5 warnings / 0 errors in 2 files
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua --config=spec/configs/format_opts_config.luacheckrc")
+
+      assert.equal([[Checking spec/samples/bad_code.lua                5 warnings
+
+Total: 5 warnings / 0 errors in 2 files
+]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua -qq --config=spec/configs/format_opts_config.luacheckrc")
+   end)
+
    it("has built-in TAP formatter", function()
       assert.equal([[
 1..8

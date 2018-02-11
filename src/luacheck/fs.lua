@@ -41,7 +41,7 @@ function fs.split_base(path)
    end
 end
 
-local function is_absolute(path)
+function fs.is_absolute(path)
    return fs.split_base(path) ~= ""
 end
 
@@ -69,7 +69,7 @@ function fs.normalize(path)
 end
 
 local function join_two_paths(base, path)
-   if base == "" or is_absolute(path) then
+   if base == "" or fs.is_absolute(path) then
       return path
    else
       return ensure_dir_sep(base) .. path
@@ -114,7 +114,7 @@ end
 -- Path must be absolute.
 -- Returns absolute and relative paths to directory containing file or nil.
 function fs.find_file(path, file)
-   if is_absolute(file) then
+   if fs.is_absolute(file) then
       return fs.is_file(file) and path, ""
    end
 
@@ -126,7 +126,7 @@ function fs.find_file(path, file)
       if fs.is_file(fs.join(base..rest, file)) then
          return base..rest, rel_path
       elseif rest == "" then
-         break
+         return
       end
 
       rest = rest:match("^(.*)"..utils.dir_sep..".*$") or ""

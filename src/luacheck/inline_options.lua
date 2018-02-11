@@ -326,14 +326,14 @@ end
 -- This is required because of `std` option which has to be validated
 -- at join/filter time, not at check time, because of possible
 -- custom stds.
-function inline_options.validate_options(events, per_line_opts)
+function inline_options.validate_options(events, per_line_opts, stds)
    local new_events = {}
    local new_per_line_opts = {}
    local added_errors = false
 
    for i, event in ipairs(events) do
       if event.options then
-         local ok, err = options.validate(options.all_options, event.options)
+         local ok, err = options.validate(options.all_options, event.options, stds)
 
          if ok then
             new_events[i] = event
