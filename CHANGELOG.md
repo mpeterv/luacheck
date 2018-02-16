@@ -10,6 +10,8 @@
 * Added a built-in formatter printing warnings and errors in a format
   understood by MSBuild/Visual Studio if `luacheck` is
   used as a custom build step (#142).
+* `ranges` and `quiet` options can now be used in config, e.g. `quiet = 1` to
+  disable `OK` lines in default formatter output.
 * `luacheck` module now adds `prev_line`, `prev_column`, and `prev_end_column`
   fields to syntax error events if they refer to some extra location:
   redefined label errors point to the previous definition,
