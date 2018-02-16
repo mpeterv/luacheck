@@ -227,8 +227,8 @@ patterns.]])
 
    if fs.has_lfs then
       parser:mutex(
-         parser:option("--cache", "Path to cache file.", ".luacheckcache")
-            :defmode "arg",
+         parser:option("--cache", "Path to cache file. (default: .luacheckcache)")
+            :args "?",
          parser:flag("--no-cache", "Do not use cache.")
             :action "store_false"
             :target "cache"
@@ -281,6 +281,10 @@ local function main()
 
    if args.quiet == 0 then
       args.quiet = nil
+   end
+
+   if args.cache then
+      args.cache = args.cache[1] or true
    end
 
    local checker, err, is_invalid_args_error = runner.new(args)
