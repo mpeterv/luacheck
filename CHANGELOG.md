@@ -29,6 +29,8 @@
   have other values assigned to their local variables.
 * Fixed unused values in infinite loops sometimes reported
   as overwritten by another value.
+* Fixed caching not working properly when cache is enabled in config
+  loaded from a parent directory.
 
 ## 0.21.2 (2017-11-13)
 
