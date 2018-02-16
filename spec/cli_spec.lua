@@ -1,3 +1,5 @@
+local lfs = require "lfs"
+
 local utils = require "luacheck.utils"
 local multithreading = require "luacheck.multithreading"
 local helper = require "spec.helper"
@@ -907,16 +909,16 @@ Total: 16 warnings / 1 error in 4 files
          local format_version, good_mtime, bad_mtime, python_mtime = cache:match((([[
 
 (%d+)
-spec/samples/good_code.lua
+{current_dir}/spec/samples/good_code.lua
 (%d+)
 local A,B="711","function";return {{{A,[3]=1,[4]=1,[5]=1,[29]=1,[31]="main_chunk"},{A,[3]=3,[4]=7,[5]=14,[29]=1,[30]="helper",[31]=B},{A,[3]=7,[4]=1,[5]=8,[29]=2,[30]="embracer.embrace",[31]=B}},{},{19,0,23,17,3,0,30,25,26,3,0,15},{[4]="comment"}}
-spec/samples/bad_code.lua
+{current_dir}/spec/samples/bad_code.lua
 (%d+)
 local A,B,C,D,E,F="package","711","helper","function","embrace","hepler";return {{{"112",A,1,1,7,[24]={A,"loaded",true}},{B,[3]=1,[4]=1,[5]=1,[29]=1,[31]="main_chunk"},{B,[3]=3,[4]=7,[5]=14,[29]=1,[30]=C,[31]=D},{"211",C,3,16,21,[11]=true},{"212","...",3,23,25},{B,[3]=7,[4]=1,[5]=8,[29]=2,[30]=E,[31]=D},{"111",E,7,10,16,[12]=true,[24]={E}},{"412","opt",8,10,12,7,18,20},{"113",F,9,11,16,[24]={F}}},{},{24,0,26,9,3,0,21,31,26,3,0},{[4]="comment"}}
-spec/samples/python_code.lua
+{current_dir}/spec/samples/python_code.lua
 (%d+)
 return {{{"011",[3]=1,[4]=6,[5]=15,[13]="expected '=' near '__future__'"}},{},{},{}}
-]]):gsub("[%[%]]", "%%%0")))
+]]):gsub("[%[%]]", "%%%0"):gsub("{current_dir}", lfs.currentdir())))
          -- luacheck: pop
 
          format_version = tonumber(format_version)
@@ -932,15 +934,15 @@ return {{{"011",[3]=1,[4]=6,[5]=15,[13]="expected '=' near '__future__'"}},{},{}
             assert.userdata(fh)
             fh:write(([[
 %s
-spec/samples/python_code.lua
+{current_dir}/spec/samples/python_code.lua
 %s
 return {{{"111", "global", 1, 1, [24]={"global"}}, {"321", "uninit", 6, 8}},{},{},{}}
-spec/samples/good_code.lua
+{current_dir}/spec/samples/good_code.lua
 %s
 return {{{"011",[3]=5,[4]=7,[13]="this code is actually bad"}},{},{},{}}
-spec/samples/bad_code.lua
+{current_dir}/spec/samples/bad_code.lua
 %s
-return {{},{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
+return {{},{},{}}]]):gsub("{current_dir}", lfs.currentdir()):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
             fh:close()
          end
 

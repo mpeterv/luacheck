@@ -97,11 +97,9 @@ local function matches_any(globs, filename)
    return false
 end
 
-function Runner:_is_filename_included(filename)
-   filename = fs.normalize(fs.join(fs.get_current_dir(), filename))
-
-   return not matches_any(self._top_opts.exclude_files, filename) and (
-      #self._top_opts.include_files == 0 or matches_any(self._top_opts.include_files, filename))
+function Runner:_is_filename_included(abs_filename)
+   return not matches_any(self._top_opts.exclude_files, abs_filename) and (
+      #self._top_opts.include_files == 0 or matches_any(self._top_opts.include_files, abs_filename))
 end
 
 -- Normalizes inputs and filters inputs using `exclude_files` and `include_files` options.
@@ -110,9 +108,11 @@ end
 -- * Prepared inputs can't have `rockspec_path` field.
 -- * Prepared inputs can't have `path` pointing to a directory (unless it has an error).
 -- * Prepared inputs have `filename` field if possible (copied from `path` if not given).
+-- * Prepared inputs that have `path` field also have `abs_path` field.
 -- * Prepared inputs can have `fatal` field if the input can't be checked. The value is error type as a string.
 --   `fatal` is always accompanied by an error message in `msg` field.
 function Runner:_prepare_inputs(inputs)
+   local current_dir = fs.get_current_dir()
    local dir_pattern = #self._top_opts.include_files > 0 and "" or "%.lua$"
 
    local res = {}
@@ -121,11 +121,19 @@ function Runner:_prepare_inputs(inputs)
       if input.path then
          -- TODO: get rid of this, adjust fs.extract_files to avoid leading `./` instead.
          input.path = input.path:gsub("^%.[/\\]([^/])", "%1")
+         input.abs_path = fs.normalize(fs.join(current_dir, input.path))
       end
 
-      input.filename = input.filename or input.path
+      local abs_filename
 
-      if not input.filename or self:_is_filename_included(input.filename) then
+      if input.filename then
+         abs_filename = fs.normalize(fs.join(current_dir, input.filename))
+      else
+         input.filename = input.path
+         abs_filename = input.abs_path
+      end
+
+      if not input.filename or self:_is_filename_included(abs_filename) then
          table.insert(res, input)
       end
    end
@@ -192,7 +200,7 @@ function Runner:_add_cached_reports(inputs)
 
    for _, input in ipairs(inputs) do
       if input.mtime then
-         table.insert(potentially_cached_filenames, input.path)
+         table.insert(potentially_cached_filenames, input.abs_path)
          table.insert(mtimes, input.mtime)
       end
    end
@@ -204,7 +212,7 @@ function Runner:_add_cached_reports(inputs)
    end
 
    for _, input in ipairs(inputs) do
-      input.cached_report = filename_to_cached_report[input.path]
+      input.cached_report = filename_to_cached_report[input.abs_path]
    end
 
    return true
@@ -255,7 +263,7 @@ function Runner:_save_new_reports_to_cache(inputs)
          -- If report for a file could be cached but getting its `mtime` has failed,
          -- ignore the error - report is already here, might as well return it.
          if input.mtime then
-            table.insert(filenames, input.path)
+            table.insert(filenames, input.abs_path)
             table.insert(mtimes, input.mtime)
             table.insert(reports, input.new_report)
          end
