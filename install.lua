@@ -82,8 +82,8 @@ if is_windows then
 else
    fh:write(([=[
 #!/bin/sh
-exec "%s" -e "package.path=[[%s/../src/?.lua;%s/../src/?/init.lua;]]..package.path" "%s/luacheck.lua" "$@"
-]=]):format(args.lua, '$(dirname $(realpath "$0"))', '$(dirname $(realpath "$0"))', '$(dirname $(realpath "$0"))'))
+exec "%s" -e "package.path=[[%s/?.lua;%s/?/init.lua;]]..package.path" "%s/luacheck.lua" "$@"
+]=]):format(args.lua, luacheck_src_dir, luacheck_src_dir, '$(dirname "$0")'))
 end
 
 fh:close()
