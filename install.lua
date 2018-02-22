@@ -17,6 +17,7 @@ Luacheck modules will be installed into <path>%ssrc.
 Pass . to build luacheck executable script without installing.]]):format(dirsep, dirsep))
 
 parser:option("--lua", "Absolute path to lua interpreter or its name if it's in PATH.", lua_executable)
+parser:option("--destdir", "Path to stage luacheck installation into")
 
 local args = parser:parse()
 
@@ -33,6 +34,9 @@ local function run_command(cmd)
 end
 
 local function mkdir(dir)
+   if args.destdir then
+      dir = args.destdir .. dirsep .. dir
+   end
    if is_windows then
       run_command(([[if not exist "%s" md "%s"]]):format(dir, dir))
    else
@@ -41,6 +45,9 @@ local function mkdir(dir)
 end
 
 local function copy(src, dest)
+   if args.destdir then
+      dest = args.destdir .. dirsep .. dest
+   end
    if is_windows then
       run_command(([[copy /y "%s" "%s"]]):format(src, dest))
    else
@@ -75,8 +82,8 @@ if is_windows then
 else
    fh:write(([=[
 #!/bin/sh
-exec "%s" -e "package.path=[[%s/../src/?.lua;%s/../src/?/init.lua;]]..package.path" "%s/luacheck.lua" "$@"
-]=]):format(args.lua, '$(dirname "$0")', '$(dirname "$0")', '$(dirname "$0")'))
+exec "%s" -e "package.path=[[%s/?.lua;%s/?/init.lua;]]..package.path" "%s/luacheck.lua" "$@"
+]=]):format(args.lua, luacheck_src_dir, luacheck_src_dir, '$(dirname "$0")'))
 end
 
 fh:close()
