@@ -46,6 +46,7 @@ function fs.is_absolute(path)
 end
 
 function fs.normalize(path)
+   path = path:lower()
    local base, rest = fs.split_base(path)
    rest = rest:gsub("[/\\]", utils.dir_sep)
 
