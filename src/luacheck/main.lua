@@ -27,25 +27,25 @@ Links:
 
    Luacheck on GitHub: https://github.com/mpeterv/luacheck
    Luacheck documentation: http://luacheck.readthedocs.org]])
+      :help_max_width(80)
 
    parser:argument "files"
-      :description (fs.has_lfs and [[List of files, directories and rockspecs to check.
-Pass "-" to check stdin.]] or [[List of files and rockspecs to check.
-Pass "-" to check stdin.]])
+      :description (fs.has_lfs and "List of files, directories and rockspecs to check. Pass '-' to check stdin." or
+         "List of files and rockspecs to check. Pass '-' to check stdin.")
       :args "+"
       :argname "<file>"
 
-   parser:flag("-g --no-global", [[Filter out warnings related to global variables.
-Equivalent to --ignore 1.]]):target("global"):action("store_false")
-   parser:flag("-u --no-unused", [[Filter out warnings related to unused variables
-and values. Equivalent to --ignore [23].]]):target("unused"):action("store_false")
-   parser:flag("-r --no-redefined", [[Filter out warnings related to redefined variables.
-Equivalent to --ignore 4.]]):target("redefined"):action("store_false")
+   parser:flag("-g --no-global", "Filter out warnings related to global variables. " ..
+      "Equivalent to --ignore 1."):target("global"):action("store_false")
+   parser:flag("-u --no-unused", "Filter out warnings related to unused variables and values. " ..
+      "Equivalent to --ignore [23]."):target("unused"):action("store_false")
+   parser:flag("-r --no-redefined", "Filter out warnings related to redefined variables. " ..
+      "Equivalent to --ignore 4."):target("redefined"):action("store_false")
 
-   parser:flag("-a --no-unused-args", [[Filter out warnings related to unused arguments and
-loop variables. Equivalent to --ignore 21[23].]]):target("unused_args"):action("store_false")
-   parser:flag("-s --no-unused-secondaries", [[Filter out warnings related to unused variables set
-together with used ones.]]):target("unused_secondaries"):action("store_false")
+   parser:flag("-a --no-unused-args", "Filter out warnings related to unused arguments and " ..
+      "loop variables. Equivalent to --ignore 21[23]."):target("unused_args"):action("store_false")
+   parser:flag("-s --no-unused-secondaries", "Filter out warnings related to unused variables set " ..
+      "together with used ones."):target("unused_secondaries"):action("store_false")
    parser:flag("--no-self", "Filter out warnings related to implicit self argument.")
       :target("self"):action("store_false")
 
@@ -58,34 +58,27 @@ together with used ones.]]):target("unused_secondaries"):action("store_false")
       end
    end
 
-   parser:option("--std", ([[Set standard globals, default is _G.
-<std> can be one of:
-   lua51 - globals of Lua 5.1 without deprecated ones;
-   lua51c - globals of Lua 5.1;
-   lua52 - globals of Lua 5.2;
-   lua52c - globals of Lua 5.2 with LUA_COMPAT_ALL;
-   lua53 - globals of Lua 5.3;
-   lua53c - globals of Lua 5.3 with LUA_COMPAT_5_2;
-   luajit - globals of LuaJIT 2.x;
-   ngx_lua - globals of Openresty lua-nginx-module 0.10.10,
-      including standard LuaJIT 2.x globals;
-   min - intersection of globals of Lua 5.1, Lua 5.2,
-      Lua 5.3 and LuaJIT 2.x;
-   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3
-      and LuaJIT 2.x;
-   _G - same as lua51c, lua52c, lua53c, or luajit
-      depending on version of Lua used to run luacheck
-      or same as max if couldn't detect the version.
-      Currently %s;
-   love - globals added by LOVE (love2d);
-   busted - globals added by Busted 2.0;
-   rockspec - globals allowed in rockspecs;
-   none - no standard globals.
-
-Sets can be combined using "+".
-Extra sets can be defined in config by adding to `stds` global.]]):format(default_std_name))
-   parser:option("--globals", [[Add custom global variables (e.g. foo) or
-fields (e.g. foo.bar) on top of standard ones.]])
+   parser:option("--std", ("Set standard globals, default is _G. <std> can be one of:\n" ..
+      "   lua51 - globals of Lua 5.1 without deprecated ones;\n" ..
+      "   lua51c - globals of Lua 5.1;\n" ..
+      "   lua52 - globals of Lua 5.2;\n" ..
+      "   lua52c - globals of Lua 5.2 with LUA_COMPAT_ALL;\n" ..
+      "   lua53 - globals of Lua 5.3;\n" ..
+      "   lua53c - globals of Lua 5.3 with LUA_COMPAT_5_2;\n" ..
+      "   luajit - globals of LuaJIT 2.x;\n" ..
+      "   ngx_lua - globals of Openresty lua-nginx-module 0.10.10, including standard LuaJIT 2.x globals;\n" ..
+      "   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
+      "   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
+      "   _G - same as lua51c, lua52c, lua53c, or luajit depending on version of Lua used to run luacheck " ..
+      "or same as max if couldn't detect the version. Currently %s;\n" ..
+      "   love - globals added by LOVE (love2d);\n" ..
+      "   busted - globals added by Busted 2.0;\n" ..
+      "   rockspec - globals allowed in rockspecs;\n" ..
+      "   none - no standard globals.\n\n" ..
+      "Sets can be combined using '+'. Extra sets can be defined in config by " ..
+      "adding to `stds` global."):format(default_std_name))
+   parser:option("--globals", "Add custom global variables (e.g. foo) or fields (e.g. foo.bar) " ..
+      "on top of standard ones.")
       :args "*"
       :count "*"
       :argname "<name>"
@@ -97,15 +90,14 @@ fields (e.g. foo.bar) on top of standard ones.]])
       :argname "<name>"
       :action "concat"
       :init(nil)
-   parser:option("--new-globals", [[Set custom global variables or fields. Removes
-custom globals added previously.]])
+   parser:option("--new-globals", "Set custom global variables or fields. Removes custom globals added previously.")
       :args "*"
       :count "*"
       :argname "<name>"
       :action "concat"
       :init(nil)
-   parser:option("--new-read-globals", [[Set read-only global variables or fields. Removes
-read-only globals added previously.]])
+   parser:option("--new-read-globals", "Set read-only global variables or fields. " ..
+      "Removes read-only globals added previously.")
       :args "*"
       :count "*"
       :argname "<name>"
@@ -119,10 +111,8 @@ read-only globals added previously.]])
       :init(nil)
    parser:flag("-c --compat", "Equivalent to --std max.")
    parser:flag("-d --allow-defined", "Allow defining globals implicitly by setting them.")
-   parser:flag("-t --allow-defined-top", [[Allow defining globals implicitly by setting them in
-the top level scope.]])
-   parser:flag("-m --module", [[Limit visibility of implicitly defined globals to
-their files.]])
+   parser:flag("-t --allow-defined-top", "Allow defining globals implicitly by setting them in the top level scope.")
+   parser:flag("-m --module", "Limit visibility of implicitly defined globals to their files.")
 
    parser:option("--max-line-length", "Set maximum allowed line length (default: 120).")
       :argname "<length>"
@@ -131,24 +121,21 @@ their files.]])
       :action "store_false"
       :target "max_line_length"
 
-   parser:option("--max-code-line-length", [[Set maximum allowed length for lines
-ending with code (default: 120).]])
+   parser:option("--max-code-line-length", "Set maximum allowed length for lines ending with code (default: 120).")
       :argname "<length>"
       :convert(tonumber)
    parser:flag("--no-max-code-line-length", "Do not limit code line length.")
       :action "store_false"
       :target "max_code_line_length"
 
-   parser:option("--max-string-line-length", [[Set maximum allowed length for lines
-within a string (default: 120).]])
+   parser:option("--max-string-line-length", "Set maximum allowed length for lines within a string (default: 120).")
       :argname "<length>"
       :convert(tonumber)
    parser:flag("--no-max-string-line-length", "Do not limit string line length.")
       :action "store_false"
       :target "max_string_line_length"
 
-   parser:option("--max-comment-line-length", [[Set maximum allowed length for
-comment lines (default: 120).]])
+   parser:option("--max-comment-line-length", "Set maximum allowed length for comment lines (default: 120).")
       :argname "<length>"
       :convert(tonumber)
    parser:flag("--no-max-comment-line-length", "Do not limit comment line length.")
@@ -162,12 +149,10 @@ comment lines (default: 120).]])
       :action "store_false"
       :target "max_cyclomatic_complexity"
 
-   parser:option("--ignore -i", [[Filter out warnings matching these patterns.
-If a pattern contains slash, part before slash matches
-warning code and part after it matches name of related
-variable. Otherwise, if the pattern contains letters
-or underscore, it matches name of related variable.
-Otherwise, the pattern matches warning code.]])
+   parser:option("--ignore -i", "Filter out warnings matching these patterns.\n" ..
+      "If a pattern contains slash, part before slash matches warning code and part after it matches name of " ..
+      "related variable. Otherwise, if the pattern contains letters or underscore, it matches name of " ..
+      "related variable. Otherwise, the pattern matches warning code.")
       :args "+"
       :count "*"
       :argname "<patt>"
@@ -198,18 +183,15 @@ Otherwise, the pattern matches warning code.]])
    local default_global_path = config.get_default_global_path()
 
    parser:mutex(
-      parser:option("--default-config", ([[
-Path to configuration file to use if
---[no-]config is not used and
-project-specific %s is not found.
-(default: %s)]]):format(config.default_path, default_global_path or "could not detect")),
+      parser:option("--default-config", ("Path to configuration file to use if --[no-]config is not used and " ..
+         "project-specific %s is not found. (default: %s)"):format(
+            config.default_path, default_global_path or "could not detect")),
       parser:flag("--no-default-config", "Do not use default configuration file.")
          :action "store_false"
          :target "default_config"
    )
 
-   parser:option("--filename", [[Use another filename in output and for selecting
-configuration overrides.]])
+   parser:option("--filename", "Use another filename in output and for selecting configuration overrides.")
 
    parser:option("--exclude-files", "Do not check files matching these globbing patterns.")
       :args "+"
@@ -217,8 +199,7 @@ configuration overrides.]])
       :argname "<glob>"
       :action "concat"
       :init(nil)
-   parser:option("--include-files", [[Do not check files not matching these globbing
-patterns.]])
+   parser:option("--include-files", "Do not check files not matching these globbing patterns.")
       :args "+"
       :count "*"
       :argname "<glob>"
@@ -245,18 +226,16 @@ patterns.]])
       "-j --jobs", "Check <jobs> files in parallel (default: " ..
          tostring(multithreading.default_jobs) .. ")." .. lanes_notice):convert(tonumber)
 
-   parser:option("--formatter" , [[Use custom formatter.
-<formatter> must be a module name or one of:
-   TAP - Test Anything Protocol formatter;
-   JUnit - JUnit XML formatter;
-   visual_studio - MSBuild/Visual Studio aware formatter;
-   plain - simple warning-per-line formatter;
-   default - standard formatter.]])
+   parser:option("--formatter" , "Use custom formatter. <formatter> must be a module name or one of:\n" ..
+      "   TAP - Test Anything Protocol formatter;\n" ..
+      "   JUnit - JUnit XML formatter;\n" ..
+      "   visual_studio - MSBuild/Visual Studio aware formatter;\n" ..
+      "   plain - simple warning-per-line formatter;\n" ..
+      "   default - standard formatter.")
 
-   parser:flag("-q --quiet", [[Suppress output for files without warnings.
-   -qq: Suppress output of warnings.
-   -qqq: Only print total number of warnings and
-      errors.]])
+   parser:flag("-q --quiet", "Suppress output for files without warnings.\n" ..
+      "-qq: Suppress output of warnings.\n" ..
+      "-qqq: Only print total number of warnings and errors.")
       :count "0-3"
 
    parser:flag("--codes", "Show warning codes.")
