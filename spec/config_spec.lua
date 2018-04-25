@@ -170,7 +170,7 @@ describe("config", function()
             codes = false,
             ranges = false,
             formatter = "helper.fmt",
-            formatter_anchor_dir = cur_dir,
+            formatter_anchor_dir = P(cur_dir),
             jobs = false,
             cache = AP("something.luacheckcache"),
             include_files = {
@@ -195,7 +195,7 @@ describe("config", function()
             codes = false,
             ranges = false,
             formatter = "helper.fmt2",
-            formatter_anchor_dir = cur_dir,
+            formatter_anchor_dir = P(cur_dir),
             jobs = false,
             cache = AP("something.luacheckcache"),
             include_files = {

@@ -65,12 +65,12 @@ describe("fs", function()
 
    describe("find_file", function()
       it("finds file in a directory", function()
-         local path = fs.get_current_dir() .. P"spec/folder"
+         local path = P(fs.get_current_dir() .. "spec/folder")
          assert.equal(path, fs.find_file(path, "foo"))
       end)
 
       it("finds file in a parent directory", function()
-         local path = fs.get_current_dir() .. P"spec/folder"
+         local path = P(fs.get_current_dir() .. "spec/folder")
          assert.equal(path, fs.find_file(fs.join(path, "folder1"), "foo"))
       end)
 
