@@ -22,6 +22,10 @@
 * Improved error messages for invalid options and config: when an option is
   invalid, extra context is provided instead of just the name.
 * Custom stds are now validated on config load.
+* When recursively checking a directory, each failure to list a nested
+  directory is now reported separately, and other found files and directories
+  are checked anyway. Previously any error when listing any nested directory
+  resulted in immediate failure for the entire parent directory (#159).
 
 ### Fixes
 
