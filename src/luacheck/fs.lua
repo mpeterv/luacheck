@@ -149,7 +149,10 @@ function fs.extract_files(dir_path, pattern)
 
       if not ok then
          local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
-         return "couldn't recursively check " .. dir .. ": " .. err
+         err = "couldn't recursively check " .. dir .. ": " .. err
+         err_map[dir] = err
+         table.insert(res, dir)
+         return
       end
 
       for path in iter, state, var do
@@ -157,12 +160,7 @@ function fs.extract_files(dir_path, pattern)
             local full_path = fs.join(dir, path)
 
             if fs.is_dir(full_path) then
-               local err = scan(full_path)
-
-               if err then
-                  err_map[full_path] = err
-                  table.insert(res, full_path)
-               end
+               scan(full_path)
 
             elseif path:match(pattern) and fs.is_file(full_path) then
                table.insert(res, full_path)
