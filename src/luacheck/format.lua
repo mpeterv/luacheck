@@ -275,6 +275,7 @@ local function format_file_report(report, file_name, opts)
    elseif report.fatal then
       table.insert(buf, "")
       table.insert(buf, "    " .. file_name .. ": " .. report.msg)
+      table.insert(buf, "")
    end
 
    return table.concat(buf, "\n")

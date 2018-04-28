@@ -385,13 +385,17 @@ Checking spec/samples/python_code.lua             1 error
 
     spec/samples/python_code.lua:1:6: expected '=' near '__future__'
 
-Checking s/samples/absent_code.lua                I/O error
+Checking s/samples/absent_code1.lua               I/O error
 
-    s/samples/absent_code.lua: couldn't read: No such file or directory
+    s/samples/absent_code1.lua: couldn't read: No such file or directory
 
-Total: 0 warnings / 1 error in 1 file, couldn't check 1 file
-]], get_output "spec/samples/python_code.lua s/samples/absent_code.lua --no-config")
-      assert.equal(3, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua --no-config")
+Checking s/samples/absent_code2.lua               I/O error
+
+    s/samples/absent_code2.lua: couldn't read: No such file or directory
+
+Total: 0 warnings / 1 error in 1 file, couldn't check 2 files
+]], get_output "spec/samples/python_code.lua s/samples/absent_code1.lua s/samples/absent_code2.lua --no-config")
+      assert.equal(3, get_exitcode "spec/samples/python_code.lua spec/samples/absent_code.lua s/samples/absent_code2.lua --no-config")
    end)
 
    it("expands rockspecs", function()
