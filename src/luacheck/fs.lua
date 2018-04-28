@@ -142,13 +142,17 @@ end
 function fs.extract_files(dir_path, pattern)
    assert(fs.has_lfs)
    local res = {}
+   local err_map = {}
 
    local function scan(dir)
       local ok, iter, state, var = pcall(base_fs.dir_iter, dir)
 
       if not ok then
          local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
-         return "couldn't recursively check " .. dir .. ": " .. err
+         err = "couldn't recursively check " .. dir .. ": " .. err
+         err_map[dir] = err
+         table.insert(res, dir)
+         return
       end
 
       for path in iter, state, var do
@@ -156,11 +160,8 @@ function fs.extract_files(dir_path, pattern)
             local full_path = fs.join(dir, path)
 
             if fs.is_dir(full_path) then
-               local err = scan(full_path)
+               scan(full_path)
 
-               if err then
-                  return err
-               end
             elseif path:match(pattern) and fs.is_file(full_path) then
                table.insert(res, full_path)
             end
@@ -168,14 +169,9 @@ function fs.extract_files(dir_path, pattern)
       end
    end
 
-   local err = scan(dir_path)
-
-   if err then
-      return nil, err
-   end
-
+   scan(dir_path)
    table.sort(res)
-   return res
+   return res, err_map
 end
 
 -- Returns modification time for a file.
