@@ -14,8 +14,6 @@ function lfs_fs.get_mtime(path)
    return lfs.attributes(path, "modification")
 end
 
-function lfs_fs.dir_iter(path)
-   return lfs.dir(path)
-end
+lfs_fs.dir_iter = lfs.dir
 
 return lfs_fs

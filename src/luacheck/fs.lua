@@ -149,7 +149,7 @@ function fs.extract_files(dir_path, pattern)
 
       if not ok then
          local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
-         err = "couldn't recursively check " .. dir .. ": " .. err
+         err = "couldn't recursively check: " .. err
          err_map[dir] = err
          table.insert(res, dir)
          return
