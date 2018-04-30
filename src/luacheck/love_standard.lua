@@ -15,6 +15,7 @@ local love = {
       gamepadaxis = read_write,
       gamepadpressed = read_write,
       gamepadreleased = read_write,
+      handlers = read_write,
       joystickadded = read_write,
       joystickaxis = read_write,
       joystickhat = read_write,
