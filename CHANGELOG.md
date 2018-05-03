@@ -1,4 +1,4 @@
-# Change Log
+# Changelog
 
 ## 0.22.0 (unreleased)
 
@@ -35,6 +35,7 @@
   as overwritten by another value.
 * Fixed caching not working properly when cache is enabled in config
   loaded from a parent directory.
+* Added missing definition of `love.handlers` to `love` std (#161).
 
 ## 0.21.2 (2017-11-13)
 
