@@ -22,11 +22,11 @@ local function critical(msg)
 end
 
 local function get_parser()
-   local parser = argparse("luacheck", "luacheck " .. luacheck._VERSION .. ", a simple static analyzer for Lua.", [[
+   local parser = argparse("luacheck", "luacheck " .. luacheck._VERSION .. ", a linter and a static analyzer for Lua.", [[
 Links:
 
    Luacheck on GitHub: https://github.com/mpeterv/luacheck
-   Luacheck documentation: http://luacheck.readthedocs.org]])
+   Luacheck documentation: https://luacheck.readthedocs.org]])
       :help_max_width(80)
 
    parser:argument "files"
