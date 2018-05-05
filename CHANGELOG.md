@@ -26,6 +26,9 @@
   directory is now reported separately, and other found files and directories
   are checked anyway. Previously any error when listing any nested directory
   resulted in immediate failure for the entire parent directory (#159).
+* When `--[no-]cache` CLI option is used with LuaFileSystem not found,
+  it is now ignored instead of causing an error. Missing LuaFileSystem is now
+  mentioned in the help message next to features disabled without it.
 
 ### Fixes
 

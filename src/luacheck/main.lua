@@ -30,9 +30,14 @@ Links:
    Luacheck documentation: https://luacheck.readthedocs.org]])
       :help_max_width(80)
 
+   local lfs_dir_notice = ""
+
+   if not fs.has_lfs then
+      lfs_dir_notice = "\nWarning: LuaFileSystem not found, directory checking disabled."
+   end
+
    parser:argument "files"
-      :description (fs.has_lfs and "List of files, directories and rockspecs to check. Pass '-' to check stdin." or
-         "List of files and rockspecs to check. Pass '-' to check stdin.")
+      :description("List of files, directories and rockspecs to check. Pass '-' to check stdin." .. lfs_dir_notice)
       :args "+"
       :argname "<file>"
 
@@ -207,20 +212,24 @@ Links:
       :action "concat"
       :init(nil)
 
-   if fs.has_lfs then
-      parser:mutex(
-         parser:option("--cache", "Path to cache file. (default: .luacheckcache)")
-            :args "?",
-         parser:flag("--no-cache", "Do not use cache.")
-            :action "store_false"
-            :target "cache"
-      )
+   local lfs_cache_notice = ""
+
+   if not fs.has_lfs then
+      lfs_cache_notice = "\nWarning: LuaFileSystem not found, caching disabled."
    end
+
+   parser:mutex(
+      parser:option("--cache", "Path to cache file (default: .luacheckcache)." .. lfs_cache_notice)
+         :args "?",
+      parser:flag("--no-cache", "Do not use cache.")
+         :action "store_false"
+         :target "cache"
+   )
 
    local lanes_notice = ""
 
    if not multithreading.has_lanes then
-      lanes_notice = "\nWarning: LuaLanes not found."
+      lanes_notice = "\nWarning: LuaLanes not found, parallel checking disabled."
    end
 
    parser:option(
@@ -264,7 +273,11 @@ local function main()
    end
 
    if args.cache then
-      args.cache = args.cache[1] or true
+      if fs.has_lfs then
+         args.cache = args.cache[1] or true
+      else
+         args.cache = nil
+      end
    end
 
    local checker, err, is_invalid_args_error = runner.new(args)
