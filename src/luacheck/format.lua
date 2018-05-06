@@ -96,13 +96,7 @@ local message_formats = {
    ["541"] = "empty do..end block",
    ["542"] = "empty if branch",
    ["551"] = "empty statement",
-   ["611"] = "line contains only whitespace",
-   ["612"] = "line contains trailing whitespace",
-   ["613"] = "trailing whitespace in a string",
-   ["614"] = "trailing whitespace in a comment",
-   ["621"] = "inconsistent indentation (SPACE followed by TAB)",
-   ["631"] = "line is too long ({end_column} > {max_length})",
-   ["711"] = function(w)
+   ["561"] = function(w)
       local template = "cyclomatic complexity of %s is too high ({complexity} > {max_complexity})"
 
       local function_descr
@@ -117,6 +111,12 @@ local message_formats = {
 
       return template:format(function_descr)
    end,
+   ["611"] = "line contains only whitespace",
+   ["612"] = "line contains trailing whitespace",
+   ["613"] = "trailing whitespace in a string",
+   ["614"] = "trailing whitespace in a comment",
+   ["621"] = "inconsistent indentation (SPACE followed by TAB)",
+   ["631"] = "line is too long ({end_column} > {max_length})"
 }
 
 local function get_message_format(warning)

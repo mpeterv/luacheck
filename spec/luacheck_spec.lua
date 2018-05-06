@@ -577,21 +577,21 @@ describe("get_message", function()
       }))
 
       assert.equal("cyclomatic complexity of main chunk is too high (yes > please no)", luacheck.get_message({
-         code = "711",
+         code = "561",
          function_type = "main_chunk",
          complexity = "yes",
          max_complexity = "please no"
       }))
 
       assert.equal("cyclomatic complexity of function is too high (10 > 1)", luacheck.get_message({
-         code = "711",
+         code = "561",
          function_type = "function",
          complexity = 10,
          max_complexity = 1
       }))
 
       assert.equal("cyclomatic complexity of function '>>=' is too high (10 > 1)", luacheck.get_message({
-         code = "711",
+         code = "561",
          function_type = "function",
          function_name = ">>=",
          complexity = 10,
@@ -599,7 +599,7 @@ describe("get_message", function()
       }))
 
       assert.equal("cyclomatic complexity of method 'foo.bar.baz' is too high (1000 > 10)", luacheck.get_message({
-         code = "711",
+         code = "561",
          function_type = "method",
          function_name = "foo.bar.baz",
          complexity = 1000,

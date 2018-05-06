@@ -1,8 +1,8 @@
 local raw_check = require "luacheck.check"
 
-local function ignore711(events)
+local function remove_cyclomatic_complexity_warnings(events)
    for i = #events, 1, -1 do
-      if events[i].code == "711" then
+      if events[i].code == "561" then
          table.remove(events, i)
       end
    end
@@ -10,7 +10,7 @@ end
 
 local function check_full(src)
    local report = raw_check(src)
-   ignore711(report.events)
+   remove_cyclomatic_complexity_warnings(report.events)
    return report
 end
 

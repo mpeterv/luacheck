@@ -2,7 +2,7 @@ local utils = require "luacheck.utils"
 
 local function new_cyclomatic_complexity_warning(node, complexity)
    local warning = {
-      code = "711",
+      code = "561",
       complexity = complexity
    }
 

@@ -276,7 +276,7 @@ local function filters(opts, warning)
       end
    end
 
-   if warning.code == "711" then
+   if warning.code == "561" then
       local max_cyclomatic_complexity = get_max_cyclomatic_complexity(opts, warning)
       if (not max_cyclomatic_complexity or warning.complexity <= max_cyclomatic_complexity) then
           return true
@@ -336,7 +336,7 @@ local function filter_file_report(report)
                issue.field = get_field_string(issue)
             end
 
-            if issue.code == "711" then
+            if issue.code == "561" then
                issue.max_complexity = get_max_cyclomatic_complexity(opts, issue)
             end
             table.insert(res, issue)
