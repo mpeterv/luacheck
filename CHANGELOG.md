@@ -38,6 +38,8 @@
   as overwritten by another value.
 * Fixed caching not working properly when cache is enabled in config
   loaded from a parent directory.
+* Fixed per-path config overrides not working on Windows when paths in config
+  and input paths use different case (#150).
 * Added missing definition of `love.handlers` to `love` std (#161).
 
 ## 0.21.2 (2017-11-13)
