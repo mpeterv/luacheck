@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.22.0 (unreleased)
+## 0.22.0 (2018-05-09)
 
 ### New features and improvements
 
