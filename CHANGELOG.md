@@ -42,6 +42,13 @@
   and input paths use different case (#150).
 * Added missing definition of `love.handlers` to `love` std (#161).
 
+### Miscellaneous
+
+* Installer script (install.lua) is deprecated. Future versions of Luacheck
+  may have required dependencies. Luacheck can still be installed manually
+  by recursively copying `src/luacheck` to a directory in `package.path`
+  and copying `bin/luacheck.lua` to a directory in `PATH` as `luacheck`.
+
 ## 0.21.2 (2017-11-13)
 
 ### Fixes
