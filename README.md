@@ -43,7 +43,7 @@ For Windows there is single-file 64-bit binary distribution, bundling Lua 5.3.4,
 
 ## Basic usage
 
-After Luacheck is installed, run `luacheck` program from the command line. Pass a list of files, [rockspecs](https://github.com/keplerproject/luarocks/wiki/Rockspec-format) or directories (requires LuaFileSystem) to be checked:
+After Luacheck is installed, run `luacheck` program from the command line. Pass a list of files, [rockspecs](https://github.com/luarocks/luarocks/wiki/Rockspec-format) or directories (requires LuaFileSystem) to be checked:
 
 ```
 luacheck src extra_file.lua another_file.lua

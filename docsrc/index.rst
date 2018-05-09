@@ -11,4 +11,4 @@ Contents:
    inline
    module
 
-This is documentation for 0.21.2 version of `Luacheck <https://github.com/mpeterv/luacheck/>`_, a linter for `Lua <http://www.lua.org/>`_.
+This is documentation for 0.22.0 version of `Luacheck <https://github.com/mpeterv/luacheck/>`_, a linter for `Lua <https://www.lua.org/>`_.

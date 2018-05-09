@@ -1,7 +1,7 @@
 Command line interface
 ======================
 
-``luacheck`` program accepts files, directories and `rockspecs <http://www.luarocks.org/en/Rockspec_format>`_ as arguments. They can be filtered using ``--include-files`` and ``--exclude-files`` options, see below.
+``luacheck`` program accepts files, directories and `rockspecs <https://github.com/luarocks/luarocks/wiki/Rockspec-format>`_ as arguments. They can be filtered using ``--include-files`` and ``--exclude-files`` options, see below.
 
 * Given a file, ``luacheck`` will check it.
 * Given ``-``, ``luacheck`` will check stdin.
@@ -103,14 +103,16 @@ Option                                  Meaning
 ``-m | --module``                       Limit visibility of implicitly defined globals to their files.
 
                                         See :ref:`modules`
-``--max-line-length <length``           Set maximum allowed line length (default: 120).
+``--max-line-length <length>``          Set maximum allowed line length (default: 120).
 ``--no-max-line-length``                Do not limit line length.
-``--max-code-line-length <length``      Set maximum allowed length for lines ending with code (default: 120).
+``--max-code-line-length <length>``     Set maximum allowed length for lines ending with code (default: 120).
 ``--no-max-code-line-length``           Do not limit code line length.
-``--max-string-line-length <length``    Set maximum allowed length for lines within a string (default: 120).
+``--max-string-line-length <length>``   Set maximum allowed length for lines within a string (default: 120).
 ``--no-max-string-line-length``         Do not limit string line length.
-``--max-comment-line-length <length``   Set maximum allowed length for comment lines (default: 120).
+``--max-comment-line-length <length>``  Set maximum allowed length for comment lines (default: 120).
 ``--no-max-comment-line-length``        Do not limit comment line length.
+``--max-cyclomatic-complexity <limit>`` Set maximum cyclomatic complexity for functions.
+``--no-max-cyclomatic-complexity``      Do not limit function cyclomatic complexity (default).
 ``--ignore | -i <patt> [<patt>] ...``   Filter out warnings matching patterns.
 ``--enable | -e <patt> [<patt>] ...``   Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``     Filter out warnings not matching patterns.
@@ -137,6 +139,7 @@ Option                                  Meaning
 
                                         * ``TAP`` - Test Anything Protocol formatter;
                                         * ``JUnit`` - JUnit XML formatter;
+                                        * ``visual_studio`` - MSBuild/Visual Studio aware formatter;
                                         * ``plain`` - simple warning-per-line formatter;
                                         * ``default`` - standard formatter.
 ``-q | --quiet``                        Suppress report output for files without warnings.
@@ -179,7 +182,7 @@ CLI options ``--globals``, ``--new-globals``, ``--read-globals``, ``--new-read-g
 Sets of standard globals
 ------------------------
 
-CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51c+lua52c+lua53c+luajit``. Leading plus sign adds new sets to default one instead of replacing it. For instance, ``--std +busted`` is suitable for checking test files that use `Busted <http://olivinelabs.com/busted/>`_ testing framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
+CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51c+lua52c+lua53c+luajit``. Leading plus sign adds new sets to current one instead of replacing it. For instance, ``--std +busted`` is suitable for checking test files that use `Busted <http://olivinelabs.com/busted/>`_ testing framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
 
 Formatters
 ----------

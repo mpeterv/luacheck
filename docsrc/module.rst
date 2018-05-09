@@ -24,9 +24,9 @@ A file report is an array of issues (warnings or errors). If a fatal error occur
 
 An issue is a table with field ``code`` indicating its type (see :doc:`warnings`), and fields ``line``, ``column`` and ``end_column`` pointing to the source of the warning. ``name`` field may contain name of related variable. Issues of some types can also have additional fields:
 
-============= ============================================================================================================
+============= ==============================================================================================================
 Codes         Additional fields
-============= ============================================================================================================
+============= ==============================================================================================================
 011           ``msg`` field contains syntax error message.
 111           ``module`` field indicates that assignment is to a non-module global variable.
 122, 142, 143 ``indirect`` field indicates that the global field was accessed using a local alias.
@@ -35,10 +35,12 @@ Codes         Additional fields
 211           ``recursive`` field indicates that unused function is recursive.
 211           ``mutually_recursive`` field is set for unused mutually recursive functions.
 314           ``field`` field contains string representation of ununsed field or index.
-4..           ``prev_line`` and ``prev_column`` fields contain location of the overwritten definition.
+011           ``prev_line``, ``prev_column``, and ``prev_end_column`` fields may point to an extra relevant location,
+              such as the opening unpaired bracket.
+4..           ``prev_line``, ``prev_column``, and ``prev_end_column`` fields contain location of the overwritten definition.
 521           ``label`` field contains label name.
 631           ``line_ending`` field contains ``"comment"`` or ``"string"`` if line ending is within a comment or a string.
 631           ``max_length`` field contains maximum allowed line length.
-============= ============================================================================================================
+============= ==============================================================================================================
 
 Other fields may be present for internal reasons.

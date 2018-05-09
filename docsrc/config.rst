@@ -1,11 +1,13 @@
 Configuration file
 ==================
 
-``luacheck`` tries to load configuration from ``.luacheckrc`` file in the current directory. If not found, it will look for it in the parent directory and so on, going up until it reaches file system root. Path to config can be set using ``--config`` option, in which case it will be used during recursive loading. Config loading can be disabled using ``--no-config`` flag.
+``luacheck`` tries to load configuration from ``.luacheckrc`` file in the current directory. If not found, it will look for it in the parent directory and so on, going up until it reaches file system root. Path to config can be set using ``--config`` option, in which case it will be used during recursive loading. Paths within config are interpreted relatively to the directory from which it was loaded.
+
+Config loading can be disabled using ``--no-config`` flag.
 
 If neither of ``--config``, ``--no-config``, and ``--no-default-config`` options are used, ``luacheck`` will attempt to load configuration from value of ``--default-config`` option,
 or ``%LOCALAPPDATA%\Luacheck\.luacheckrc`` on Windows, ``~/Library/Application Support/Luacheck/.luacheckrc`` on OS X/macOS, and ``$XDG_CONFIG_HOME/luacheck/.luacheckrc``
-or ``~/.config/luacheck/.luacheckrc`` on other systems by default.
+or ``~/.config/luacheck/.luacheckrc`` on other systems by default. Paths within default config are interpreted relatively to the current directory.
 
 Config is simply a Lua script executed by ``luacheck``. It may set various options by assigning to globals or by returning a table with option names as keys.
 
@@ -19,8 +21,10 @@ Config options
 ============================= ======================================== ===================
 Option                        Type                                     Default value
 ============================= ======================================== ===================
+``quiet``                     Integer in range 0..3                    ``0``
 ``color``                     Boolean                                  ``true``
 ``codes``                     Boolean                                  ``false``
+``ranges``                    Boolean                                  ``false``
 ``formatter``                 String or function                       ``"default"``
 ``cache``                     Boolean or string                        ``false``
 ``jobs``                      Positive integer                         ``1``

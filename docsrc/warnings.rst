@@ -50,6 +50,7 @@ Code Description
 541  An empty ``do`` ``end`` block.
 542  An empty ``if`` branch.
 551  An empty statement.
+561  Cyclomatic complexity of a function is too high.
 611  A line consists of nothing but whitespace.
 612  A line contains trailing whitespace.
 613  Trailing whitespace in a string.
@@ -199,6 +200,12 @@ Empty statements
 
 In Lua 5.2+ semicolons are considered statements and can appear even when not following normal statements. Such semicolons
 produce Luacheck warnings as they are completely useless.
+
+Cyclomatic complexity
+^^^^^^^^^^^^^^^^^^^^^
+
+If a limit is set using ``--max-cyclomatic-complexity`` CLI option or corresponding config or inline options, Luacheck warns about functions
+with too high cyclomatic complexity.
 
 Formatting issues (6xx)
 -----------------------
