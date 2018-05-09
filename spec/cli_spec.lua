@@ -1461,6 +1461,13 @@ Critical error: Couldn't find configuration file spec/configs/config_404.luachec
 ]], get_output "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
             assert.equal(4, get_exitcode "spec/samples/empty.lua --config=spec/configs/config_404.luacheckrc")
          end)
+
+         it("raises critical error on config with invalid options", function()
+            assert.equal([[
+Critical error: in config loaded from spec/configs/invalid_config.luacheckrc: invalid value of option 'ignore': array of strings expected, got string
+]], get_output "spec/samples/empty.lua --config=spec/configs/invalid_config.luacheckrc")
+            assert.equal(4, get_exitcode "spec/samples/empty.lua --config=spec/configs/invalid_config.luacheckrc")
+         end)
       end)
 
       describe("overwriting", function()

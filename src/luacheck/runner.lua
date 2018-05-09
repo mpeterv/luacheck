@@ -41,7 +41,7 @@ function runner.new(opts)
    config_stack, err = config.stack_configs({base_config, override_config})
 
    if not config_stack then
-      error(("bad argument #1 to 'runner.new' (%s)"):format(err))
+      return nil, err
    end
 
    return Runner(config_stack)
