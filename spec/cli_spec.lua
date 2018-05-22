@@ -913,7 +913,7 @@ Total: 16 warnings / 1 error in 4 files
          end
 
          -- luacheck: push no max string line length
-         local format_version, good_mtime, bad_mtime, python_mtime = cache:match(replace_abspath(([[
+         local format_version, good_mtime, bad_mtime, python_mtime = cache:match(replace_abspath([[
 
 (%d+)
 abspath{spec/samples/good_code.lua}
@@ -925,7 +925,7 @@ local A,B,C,D,E,F="package","561","helper","function","embrace","hepler";return 
 abspath{spec/samples/python_code.lua}
 (%d+)
 return {{{"011",[3]=1,[4]=6,[5]=15,[13]="expected '=' near '__future__'"}},{},{},{}}
-]]):gsub("[%[%]]", "%%%0")))
+]]):gsub("[%[%]%-]", "%%%0"), nil)
          -- luacheck: pop
 
          format_version = tonumber(format_version)
