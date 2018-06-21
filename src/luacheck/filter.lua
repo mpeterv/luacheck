@@ -430,11 +430,25 @@ local function annotate_file_report_with_affecting_options(file_report, option_s
    return res
 end
 
+local function may_have_options(opts_table)
+   for key in pairs(opts_table) do
+      if type(key) == "string" then
+         return true
+      end
+   end
+
+   return false
+end
+
 local function get_option_stack(opts, report_index)
    local res = {opts}
 
    if opts and opts[report_index] then
-      res[2] = opts[report_index]
+      -- Don't add useless per-file option tables, that messes up normalized option caching
+      -- since it memorizes based on option table identities.
+      if may_have_options(opts[report_index]) then
+         table.insert(res, opts[report_index])
+      end
 
       for _, nested_opts in ipairs(opts[report_index]) do
          table.insert(res, nested_opts)
