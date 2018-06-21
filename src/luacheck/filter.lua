@@ -362,10 +362,48 @@ local function filter_report(report)
    return res
 end
 
+-- Normalizing options is relatively expensive because full std definitions are quite large.
+-- `CachingOptionsNormalizer` implements a caching layer that reduces number of `options.normalize` calls.
+-- Caching is done based on identities of all option tables in "base" option stack (CLI options, config options),
+-- and on the identity of the entire "inline" option stack (inline options module attempts to reuse returned arrays).
+
+local CachingOptionsNormalizer = utils.class()
+
+function CachingOptionsNormalizer:__init(stds)
+   self.stds = stds
+   -- result_trie[t1][t2]...[tn][inline_opts] == options.normalize({t1, t2, ..., tn, unpack(inline_opts)}, stds).
+   self.result_trie = {}
+end
+
+local empty_inline_opts = {}
+
+function CachingOptionsNormalizer:normalize_options(opts_stack, inline_opts)
+   if not inline_opts or #inline_opts == 0 then
+      inline_opts = empty_inline_opts
+   end
+
+   local result_node = self.result_trie
+
+   for _, opts_table in ipairs(opts_stack) do
+      if not result_node[opts_table] then
+         result_node[opts_table] = {}
+      end
+
+      result_node = result_node[opts_table]
+   end
+
+   if result_node[inline_opts] then
+      return result_node[inline_opts]
+   end
+
+   local result = options.normalize(utils.concat_arrays({opts_stack, inline_opts}), self.stds)
+   result_node[inline_opts] = result
+   return result
+end
 
 -- Transforms file report, returning an array of pairs {issue, normalized options for the issue}.
-local function annotate_file_report_with_affecting_options(file_report, option_stack, stds)
-   local opts = options.normalize(option_stack, stds)
+local function annotate_file_report_with_affecting_options(file_report, option_stack, stds, caching_opts_normalizer)
+   local opts = caching_opts_normalizer:normalize_options(option_stack)
 
    if not opts.inline then
       local res = {}
@@ -381,18 +419,12 @@ local function annotate_file_report_with_affecting_options(file_report, option_s
    local events, per_line_opts = inline_options.validate_options(file_report.events, file_report.per_line_options, stds)
    local issues_with_inline_opts = inline_options.get_issues_and_affecting_options(events, per_line_opts)
 
-   local normalized_options_cache = {}
    local res = {}
 
    for i, pair in ipairs(issues_with_inline_opts) do
       local issue, inline_opts = pair[1], pair[2]
-
-      if not normalized_options_cache[inline_opts] then
-         normalized_options_cache[inline_opts] = options.normalize(
-            utils.concat_arrays({option_stack, inline_opts}), stds)
-      end
-
-      res[i] = {issue, normalized_options_cache[inline_opts]}
+      local normalized_opts = caching_opts_normalizer:normalize_options(option_stack, inline_opts)
+      res[i] = {issue, normalized_opts}
    end
 
    return res
@@ -414,12 +446,14 @@ end
 
 local function annotate_report_with_affecting_options(report, opts, stds)
    local res = {}
+   local caching_opts_normalizer = CachingOptionsNormalizer(stds)
 
    for i, file_report in ipairs(report) do
       if file_report.fatal then
          res[i] = file_report
       else
-         res[i] = annotate_file_report_with_affecting_options(file_report, get_option_stack(opts, i), stds)
+         res[i] = annotate_file_report_with_affecting_options(
+            file_report, get_option_stack(opts, i), stds, caching_opts_normalizer)
       end
    end
 
