@@ -429,15 +429,15 @@ local function annotate_file_report_with_affecting_options(file_report, option_s
    end
 
    local events, per_line_opts = inline_options.validate_options(file_report.events, file_report.per_line_options, stds)
-   local issues_with_inline_opts = inline_options.get_issues_and_affecting_options(events, per_line_opts)
+   local issues, inline_option_arrays = inline_options.get_issues_and_affecting_options(events, per_line_opts)
 
    local res = {
       issues = {},
       options = {}
    }
 
-   for i, pair in ipairs(issues_with_inline_opts) do
-      local issue, inline_opts = pair[1], pair[2]
+   for i, issue in ipairs(issues) do
+      local inline_opts = inline_option_arrays[i]
       local normalized_opts = caching_opts_normalizer:normalize_options(option_stack, inline_opts)
       res.issues[i] = issue
       res.options[i] = normalized_opts

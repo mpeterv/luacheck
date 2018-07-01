@@ -373,14 +373,13 @@ end
 
 -- Takes an array of events and a map of per-line options as returned from
 -- `get_events()`, possibly with location information stripped from push/pop events.
--- Returns an array of pairs {issue, option_attay} that matches each
--- warning or error with an array of inline option tables that affect it.
+-- Returns two parallel arrays, one with issues, one with option table arrays for the issues.
 -- Some option arrays may share identity.
--- Returned array is sorted by warning location.
 function inline_options.get_issues_and_affecting_options(events, per_line_opts)
    local pushes = utils.Stack()
    local option_stack = utils.Stack()
-   local res = {}
+   local issues = {}
+   local option_arrays = {}
    local empty_option_array = {}
 
    for _, event in ipairs(events) do
@@ -406,7 +405,8 @@ function inline_options.get_issues_and_affecting_options(events, per_line_opts)
             option_array = utils.concat_arrays({option_array, line_options})
          end
 
-         table.insert(res, {event, option_array})
+         table.insert(issues, event)
+         table.insert(option_arrays, option_array)
       elseif event.options then
          option_stack:push(event.options)
       elseif event.push then
@@ -423,7 +423,7 @@ function inline_options.get_issues_and_affecting_options(events, per_line_opts)
       end
    end
 
-   return res
+   return issues, option_arrays
 end
 
 -- Extract only warnings and errors from an array of events.
