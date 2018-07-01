@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.22.1 (2018-07-01)
+
+### Improvements
+
+* Reduced amount of RAM used when checking a large number of files.
+
 ## 0.22.0 (2018-05-09)
 
 ### New features and improvements
