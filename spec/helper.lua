@@ -1,5 +1,19 @@
 local helper = {}
 
+local function get_lua()
+   local index = -1
+   local res = "lua"
+
+   while arg[index] do
+      res = arg[index]
+      index = index - 1
+   end
+
+   return res
+end
+
+local lua = get_lua()
+
 local dir_sep = package.config:sub(1, 1)
 
 -- Return path to root directory when run from `path`.
@@ -28,7 +42,7 @@ local luacov = package.loaded["luacov.runner"]
 function helper.luacheck_command(loc_path)
    loc_path = loc_path or "."
    local prefix = antipath(loc_path)
-   local cmd = ("cd %s && %s"):format(loc_path, arg[-5] or "lua")
+   local cmd = ("cd %s && %s"):format(loc_path, lua)
 
    -- Extend package.path to allow loading this helper and luacheck modules.
    cmd = cmd..(' -e "package.path=[[%s?.lua;%ssrc%s?.lua;%ssrc%s?%sinit.lua;]]..package.path"'):format(
