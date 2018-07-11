@@ -12,8 +12,6 @@ local function get_lua()
    return res
 end
 
-local lua = get_lua()
-
 local dir_sep = package.config:sub(1, 1)
 
 -- Return path to root directory when run from `path`.
@@ -37,9 +35,11 @@ function helper.luacov_config(prefix)
 end
 
 local luacov = package.loaded["luacov.runner"]
+local lua
 
 -- Returns command that runs `luacheck` executable from `loc_path`.
 function helper.luacheck_command(loc_path)
+   lua = lua or get_lua()
    loc_path = loc_path or "."
    local prefix = antipath(loc_path)
    local cmd = ("cd %s && %s"):format(loc_path, lua)
