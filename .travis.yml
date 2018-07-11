@@ -9,8 +9,8 @@ env:
   - LUA="luajit=2.1"
 
 install:
-  - pip install --user hererocks
-  - pip install --user codecov
+  - pip install hererocks
+  - pip install codecov
   - hererocks here --$LUA -r latest
   - source here/bin/activate
   - luarocks install lanes
