@@ -1,30 +1,21 @@
-language: c
+language: python
 sudo: false
 
-cache:
-  directories: here
-
-matrix:
-  include:
-    - compiler: ": Lua51"
-      env: LUA="lua 5.1"
-    - compiler: ": Lua52"
-      env: LUA="lua 5.2"
-    - compiler: ": Lua53"
-      env: LUA="lua 5.3"
-    - compiler: ": LuaJIT20"
-      env: LUA="luajit 2.0"
-    - compiler: ": LuaJIT21"
-      env: LUA="luajit 2.1"
+env:
+  - LUA="lua=5.1"
+  - LUA="lua=5.2"
+  - LUA="lua=5.3"
+  - LUA="luajit=2.0"
+  - LUA="luajit=2.1"
 
 install:
   - pip install --user hererocks
   - pip install --user codecov
-  - hererocks here --$LUA -r https://github.com/mpeterv/luarocks@upgrade-install
-  - export PATH="$PWD/here/bin:$PATH"
-  - luarocks install lanes --upgrade --upgrade-deps
-  - luarocks install busted --upgrade --upgrade-deps
-  - luarocks install cluacov --upgrade --upgrade-deps
+  - hererocks here --$LUA -r latest
+  - source here/bin/activate
+  - luarocks install lanes
+  - luarocks install busted
+  - luarocks install cluacov
 
 script:
   - busted -c
