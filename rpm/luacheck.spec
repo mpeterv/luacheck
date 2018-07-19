@@ -1,4 +1,4 @@
-Name: luacheck
+Name: tarantool-luacheck
 # During package building {version} is overwritten by Packpack with
 # VERSION. It is set to major.minor.patch.number_of_commits_above_last_tag.
 # major.minor.patch tag and number of commits above are taken from the

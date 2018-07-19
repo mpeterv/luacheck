@@ -62,7 +62,7 @@ script:
         # last major.minor.patch tag.
         VERSION=`git describe --tags | sed -e 's/\(.*\)-.*/\1/' -e 's/-/./'`
         git clone https://github.com/packpack/packpack.git packpack;
-        VERSION=$VERSION RELEASE=$RELEASE packpack/packpack;
+        VERSION=$VERSION packpack/packpack;
     fi;
 
 after_script:
