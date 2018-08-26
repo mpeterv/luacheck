@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.23.0 (unreleased)
+
+### Breaking changes
+
+* Installer script (install.lua) is removed. Luacheck can still be installed
+  manually by recursively copying `src/*` to a directory in `package.path`
+  and copying `bin/luacheck.lua` to a directory in `PATH` as `luacheck`.
+
+### Miscellaneous
+
+* Luacheck now depends on argparse instead of bundling it.
+* LuaFileSystem dependency is now required.
+
 ## 0.22.1 (2018-07-01)
 
 ### Improvements
@@ -23,8 +36,9 @@
   redefined label errors point to the previous definition,
   unpaired tokens such as `function`/`end` point to the the first token (#134).
 * `luacheck` module now adds `prev_end_column` field to warning events that
-  already have `prev_line` and `prev_column` fields, and `overwritten_end_column`
-  for warnings with `overwritten_line` and `overwritten_column`.
+  already have `prev_line` and `prev_column` fields, and
+  `overwritten_end_column` for warnings with `overwritten_line` and
+  `overwritten_column`.
 * Improved error messages for invalid options and config: when an option is
   invalid, extra context is provided instead of just the name.
 * Custom stds are now validated on config load.
