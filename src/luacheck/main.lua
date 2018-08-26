@@ -1,7 +1,6 @@
 local argparse = require "argparse"
 local builtin_standards = require "luacheck.builtin_standards"
 local config = require "luacheck.config"
-local fs = require "luacheck.fs"
 local luacheck = require "luacheck"
 local multithreading = require "luacheck.multithreading"
 local runner = require "luacheck.runner"
@@ -30,14 +29,7 @@ Links:
    Luacheck documentation: https://luacheck.readthedocs.org]])
       :help_max_width(80)
 
-   local lfs_dir_notice = ""
-
-   if not fs.has_lfs then
-      lfs_dir_notice = "\nWarning: LuaFileSystem not found, directory checking disabled."
-   end
-
-   parser:argument "files"
-      :description("List of files, directories and rockspecs to check. Pass '-' to check stdin." .. lfs_dir_notice)
+   parser:argument("files", "List of files, directories and rockspecs to check. Pass '-' to check stdin.")
       :args "+"
       :argname "<file>"
 
@@ -225,13 +217,7 @@ Links:
 
    parser:option("--filename", "Use another filename in output and for selecting configuration overrides.")
 
-   local lfs_cache_notice = ""
-
-   if not fs.has_lfs then
-      lfs_cache_notice = "\nWarning: LuaFileSystem not found, caching disabled."
-   end
-
-   local cache_opt = parser:option("--cache", "Path to cache file (default: .luacheckcache)." .. lfs_cache_notice)
+   local cache_opt = parser:option("--cache", "Path to cache file (default: .luacheckcache).")
       :args "?"
 
    local no_cache_opt = parser:flag("--no-cache", "Do not use cache.")
@@ -289,11 +275,7 @@ local function main()
    end
 
    if args.cache then
-      if fs.has_lfs then
-         args.cache = args.cache[1] or true
-      else
-         args.cache = nil
-      end
+      args.cache = args.cache[1] or true
    end
 
    local checker, err, is_invalid_args_error = runner.new(args)

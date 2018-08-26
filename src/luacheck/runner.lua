@@ -141,20 +141,15 @@ function Runner:_prepare_inputs(inputs)
    for _, input in ipairs(inputs) do
       if input.path then
          if fs.is_dir(input.path) then
-            if fs.has_lfs then
-               local filenames, err_map = fs.extract_files(input.path, dir_pattern)
+            local filenames, err_map = fs.extract_files(input.path, dir_pattern)
 
-               for _, filename in ipairs(filenames) do
-                  local err = err_map[filename]
-                  if err then
-                     add({path = filename, fatal = "I/O", msg = err, filename = input.filename})
-                  else
-                     add({path = filename, filename = input.filename})
-                  end
+            for _, filename in ipairs(filenames) do
+               local err = err_map[filename]
+               if err then
+                  add({path = filename, fatal = "I/O", msg = err, filename = input.filename})
+               else
+                  add({path = filename, filename = input.filename})
                end
-            else
-               local err = "LuaFileSystem required to check directories"
-               add({path = input.path, fatal = "I/O", msg = err, filename = input.filename})
             end
          else
             add({path = input.path, filename = input.filename})

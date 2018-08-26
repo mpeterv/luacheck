@@ -1,16 +1,7 @@
 local fs = {}
 
+local lfs = require "lfs"
 local utils = require "luacheck.utils"
-
-fs.has_lfs = pcall(require, "lfs")
-
-local base_fs
-
-if fs.has_lfs then
-   base_fs = require "luacheck.lfs_fs"
-else
-   base_fs = require "luacheck.lua_fs"
-end
 
 local function ensure_dir_sep(path)
    if path:sub(-1) ~= utils.dir_sep then
@@ -105,11 +96,11 @@ function fs.is_subpath(path, subpath)
 end
 
 function fs.is_dir(path)
-   return base_fs.get_mode(path) == "directory"
+   return lfs.attributes(path, "mode") == "directory"
 end
 
 function fs.is_file(path)
-   return base_fs.get_mode(path) == "file"
+   return lfs.attributes(path, "mode") == "file"
 end
 
 -- Searches for file starting from path, going up until the file
@@ -140,12 +131,11 @@ end
 -- Returns list of all files in directory matching pattern.
 -- Returns nil, error message on error.
 function fs.extract_files(dir_path, pattern)
-   assert(fs.has_lfs)
    local res = {}
    local err_map = {}
 
    local function scan(dir)
-      local ok, iter, state, var = pcall(base_fs.dir_iter, dir)
+      local ok, iter, state, var = pcall(lfs.dir, dir)
 
       if not ok then
          local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
@@ -176,13 +166,12 @@ end
 
 -- Returns modification time for a file.
 function fs.get_mtime(path)
-   assert(fs.has_lfs)
-   return base_fs.get_mtime(path)
+   return lfs.attributes(path, "modification")
 end
 
 -- Returns absolute path to current working directory, with trailing directory separator.
 function fs.get_current_dir()
-   return ensure_dir_sep(base_fs.get_current_dir())
+   return ensure_dir_sep(assert(lfs.currentdir()))
 end
 
 return fs

@@ -1,5 +1,3 @@
-local lfs = require "lfs"
-
 local fs = require "luacheck.fs"
 local utils = require "luacheck.utils"
 local P = fs.normalize
@@ -80,47 +78,3 @@ describe("fs", function()
       end)
    end)
 end)
-
-for _, fs_name in ipairs({"lua_fs", "lfs_fs"}) do
-   local base_fs = require("luacheck." .. fs_name)
-
-   describe(fs_name, function()
-      describe("get_current_dir", function()
-         it("returns absolute path to current directory", function()
-            local current_dir = base_fs.get_current_dir()
-            assert.string(current_dir)
-            assert.not_equal("", (fs.split_base(current_dir)))
-            assert.is_true(fs.is_file(fs.join(current_dir, "spec/folder/foo")))
-         end)
-      end)
-
-      describe("get_mode", function()
-         local tricky_path = "spec" .. utils.dir_sep .. "'"
-
-         it("returns 'file' for a file", function()
-            local fh = assert(io.open(tricky_path, "w"))
-            fh:close()
-            finally(function() assert(os.remove(tricky_path)) end)
-            assert.equal("file", base_fs.get_mode(tricky_path))
-         end)
-
-         it("returns 'directory' for a directory", function()
-            assert(lfs.mkdir(tricky_path))
-            finally(function() assert(lfs.rmdir(tricky_path)) end)
-            assert.equal("directory", base_fs.get_mode(tricky_path))
-         end)
-
-         it("returns not 'file' or 'directory' if path doesn't point to a file or a directory", function()
-            local mode = base_fs.get_mode(tricky_path)
-            assert.not_equal("file", mode)
-            assert.not_equal("directory", mode)
-         end)
-
-         it("returns not 'file' or 'directory' if path is bad", function()
-            local mode = base_fs.get_mode('"^<>!|&%')
-            assert.not_equal("file", mode)
-            assert.not_equal("directory", mode)
-         end)
-      end)
-   end)
-end

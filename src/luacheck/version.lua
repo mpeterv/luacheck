@@ -1,5 +1,5 @@
+local lfs = require "lfs"
 local luacheck = require "luacheck"
-local fs = require "luacheck.fs"
 local multithreading = require "luacheck.multithreading"
 
 local version = {}
@@ -12,12 +12,7 @@ else
    version.lua = _VERSION
 end
 
-if fs.has_lfs then
-   local lfs = require "lfs"
-   version.lfs = lfs._VERSION
-else
-   version.lfs = "Not found"
-end
+version.lfs = lfs._VERSION
 
 if multithreading.has_lanes then
    version.lanes = multithreading.lanes.ABOUT.version
