@@ -22,10 +22,7 @@ script:
   - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua luacheck-dev-1.rockspec -j2
   - lua -e 'package.preload.lfs=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua src | grep 'I/O error'
   - lua -e 'package.preload.lanes=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua --version | grep 'Not found'
-  - lua install.lua path/to/luacheck
-  - mv src src2
-  - path/to/luacheck/bin/luacheck spec/*.lua
-  - mv src2 src
+  - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec/*.lua
 
 after_script:
   - luacov
