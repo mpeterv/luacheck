@@ -1,3 +1,4 @@
+local argparse = require "argparse"
 local lfs = require "lfs"
 local luacheck = require "luacheck"
 local multithreading = require "luacheck.multithreading"
@@ -12,6 +13,8 @@ else
    version.lua = _VERSION
 end
 
+version.argparse = argparse.version
+
 version.lfs = lfs._VERSION
 
 if multithreading.has_lanes then
@@ -23,7 +26,8 @@ end
 version.string = ([[
 Luacheck: %s
 Lua: %s
+Argparse: %s
 LuaFileSystem: %s
-LuaLanes: %s]]):format(version.luacheck, version.lua, version.lfs, version.lanes)
+LuaLanes: %s]]):format(version.luacheck, version.lua, version.argparse, version.lfs, version.lanes)
 
 return version

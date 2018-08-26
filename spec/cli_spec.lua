@@ -1122,7 +1122,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
 
    it("provides version info", function()
       local output = get_output "--version"
-      assert.truthy(output:match("^Luacheck: [%w%p ]+\nLua: [%w%p ]+\nLuaFileSystem: [%w%p ]+\nLuaLanes: [%w%p ]+\n$"))
+      assert.truthy(output:match("^Luacheck: [%w%p ]+\nLua: [%w%p ]+\nArgparse: [%w%p ]+\nLuaFileSystem: [%w%p ]+\nLuaLanes: [%w%p ]+\n$"))
    end)
 
    it("expands folders", function()
