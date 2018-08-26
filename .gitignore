@@ -1,4 +1,3 @@
-bin/luacheck
 .luacheckcache
 luacov.stats.out
 luacov.report.out
