@@ -13,13 +13,13 @@ Luacheck is a command-line tool for linting and static analysis of Lua code. It 
 }
 dependencies = {
    "lua >= 5.1, < 5.4",
+   "argparse >= 0.6.0",
    "luafilesystem >= 1.6.3"
 }
 build = {
    type = "builtin",
    modules = {
       luacheck = "src/luacheck/init.lua",
-      ["luacheck.argparse"] = "src/luacheck/argparse.lua",
       ["luacheck.builtin_standards"] = "src/luacheck/builtin_standards.lua",
       ["luacheck.cache"] = "src/luacheck/cache.lua",
       ["luacheck.check"] = "src/luacheck/check.lua",

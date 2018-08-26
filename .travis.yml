@@ -8,7 +8,7 @@ env:
   - LUA="luajit=2.0"
   - LUA="luajit=2.1"
 
-install:
+before_install:
   - pip install hererocks
   - pip install codecov
   - hererocks here --$LUA -r latest
@@ -16,6 +16,9 @@ install:
   - luarocks install lanes
   - luarocks install busted
   - luarocks install cluacov
+
+install:
+  - luarocks make
 
 script:
   - busted -c

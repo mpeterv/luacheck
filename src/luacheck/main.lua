@@ -1,4 +1,4 @@
-local argparse = require "luacheck.argparse"
+local argparse = require "argparse"
 local builtin_standards = require "luacheck.builtin_standards"
 local config = require "luacheck.config"
 local fs = require "luacheck.fs"

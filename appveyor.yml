@@ -10,7 +10,7 @@ environment:
   - LUA: "luajit 2.0"
   - LUA: "luajit 2.1"
 
-build_script:
+before_build:
   - set PATH=C:\Python27\Scripts;%PATH%
   - pip install hererocks
   - pip install codecov
@@ -18,6 +18,9 @@ build_script:
   - call here\bin\activate
   - luarocks install busted
   - luarocks install cluacov
+
+build_script:
+  - luarocks make
 
 test_script: busted -c
 
