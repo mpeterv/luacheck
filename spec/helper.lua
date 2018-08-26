@@ -25,7 +25,8 @@ function helper.luacov_config(prefix)
       statsfile = prefix.."luacov.stats.out",
       modules = {
          luacheck = "src/luacheck/init.lua",
-         ["luacheck.*"] = "src"
+         ["luacheck.*"] = "src",
+         ["luacheck.*.*"] = "src"
       },
       exclude = {
          "bin/luacheck$"
