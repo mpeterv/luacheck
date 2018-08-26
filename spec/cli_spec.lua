@@ -1271,7 +1271,7 @@ Codes: true
 
          it("uses exclude_files option", function()
             assert.equal(([[
-Checking spec/samples/argparse.lua                9 warnings
+Checking spec/samples/argparse-0.2.0.lua          9 warnings
 Checking spec/samples/compat.lua                  4 warnings
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
 Checking spec/samples/global_inline_options.lua   3 warnings
@@ -1293,7 +1293,7 @@ Total: 67 warnings / 4 errors in 16 files
 
          it("loads exclude_files option correctly from upper directory", function()
             assert.equal([[
-Checking argparse.lua                             9 warnings
+Checking argparse-0.2.0.lua                       9 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
@@ -1314,7 +1314,7 @@ Total: 67 warnings / 4 errors in 16 files
 
          it("combines excluded files from config and cli", function()
             assert.equal([[
-Checking argparse.lua                             9 warnings
+Checking argparse-0.2.0.lua                       9 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings

@@ -448,6 +448,6 @@ print "1\z
    end)
 
    it("handles argparse sample", function()
-      get_tokens(io.open("spec/samples/argparse.lua", "rb"):read("*a"))
+      get_tokens(io.open("spec/samples/argparse-0.2.0.lua", "rb"):read("*a"))
    end)
 end)

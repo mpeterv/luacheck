@@ -362,6 +362,6 @@ end
    end)
 
    it("handles argparse sample", function()
-      assert.table(check(io.open("spec/samples/argparse.lua", "rb"):read("*a")))
+      assert.table(check(io.open("spec/samples/argparse-0.2.0.lua", "rb"):read("*a")))
    end)
 end)
