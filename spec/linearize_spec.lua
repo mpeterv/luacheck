@@ -1,15 +1,16 @@
-local linearize = require "luacheck.linearize"
-local parser = require "luacheck.parser"
+local check_state = require "luacheck.check_state"
+local linearize = require "luacheck.stages.linearize"
+local parse = require "luacheck.stages.parse"
 
-local function get_line_(src)
-   local ast = parser.parse(src)
-   local chstate = {ast = ast, warnings = {}}
-   linearize(chstate)
-   return chstate.main_line
+local function get_line_or_throw(src)
+   local chstate = check_state.new(src)
+   parse.run(chstate)
+   linearize.run(chstate)
+   return chstate.top_line
 end
 
 local function get_line(src)
-   local ok, res = pcall(get_line_, src)
+   local ok, res = pcall(get_line_or_throw, src)
 
    if ok or type(res) == "table" then
       return res

@@ -1,16 +1,17 @@
+local check_state = require "luacheck.check_state"
 local core_utils = require "luacheck.core_utils"
-local detect_cyclomatic_complexity = require "luacheck.detect_cyclomatic_complexity"
-local linearize = require "luacheck.linearize"
-local name_functions = require "luacheck.name_functions"
-local parser = require "luacheck.parser"
+local detect_cyclomatic_complexity = require "luacheck.stages.detect_cyclomatic_complexity"
+local linearize = require "luacheck.stages.linearize"
+local name_functions = require "luacheck.stages.name_functions"
+local parse = require "luacheck.stages.parse"
 
 local function get_warnings(src)
-   local ast = parser.parse(src)
-   local chstate = {ast = ast, warnings = {}}
-   linearize(chstate)
-   name_functions(chstate)
+   local chstate = check_state.new(src)
+   parse.run(chstate)
+   linearize.run(chstate)
+   name_functions.run(chstate)
    chstate.warnings = {}
-   detect_cyclomatic_complexity(chstate)
+   detect_cyclomatic_complexity.run(chstate)
    core_utils.sort_by_location(chstate.warnings)
    return chstate.warnings
 end

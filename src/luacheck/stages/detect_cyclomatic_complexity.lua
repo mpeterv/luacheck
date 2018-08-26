@@ -1,25 +1,38 @@
 local utils = require "luacheck.utils"
 
-local function new_cyclomatic_complexity_warning(node, complexity)
-   local warning = {
-      code = "561",
-      complexity = complexity
-   }
+local stage = {}
 
-   if node.location then
-      warning.line = node.location.line
-      warning.column = node.location.column
-      warning.end_column = node.location.column + #"function" - 1
-      warning.function_name = node.name
-      warning.function_type = node[1][1] and node[1][1].implicit and "method" or "function"
-   else
-      warning.line = 1
-      warning.column = 1
-      warning.end_column = 1
-      warning.function_type = "main_chunk"
+stage.messages = {
+   ["561"] = function(warning)
+      local template = "cyclomatic complexity of %s is too high ({complexity} > {max_complexity})"
+
+      local function_descr
+
+      if warning.function_type == "main_chunk" then
+         function_descr = "main chunk"
+      elseif warning.function_name then
+         function_descr = "{function_type} {function_name!}"
+      else
+         function_descr = "function"
+      end
+
+      return template:format(function_descr)
    end
+}
 
-   return warning
+local function warn_cyclomatic_complexity(chstate, node, complexity)
+   if node.location then
+      chstate:warn("561", node.location.line, node.location.column, node.location.column + #"function" - 1, {
+         complexity = complexity,
+         function_type = node[1][1] and node[1][1].implicit and "method" or "function",
+         function_name = node.name
+      })
+   else
+      chstate:warn("561", 1, 1, 1, {
+         complexity = complexity,
+         function_type = "main_chunk"
+      })
+   end
 end
 
 local CyclomaticComplexityMetric = utils.class()
@@ -127,17 +140,15 @@ function CyclomaticComplexityMetric:report(chstate, line)
    self.count = 1
    self:calc_stmts(line.node[2])
    self:calc_items(line.items)
-   table.insert(chstate.warnings, new_cyclomatic_complexity_warning(line.node, self.count))
-   return self.count + 1
+   warn_cyclomatic_complexity(chstate, line.node, self.count)
 end
 
-local function detect_cyclomatic_complexity(chstate)
+function stage.run(chstate)
    local ccmetric = CyclomaticComplexityMetric()
-   ccmetric:report(chstate, chstate.main_line)
 
-   for _, nested_line in ipairs(chstate.main_line.lines) do
-      ccmetric:report(chstate, nested_line)
+   for _, line in ipairs(chstate.lines) do
+      ccmetric:report(chstate, line)
    end
 end
 
-return detect_cyclomatic_complexity
+return stage

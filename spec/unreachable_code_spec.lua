@@ -1,14 +1,15 @@
+local check_state = require "luacheck.check_state"
 local core_utils = require "luacheck.core_utils"
-local detect_unreachable_code = require "luacheck.detect_unreachable_code"
-local linearize = require "luacheck.linearize"
-local parser = require "luacheck.parser"
+local detect_unreachable_code = require "luacheck.stages.detect_unreachable_code"
+local linearize = require "luacheck.stages.linearize"
+local parse = require "luacheck.stages.parse"
 
 local function get_warnings(src)
-   local ast = parser.parse(src)
-   local chstate = {ast = ast, warnings = {}}
-   linearize(chstate)
+   local chstate = check_state.new(src)
+   parse.run(chstate)
+   linearize.run(chstate)
    chstate.warnings = {}
-   detect_unreachable_code(chstate)
+   detect_unreachable_code.run(chstate)
    core_utils.sort_by_location(chstate.warnings)
    return chstate.warnings
 end

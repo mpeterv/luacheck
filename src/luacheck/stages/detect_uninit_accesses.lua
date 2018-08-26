@@ -1,16 +1,14 @@
-local function new_uninit_warning(node, is_mutation)
-   return {
-      code = is_mutation and "341" or "321",
-      name = node[1],
-      line = node.location.line,
-      column = node.location.column,
-      end_column = node.location.column + #node[1] - 1
-   }
-end
+local stage = {}
+
+stage.messages = {
+   ["321"] = "accessing uninitialized variable {name!}",
+   ["341"] = "mutating uninitialized variable {name!}"
+}
 
 local function detect_uninit_access_in_line(chstate, line)
    for _, item in ipairs(line.items) do
       for _, action_key in ipairs({"accesses", "mutations"}) do
+         local code = action_key == "accesses" and "321" or "341"
          local item_var_map = item[action_key]
 
          if item_var_map then
@@ -33,7 +31,11 @@ local function detect_uninit_access_in_line(chstate, line)
 
                      if all_possible_values_empty then
                         for _, accessing_node in ipairs(accessing_nodes) do
-                           table.insert(chstate.warnings, new_uninit_warning(accessing_node, action_key == "mutations"))
+                           local name = accessing_node[1]
+
+                           chstate:warn_token(code, name, accessing_node.location, {
+                              name = name
+                           })
                         end
                      end
                   end
@@ -44,13 +46,11 @@ local function detect_uninit_access_in_line(chstate, line)
    end
 end
 
--- Adds warnings for accesses that don't resolve to any values except initial empty one.
-local function detect_uninit_access(chstate)
-   detect_uninit_access_in_line(chstate, chstate.main_line)
-
-   for _, nested_line in ipairs(chstate.main_line.lines) do
-      detect_uninit_access_in_line(chstate, nested_line)
+-- Warns about accesses and mutations that don't resolve to any values except initial empty one.
+function stage.run(chstate)
+   for _, line in ipairs(chstate.lines) do
+      detect_uninit_access_in_line(chstate, line)
    end
 end
 
-return detect_uninit_access
+return stage

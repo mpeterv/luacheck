@@ -1,44 +1,8 @@
 local core_utils = {}
 
--- Calls callback with line, index, item, ... for each item reachable from starting item.
--- `visited` is a set of already visited indexes.
--- Callback can return true to stop walking from current item.
-function core_utils.walk_line(line, visited, index, callback, ...)
-   if visited[index] then
-      return
-   end
-
-   visited[index] = true
-
-   local item = line.items[index]
-
-   if callback(line, index, item, ...) then
-      return
-   end
-
-   if not item then
-      return
-   elseif item.tag == "Jump" then
-      return core_utils.walk_line(line, visited, item.to, callback, ...)
-   elseif item.tag == "Cjump" then
-      core_utils.walk_line(line, visited, item.to, callback, ...)
-   end
-
-   return core_utils.walk_line(line, visited, index + 1, callback, ...)
-end
-
 -- Given a "global set" warning, return whether it is an implicit definition.
 function core_utils.is_definition(opts, warning)
    return opts.allow_defined or (opts.allow_defined_top and warning.top)
-end
-
--- Returns `true` if a variable should be reported as a function instead of simply local,
--- `false` otherwise.
--- A variable is considered a function if it has a single assignment and the value is a function,
--- or if there is a forward declaration with a function assignment later.
-function core_utils.is_function_var(var)
-   return (#var.values == 1 and var.values[1].type == "func") or (
-      #var.values == 2 and var.values[1].empty and var.values[2].type == "func")
 end
 
 local function event_priority(event)

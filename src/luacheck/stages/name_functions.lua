@@ -1,3 +1,5 @@
+local stage = {}
+
 local function get_index_name(base_name, key_node)
    if key_node.tag == "String" then
       return base_name .. "." .. key_node[1]
@@ -64,8 +66,8 @@ end
 -- * Function assigned to a field: "foo.bar.baz".
 --   Function can be in a table assigned to a variable or a field, e.g. `foo.bar = {baz = function() ... end}`.
 -- * Otherwise: `nil`.
-local function name_functions(chstate)
+function stage.run(chstate)
    handle_nodes(chstate.ast)
 end
 
-return name_functions
+return stage

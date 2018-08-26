@@ -1,4 +1,14 @@
-local function detect_bad_whitespace(chstate)
+local stage = {}
+
+stage.messages = {
+   ["611"] = "line contains only whitespace",
+   ["612"] = "line contains trailing whitespace",
+   ["613"] = "trailing whitespace in a string",
+   ["614"] = "trailing whitespace in a comment",
+   ["621"] = "inconsistent indentation (SPACE followed by TAB)"
+}
+
+function stage.run(chstate)
    for line_number, line in ipairs(chstate.source_lines) do
       if line ~= "" then
          local from, to = line:find("%s+$")
@@ -20,17 +30,17 @@ local function detect_bad_whitespace(chstate)
                code = "614"
             end
 
-            table.insert(chstate.warnings, {code = code, line = line_number, column = from, end_column = to})
+            chstate:warn(code, line_number, from, to)
          end
 
          from, to = line:find("^%s+")
 
          if from and to ~= #line and line:sub(1, to):find(" \t") then
             -- Inconsistent leading whitespace (SPACE followed by TAB).
-            table.insert(chstate.warnings, {code = "621", line = line_number, column = from, end_column = to})
+            chstate:warn("621", line_number, from, to)
          end
       end
    end
 end
 
-return detect_bad_whitespace
+return stage

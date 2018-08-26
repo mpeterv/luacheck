@@ -1,5 +1,36 @@
 local utils = require "luacheck.utils"
 
+local stage = {}
+
+local function prefix_if_indirect(message)
+   return function(warning)
+      if warning.indirect then
+         return "indirectly " .. message
+      else
+         return message
+      end
+   end
+end
+
+stage.messages = {
+   ["111"] = function(warning)
+      -- `module` field is set during filtering.
+      if warning.module then
+         return "setting non-module global variable {name!}"
+      else
+         return "setting non-standard global variable {name!}"
+      end
+   end,
+   ["112"] = "mutating non-standard global variable {name!}",
+   ["113"] = "accessing undefined variable {name!}",
+   -- The following warnings are added during filtering.
+   ["121"] = "setting read-only global variable {name!}",
+   ["122"] = prefix_if_indirect("setting read-only field {field!} of global {name!}"),
+   ["131"] = "unused global variable {name!}",
+   ["142"] = prefix_if_indirect("setting undefined field {field!} of global {name!}"),
+   ["143"] = prefix_if_indirect("accessing undefined field {field!} of global {name!}")
+}
+
 local action_codes = {
    set = "1",
    mutate = "2",
@@ -13,7 +44,7 @@ local action_codes = {
 -- statement and `index` describes `table.a.b`.
 -- `index.previous_indexing_len` is optional length of prefix of `index` array representing last assignment
 -- in the aliasing chain, e.g. `2` in the previous example (because last indexing is `table.a`).
-local function new_global_warning(node, index, is_lhs, is_top_scope)
+local function warn_global(chstate, node, index, is_lhs, is_top_line)
    local global = index[1]
    local action = is_lhs and (#index == 1 and "set" or "mutate") or "access"
 
@@ -29,17 +60,13 @@ local function new_global_warning(node, index, is_lhs, is_top_scope)
       end
    end
 
-   return {
-      code = "11" .. action_codes[action],
+   chstate:warn_token("11" .. action_codes[action], node[1], node.location, {
       name = global[1],
       indexing = indexing,
       previous_indexing_len = index.previous_indexing_len,
-      line = node.location.line,
-      column = node.location.column,
-      end_column = node.location.column + #node[1] - 1,
-      top = is_top_scope and (action == "set") or nil,
+      top = is_top_line and action == "set" or nil,
       indirect = node ~= global or nil
-   }
+   })
 end
 
 local function resolved_to_index(resolution)
@@ -171,7 +198,7 @@ local function detect_in_node(chstate, item, node, is_top_line, is_lhs)
       end
 
       if resolved_to_index(resolution) then
-         table.insert(chstate.warnings, new_global_warning(node, resolution, is_lhs, is_top_line))
+         warn_global(chstate, node, resolution, is_lhs, is_top_line)
       end
    elseif node.tag ~= "Function" then
       for _, nested_node in ipairs(node) do
@@ -188,7 +215,9 @@ local function detect_in_nodes(chstate, item, nodes, is_top_line, is_lhs)
    end
 end
 
-local function detect_in_line(chstate, line, is_top_line)
+local function detect_globals_in_line(chstate, line)
+   local is_top_line = line == chstate.top_line
+
    for _, item in ipairs(line.items) do
       if item.tag == "Eval" then
          detect_in_node(chstate, item, item.expr, is_top_line)
@@ -203,14 +232,12 @@ local function detect_in_line(chstate, line, is_top_line)
    end
 end
 
--- Adds warnings for assignments, field accesses, and mutations of global variables,
+-- Warns about assignments, field accesses, and mutations of global variables,
 -- tracing through localizing assignments such as `local t = table`.
-local function detect_globals(chstate)
-   detect_in_line(chstate, chstate.main_line, true)
-
-   for _, nested_line in ipairs(chstate.main_line.lines) do
-      detect_in_line(chstate, nested_line)
+function stage.run(chstate)
+   for _, line in ipairs(chstate.lines) do
+      detect_globals_in_line(chstate, line)
    end
 end
 
-return detect_globals
+return stage

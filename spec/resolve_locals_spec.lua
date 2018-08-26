@@ -1,6 +1,7 @@
-local linearize = require "luacheck.linearize"
-local parser = require "luacheck.parser"
-local resolve_locals = require "luacheck.resolve_locals"
+local check_state = require "luacheck.check_state"
+local linearize = require "luacheck.stages.linearize"
+local parse = require "luacheck.stages.parse"
+local resolve_locals = require "luacheck.stages.resolve_locals"
 
 local function used_variables_to_string(item)
    local buf = {}
@@ -20,14 +21,14 @@ local function used_variables_to_string(item)
 end
 
 local function get_used_variables_as_string(src)
-   local ast = parser.parse(src)
-   local chstate = {ast = ast, warnings = {}}
-   linearize(chstate)
-   resolve_locals(chstate)
+   local chstate = check_state.new(src)
+   parse.run(chstate)
+   linearize.run(chstate)
+   resolve_locals.run(chstate)
 
    local buf = {}
 
-   for _, item in ipairs(chstate.main_line.items) do
+   for _, item in ipairs(chstate.top_line.items) do
       if item.accesses and next(item.accesses) then
          assert.is_table(item.used_values)
          table.insert(buf, used_variables_to_string(item))

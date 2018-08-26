@@ -1,16 +1,17 @@
+local check_state = require "luacheck.check_state"
 local core_utils = require "luacheck.core_utils"
-local detect_globals = require "luacheck.detect_globals"
-local linearize = require "luacheck.linearize"
-local parser = require "luacheck.parser"
-local resolve_locals = require "luacheck.resolve_locals"
+local detect_globals = require "luacheck.stages.detect_globals"
+local linearize = require "luacheck.stages.linearize"
+local parse = require "luacheck.stages.parse"
+local resolve_locals = require "luacheck.stages.resolve_locals"
 
 local function get_warnings(src)
-   local ast = parser.parse(src)
-   local chstate = {ast = ast, warnings = {}}
-   linearize(chstate)
-   resolve_locals(chstate)
+   local chstate = check_state.new(src)
+   parse.run(chstate)
+   linearize.run(chstate)
+   resolve_locals.run(chstate)
    chstate.warnings = {}
-   detect_globals(chstate)
+   detect_globals.run(chstate)
    core_utils.sort_by_location(chstate.warnings)
    return chstate.warnings
 end

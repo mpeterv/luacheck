@@ -1,18 +1,37 @@
 local parser = require "luacheck.parser"
 local utils = require "luacheck.utils"
 
-local function new_unused_field_value_warning(node, overwriting_node)
-   return {
-      code = "314",
+local stage = {}
+
+stage.messages = {
+   ["314"] = function(warning)
+      local target = warning.index and "index" or "field"
+      return "value assigned to " .. target .. " {field!} is overwritten on line {overwritten_line} before use"
+   end,
+   ["411"] = "variable {name!} was previously defined on line {prev_line}",
+   ["412"] = "variable {name!} was previously defined as an argument on line {prev_line}",
+   ["413"] = "variable {name!} was previously defined as a loop variable on line {prev_line}",
+   ["421"] = "shadowing definition of variable {name!} on line {prev_line}",
+   ["422"] = "shadowing definition of argument {name!} on line {prev_line}",
+   ["423"] = "shadowing definition of loop variable {name!} on line {prev_line}",
+   ["431"] = "shadowing upvalue {name!} on line {prev_line}",
+   ["432"] = "shadowing upvalue argument {name!} on line {prev_line}",
+   ["433"] = "shadowing upvalue loop variable {name!} on line {prev_line}",
+   ["521"] = "unused label {label!}",
+   ["531"] = "right side of assignment has more values than left side expects",
+   ["532"] = "right side of assignment has less values than left side expects",
+   ["541"] = "empty do..end block",
+   ["542"] = "empty if branch"
+}
+
+local function warn_unused_field_value(chstate, node, overwriting_node)
+   chstate:warn_token("314", node.first_token, node.location, {
       field = node.field,
       index = node.is_index,
       overwritten_line = overwriting_node.location.line,
       overwritten_column = overwriting_node.location.column,
-      overwritten_end_column = overwriting_node.location.column + #overwriting_node.first_token - 1,
-      line = node.location.line,
-      column = node.location.column,
-      end_column = node.location.column + #node.first_token - 1
-   }
+      overwritten_end_column = overwriting_node.location.column + #overwriting_node.first_token - 1
+   })
 end
 
 local type_codes = {
@@ -23,54 +42,74 @@ local type_codes = {
    loopi = "3"
 }
 
-local function new_redefined_warning(var, prev_var, is_same_scope)
-   return {
-      code = "4" .. (is_same_scope and "1" or (var.line == prev_var.line and "2" or "3")) .. type_codes[prev_var.type],
-      name = var.name,
-      line = var.location.line,
-      column = var.location.column,
-      end_column = var.location.column + (var.self and #":" or #var.name) - 1,
+local function warn_redefined(chstate, var, prev_var, is_same_scope)
+   local code = "4" .. (is_same_scope and "1" or var.line == prev_var.line and "2" or "3") .. type_codes[prev_var.type]
+
+   chstate:warn_var(code, var, {
       self = var.self and prev_var.self,
       prev_line = prev_var.location.line,
       prev_column = prev_var.location.column,
       prev_end_column = prev_var.location.column + (prev_var.self and #":" or #prev_var.name) - 1
-   }
+   })
 end
 
-local function new_unused_label_warning(label)
-   return {
-      code = "521",
-      label = label.name,
-      line = label.location.line,
-      column = label.location.column,
-      end_column = label.end_column
-   }
+local function warn_unused_label(chstate, label)
+   chstate:warn("521", label.location.line, label.location.column, label.end_column, {
+      label = label.name
+   })
 end
 
-local function new_unbalanced_assignment_warning(node)
+local function warn_unbalanced_assignment(chstate, node)
    local has_shorter_lhs = #node[1] < #node[2]
+   local loc = node.equals_location
 
-   return {
-      code = "53" .. (has_shorter_lhs and "1" or "2"),
-      line = node.equals_location.line,
-      column = node.equals_location.column,
-      end_column = node.equals_location.column
-   }
+   chstate:warn(has_shorter_lhs and "531" or "532", loc.line, loc.column, loc.column)
 end
+
 
 local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"})
 
-local function new_line(node, parent, value)
-   return {
-      accessed_upvalues = {}, -- Maps variables to arrays of accessing items.
-      mutated_upvalues = {}, -- Maps variables to arrays of mutating items.
-      set_upvalues = {}, -- Maps variables to arays of setting items.
-      lines = {},
-      node = node,
-      parent = parent,
-      value = value,
-      items = utils.Stack()
-   }
+local Line = utils.class()
+
+function Line:__init(node, parent, value)
+   -- Maps variables to arrays of accessing items.
+   self.accessed_upvalues = {}
+   -- Maps variables to arrays of mutating items.
+   self.mutated_upvalues = {}
+   -- Maps variables to arays of setting items.
+   self.set_upvalues = {}
+   self.lines = {}
+   self.node = node
+   self.parent = parent
+   self.value = value
+   self.items = utils.Stack()
+end
+
+-- Calls callback with line, index, item, ... for each item reachable from starting item.
+-- `visited` is a set of already visited indexes.
+-- Callback can return true to stop walking from current item.
+function Line:walk(visited, index, callback, ...)
+   if visited[index] then
+      return
+   end
+
+   visited[index] = true
+
+   local item = self.items[index]
+
+   if callback(self, index, item, ...) then
+      return
+   end
+
+   if not item then
+      return
+   elseif item.tag == "Jump" then
+      return self:walk(visited, item.to, callback, ...)
+   elseif item.tag == "Cjump" then
+      self:walk(visited, item.to, callback, ...)
+   end
+
+   return self:walk(visited, index + 1, callback, ...)
 end
 
 local function new_scope(line)
@@ -228,7 +267,7 @@ function LinState:leave_scope()
 
    for name, label in pairs(left_scope.labels) do
       if not label.used and not pseudo_labels[name] then
-         table.insert(self.chstate.warnings, new_unused_label_warning(label))
+         warn_unused_label(self.chstate, label)
       end
    end
 
@@ -245,7 +284,7 @@ function LinState:register_var(node, type_)
       local is_same_scope = self.scopes.top.vars[var.name]
 
       if var.name ~= "..." then
-         table.insert(self.chstate.warnings, new_redefined_warning(var, prev_var, is_same_scope))
+         warn_redefined(self.chstate, var, prev_var, is_same_scope)
       end
 
       if is_same_scope then
@@ -303,7 +342,7 @@ function LinState:check_assignment_balance(node)
    end
 
    if (#lhs < #rhs) or ((#lhs > #rhs) and node.tag == "Set" and not is_unpacking(rhs[#rhs])) then
-      table.insert(self.chstate.warnings, new_unbalanced_assignment_warning(node))
+      warn_unbalanced_assignment(self.chstate, node)
    end
 end
 
@@ -312,12 +351,7 @@ function LinState:check_empty_block(block)
    if #block == 0 then
       local is_do_block = block.tag == "Do"
 
-      table.insert(self.chstate.warnings, {
-         code = "54" .. (is_do_block and "1" or "2"),
-         line = block.location.line,
-         column = block.location.column,
-         end_column = block.location.column + (is_do_block and #"do" or #"then") - 1
-      })
+      self.chstate:warn_token(is_do_block and "541" or "542", is_do_block and "do" or "then", block.location)
    end
 end
 
@@ -668,7 +702,7 @@ function LinState:scan_expr_Table(item, node)
 
       if field then
          if key_to_node[key] then
-            table.insert(self.chstate.warnings, new_unused_field_value_warning(key_to_node[key], pair))
+            warn_unused_field_value(self.chstate, key_to_node[key], pair)
          end
 
          key_to_node[key] = pair
@@ -737,7 +771,7 @@ function LinState:register_set_variables()
 end
 
 function LinState:build_line(node)
-   self.lines:push(new_line(node, self.lines.top))
+   self.lines:push(Line(node, self.lines.top))
    self:enter_scope()
    self:emit(new_local_item(node[1]))
    self:enter_scope()
@@ -765,13 +799,20 @@ function LinState:scan_expr_Function(item, node)
    end
 end
 
--- Builds linear representation of AST and assigns it as `chstate.main_line`.
+-- Builds linear representation (line) of AST and assigns it as `chstate.top_line`.
+-- Assings an array of all lines as `chstate.lines`.
 -- Adds warnings: redefined/shadowed, unused field, unused label, unbalanced assignment, empty block.
-local function linearize(chstate)
+function stage.run(chstate)
    local linstate = LinState(chstate)
-   chstate.main_line = linstate:build_line({{{tag = "Dots", "..."}}, chstate.ast})
+   chstate.top_line = linstate:build_line({{{tag = "Dots", "..."}}, chstate.ast})
    assert(linstate.lines.size == 0)
    assert(linstate.scopes.size == 0)
+
+   chstate.lines = {chstate.top_line}
+
+   for _, nested_line in ipairs(chstate.top_line.lines) do
+      table.insert(chstate.lines, nested_line)
+   end
 end
 
-return linearize
+return stage

@@ -1,126 +1,12 @@
+local stages = require "luacheck.stages"
 local utils = require "luacheck.utils"
 
 local format = {}
 
 local color_support = not utils.is_windows or os.getenv("ANSICON")
 
-local function prefix_if_indirect(fmt)
-   return function(w)
-      if w.indirect then
-         return "indirectly " .. fmt
-      else
-         return fmt
-      end
-   end
-end
-
-local function unused_or_overwritten(fmt)
-   return function(w)
-      if w.overwritten_line then
-         return fmt .. " is overwritten on line {overwritten_line} before use"
-      else
-         return fmt .. " is unused"
-      end
-   end
-end
-
-local message_formats = {
-   ["011"] = "{msg}",
-   ["021"] = "{msg}",
-   ["022"] = "unpaired push directive",
-   ["023"] = "unpaired pop directive",
-   ["111"] = function(w)
-      if w.module then
-         return "setting non-module global variable {name!}"
-      else
-         return "setting non-standard global variable {name!}"
-      end
-   end,
-   ["112"] = "mutating non-standard global variable {name!}",
-   ["113"] = "accessing undefined variable {name!}",
-   ["121"] = "setting read-only global variable {name!}",
-   ["122"] = prefix_if_indirect("setting read-only field {field!} of global {name!}"),
-   ["131"] = "unused global variable {name!}",
-   ["142"] = prefix_if_indirect("setting undefined field {field!} of global {name!}"),
-   ["143"] = prefix_if_indirect("accessing undefined field {field!} of global {name!}"),
-   ["211"] = function(w)
-      if w.func then
-         if w.recursive then
-            return "unused recursive function {name!}"
-         elseif w.mutually_recursive then
-            return "unused mutually recursive function {name!}"
-         else
-            return "unused function {name!}"
-         end
-      else
-         return "unused variable {name!}"
-      end
-   end,
-   ["212"] = function(w)
-      if w.name == "..." then
-         return "unused variable length argument"
-      else
-         return "unused argument {name!}"
-      end
-   end,
-   ["213"] = "unused loop variable {name!}",
-   ["221"] = "variable {name!} is never set",
-   ["231"] = "variable {name!} is never accessed",
-   ["232"] = "argument {name!} is never accessed",
-   ["233"] = "loop variable {name!} is never accessed",
-   ["241"] = "variable {name!} is mutated but never accessed",
-   ["311"] = unused_or_overwritten("value assigned to variable {name!}"),
-   ["312"] = unused_or_overwritten("value of argument {name!}"),
-   ["313"] = unused_or_overwritten("value of loop variable {name!}"),
-   ["314"] = function(w)
-      local target = w.index and "index" or "field"
-      return "value assigned to " .. target .. " {field!} is overwritten on line {overwritten_line} before use"
-   end,
-   ["321"] = "accessing uninitialized variable {name!}",
-   ["331"] = "value assigned to variable {name!} is mutated but never accessed",
-   ["341"] = "mutating uninitialized variable {name!}",
-   ["411"] = "variable {name!} was previously defined on line {prev_line}",
-   ["412"] = "variable {name!} was previously defined as an argument on line {prev_line}",
-   ["413"] = "variable {name!} was previously defined as a loop variable on line {prev_line}",
-   ["421"] = "shadowing definition of variable {name!} on line {prev_line}",
-   ["422"] = "shadowing definition of argument {name!} on line {prev_line}",
-   ["423"] = "shadowing definition of loop variable {name!} on line {prev_line}",
-   ["431"] = "shadowing upvalue {name!} on line {prev_line}",
-   ["432"] = "shadowing upvalue argument {name!} on line {prev_line}",
-   ["433"] = "shadowing upvalue loop variable {name!} on line {prev_line}",
-   ["511"] = "unreachable code",
-   ["512"] = "loop is executed at most once",
-   ["521"] = "unused label {label!}",
-   ["531"] = "right side of assignment has more values than left side expects",
-   ["532"] = "right side of assignment has less values than left side expects",
-   ["541"] = "empty do..end block",
-   ["542"] = "empty if branch",
-   ["551"] = "empty statement",
-   ["561"] = function(w)
-      local template = "cyclomatic complexity of %s is too high ({complexity} > {max_complexity})"
-
-      local function_descr
-
-      if w.function_type == "main_chunk" then
-         function_descr = "main chunk"
-      elseif w.function_name then
-         function_descr = "{function_type} {function_name!}"
-      else
-         function_descr = "function"
-      end
-
-      return template:format(function_descr)
-   end,
-   ["611"] = "line contains only whitespace",
-   ["612"] = "line contains trailing whitespace",
-   ["613"] = "trailing whitespace in a string",
-   ["614"] = "trailing whitespace in a comment",
-   ["621"] = "inconsistent indentation (SPACE followed by TAB)",
-   ["631"] = "line is too long ({end_column} > {max_length})"
-}
-
 local function get_message_format(warning)
-   local message_format = message_formats[warning.code]
+   local message_format = assert(stages.messages[warning.code], "No message for warning code " .. warning.code)
 
    if type(message_format) == "function" then
       return message_format(warning)
