@@ -596,45 +596,6 @@ describe("filter", function()
       }))
    end)
 
-   it("ignores inline options completely with inline = false", function()
-      assert.same({
-         {
-            {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
-            {code = "111", name = "not_print", indexing = {"not_print"}, line = 4, column = 1},
-            {code = "121", name = "print", indexing = {"print"}, line = 5, column = 1},
-            {code = "121", name = "print", indexing = {"print"}, line = 7, column = 1}
-         }
-      }, filter_full({
-         {
-            events = {
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
-               {push = true, line = 2, column = 1},
-               {options = {std = "none"}, line = 3, column = 1},
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 4, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 5, column = 1},
-               {pop = true, line = 6, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 7, column = 1},
-               {options = {std = "bad_std"}, line = 8, column = 1}
-            },
-            per_line_options = {
-               [4] = {
-                  {options = {ignore = {",*"}}, line = 4, column = 10}
-               },
-               [1000] = {
-                  {options = {std = "max"}, line = 1000, column = 1},
-                  {options = {std = "another_bad_std"}, line = 1000, column = 20}
-               }
-            },
-            line_lengths = {}
-         }
-      }, {
-            {
-               std = "max",
-               inline = false
-            }
-      }))
-   end)
-
    it("adds line length warnings", function()
       assert.same({
          {

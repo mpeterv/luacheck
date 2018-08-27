@@ -801,41 +801,6 @@ Total: 3 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/custom_std_inline_options.lua --config=spec/configs/custom_stds_config.luacheckrc")
    end)
 
-   it("inline options can be disabled", function()
-      assert.equal([[
-Checking spec/samples/inline_options.lua          26 warnings
-
-    spec/samples/inline_options.lua:3:1: accessing undefined variable 'foo'
-    spec/samples/inline_options.lua:4:1: accessing undefined variable 'bar'
-    spec/samples/inline_options.lua:6:16: unused function 'f'
-    spec/samples/inline_options.lua:6:18: unused argument 'a'
-    spec/samples/inline_options.lua:8:4: accessing undefined variable 'foo'
-    spec/samples/inline_options.lua:9:4: accessing undefined variable 'bar'
-    spec/samples/inline_options.lua:10:4: accessing undefined variable 'baz'
-    spec/samples/inline_options.lua:11:4: accessing undefined variable 'qu'
-    spec/samples/inline_options.lua:12:4: accessing undefined variable 'qu'
-    spec/samples/inline_options.lua:15:1: accessing undefined variable 'baz'
-    spec/samples/inline_options.lua:18:7: unused variable 'f'
-    spec/samples/inline_options.lua:18:7: variable 'f' was previously defined on line 6
-    spec/samples/inline_options.lua:20:7: unused variable 'g'
-    spec/samples/inline_options.lua:22:7: unused variable 'f'
-    spec/samples/inline_options.lua:22:7: variable 'f' was previously defined on line 18
-    spec/samples/inline_options.lua:22:10: unused variable 'g'
-    spec/samples/inline_options.lua:22:10: variable 'g' was previously defined on line 20
-    spec/samples/inline_options.lua:24:7: unused variable 'f'
-    spec/samples/inline_options.lua:24:7: variable 'f' was previously defined on line 22
-    spec/samples/inline_options.lua:24:10: unused variable 'g'
-    spec/samples/inline_options.lua:24:10: variable 'g' was previously defined on line 22
-    spec/samples/inline_options.lua:27:16: unused function 'f'
-    spec/samples/inline_options.lua:27:16: variable 'f' was previously defined on line 24
-    spec/samples/inline_options.lua:32:1: empty do..end block
-    spec/samples/inline_options.lua:34:1: empty do..end block
-    spec/samples/inline_options.lua:35:10: empty if branch
-
-Total: 26 warnings / 0 errors in 1 file
-]], get_output "spec/samples/inline_options.lua --std=none --no-inline --no-config")
-   end)
-
    describe("caching", function()
       local tmpname
 

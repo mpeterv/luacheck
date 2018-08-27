@@ -426,17 +426,4 @@ function inline_options.get_issues_and_affecting_options(events, per_line_opts)
    return issues, option_arrays
 end
 
--- Extract only warnings and errors from an array of events.
-function inline_options.get_issues(events)
-   local res = {}
-
-   for _, event in ipairs(events) do
-      if event.code then
-         table.insert(res, event)
-      end
-   end
-
-   return res
-end
-
 return inline_options

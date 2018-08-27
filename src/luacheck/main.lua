@@ -175,8 +175,6 @@ Links:
       :action "store_false"
       :target "max_cyclomatic_complexity"
 
-   parser:flag("--no-inline", "Disable inline options."):target("inline"):action("store_false")
-
    local default_global_path = config.get_default_global_path()
 
    local config_opt = parser:option("--config", "Path to configuration file. (default: "..config.default_path..")")

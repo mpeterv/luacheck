@@ -332,25 +332,22 @@ local function filter_file_report(report)
       end
 
       if issue.code:match("0..") then
-         if issue.code == "011" or opts.inline then
-            table.insert(res, issue)
+         table.insert(res, issue)
+      elseif not filters(opts, issue) then
+         if issue.code == "631" then
+            issue.max_length = get_max_line_length(opts, issue)
+            issue.column = issue.max_length + 1
          end
-      else
-         if not filters(opts, issue) then
-            if issue.code == "631" then
-               issue.max_length = get_max_line_length(opts, issue)
-               issue.column = issue.max_length + 1
-            end
 
-            if issue.code:match("1[24][23]") then
-               issue.field = get_field_string(issue)
-            end
-
-            if issue.code == "561" then
-               issue.max_complexity = get_max_cyclomatic_complexity(opts, issue)
-            end
-            table.insert(res, issue)
+         if issue.code:match("1[24][23]") then
+            issue.field = get_field_string(issue)
          end
+
+         if issue.code == "561" then
+            issue.max_complexity = get_max_cyclomatic_complexity(opts, issue)
+         end
+
+         table.insert(res, issue)
       end
    end
 
@@ -413,21 +410,6 @@ end
 
 -- Transforms file report, returning two parallel arrays: {issues = issues, options = options}.
 local function annotate_file_report_with_affecting_options(file_report, option_stack, stds, caching_opts_normalizer)
-   local opts = caching_opts_normalizer:normalize_options(option_stack)
-
-   if not opts.inline then
-      local res = {
-         issues = inline_options.get_issues(file_report.events),
-         options = {}
-      }
-
-      for i = 1, #res.issues do
-         res.options[i] = opts
-      end
-
-      return res
-   end
-
    local events, per_line_opts = inline_options.validate_options(file_report.events, file_report.per_line_options, stds)
    local issues, inline_option_arrays = inline_options.get_issues_and_affecting_options(events, per_line_opts)
 
