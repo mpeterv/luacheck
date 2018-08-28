@@ -68,8 +68,10 @@ Option                                  Meaning
 
                                         See :ref:`secondaryvaluesandvariables`
 ``--no-self``                           Filter out warnings related to implicit ``self`` argument.
-``--std <std>``                         Set standard globals. ``<std>`` can be one of:
+``--std <std>``                         Set standard globals, default is ``max``. ``<std>`` can be one of:
 
+                                        * ``max`` - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;
+                                        * ``min`` - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;
                                         * ``lua51`` - globals of Lua 5.1 without deprecated ones;
                                         * ``lua51c`` - globals of Lua 5.1;
                                         * ``lua52`` - globals of Lua 5.2;
@@ -78,10 +80,6 @@ Option                                  Meaning
                                         * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2;
                                         * ``luajit`` - globals of LuaJIT 2.x;
                                         * ``ngx_lua`` - globals of Openresty `lua-nginx-module <https://github.com/openresty/lua-nginx-module>`_ 0.10.10, including standard LuaJIT 2.x globals;
-                                        * ``min`` - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;
-                                        * ``max`` - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;
-                                        * ``_G``  (default) - same as ``lua51c``, ``lua52c``, ``lua53c``, or ``luajit`` depending on version of Lua used
-                                          to run ``luacheck`` or same as ``max`` if couldn't detect the version;
                                         * ``love`` - globals added by `LÖVE <https://love2d.org>`_ (love2d);
                                         * ``busted`` - globals added by Busted 2.0;
                                         * ``rockspec`` - globals allowed in rockspecs;
@@ -116,7 +114,6 @@ Option                                  Meaning
 ``--ignore | -i <patt> [<patt>] ...``   Filter out warnings matching patterns.
 ``--enable | -e <patt> [<patt>] ...``   Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``     Filter out warnings not matching patterns.
-``--no-inline``                         Disable inline options.
 ``--config <config>``                   Path to custom configuration file (default: ``.luacheckrc``).
 ``--no-config``                         Do not look up custom configuration file.
 ``--default-config <config>``           Default path to custom configuration file, to be used if ``--[no-]config`` is not used and ``.luacheckrc`` is not found.
