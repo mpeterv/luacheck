@@ -10,6 +10,11 @@
   manually by recursively copying `src/*` to a directory in `package.path`
   and copying `bin/luacheck.lua` to a directory in `PATH` as `luacheck`.
 
+### New features and improvements
+
+* Added detection of numeric for loops going from `#t` to `1` without
+  negative step (#160).
+
 ### Changes
 
 * Default set of standard globals is now always `max`, allowing globals of all

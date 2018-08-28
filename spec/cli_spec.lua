@@ -683,6 +683,16 @@ Total: 7 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/global_fields.lua --config=spec/configs/custom_fields_config.luacheckrc")
    end)
 
+   it("detects fornums going from #(expr) down to 1 with positive step", function()
+      assert.equal([[
+Checking spec/samples/reversed_fornum.lua         1 warning
+
+    spec/samples/reversed_fornum.lua:1:1: numeric for loop goes from #(expr) down to -1.5 but loop step is not negative
+
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/samples/reversed_fornum.lua --no-config")
+   end)
+
    it("allows showing warning codes", function()
       assert.equal([[
 Checking spec/samples/read_globals.lua            5 warnings
@@ -1091,7 +1101,7 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
    end)
 
    it("expands folders", function()
-      assert.matches("^Total: %d+ warnings / %d+ errors in 23 files\n$", get_output "spec/samples -qqq --no-config --exclude-files spec/samples/global_fields.lua")
+      assert.matches("^Total: %d+ warnings / %d+ errors in 24 files\n$", get_output "spec/samples -qqq --no-config --exclude-files spec/samples/global_fields.lua")
    end)
 
    it("uses --include-files when expanding folders", function()
@@ -1248,10 +1258,11 @@ Checking spec/samples/python_code.lua             1 error
 Checking spec/samples/read_globals.lua            5 warnings
 Checking spec/samples/read_globals_inline_options.lua 3 warnings
 Checking spec/samples/redefined.lua               7 warnings
+Checking spec/samples/reversed_fornum.lua         1 warning
 Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
 
-Total: 67 warnings / 4 errors in 16 files
+Total: 68 warnings / 4 errors in 17 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files spec/samples/global_fields.lua")
          end)
@@ -1270,10 +1281,11 @@ Checking python_code.lua                          1 error
 Checking read_globals.lua                         5 warnings
 Checking read_globals_inline_options.lua          3 warnings
 Checking redefined.lua                            7 warnings
+Checking reversed_fornum.lua                      1 warning
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 67 warnings / 4 errors in 16 files
+Total: 68 warnings / 4 errors in 17 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua", "spec/samples/"))
          end)
 
@@ -1289,10 +1301,11 @@ Checking inline_options.lua                       7 warnings / 2 errors
 Checking line_length.lua                          8 warnings
 Checking python_code.lua                          1 error
 Checking redefined.lua                            7 warnings
+Checking reversed_fornum.lua                      1 warning
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
 
-Total: 59 warnings / 4 errors in 14 files
+Total: 60 warnings / 4 errors in 15 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 

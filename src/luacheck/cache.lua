@@ -9,7 +9,7 @@ local cache = {}
 -- third is check result in lua table format.
 -- String fields are compressed into array indexes.
 
-cache.format_version = 27
+cache.format_version = 28
 
 local option_fields = {
    "ignore", "std", "globals", "unused_args", "self", "compat", "global", "unused", "redefined",
@@ -23,7 +23,8 @@ local event_fields = {
    "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "prev_end_column", "secondary",
    "self", "func", "top", "msg", "index", "recursive", "mutually_recursive", "useless",
    "field", "label", "push", "pop", "options", "indirect", "indexing", "previous_indexing_len",
-   "overwritten_line", "overwritten_column", "overwritten_end_column", "complexity", "function_name", "function_type"
+   "overwritten_line", "overwritten_column", "overwritten_end_column", "complexity", "function_name", "function_type",
+   "limit"
 }
 
 -- Recursively replace string keys with integer keys.

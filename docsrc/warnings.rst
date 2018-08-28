@@ -3,9 +3,9 @@ List of warnings
 
 Warnings produced by Luacheck are categorized using three-digit warning codes. Warning codes can be displayed in CLI output using ``--codes`` CLI option or ``codes`` config option. Errors also have codes starting with zero; unlike warnings, they can not be ignored.
 
-==== =================================================================
+==== =============================================================================
 Code Description
-==== =================================================================
+==== =============================================================================
 011  A syntax error.
 021  An invalid inline option.
 022  An unpaired inline push directive.
@@ -51,13 +51,14 @@ Code Description
 542  An empty ``if`` branch.
 551  An empty statement.
 561  Cyclomatic complexity of a function is too high.
+571  A numeric for loop goes from #(expr) down to 1 or less without negative step.
 611  A line consists of nothing but whitespace.
 612  A line contains trailing whitespace.
 613  Trailing whitespace in a string.
 614  Trailing whitespace in a comment.
 621  Inconsistent indentation (``SPACE`` followed by ``TAB``).
 631  Line is too long.
-==== =================================================================
+==== =============================================================================
 
 Global variables (1xx)
 ----------------------
@@ -206,6 +207,26 @@ Cyclomatic complexity
 
 If a limit is set using ``--max-cyclomatic-complexity`` CLI option or corresponding config or inline options, Luacheck warns about functions
 with too high cyclomatic complexity.
+
+Reversed numeric for loops
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Iterating a table in reverse using a numeric for loop going from ``#t`` to ``1`` requires a negative loop step. Luacheck warns about loops
+going from ``#(some expression)`` to ``1`` or a lesser constant when the loop step is not negative:
+
+.. code-block:: lua
+   :linenos:
+
+   -- Warning for this loop:
+   -- numeric for loop goes from #(expr) down to 1 but loop step is not negative
+   for i = #t, 1 do
+      print(t[i])
+   end
+
+   -- This loop is okay.
+   for i = #t, 1, -1 do
+      print(t[i])
+   end
 
 Formatting issues (6xx)
 -----------------------

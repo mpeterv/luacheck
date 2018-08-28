@@ -15,9 +15,10 @@ local stage_names = {
    "detect_cyclomatic_complexity",
    "detect_empty_statements",
    "detect_globals",
+   "detect_reversed_fornum_loops",
    "detect_uninit_accesses",
    "detect_unreachable_code",
-   "detect_unused_locals"
+   "detect_unused_locals",
 }
 
 local stage_modules = {}

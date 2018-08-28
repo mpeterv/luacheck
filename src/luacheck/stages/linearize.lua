@@ -1,3 +1,4 @@
+local core_utils = require "luacheck.core_utils"
 local parser = require "luacheck.parser"
 local utils = require "luacheck.utils"
 
@@ -655,34 +656,6 @@ LinState.scan_expr_Call = LinState.scan_exprs
 LinState.scan_expr_Invoke = LinState.scan_exprs
 LinState.scan_expr_Paren = LinState.scan_exprs
 
-local function node_to_lua_value(node)
-   if node.tag == "True" then
-      return true, "true"
-   elseif node.tag == "False" then
-      return false, "false"
-   elseif node.tag == "String" then
-      return node[1], node[1]
-   elseif node.tag == "Number" then
-      local str = node[1]
-
-      if str:find("[iIuUlL]") then
-         -- Ignore LuaJIT cdata literals.
-         return
-      end
-
-      -- On Lua 5.3 convert to float to get same results as on Lua 5.1 and 5.2.
-      if _VERSION == "Lua 5.3" and not str:find("[%.eEpP]") then
-         str = str .. ".0"
-      end
-
-      local number = tonumber(str)
-
-      if number and number == number and number < 1/0 and number > -1/0 then
-         return number, node[1]
-      end
-   end
-end
-
 function LinState:scan_expr_Table(item, node)
    local array_index = 1.0
    local key_to_node = {}
@@ -691,7 +664,7 @@ function LinState:scan_expr_Table(item, node)
       local key, field
 
       if pair.tag == "Pair" then
-         key, field = node_to_lua_value(pair[1])
+         key, field = core_utils.eval_const_node(pair[1])
          self:scan_exprs(item, pair)
       else
          key = array_index
