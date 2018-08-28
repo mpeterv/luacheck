@@ -10,6 +10,11 @@
   manually by recursively copying `src/*` to a directory in `package.path`
   and copying `bin/luacheck.lua` to a directory in `PATH` as `luacheck`.
 
+### Changes
+
+* Default set of standard globals is now always `max`, allowing globals of all
+  Lua versions. `_G` std is deprecated.
+
 ### Miscellaneous
 
 * Luacheck now depends on argparse instead of bundling it.

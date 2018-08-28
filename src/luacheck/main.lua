@@ -1,5 +1,4 @@
 local argparse = require "argparse"
-local builtin_standards = require "luacheck.builtin_standards"
 local config = require "luacheck.config"
 local luacheck = require "luacheck"
 local multithreading = require "luacheck.multithreading"
@@ -70,17 +69,10 @@ Links:
          :action "concat"
          :init(nil))
 
-   local default_std_name = "max"
-
-   for _, name in ipairs({"lua51c", "lua52c", "lua53c", "luajit"}) do
-      if builtin_standards._G == builtin_standards[name] then
-         default_std_name = name
-         break
-      end
-   end
-
    parser:group("Options for configuring allowed globals",
-      parser:option("--std", ("Set standard globals, default is _G. <std> can be one of:\n" ..
+      parser:option("--std", "Set standard globals, default is max. <std> can be one of:\n" ..
+         "   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
+         "   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
          "   lua51 - globals of Lua 5.1 without deprecated ones;\n" ..
          "   lua51c - globals of Lua 5.1;\n" ..
          "   lua52 - globals of Lua 5.2;\n" ..
@@ -89,16 +81,12 @@ Links:
          "   lua53c - globals of Lua 5.3 with LUA_COMPAT_5_2;\n" ..
          "   luajit - globals of LuaJIT 2.x;\n" ..
          "   ngx_lua - globals of Openresty lua-nginx-module 0.10.10, including standard LuaJIT 2.x globals;\n" ..
-         "   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
-         "   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
-         "   _G - same as lua51c, lua52c, lua53c, or luajit depending on version of Lua used to run luacheck " ..
-         "or same as max if couldn't detect the version. Currently %s;\n" ..
          "   love - globals added by LOVE (love2d);\n" ..
          "   busted - globals added by Busted 2.0;\n" ..
          "   rockspec - globals allowed in rockspecs;\n" ..
          "   none - no standard globals.\n\n" ..
          "Sets can be combined using '+'. Extra sets can be defined in config by " ..
-         "adding to `stds` global."):format(default_std_name)),
+         "adding to `stds` global."),
       parser:flag("-c --compat", "Equivalent to --std max."),
 
       parser:option("--globals", "Add custom global variables (e.g. foo) or fields (e.g. foo.bar) " ..

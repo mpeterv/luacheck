@@ -1391,12 +1391,12 @@ Total: 2 warnings / 0 errors in 1 file
             it("does not use global path as fallback if --config is used", function()
                assert.equal([[
 Files: 1
-Warnings: 2
+Warnings: 4
 Errors: 0
 Quiet: 0
 Color: false
 Codes: true
-]], get_output "spec/samples/compat.lua --default-config=spec/configs/global_config.luacheckrc --config=spec/configs/cli_specific_config.luacheckrc")
+]], get_output "spec/samples/compat.lua --std=min --default-config=spec/configs/global_config.luacheckrc --config=spec/configs/cli_specific_config.luacheckrc")
             end)
 
             it("does not use global path as fallback if --no-config is used", function()

@@ -251,7 +251,7 @@ for name, def in pairs(lua_defs) do
    builtin_standards[name] = def_to_std(def)
 end
 
-local function detect_default_std()
+local function get_running_lua_std_name()
    if rawget(_G, "jit") then
       return "luajit"
    elseif _VERSION == "Lua 5.1" then
@@ -265,7 +265,7 @@ local function detect_default_std()
    end
 end
 
-builtin_standards._G = builtin_standards[detect_default_std()]
+builtin_standards._G = builtin_standards[get_running_lua_std_name()]
 
 builtin_standards.busted = {
    read_globals = {

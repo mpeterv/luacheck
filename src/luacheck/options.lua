@@ -147,7 +147,7 @@ local function get_std_tables(opts_stack, stds)
       end
    end
 
-   table.insert(add_stds, 1, base_std or stds._G)
+   table.insert(add_stds, 1, base_std or stds.max)
    return add_stds
 end
 
