@@ -36,7 +36,7 @@ Option                        Type                                     Default v
 ``unused_args``               Boolean                                  ``true``
 ``unused_secondaries``        Boolean                                  ``true``
 ``self``                      Boolean                                  ``true``
-``std``                       String or set of standard globals        ``"_G"``
+``std``                       String or set of standard globals        ``"max"``
 ``globals``                   Array of strings or field definition map ``{}``
 ``new_globals``               Array of strings or field definition map (Do not overwrite)
 ``read_globals``              Array of strings or field definition map ``{}``
@@ -54,7 +54,6 @@ Option                        Type                                     Default v
 ``ignore``                    Array of patterns (see :ref:`patterns`)  ``{}``
 ``enable``                    Array of patterns                        ``{}``
 ``only``                      Array of patterns                        (Do not filter)
-``inline``                    Boolean                                  ``true``
 ============================= ======================================== ===================
 
 An example of a config which makes ``luacheck`` ensure that only globals from the portable intersection of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.0 are used, as well as disables detection of unused arguments:
