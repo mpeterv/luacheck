@@ -18,16 +18,16 @@ local inline_options = {}
 -- -- luacheck: pop
 -- foo() -- Not ignored.
 
-local function add_closure_boundaries(ast, events)
+local function add_closure_boundaries(chstate, ast, events)
    if ast.tag == "Function" then
       table.insert(events, {push = true, closure = true,
-         line = ast.location.line, column = ast.location.column})
+         line = ast.line, column = chstate:offset_to_column(ast.line, ast.offset)})
       table.insert(events, {pop = true, closure = true,
-         line = ast.end_location.line, column = ast.end_location.column})
+         line = ast.end_range.line, column = chstate:offset_to_column(ast.end_range.line, ast.end_range.offset)})
    else
       for _, node in ipairs(ast) do
          if type(node) == "table" then
-            add_closure_boundaries(node, events)
+            add_closure_boundaries(chstate, node, events)
          end
       end
    end
@@ -162,7 +162,7 @@ local function invalid_options_error(event, msg)
    }
 end
 
-local function add_inline_option(events, per_line_opts, body, location, end_column, is_code_line)
+local function add_inline_option(chstate, events, per_line_opts, body, range, is_code_line)
    body = utils.strip(body)
    local after_push = body:match("^push%s+(.*)")
 
@@ -171,7 +171,12 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
    end
 
    if body == "push" or body == "pop" then
-      table.insert(events, {[body] = true, line = location.line, column = location.column, end_column = end_column})
+      table.insert(events, {
+         [body] = true,
+         line = range.line,
+         column = chstate:offset_to_column(range.line, range.offset),
+         end_column = chstate:offset_to_column(range.line, range.end_offset)
+      })
 
       if after_push then
          body = after_push
@@ -181,7 +186,12 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
    end
 
    local opts, err = get_options(body)
-   local event = {options = opts, line = location.line, column = location.column, end_column = end_column}
+   local event = {
+      options = opts,
+      line = range.line,
+      column = chstate:offset_to_column(range.line, range.offset),
+      end_column = chstate:offset_to_column(range.line, range.end_offset)
+   }
 
    if not opts then
       table.insert(events, invalid_options_error(event, err))
@@ -189,11 +199,11 @@ local function add_inline_option(events, per_line_opts, body, location, end_colu
    end
 
    if is_code_line and not after_push then
-      if not per_line_opts[location.line] then
-         per_line_opts[location.line] = {}
+      if not per_line_opts[range.line] then
+         per_line_opts[range.line] = {}
       end
 
-      table.insert(per_line_opts[location.line], event)
+      table.insert(per_line_opts[range.line], event)
    else
       table.insert(events, event)
    end
@@ -201,7 +211,7 @@ end
 
 -- Adds inline options to events, marks invalid ones as errors.
 -- Returns map of per line inline option events (maps line numbers to arrays of event tables).
-local function add_inline_options(events, comments, code_lines)
+local function add_inline_options(chstate, events, comments, code_lines)
    local per_line_opts = {}
    local invalid_comments = {}
 
@@ -212,8 +222,7 @@ local function add_inline_options(events, comments, code_lines)
       if body then
          -- Remove comments in balanced parens.
          body = body:gsub("%b()", " ")
-         add_inline_option(events, per_line_opts, body,
-            comment.location, comment.end_column, code_lines[comment.location.line])
+         add_inline_option(chstate, events, per_line_opts, body, comment, code_lines[comment.line])
       end
    end
 
@@ -302,8 +311,8 @@ end
 -- unpaired push directives and unpaired pop directives.
 function inline_options.get_events(chstate)
    local events = utils.update({}, chstate.warnings)
-   add_closure_boundaries(chstate.ast, events)
-   local per_line_opts = add_inline_options(events, chstate.comments, chstate.code_lines)
+   add_closure_boundaries(chstate, chstate.ast, events)
+   local per_line_opts = add_inline_options(chstate, events, chstate.comments, chstate.code_lines)
    core_utils.sort_by_location(events)
    mark_unpaired_boundaries(events)
    events = filter_useless_boundaries(events)

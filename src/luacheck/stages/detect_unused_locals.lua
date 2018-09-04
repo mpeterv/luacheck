@@ -84,12 +84,15 @@ local function warn_unaccessed_var(chstate, var, is_mutated)
 end
 
 local function warn_unused_value(chstate, value, overwriting_node)
-   chstate:warn_value("3" .. (value.mutated and "3" or "1") .. type_codes[value.type], value, {
-      overwritten_line = overwriting_node and overwriting_node.location.line,
-      overwritten_column = overwriting_node and overwriting_node.location.column,
-      overwritten_end_column = overwriting_node and (overwriting_node.location.column + #value.var.name - 1),
+   local warning = chstate:warn_value("3" .. (value.mutated and "3" or "1") .. type_codes[value.type], value, {
       secondary = is_secondary(value) or nil
    })
+
+   if overwriting_node then
+      warning.overwritten_line = overwriting_node.line
+      warning.overwritten_column = chstate:offset_to_column(overwriting_node.line, overwriting_node.offset)
+      warning.overwritten_end_column = chstate:offset_to_column(overwriting_node.line, overwriting_node.end_offset)
+   end
 end
 
 -- Returns `true` if a variable should be reported as a function instead of simply local,
@@ -122,7 +125,7 @@ local function get_second_overwriting_lhs_node(item, value)
       if node.var == value.var then
          if after_value_node then
             return node
-         elseif node.location == value.location then
+         elseif node == value.var_node then
             after_value_node = true
          end
       end
@@ -196,7 +199,7 @@ local function detect_unused_locals_in_line(chstate, line)
       if item.tag == "Local" then
          for var in pairs(item.set_variables) do
             -- Do not check the implicit top level vararg.
-            if var.location then
+            if var.node.line then
                detect_unused_local(chstate, var)
             end
          end

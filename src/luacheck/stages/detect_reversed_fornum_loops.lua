@@ -25,7 +25,7 @@ local function check_fornum(chstate, node)
    end
 
    if step and step >= 0 then
-      chstate:warn_token("571", "for", node.location, {
+      chstate:warn_range("571", node, {
          limit = limit_repr
       })
    end

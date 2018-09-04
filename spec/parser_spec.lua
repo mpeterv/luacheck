@@ -1,21 +1,25 @@
+local decoder = require "luacheck.decoder"
 local parser = require "luacheck.parser"
 
-local function strip_locations(ast)
-   ast.location = nil
-   ast.end_location = nil
-   ast.end_column = nil
-   ast.equals_location = nil
-   ast.first_token = nil
+local function strip_locations(node)
+   node.line = nil
+   node.offset = nil
+   node.end_offset = nil
+   node.end_range = nil
 
-   for i=1, #ast do
-      if type(ast[i]) == "table" then
-         strip_locations(ast[i])
+   for _, sub_node in ipairs(node) do
+      if type(sub_node) == "table" then
+         strip_locations(sub_node)
       end
    end
 end
 
+local function get_all(src_bytes)
+   return parser.parse(decoder.decode(src_bytes))
+end
+
 local function get_ast(src)
-   local ast = parser.parse(src)
+   local ast = get_all(src)
    assert.is_table(ast)
    strip_locations(ast)
    return ast
@@ -30,15 +34,19 @@ local function get_expr(src)
 end
 
 local function get_comments(src)
-   return (select(2, parser.parse(src)))
+   return (select(2, get_all(src)))
 end
 
 local function get_code_lines(src)
-   return select(3, parser.parse(src))
+   return select(3, get_all(src))
+end
+
+local function get_line_endings(src)
+   return select(4, get_all(src))
 end
 
 local function get_error(src)
-   local ok, err = pcall(parser.parse, src)
+   local ok, err = pcall(get_all, src)
    assert.is_false(ok)
    return err
 end
@@ -49,7 +57,7 @@ describe("parser", function()
    end)
 
    it("does not allow extra ending keywords", function()
-      assert.same({line = 1, column = 1, end_column = 3, msg = "expected <eof> near 'end'"}, get_error("end"))
+      assert.same({line = 1, offset = 1, end_offset = 3, msg = "expected <eof> near 'end'"}, get_error("end"))
    end)
 
    it("parses return statement correctly", function()
@@ -62,7 +70,7 @@ describe("parser", function()
                      {tag = "String", "foo"}
                   }, get_node("return 1, 'foo'"))
       assert.same(
-         {line = 1, column = 10, end_column = 10, msg = "expected expression near <eof>"},
+         {line = 1, offset = 10, end_offset = 10, msg = "expected expression near <eof>"},
          get_error("return 1,")
       )
    end)
@@ -70,34 +78,34 @@ describe("parser", function()
    it("parses labels correctly", function()
       assert.same({tag = "Label", "fail"}, get_node("::fail::"))
       assert.same({tag = "Label", "fail"}, get_node("::\nfail\n::"))
-      assert.same({line = 1, column = 3, end_column = 4, msg = "expected identifier near '::'"}, get_error("::::"))
-      assert.same({line = 1, column = 3, end_column = 3, msg = "expected identifier near '1'"}, get_error("::1::"))
+      assert.same({line = 1, offset = 3, end_offset = 4, msg = "expected identifier near '::'"}, get_error("::::"))
+      assert.same({line = 1, offset = 3, end_offset = 3, msg = "expected identifier near '1'"}, get_error("::1::"))
    end)
 
    it("parses goto correctly", function()
       assert.same({tag = "Goto", "fail"}, get_node("goto fail"))
-      assert.same({line = 1, column = 5, end_column = 5, msg = "expected identifier near <eof>"}, get_error("goto"))
+      assert.same({line = 1, offset = 5, end_offset = 5, msg = "expected identifier near <eof>"}, get_error("goto"))
       assert.same(
-         {line = 1, column = 9, end_column = 9, msg = "expected statement near ','"},
+         {line = 1, offset = 9, end_offset = 9, msg = "expected statement near ','"},
          get_error("goto foo, bar")
       )
    end)
 
    it("parses break correctly", function()
       assert.same({tag = "Break"}, get_node("break"))
-      assert.same({line = 1, column = 11, end_column = 11, msg = "expected '=' near <eof>"}, get_error("break fail"))
+      assert.same({line = 1, offset = 11, end_offset = 11, msg = "expected '=' near <eof>"}, get_error("break fail"))
    end)
 
    it("parses do end correctly", function()
       assert.same({tag = "Do"}, get_node("do end"))
-      assert.same({line = 1, column = 3, end_column = 3, prev_line = 1, prev_column = 1, prev_end_column = 2,
+      assert.same({line = 1, offset = 3, end_offset = 3, prev_line = 1, prev_offset = 1, prev_end_offset = 2,
          msg = "expected 'end' near <eof>"},
          get_error("do"))
-      assert.same({line = 1, column = 4, end_column = 8, prev_line = 1, prev_column = 1, prev_end_column = 2,
+      assert.same({line = 1, offset = 4, end_offset = 8, prev_line = 1, prev_offset = 1, prev_end_offset = 2,
          msg = "expected 'end' near 'until'"},
          get_error("do until false")
       )
-      assert.same({line = 2, column = 1, end_column = 5, prev_line = 1, prev_column = 1, prev_end_column = 2,
+      assert.same({line = 2, offset = 4, end_offset = 8, prev_line = 1, prev_offset = 1, prev_end_offset = 2,
          msg = "expected 'end' (to close 'do' on line 1) near 'until'"},
          get_error("do\nuntil false")
       )
@@ -108,22 +116,22 @@ describe("parser", function()
                      {tag = "True"},
                      {}
                   }, get_node("while true do end"))
-      assert.same({line = 1, column = 6, end_column = 6, msg = "expected condition near <eof>"}, get_error("while"))
-      assert.same({line = 1, column = 11, end_column = 11, msg = "expected 'do' near <eof>"}, get_error("while true"))
-      assert.same({line = 1, column = 14, end_column = 14, prev_line = 1, prev_column = 1, prev_end_column = 5,
+      assert.same({line = 1, offset = 6, end_offset = 6, msg = "expected condition near <eof>"}, get_error("while"))
+      assert.same({line = 1, offset = 11, end_offset = 11, msg = "expected 'do' near <eof>"}, get_error("while true"))
+      assert.same({line = 1, offset = 14, end_offset = 14, prev_line = 1, prev_offset = 1, prev_end_offset = 5,
          msg = "expected 'end' near <eof>"},
          get_error("while true do")
       )
-      assert.same({line = 2, column = 3, end_column = 3, prev_line = 1, prev_column = 1, prev_end_column = 5,
+      assert.same({line = 2, offset = 14, end_offset = 14, prev_line = 1, prev_offset = 1, prev_end_offset = 5,
          msg = "expected 'end' (to close 'while' on line 1) near <eof>"},
          get_error("while true\ndo")
       )
       assert.same(
-         {line = 1, column = 7, end_column = 8, msg = "expected condition near 'do'"},
+         {line = 1, offset = 7, end_offset = 8, msg = "expected condition near 'do'"},
          get_error("while do end")
       )
       assert.same(
-         {line = 1, column = 11, end_column = 11, msg = "expected 'do' near ','"},
+         {line = 1, offset = 11, end_offset = 11, msg = "expected 'do' near ','"},
          get_error("while true, false do end")
       )
    end)
@@ -133,19 +141,19 @@ describe("parser", function()
                      {},
                      {tag = "True"}
                   }, get_node("repeat until true"))
-      assert.same({line = 1, column = 7, end_column = 7, prev_line = 1, prev_column = 1, prev_end_column = 6,
+      assert.same({line = 1, offset = 7, end_offset = 7, prev_line = 1, prev_offset = 1, prev_end_offset = 6,
          msg = "expected 'until' near <eof>"},
          get_error("repeat"))
-      assert.same({line = 3, column = 1, end_column = 1, prev_line = 1, prev_column = 1, prev_end_column = 6,
+      assert.same({line = 3, offset = 10, end_offset = 10, prev_line = 1, prev_offset = 1, prev_end_offset = 6,
          msg = "expected 'until' (to close 'repeat' on line 1) near <eof>"},
          get_error("repeat\n--")
       )
       assert.same(
-         {line = 1, column = 13, end_column = 13, msg = "expected condition near <eof>"},
+         {line = 1, offset = 13, end_offset = 13, msg = "expected condition near <eof>"},
          get_error("repeat until")
       )
       assert.same(
-         {line = 1, column = 18, end_column = 18, msg = "expected statement near ','"},
+         {line = 1, offset = 18, end_offset = 18, msg = "expected statement near ','"},
          get_error("repeat until true, false")
       )
    end)
@@ -156,21 +164,21 @@ describe("parser", function()
                         {tag = "True"},
                         {}
                      }, get_node("if true then end"))
-         assert.same({line = 1, column = 3, end_column = 3, msg = "expected condition near <eof>"}, get_error("if"))
-         assert.same({line = 1, column = 8, end_column = 8, msg = "expected 'then' near <eof>"}, get_error("if true"))
-         assert.same({line = 1, column = 13, end_column = 13, prev_line = 1, prev_column = 1, prev_end_column = 2,
+         assert.same({line = 1, offset = 3, end_offset = 3, msg = "expected condition near <eof>"}, get_error("if"))
+         assert.same({line = 1, offset = 8, end_offset = 8, msg = "expected 'then' near <eof>"}, get_error("if true"))
+         assert.same({line = 1, offset = 13, end_offset = 13, prev_line = 1, prev_offset = 1, prev_end_offset = 2,
             msg = "expected 'end' near <eof>"}, get_error("if true then")
          )
-         assert.same({line = 2, column = 5, end_column = 5, prev_line = 1, prev_column = 1, prev_end_column = 2,
+         assert.same({line = 2, offset = 13, end_offset = 13, prev_line = 1, prev_offset = 1, prev_end_offset = 2,
             msg = "expected 'end' (to close 'if' on line 1) near <eof>"},
             get_error("if true\nthen")
          )
          assert.same(
-            {line = 1, column = 4, end_column = 7, msg = "expected condition near 'then'"},
+            {line = 1, offset = 4, end_offset = 7, msg = "expected condition near 'then'"},
             get_error("if then end")
          )
          assert.same(
-            {line = 1, column = 8, end_column = 8, msg = "expected 'then' near ','"},
+            {line = 1, offset = 8, end_offset = 8, msg = "expected 'then' near ','"},
             get_error("if true, false then end")
          )
       end)
@@ -181,15 +189,15 @@ describe("parser", function()
                         {},
                         {}
                      }, get_node("if true then else end"))
-         assert.same({line = 1, column = 18, end_column = 18, prev_line = 1, prev_column = 14, prev_end_column = 17,
+         assert.same({line = 1, offset = 18, end_offset = 18, prev_line = 1, prev_offset = 14, prev_end_offset = 17,
             msg = "expected 'end' near <eof>"},
             get_error("if true then else")
          )
-         assert.same({line = 3, column = 1, end_column = 1, prev_line = 2, prev_column = 6, prev_end_column = 9,
+         assert.same({line = 3, offset = 19, end_offset = 19, prev_line = 2, prev_offset = 14, prev_end_offset = 17,
             msg = "expected 'end' (to close 'else' on line 2) near <eof>"},
             get_error("if true\nthen else\n")
          )
-         assert.same({line = 1, column = 19, end_column = 22, prev_line = 1, prev_column = 14, prev_end_column = 17,
+         assert.same({line = 1, offset = 19, end_offset = 22, prev_line = 1, prev_offset = 14, prev_end_offset = 17,
             msg = "expected 'end' near 'else'"},
             get_error("if true then else else end")
          )
@@ -203,14 +211,14 @@ describe("parser", function()
                         {}
                      }, get_node("if true then elseif false then end"))
          assert.same(
-            {line = 1, column = 21, end_column = 23, msg = "expected condition near 'end'"},
+            {line = 1, offset = 21, end_offset = 23, msg = "expected condition near 'end'"},
             get_error("if true then elseif end")
          )
          assert.same(
-            {line = 1, column = 21, end_column = 24, msg = "expected condition near 'then'"},
+            {line = 1, offset = 21, end_offset = 24, msg = "expected condition near 'then'"},
             get_error("if true then elseif then end")
          )
-         assert.same({line = 2, column = 5, end_column = 5, prev_line = 1, prev_column = 14, prev_end_column = 19,
+         assert.same({line = 2, offset = 27, end_offset = 27, prev_line = 1, prev_offset = 14, prev_end_offset = 19,
             msg = "expected 'end' (to close 'elseif' on line 1) near <eof>"},
             get_error("if true then elseif a\nthen")
          )
@@ -224,7 +232,7 @@ describe("parser", function()
                         {},
                         {}
                      }, get_node("if true then elseif false then else end"))
-         assert.same({line = 1, column = 36, end_column = 36, prev_line = 1, prev_column = 32, prev_end_column = 35,
+         assert.same({line = 1, offset = 36, end_offset = 36, prev_line = 1, prev_offset = 32, prev_end_offset = 35,
             msg = "expected 'end' near <eof>"},
             get_error("if true then elseif false then else")
          )
@@ -240,35 +248,35 @@ describe("parser", function()
                         {}
                      }, get_node("for i=1, #t do end"))
          assert.same(
-            {line = 1, column = 4, end_column = 4, msg = "expected identifier near <eof>"},
+            {line = 1, offset = 4, end_offset = 4, msg = "expected identifier near <eof>"},
             get_error("for")
          )
          assert.same(
-            {line = 1, column = 6, end_column = 6, msg = "expected '=', ',' or 'in' near <eof>"},
+            {line = 1, offset = 6, end_offset = 6, msg = "expected '=', ',' or 'in' near <eof>"},
             get_error("for i")
          )
          assert.same(
-            {line = 1, column = 7, end_column = 8, msg = "expected '=', ',' or 'in' near '~='"},
+            {line = 1, offset = 7, end_offset = 8, msg = "expected '=', ',' or 'in' near '~='"},
             get_error("for i ~= 2")
          )
          assert.same(
-            {line = 1, column = 11, end_column = 12, msg = "expected ',' near 'do'"},
+            {line = 1, offset = 11, end_offset = 12, msg = "expected ',' near 'do'"},
             get_error("for i = 2 do end")
          )
-         assert.same({line = 1, column = 15, end_column = 15, prev_line = 1, prev_column = 1, prev_end_column = 3,
+         assert.same({line = 1, offset = 15, end_offset = 15, prev_line = 1, prev_offset = 1, prev_end_offset = 3,
             msg = "expected 'end' near <eof>"},
             get_error("for i=1, #t do")
          )
-         assert.same({line = 2, column = 4, end_column = 4, prev_line = 1, prev_column = 1, prev_end_column = 3,
+         assert.same({line = 2, offset = 19, end_offset = 19, prev_line = 1, prev_offset = 1, prev_end_offset = 3,
             msg = "expected 'end' (to close 'for' on line 1) near <eof>"},
             get_error("for i=1, #t do\na()")
          )
          assert.same(
-            {line = 1, column = 5, end_column = 5, msg = "expected identifier near '('"},
+            {line = 1, offset = 5, end_offset = 5, msg = "expected identifier near '('"},
             get_error("for (i)=1, #t do end")
          )
          assert.same(
-            {line = 1, column = 5, end_column = 5, msg = "expected identifier near '3'"},
+            {line = 1, offset = 5, end_offset = 5, msg = "expected identifier near '3'"},
             get_error("for 3=1, #t do end")
          )
       end)
@@ -282,7 +290,7 @@ describe("parser", function()
                         {}
                      }, get_node("for i=1, #t, 2 do end"))
          assert.same(
-            {line = 1, column = 15, end_column = 15, msg = "expected 'do' near ','"},
+            {line = 1, offset = 15, end_offset = 15, msg = "expected 'do' near ','"},
             get_error("for i=1, #t, 2, 3 do")
          )
       end)
@@ -305,11 +313,11 @@ describe("parser", function()
                         {}
                      }, get_node("for i, j in t, 'foo' do end"))
          assert.same(
-            {line = 1, column = 5, end_column = 6, msg = "expected identifier near 'in'"},
+            {line = 1, offset = 5, end_offset = 6, msg = "expected identifier near 'in'"},
             get_error("for in foo do end")
          )
          assert.same(
-            {line = 1, column = 10, end_column = 11, msg = "expected expression near 'do'"},
+            {line = 1, offset = 10, end_offset = 11, msg = "expected expression near 'do'"},
             get_error("for i in do end")
          )
       end)
@@ -324,39 +332,39 @@ describe("parser", function()
                         }
                      }, get_node("function a() end"))
          assert.same(
-            {line = 1, column = 9, end_column = 9, msg = "expected identifier near <eof>"},
+            {line = 1, offset = 9, end_offset = 9, msg = "expected identifier near <eof>"},
             get_error("function")
          )
          assert.same(
-            {line = 1, column = 11, end_column = 11, msg = "expected '(' near <eof>"},
+            {line = 1, offset = 11, end_offset = 11, msg = "expected '(' near <eof>"},
             get_error("function a")
          )
          assert.same(
-            {line = 1, column = 12, end_column = 12, msg = "expected argument near <eof>"},
+            {line = 1, offset = 12, end_offset = 12, msg = "expected argument near <eof>"},
             get_error("function a(")
          )
-         assert.same({line = 1, column = 13, end_column = 13, prev_line = 1, prev_column = 1, prev_end_column = 8,
+         assert.same({line = 1, offset = 13, end_offset = 13, prev_line = 1, prev_offset = 1, prev_end_offset = 8,
             msg = "expected 'end' near <eof>"},
             get_error("function a()")
          )
-         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 1, prev_end_column = 8,
+         assert.same({line = 2, offset = 14, end_offset = 14, prev_line = 1, prev_offset = 1, prev_end_offset = 8,
             msg = "expected 'end' (to close 'function' on line 1) near <eof>"},
             get_error("function a(\n)")
          )
          assert.same(
-            {line = 1, column = 10, end_column = 10, msg = "expected identifier near '('"},
+            {line = 1, offset = 10, end_offset = 10, msg = "expected identifier near '('"},
             get_error("function (a)()")
          )
          assert.same(
-            {line = 1, column = 9, end_column = 9, msg = "expected identifier near '('"},
+            {line = 1, offset = 9, end_offset = 9, msg = "expected identifier near '('"},
             get_error("function() end")
          )
          assert.same(
-            {line = 1, column = 11, end_column = 11, msg = "expected '(' near 'a'"},
+            {line = 1, offset = 11, end_offset = 11, msg = "expected '(' near 'a'"},
             get_error("(function a() end)")
          )
          assert.same(
-            {line = 1, column = 18, end_column = 18, msg = "expected expression near ')'"},
+            {line = 1, offset = 18, end_offset = 18, msg = "expected expression near ')'"},
             get_error("function a() end()")
          )
       end)
@@ -381,22 +389,22 @@ describe("parser", function()
                         }
                      }, get_node("function a(b, ...) end"))
          assert.same(
-            {line = 1, column = 15, end_column = 15, msg = "expected argument near ')'"},
+            {line = 1, offset = 15, end_offset = 15, msg = "expected argument near ')'"},
             get_error("function a(b, ) end")
          )
-         assert.same({line = 1, column = 13, end_column = 13, prev_line = 1, prev_column = 11, prev_end_column = 11,
+         assert.same({line = 1, offset = 13, end_offset = 13, prev_line = 1, prev_offset = 11, prev_end_offset = 11,
             msg = "expected ')' near '.'"},
             get_error("function a(b.c) end")
          )
-         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 11, prev_end_column = 11,
+         assert.same({line = 2, offset = 14, end_offset = 14, prev_line = 1, prev_offset = 11, prev_end_offset = 11,
             msg = "expected ')' (to close '(' on line 1) near '.'"},
             get_error("function a(\nb.c) end")
          )
          assert.same(
-            {line = 1, column = 12, end_column = 12, msg = "expected argument near '('"},
+            {line = 1, offset = 12, end_offset = 12, msg = "expected argument near '('"},
             get_error("function a((b)) end")
          )
-         assert.same({line = 1, column = 15, end_column = 15, prev_line = 1, prev_column = 11, prev_end_column = 11,
+         assert.same({line = 1, offset = 15, end_offset = 15, prev_line = 1, prev_offset = 11, prev_end_offset = 11,
             msg = "expected ')' near ','"},
             get_error("function a(..., ...) end")
          )
@@ -419,11 +427,11 @@ describe("parser", function()
                         }
                      }, get_node("function a.b.c() end"))
          assert.same(
-            {line = 1, column = 11, end_column = 11, msg = "expected '(' near '['"},
+            {line = 1, offset = 11, end_offset = 11, msg = "expected '(' near '['"},
             get_error("function a[b]() end")
          )
          assert.same(
-            {line = 1, column = 12, end_column = 12, msg = "expected identifier near '('"},
+            {line = 1, offset = 12, end_offset = 12, msg = "expected identifier near '('"},
             get_error("function a.() end")
          )
       end)
@@ -445,7 +453,7 @@ describe("parser", function()
                         }
                      }, get_node("function a.b:c() end"))
          assert.same(
-            {line = 1, column = 13, end_column = 13, msg = "expected '(' near '.'"},
+            {line = 1, offset = 13, end_offset = 13, msg = "expected '(' near '.'"},
             get_error("function a:b.c() end")
          )
       end)
@@ -463,75 +471,78 @@ describe("parser", function()
                         }
                      }, get_node("local a, b"))
          assert.same(
-            {line = 1, column = 6, end_column = 6, msg = "expected identifier near <eof>"},
+            {line = 1, offset = 6, end_offset = 6, msg = "expected identifier near <eof>"},
             get_error("local")
          )
          assert.same(
-            {line = 1, column = 9, end_column = 9, msg = "expected identifier near <eof>"},
+            {line = 1, offset = 9, end_offset = 9, msg = "expected identifier near <eof>"},
             get_error("local a,")
          )
          assert.same(
-            {line = 1, column = 8, end_column = 8, msg = "expected statement near '.'"},
+            {line = 1, offset = 8, end_offset = 8, msg = "expected statement near '.'"},
             get_error("local a.b")
          )
          assert.same(
-            {line = 1, column = 8, end_column = 8, msg = "expected statement near '['"},
+            {line = 1, offset = 8, end_offset = 8, msg = "expected statement near '['"},
             get_error("local a[b]")
          )
          assert.same(
-            {line = 1, column = 7, end_column = 7, msg = "expected identifier near '('"},
+            {line = 1, offset = 7, end_offset = 7, msg = "expected identifier near '('"},
             get_error("local (a)")
          )
       end)
 
       it("parses local declaration with assignment correctly", function()
-         assert.same({tag = "Local", {
-                           {tag = "Id", "a"}
-                        }, {
-                           {tag = "Id", "b"}
-                        }
-                     }, get_node("local a = b"))
-         assert.same({tag = "Local", {
-                           {tag = "Id", "a"},
-                           {tag = "Id", "b"}
-                        }, {
-                           {tag = "Id", "c"},
-                           {tag = "Id", "d"}
-                        }
-                     }, get_node("local a, b = c, d"))
+         assert.same({
+            tag = "Local", {
+               {tag = "Id", "a"}
+            }, {
+               {tag = "Id", "b"}
+            }
+         }, get_node("local a = b"))
+         assert.same({
+            tag = "Local", {
+               {tag = "Id", "a"},
+               {tag = "Id", "b"}
+         }, {
+               {tag = "Id", "c"},
+               {tag = "Id", "d"}
+            }
+         }, get_node("local a, b = c, d"))
          assert.same(
-            {line = 1, column = 11, end_column = 11, msg = "expected expression near <eof>"},
+            {line = 1, offset = 11, end_offset = 11, msg = "expected expression near <eof>"},
             get_error("local a = ")
          )
          assert.same(
-            {line = 1, column = 13, end_column = 13, msg = "expected expression near <eof>"},
+            {line = 1, offset = 13, end_offset = 13, msg = "expected expression near <eof>"},
             get_error("local a = b,")
          )
          assert.same(
-            {line = 1, column = 8, end_column = 8, msg = "expected statement near '.'"},
+            {line = 1, offset = 8, end_offset = 8, msg = "expected statement near '.'"},
             get_error("local a.b = c")
          )
          assert.same(
-            {line = 1, column = 8, end_column = 8, msg = "expected statement near '['"},
+            {line = 1, offset = 8, end_offset = 8, msg = "expected statement near '['"},
             get_error("local a[b] = c")
          )
          assert.same(
-            {line = 1, column = 10, end_column = 10, msg = "expected identifier near '('"},
+            {line = 1, offset = 10, end_offset = 10, msg = "expected identifier near '('"},
             get_error("local a, (b) = c")
          )
       end)
 
       it("parses local function declaration correctly", function()
-         assert.same({tag = "Localrec",
-                        {tag = "Id", "a"},
-                        {tag = "Function", {}, {}}
-                     }, get_node("local function a() end"))
+         assert.same({
+            tag = "Localrec",
+            {{tag = "Id", "a"}},
+            {{tag = "Function", {}, {}}}
+         }, get_node("local function a() end"))
          assert.same(
-            {line = 1, column = 15, end_column = 15, msg = "expected identifier near <eof>"},
+            {line = 1, offset = 15, end_offset = 15, msg = "expected identifier near <eof>"},
             get_error("local function")
          )
          assert.same(
-            {line = 1, column = 17, end_column = 17, msg = "expected '(' near '.'"},
+            {line = 1, offset = 17, end_offset = 17, msg = "expected '(' near '.'"},
             get_error("local function a.b() end")
          )
       end)
@@ -539,77 +550,84 @@ describe("parser", function()
 
    describe("when parsing assignments", function()
       it("parses single target assignment correctly", function()
-         assert.same({tag = "Set", {
-                           {tag = "Id", "a"}
-                        }, {
-                           {tag = "Id", "b"}
-                        }
-                     }, get_node("a = b"))
-         assert.same({tag = "Set", {
-                           {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}}
-                        }, {
-                           {tag = "Id", "c"}
-                        }
-                     }, get_node("a.b = c"))
-         assert.same({tag = "Set", {
-                           {tag = "Index",
-                              {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}},
-                              {tag = "String", "c"}
-                           }
-                        }, {
-                           {tag = "Id", "d"}
-                        }
-                     }, get_node("a.b.c = d"))
-         assert.same({tag = "Set", {
-                           {tag = "Index",
-                              {tag = "Invoke",
-                                 {tag = "Call", {tag = "Id", "f"}},
-                                 {tag = "String", "g"}
-                              },
-                              {tag = "Number", "9"}
-                           }
-                        }, {
-                           {tag = "Id", "d"}
-                        }
-                     }, get_node("(f():g())[9] = d"))
-         assert.same({line = 1, column = 2, end_column = 2, msg = "expected '=' near <eof>"}, get_error("a"))
-         assert.same({line = 1, column = 5, end_column = 5, msg = "expected expression near <eof>"}, get_error("a = "))
-         assert.same({line = 1, column = 5, end_column = 5, msg = "expected statement near '='"}, get_error("a() = b"))
-         assert.same({line = 1, column = 1, end_column = 1, msg = "expected statement near '('"}, get_error("(a) = b"))
-         assert.same({line = 1, column = 1, end_column = 1, msg = "expected statement near '1'"}, get_error("1 = b"))
+         assert.same({
+            tag = "Set", {
+               {tag = "Id", "a"}
+            }, {
+               {tag = "Id", "b"}
+            }
+         }, get_node("a = b"))
+         assert.same({
+            tag = "Set", {
+               {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}}
+            }, {
+               {tag = "Id", "c"}
+            }
+         }, get_node("a.b = c"))
+         assert.same({
+            tag = "Set", {
+               {tag = "Index",
+                  {tag = "Index", {tag = "Id", "a"}, {tag = "String", "b"}},
+                  {tag = "String", "c"}
+               }
+            }, {
+               {tag = "Id", "d"}
+            }
+         }, get_node("a.b.c = d"))
+         assert.same({
+            tag = "Set", {
+               {tag = "Index",
+                  {tag = "Paren",
+                     {tag = "Invoke",
+                        {tag = "Call", {tag = "Id", "f"}},
+                        {tag = "String", "g"}
+                     }
+                  },
+                  {tag = "Number", "9"}
+               }
+            }, {
+               {tag = "Id", "d"}
+            }
+         }, get_node("(f():g())[9] = d"))
+         assert.same({line = 1, offset = 2, end_offset = 2, msg = "expected '=' near <eof>"}, get_error("a"))
+         assert.same({line = 1, offset = 5, end_offset = 5, msg = "expected expression near <eof>"}, get_error("a = "))
+         assert.same({line = 1, offset = 5, end_offset = 5, msg = "expected statement near '='"}, get_error("a() = b"))
+         assert.same({line = 1, offset = 1, end_offset = 1, msg = "expected statement near '('"}, get_error("(a) = b"))
+         assert.same({line = 1, offset = 1, end_offset = 1, msg = "expected statement near '1'"}, get_error("1 = b"))
       end)
 
       it("parses multi assignment correctly", function()
-         assert.same({tag = "Set", {
-                           {tag = "Id", "a"},
-                           {tag = "Id", "b"}
-                        }, {
-                           {tag = "Id", "c"},
-                           {tag = "Id", "d"}
-                        }
-                     }, get_node("a, b = c, d"))
+         assert.same({
+            tag = "Set", {
+               {tag = "Id", "a"},
+               {tag = "Id", "b"}
+            }, {
+               {tag = "Id", "c"},
+               {tag = "Id", "d"}
+            }
+         }, get_node("a, b = c, d"))
          assert.same(
-            {line = 1, column = 5, end_column = 5, msg = "expected '=' near <eof>"},
+            {line = 1, offset = 5, end_offset = 5, msg = "expected '=' near <eof>"},
             get_error("a, b")
          )
          assert.same(
-            {line = 1, column = 4, end_column = 4, msg = "expected identifier or field near '='"},
+            {line = 1, offset = 4, end_offset = 4, msg = "expected identifier or field near '='"},
             get_error("a, = b")
          )
          assert.same(
-            {line = 1, column = 8, end_column = 8, msg = "expected expression near <eof>"},
+            {line = 1, offset = 8, end_offset = 8, msg = "expected expression near <eof>"},
             get_error("a, b = ")
          )
          assert.same(
-            {line = 1, column = 10, end_column = 10, msg = "expected expression near <eof>"},
+            {line = 1, offset = 10, end_offset = 10, msg = "expected expression near <eof>"},
             get_error("a, b = c,")
          )
          assert.same(
-            {line = 1, column = 8, end_column = 8, msg = "expected call or indexing near '='"},
+            {line = 1, offset = 8, end_offset = 8, msg = "expected call or indexing near '='"},
             get_error("a, b() = c")
          )
          assert.same(
-            {line = 1, column = 4, end_column = 4, msg = "expected identifier or field near '('"},
+            {line = 1, offset = 4, end_offset = 4, msg = "expected identifier or field near '('"},
             get_error("a, (b) = c")
          )
       end)
@@ -617,17 +635,20 @@ describe("parser", function()
 
    describe("when parsing expression statements", function()
       it("parses calls correctly", function()
-         assert.same({tag = "Call",
-                        {tag = "Id", "a"}
-                     }, get_node("a()"))
-         assert.same({tag = "Call",
-                        {tag = "Id", "a"},
-                        {tag = "String", "b"}
-                     }, get_node("a'b'"))
-         assert.same({tag = "Call",
-                        {tag = "Id", "a"},
-                        {tag = "Table"}
-                     }, get_node("a{}"))
+         assert.same({
+            tag = "Call",
+            {tag = "Id", "a"}
+         }, get_node("a()"))
+         assert.same({
+            tag = "Call",
+            {tag = "Id", "a"},
+            {tag = "String", "b"}
+         }, get_node("a'b'"))
+         assert.same({
+            tag = "Call",
+            {tag = "Id", "a"},
+{tag = "Table"}
+         }, get_node("a{}"))
          assert.same({tag = "Call",
                         {tag = "Id", "a"},
                         {tag = "Id", "b"}
@@ -638,30 +659,30 @@ describe("parser", function()
                         {tag = "Id", "c"}
                      }, get_node("a(b, c)"))
          assert.same({tag = "Call",
-                        {tag = "Id", "a"},
+                        {tag = "Paren", {tag = "Id", "a"}},
                         {tag = "Id", "b"}
                      }, get_node("(a)(b)"))
          assert.same({tag = "Call",
                         {tag = "Call",
-                           {tag = "Id", "a"},
+                           {tag = "Paren", {tag = "Id", "a"}},
                            {tag = "Id", "b"}
                         }
                      }, get_node("(a)(b)()"))
-         assert.same({line = 1, column = 2, end_column = 2, msg = "expected expression near ')'"}, get_error("()()"))
-         assert.same({line = 1, column = 3, end_column = 3, msg = "expected expression near <eof>"}, get_error("a("))
-         assert.same({line = 1, column = 4, end_column = 4, prev_line = 1, prev_column = 2, prev_end_column = 2,
+         assert.same({line = 1, offset = 2, end_offset = 2, msg = "expected expression near ')'"}, get_error("()()"))
+         assert.same({line = 1, offset = 3, end_offset = 3, msg = "expected expression near <eof>"}, get_error("a("))
+         assert.same({line = 1, offset = 4, end_offset = 4, prev_line = 1, prev_offset = 2, prev_end_offset = 2,
             msg = "expected ')' near <eof>"},
             get_error("a(b"))
-         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 2, prev_end_column = 2,
+         assert.same({line = 2, offset = 5, end_offset = 5, prev_line = 1, prev_offset = 2, prev_end_offset = 2,
             msg = "expected ')' (to close '(' on line 1) near <eof>"},
             get_error("a(\nb"))
-         assert.same({line = 2, column = 1, end_column = 2, prev_line = 1, prev_column = 1, prev_end_column = 1,
+         assert.same({line = 2, offset = 4, end_offset = 5, prev_line = 1, prev_offset = 1, prev_end_offset = 1,
             msg = "expected ')' (to close '(' on line 1) near 'cc'"},
             get_error("(a\ncc"))
-         assert.same({line = 1, column = 1, end_column = 1, msg = "expected statement near '1'"}, get_error("1()"))
-         assert.same({line = 1, column = 1, end_column = 5, msg = "expected statement near ''foo''"},
+         assert.same({line = 1, offset = 1, end_offset = 1, msg = "expected statement near '1'"}, get_error("1()"))
+         assert.same({line = 1, offset = 1, end_offset = 5, msg = "expected statement near ''foo''"},
             get_error("'foo'()"))
-         assert.same({line = 1, column = 9, end_column = 9, msg = "expected identifier near '('"},
+         assert.same({line = 1, offset = 9, end_offset = 9, msg = "expected identifier near '('"},
             get_error("function() end ()"))
       end)
 
@@ -692,7 +713,7 @@ describe("parser", function()
                         {tag = "Id", "d"}
                      }, get_node("a:b(c, d)"))
          assert.same({tag = "Invoke",
-                        {tag = "Id", "a"},
+                        {tag = "Paren", {tag = "Id", "a"}},
                         {tag = "String", "b"},
                         {tag = "Id", "c"}
                      }, get_node("(a):b(c)"))
@@ -702,13 +723,13 @@ describe("parser", function()
                            {tag = "String", "b"}
                         }, {tag = "String", "c"}
                      }, get_node("a:b():c()"))
-         assert.same({line = 1, column = 1, end_column = 1, msg = "expected statement near '1'"}, get_error("1:b()"))
-         assert.same({line = 1, column = 1, end_column = 2, msg = "expected statement near ''''"}, get_error("'':a()"))
-         assert.same({line = 1, column = 9, end_column = 9, msg = "expected identifier near '('"},
+         assert.same({line = 1, offset = 1, end_offset = 1, msg = "expected statement near '1'"}, get_error("1:b()"))
+         assert.same({line = 1, offset = 1, end_offset = 2, msg = "expected statement near ''''"}, get_error("'':a()"))
+         assert.same({line = 1, offset = 9, end_offset = 9, msg = "expected identifier near '('"},
             get_error("function()end:b()"))
-         assert.same({line = 1, column = 4, end_column = 4, msg = "expected method arguments near ':'"},
+         assert.same({line = 1, offset = 4, end_offset = 4, msg = "expected method arguments near ':'"},
             get_error("a:b:c()"))
-         assert.same({line = 1, column = 3, end_column = 3, msg = "expected identifier near <eof>"}, get_error("a:"))
+         assert.same({line = 1, offset = 3, end_offset = 3, msg = "expected identifier near <eof>"}, get_error("a:"))
       end)
    end)
 
@@ -755,60 +776,26 @@ describe("parser", function()
                         {tag = "Id", "b"},
                         {tag = "Id", "c"}
                      }, get_expr("{a; b, c;}"))
-         assert.same({line = 1, column = 9, end_column = 9, msg = "expected expression near ';'"},
+         assert.same({line = 1, offset = 9, end_offset = 9, msg = "expected expression near ';'"},
             get_error("return {;}"))
-         assert.same({line = 1, column = 9, end_column = 9, msg = "expected expression near <eof>"},
+         assert.same({line = 1, offset = 9, end_offset = 9, msg = "expected expression near <eof>"},
             get_error("return {"))
-         assert.same({line = 1, column = 11, end_column = 13, prev_line = 1, prev_column = 8, prev_end_column = 8,
+         assert.same({line = 1, offset = 11, end_offset = 13, prev_line = 1, prev_offset = 8, prev_end_offset = 8,
             msg = "expected '}' near 'end'"},
             get_error("return {a end"))
-         assert.same({line = 2, column = 1, end_column = 3, prev_line = 1, prev_column = 8, prev_end_column = 8,
+         assert.same({line = 2, offset = 11, end_offset = 13, prev_line = 1, prev_offset = 8, prev_end_offset = 8,
             msg = "expected '}' (to close '{' on line 1) near 'end'"},
             get_error("return {a\nend"))
-         assert.same({line = 1, column = 11, end_column = 11, prev_line = 1, prev_column = 9, prev_end_column = 9,
+         assert.same({line = 1, offset = 11, end_offset = 11, prev_line = 1, prev_offset = 9, prev_end_offset = 9,
             msg = "expected ']' near <eof>"},
             get_error("return {[a"))
-         assert.same({line = 2, column = 2, end_column = 2, prev_line = 1, prev_column = 9, prev_end_column = 9,
+         assert.same({line = 2, offset = 12, end_offset = 12, prev_line = 1, prev_offset = 9, prev_end_offset = 9,
             msg = "expected ']' (to close '[' on line 1) near <eof>"},
             get_error("return {[\na"))
-         assert.same({line = 1, column = 11, end_column = 11, msg = "expected expression near ','"},
+         assert.same({line = 1, offset = 11, end_offset = 11, msg = "expected expression near ','"},
             get_error("return {a,,}"))
-         assert.same({line = 1, column = 13, end_column = 13, msg = "expected expression near <eof>"},
+         assert.same({line = 1, offset = 13, end_offset = 13, msg = "expected expression near <eof>"},
             get_error("return {a = "))
-      end)
-
-      it("wraps last element in table constructors in parens when needed", function()
-         assert.same({tag = "Table",
-                        {tag = "Id", "a"},
-                        {tag = "Paren",
-                           {tag = "Call",
-                              {tag = "Id", "f"}
-                           }
-                        }
-                     }, get_expr("{a, (f())}"))
-         assert.same({tag = "Table",
-                        {tag = "Call",
-                           {tag = "Id", "f"}
-                        },
-                        {tag = "Id", "a"}
-                     }, get_expr("{(f()), a}"))
-         assert.same({tag = "Table",
-                        {tag = "Pair",
-                           {tag = "String", "a"},
-                           {tag = "Call",
-                              {tag = "Id", "f"}
-                           }
-                        }
-                     }, get_expr("{a = (f())}"))
-         assert.same({tag = "Table",
-                        {tag = "Call",
-                           {tag = "Id", "f"}
-                        },
-                        {tag = "Pair",
-                           {tag = "String", "a"},
-                           {tag = "Id", "b"}
-                        }
-                     }, get_expr("{(f()), a = b}"))
       end)
 
       it("parses simple expressions correctly", function()
@@ -889,43 +876,6 @@ describe("parser", function()
                         }
                      }, get_expr("a == b and c == d or e ~= f"))
       end)
-
-      it("wraps last expression in a list in parens when needed", function()
-         assert.same({tag = "Return",
-                        {tag = "Dots", "..."},
-                        {tag = "Paren", {tag = "Dots", "..."}}
-                     }, get_node("return (...), (...)"))
-         assert.same({tag = "Return",
-                        {tag = "Dots", "..."},
-                        {tag = "Dots", "..."}
-                     }, get_node("return (...), ..."))
-         assert.same({tag = "Return",
-                        {tag = "True"},
-                        {tag = "False"}
-                     }, get_node("return (true), (false)"))
-         assert.same({tag = "Return",
-                        {tag = "Call",
-                           {tag = "Id", "f"}
-                        },
-                        {tag = "Paren",
-                           {tag = "Call",
-                              {tag = "Id", "g"}
-                           }
-                        }
-                     }, get_node("return (f()), (g())"))
-         assert.same({tag = "Return",
-                        {tag = "Invoke",
-                           {tag = "Id", "f"},
-                           {tag = "String", "n"}
-                        },
-                        {tag = "Paren",
-                           {tag = "Invoke",
-                              {tag = "Id", "g"},
-                              {tag = "String", "m"}
-                           }
-                        }
-                     }, get_node("return (f:n()), (g:m())"))
-      end)
    end)
 
    describe("when parsing multiple statements", function()
@@ -939,97 +889,97 @@ describe("parser", function()
       end)
 
       it("does not allow statements after return", function()
-         assert.same({line = 1, column = 8, end_column = 12, msg = "expected expression near 'break'"},
+         assert.same({line = 1, offset = 8, end_offset = 12, msg = "expected expression near 'break'"},
             get_error("return break"))
-         assert.same({line = 1, column = 9, end_column = 13, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 9, end_offset = 13, msg = "expected end of block near 'break'"},
             get_error("return; break"))
-         assert.same({line = 1, column = 8, end_column = 8, msg = "expected end of block near ';'"},
+         assert.same({line = 1, offset = 8, end_offset = 8, msg = "expected end of block near ';'"},
             get_error("return;;"))
-         assert.same({line = 1, column = 10, end_column = 14, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 10, end_offset = 14, msg = "expected end of block near 'break'"},
             get_error("return 1 break"))
-         assert.same({line = 1, column = 11, end_column = 15, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 11, end_offset = 15, msg = "expected end of block near 'break'"},
             get_error("return 1; break"))
-         assert.same({line = 1, column = 13, end_column = 17, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 13, end_offset = 17, msg = "expected end of block near 'break'"},
             get_error("return 1, 2 break"))
-         assert.same({line = 1, column = 14, end_column = 18, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 14, end_offset = 18, msg = "expected end of block near 'break'"},
             get_error("return 1, 2; break"))
       end)
 
       it("parses nested statements correctly", function()
          assert.same({
-                        {tag = "Localrec",
-                           {tag = "Id", "f"},
-                           {tag = "Function", {}, {
-                              {tag = "While",
-                                 {tag = "True"},
+            {tag = "Localrec",
+               {{tag = "Id", "f"}},
+               {{tag = "Function", {}, {
+                  {tag = "While",
+                     {tag = "True"},
+                     {
+                        {tag = "If",
+                           {tag = "Nil"},
+                           {
+                              {tag = "Call",
+                                 {tag = "Id", "f"}
+                              },
+                              {tag = "Return"}
+                           },
+                           {tag = "False"},
+                           {
+                              {tag = "Call",
+                                 {tag = "Id", "g"}
+                              },
+                              {tag = "Break"}
+                           },
+                           {
+                              {tag = "Call",
+                                 {tag = "Id", "h"}
+                              },
+                              {tag = "Repeat",
                                  {
-                                    {tag = "If",
-                                       {tag = "Nil"},
-                                       {
-                                          {tag = "Call",
-                                             {tag = "Id", "f"}
-                                          },
-                                          {tag = "Return"}
-                                       },
-                                       {tag = "False"},
-                                       {
-                                          {tag = "Call",
-                                             {tag = "Id", "g"}
-                                          },
-                                          {tag = "Break"}
-                                       },
-                                       {
-                                          {tag = "Call",
-                                             {tag = "Id", "h"}
-                                          },
-                                          {tag = "Repeat",
-                                             {
-                                                {tag = "Goto", "fail"}
-                                             },
-                                             {tag = "Id", "get_forked"}
-                                          }
-                                       }
-                                    }
-                                 }
-                              },
-                              {tag = "Label", "fail"}
-                           }}
-                        },
-                        {tag = "Do",
-                           {tag = "Fornum",
-                              {tag = "Id", "i"},
-                              {tag = "Number", "1"},
-                              {tag = "Number", "2"},
-                              {
-                                 {tag = "Call",
-                                    {tag = "Id", "nothing"}
-                                 }
-                              }
-                           },
-                           {tag = "Forin",
-                              {
-                                 {tag = "Id", "k"},
-                                 {tag = "Id", "v"}
-                              },
-                              {
-                                 {tag = "Call",
-                                    {tag = "Id", "pairs"}
-                                 }
-                              },
-                              {
-                                 {tag = "Call",
-                                    {tag = "Id", "print"},
-                                    {tag = "String", "bar"}
+                                    {tag = "Goto", "fail"}
                                  },
-                                 {tag = "Call",
-                                    {tag = "Id", "assert"},
-                                    {tag = "Number", "42"}
-                                 }
+                                 {tag = "Id", "get_forked"}
                               }
-                           },
-                           {tag = "Return"}
-                        },
-                     }, get_ast([[
+                           }
+                        }
+                     }
+                  },
+                  {tag = "Label", "fail"}
+               }}}
+            },
+            {tag = "Do",
+               {tag = "Fornum",
+                  {tag = "Id", "i"},
+                  {tag = "Number", "1"},
+                  {tag = "Number", "2"},
+                  {
+                     {tag = "Call",
+                        {tag = "Id", "nothing"}
+                     }
+                  }
+               },
+               {tag = "Forin",
+                  {
+                     {tag = "Id", "k"},
+                     {tag = "Id", "v"}
+                  },
+                  {
+                     {tag = "Call",
+                        {tag = "Id", "pairs"}
+                     }
+                  },
+                  {
+                     {tag = "Call",
+                        {tag = "Id", "print"},
+                        {tag = "String", "bar"}
+                     },
+                     {tag = "Call",
+                        {tag = "Id", "assert"},
+                        {tag = "Number", "42"}
+                     }
+                  }
+               },
+               {tag = "Return"}
+            },
+         }, get_ast([[
 local function f()
    while true do
       if nil then
@@ -1069,72 +1019,71 @@ end
 
    it("provides correct location info", function()
       assert.same({
-                     {tag = "Localrec", location = {line = 1, column = 1, offset = 1}, first_token = "local",
-                        {tag = "Id", "foo", location = {line = 1, column = 16, offset = 16}},
-                        {tag = "Function", location = {line = 1, column = 7, offset = 7},
-                           end_location = {line = 4, column = 1, offset = 78},
-                           {
-                              {tag = "Id", "a", location = {line = 1, column = 20, offset = 20}},
-                              {tag = "Id", "b", location = {line = 1, column = 23, offset = 23}},
-                              {tag = "Id", "c", location = {line = 1, column = 26, offset = 26}},
-                              {tag = "Dots", "...", location = {line = 1, column = 29, offset = 29}}
-                           },
-                           {
-                              {tag = "Local", location = {line = 2, column = 4, offset = 37}, first_token = "local",
-                                 equals_location = {line = 2, column = 12, offset = 45},
-                                 {
-                                    {tag = "Id", "d", location = {line = 2, column = 10, offset = 43}}
-                                 },
-                                 {
-                                    {tag = "Op", "mul", location = {line = 2, column = 15, offset = 48},
-                                       {tag = "Op", "add", location = {line = 2, column = 15, offset = 48},
-                                          {tag = "Id", "a", location = {line = 2, column = 15, offset = 48}},
-                                          {tag = "Id", "b", location = {line = 2, column = 19, offset = 52}}
-                                       },
-                                       {tag = "Id", "c", location = {line = 2, column = 24, offset = 57}}
-                                    }
-                                 }
-                              },
-                              {tag = "Return", location = {line = 3, column = 4, offset = 62}, first_token = "return",
-                                 {tag = "Id", "d", location = {line = 3, column = 11, offset = 69}},
-                                 {tag = "Paren", location = {line = 3, column = 15, offset = 73},
-                                    {tag = "Dots", "...", location = {line = 3, column = 15, offset = 73}}
-                                 }
-                              }
-                           }
-                        }
+         {tag = "Localrec", line = 1, offset = 1, end_offset = 80,
+            {{tag = "Id", "foo", line = 1, offset = 16, end_offset = 18}},
+            {{tag = "Function", line = 1, offset = 7, end_offset = 80,
+               end_range = {line = 4, offset = 78, end_offset = 80},
+               {
+                  {tag = "Id", "a", line = 1, offset = 20, end_offset = 20},
+                  {tag = "Id", "b", line = 1, offset = 23, end_offset = 23},
+                  {tag = "Id", "c", line = 1, offset = 26, end_offset = 26},
+                  {tag = "Dots", "...", line = 1, offset = 29, end_offset = 31}
+               },
+               {
+                  {tag = "Local", line = 2, offset = 37, end_offset = 57,
+                     {
+                        {tag = "Id", "d", line = 2, offset = 43, end_offset = 43}
                      },
-                     {tag = "Set", location = {line = 6, column = 1, offset = 83}, first_token = "function",
-                        {
-                           {tag = "Index", location = {line = 6, column = 10, offset = 92},
-                              {tag = "Id", "t", location = {line = 6, column = 10, offset = 92}},
-                              {tag = "String", "bar", location = {line = 6, column = 12, offset = 94}}
-                           }
-                        },
-                        {
-                           {tag = "Function", location = {line = 6, column = 1, offset = 83},
-                              end_location = {line = 10, column = 1, offset = 142},
-                              {
-                                 {tag = "Id", "self", implicit = true, location = {line = 6, column = 11, offset = 93}},
-                                 {tag = "Id", "arg", location = {line = 6, column = 16, offset = 98}}
-                              },
-                              {
-                                 {tag = "If", location = {line = 7, column = 4, offset = 106}, first_token = "if",
-                                    {tag = "Id", "arg", location = {line = 7, column = 7, offset = 109},
-                                       first_token = "arg"},
-                                    {location = {line = 7, column = 11, offset = 113}, -- Branch location.
-                                       {tag = "Call", location = {line = 8, column = 7, offset = 124},
-                                             first_token = "print",
-                                          {tag = "Id", "print", location = {line = 8, column = 7, offset = 124}},
-                                          {tag = "Id", "arg", location = {line = 8, column = 13, offset = 130}}
-                                       }
-                                    }
-                                 }
+                     {
+                        {tag = "Op", "mul", line = 2, offset = 47, end_offset = 57,
+                           {tag = "Paren", line = 2, offset = 47, end_offset = 53,
+                              {tag = "Op", "add", line = 2, offset = 48, end_offset = 52,
+                                 {tag = "Id", "a", line = 2, offset = 48, end_offset = 48},
+                                 {tag = "Id", "b", line = 2, offset = 52, end_offset = 52}
                               }
+                           },
+                           {tag = "Id", "c", line = 2, offset = 57, end_offset = 57}
+                        }
+                     }
+                  },
+                  {tag = "Return", line = 3, offset = 62, end_offset = 76,
+                     {tag = "Id", "d", line = 3, offset = 69, end_offset = 69},
+                     {tag = "Paren", line = 3, offset = 72, end_offset = 76,
+                        {tag = "Dots", "...", line = 3, offset = 73, end_offset = 75}
+                     }
+                  }
+               }
+            }}
+         },
+         {tag = "Set", line = 6, offset = 83, end_offset = 144,
+            {
+               {tag = "Index", line = 6, offset = 92, end_offset = 96,
+                  {tag = "Id", "t", line = 6, offset = 92, end_offset = 92},
+                  {tag = "String", "bar", line = 6, offset = 94, end_offset = 96}
+               }
+            },
+            {
+               {tag = "Function", line = 6, offset = 83, end_offset = 144,
+                  end_range = {line = 10, offset = 142, end_offset = 144},
+                  {
+                     {tag = "Id", "self", implicit = true, line = 6, offset = 93, end_offset = 93},
+                     {tag = "Id", "arg", line = 6, offset = 98, end_offset = 100}
+                  },
+                  {
+                     {tag = "If", line = 7, offset = 106, end_offset = 140,
+                        {tag = "Id", "arg", line = 7, offset = 109, end_offset = 111},
+                        {line = 7, offset = 113, end_offset = 116, -- Branch location.
+                           {tag = "Call", line = 8, offset = 124, end_offset = 133,
+                              {tag = "Id", "print", line = 8, offset = 124, end_offset = 128},
+                              {tag = "Id", "arg", line = 8, offset = 130, end_offset = 132}
                            }
                         }
                      }
-                  }, (parser.parse([[
+                  }
+               }
+            }
+         }
+      }, (get_all([[
 local function foo(a, b, c, ...)
    local d = (a + b) * c
    return d, (...)
@@ -1151,10 +1100,10 @@ end
 
    it("provides correct location info for labels", function()
       assert.same({
-         {tag = "Label", "foo", location = {line = 1, column = 1, offset = 1}, end_column = 7, first_token = "::"},
-         {tag = "Label", "bar", location = {line = 2, column = 1, offset = 9}, end_column = 6, first_token = "::"},
-         {tag = "Label", "baz", location = {line = 3, column = 3, offset = 18}, end_column = 4, first_token = "::"}
-      }, (parser.parse([[
+         {tag = "Label", "foo", line = 1, offset = 1, end_offset = 7},
+         {tag = "Label", "bar", line = 2, offset = 9, end_offset = 17},
+         {tag = "Label", "baz", line = 3, offset = 18, end_offset = 25}
+      }, (get_all([[
 ::foo::
 :: bar
 ::::
@@ -1164,28 +1113,33 @@ baz::
 
    it("provides correct location info for statements starting with expressions", function()
       assert.same({
-                     {tag = "Call", location = {line = 1, column = 1, offset = 1}, first_token = "a",
-                        {tag = "Id", "a", location = {line = 1, column = 1, offset = 1}}
-                     },
-                     {tag = "Call", location = {line = 2, column = 1, offset = 6}, first_token = "(",
-                        {tag = "Id", "b", location = {line = 2, column = 2, offset = 7}}
-                     },
-                     {tag = "Set", location = {line = 3, column = 1, offset = 13}, first_token = "(",
-                        equals_location = {line = 3, column = 12, offset = 24},
-                        {
-                           {tag = "Index", location = {line = 3, column = 3, offset = 15},
-                              {tag = "Index", location = {line = 3, column = 3, offset = 15},
-                                 {tag = "Id", "c", location = {line = 3, column = 3, offset = 15}},
-                                 {tag = "String", "d", location = {line = 3, column = 6, offset = 18}}
-                              },
-                              {tag = "Number", "3", location = {line = 3, column = 9, offset = 21}}
-                           }
+         {tag = "Call", line = 1, offset = 1, end_offset = 3,
+            {tag = "Id", "a", line = 1, offset = 1, end_offset = 1}
+         },
+         {tag = "Call", line = 2, offset = 6, end_offset = 10,
+            {tag = "Paren", line = 2, offset = 6, end_offset = 8,
+               {tag = "Id", "b", line = 2, offset = 7, end_offset = 7}
+            }
+         },
+         {tag = "Set", line = 3, offset = 13, end_offset = 26,
+            {
+               {tag = "Index", line = 3, offset = 13, end_offset = 22,
+                  {tag = "Paren", line = 3, offset = 13, end_offset = 19,
+                     {tag = "Index", line = 3, offset = 14, end_offset = 18,
+                        {tag = "Paren", line = 3, offset = 14, end_offset = 16,
+                           {tag = "Id", "c", line = 3, offset = 15, end_offset = 15}
                         },
-                        {
-                           {tag = "Number", "2", location = {line = 3, column = 14, offset = 26}}
-                        }
+                        {tag = "String", "d", line = 3, offset = 18, end_offset = 18}
                      }
-                  }, (parser.parse([[
+                  },
+                  {tag = "Number", "3", line = 3, offset = 21, end_offset = 21}
+               }
+            },
+            {
+               {tag = "Number", "2", line = 3, offset = 26, end_offset = 26}
+            }
+         }
+      }, (get_all([[
 a();
 (b)();
 ((c).d)[3] = 2
@@ -1194,37 +1148,41 @@ a();
 
    it("provides correct location info for conditions", function()
       assert.same({
-                     {tag = "If", location = {line = 1, column = 1, offset = 1}, first_token = "if",
-                        {tag = "Id", "x", location = {line = 1, column = 5, offset = 5}, first_token = "x"},
-                        {location = {line = 1, column = 8, offset = 8}}
-                     }
-                  }, (parser.parse([[
+         {tag = "If", line = 1, offset = 1, end_offset = 15,
+            {tag = "Paren", line = 1, offset = 4, end_offset = 6,
+               {tag = "Id", "x", line = 1, offset = 5, end_offset = 5},
+            },
+            {line = 1, offset = 8, end_offset = 11}
+         }
+      }, (get_all([[
 if (x) then end
 ]])))
    end)
 
    it("provides correct location info for table keys", function()
       assert.same({
-                     {tag = "Return", location = {line = 1, column = 1, offset = 1}, first_token = "return",
-                        {tag = "Table", location = {line = 1, column = 8, offset = 8},
-                           {tag = "Pair", location = {line = 1, column = 9, offset = 9}, first_token = "a",
-                              {tag = "String", "a", location = {line = 1, column = 9, offset = 9}},
-                              {tag = "Id", "b", location = {line = 1, column = 13, offset = 13}}
-                           },
-                           {tag = "Pair", location = {line = 1, column = 16, offset = 16}, first_token = "[",
-                              {tag = "Id", "x", location = {line = 1, column = 17, offset = 17}},
-                              {tag = "Id", "y", location = {line = 1, column = 22, offset = 22}},
-                           },
-                           {tag = "Id", "z", location = {line = 1, column = 26, offset = 26}, first_token = "z"}
-                        }
-                     }
-                  }, (parser.parse([[
+         {tag = "Return", line = 1, offset = 1, end_offset = 28,
+            {tag = "Table", line = 1, offset = 8, end_offset = 28,
+               {tag = "Pair", line = 1, offset = 9, end_offset = 13,
+                  {tag = "String", "a", line = 1, offset = 9, end_offset = 9},
+                  {tag = "Id", "b", line = 1, offset = 13, end_offset = 13}
+               },
+               {tag = "Pair", line = 1, offset = 16, end_offset = 22,
+                  {tag = "Id", "x", line = 1, offset = 17, end_offset = 17},
+                  {tag = "Id", "y", line = 1, offset = 22, end_offset = 22},
+               },
+               {tag = "Paren", line = 1, offset = 25, end_offset = 27,
+                  {tag = "Id", "z", line = 1, offset = 26, end_offset = 26}
+               }
+            }
+         }
+      }, (get_all([[
 return {a = b, [x] = y, (z)}
 ]])))
    end)
 
    it("provides correct error location info", function()
-      assert.same({line = 8, column = 15, end_column = 15, msg = "expected '=' near ')'"}, get_error([[
+      assert.same({line = 8, offset = 132, end_offset = 132, msg = "expected '=' near ')'"}, get_error([[
 local function foo(a, b, c, ...)
    local d = (a + b) * c
    return d, (...)
@@ -1238,12 +1196,18 @@ end
 ]]))
    end)
 
+   it("provides correct error location info for EOF with no endline", function()
+      assert.same({line = 1, offset = 9, end_offset = 9, msg = "expected expression near <eof>"}, get_error("thing = "))
+      assert.same(
+         {line = 2, offset = 15, end_offset = 15, msg = "expected expression near <eof>"}, get_error("thing = -- eof"))
+   end)
+
    describe("providing misc information", function()
       it("provides comments correctly", function()
          assert.same({
-            {contents = " ignore something", location = {line = 1, column = 1, offset = 1}, end_column = 19},
-            {contents = " comments", location = {line = 2, column = 13, offset = 33}, end_column = 23},
-            {contents = "long comment", location = {line = 3, column = 13, offset = 57}, end_column = 17}
+            {contents = " ignore something", line = 1, offset = 1, end_offset = 20},
+            {contents = " comments", line = 2, offset = 33, end_offset = 44},
+            {contents = "long comment", line = 3, offset = 57, end_offset = 77}
          }, get_comments([[
 -- ignore something
 foo = bar() -- comments
@@ -1268,6 +1232,40 @@ local foo = 2
 }
 ::bar::
 ]]))
+         assert.same({true}, get_code_lines("f() -- luacheck: ignore"))
+      end)
+
+      it("provides line ending types correctly", function()
+         assert.same({
+            "comment",
+            nil,
+            nil,
+            nil,
+            "string",
+            nil,
+            "comment",
+            "comment",
+            nil,
+            nil,
+            "string",
+            "string",
+            nil
+         }, get_line_endings([[
+-- comment
+f()
+--[=[comment]=]
+f()
+f("\
+string")
+--[=[
+   comment
+]=]
+f()
+f([=[
+   string
+]=])
+]]))
+         assert.same({"comment"}, get_line_endings("f() -- comment"))
       end)
    end)
 end)

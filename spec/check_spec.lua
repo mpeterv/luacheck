@@ -25,14 +25,14 @@ describe("check", function()
 
    it("detects duplicated fields in table literals", function()
       assert.same({
-         {code = "314", field = "key", line = 3, column = 4, end_column = 4,
+         {code = "314", field = "key", line = 3, column = 5, end_column = 9,
             overwritten_line = 7, overwritten_column = 4, overwritten_end_column = 6},
          {code = "314", field = "2", index = true, line = 6, column = 4, end_column = 4,
-            overwritten_line = 9, overwritten_column = 4, overwritten_end_column = 4},
+            overwritten_line = 9, overwritten_column = 5, overwritten_end_column = 9},
          {code = "314", field = "key", line = 7, column = 4, end_column = 6,
             overwritten_line = 8, overwritten_column = 4, overwritten_end_column = 6},
-         {code = "314", field = "0.2e1", line = 9, column = 4, end_column = 4,
-            overwritten_line = 10, overwritten_column = 4, overwritten_end_column = 4}
+         {code = "314", field = "0.2e1", line = 9, column = 5, end_column = 9,
+            overwritten_line = 10, overwritten_column = 5, overwritten_end_column = 5}
       }, check[[
 local x, y, z = 1, 2, 3
 return {
@@ -54,7 +54,7 @@ return {
             overwritten_line = 2, overwritten_column = 1, overwritten_end_column = 1},
          {code = "311", name = "b", line = 1, column = 10, end_column = 10,
             overwritten_line = 2, overwritten_column = 4, overwritten_end_column = 4},
-         {code = "532", line = 2, column = 6, end_column = 6}
+         {code = "532", line = 2, column = 1, end_column = 12}
       }, check[[
 local a, b = "foo", "bar"
 a, b = "bar"
@@ -243,8 +243,8 @@ goto fail
 
    it("detects unbalanced assignments", function()
       assert.same({
-         {code = "532", line = 4, column = 6, end_column = 6},
-         {code = "531", line = 5, column = 6, end_column = 6}
+         {code = "532", line = 4, column = 1, end_column = 8},
+         {code = "531", line = 5, column = 1, end_column = 14}
       }, check[[
 local a, b = 4; (...)(a)
 
@@ -256,7 +256,7 @@ a, b = 1, 2, 3; (...)(a, b)
 
    it("detects empty blocks", function()
       assert.same({
-         {code = "541", line = 1, column = 1, end_column = 2},
+         {code = "541", line = 1, column = 1, end_column = 6},
          {code = "542", line = 3, column = 8, end_column = 11},
          {code = "542", line = 5, column = 12, end_column = 15},
          {code = "542", line = 7, column = 1, end_column = 4}
@@ -279,7 +279,7 @@ repeat until ...
    it("detects empty statements", function()
       assert.same({
          {code = "551", line = 1, column = 1, end_column = 1},
-         {code = "541", line = 2, column = 1, end_column = 2},
+         {code = "541", line = 2, column = 1, end_column = 6},
          {code = "551", line = 2, column = 8, end_column = 8},
          {code = "551", line = 4, column = 20, end_column = 20},
          {code = "551", line = 7, column = 17, end_column = 17}
@@ -312,7 +312,7 @@ return foo;
             {pop = true, line = 3, column = 1, end_column = 16},
             {push = true, closure = true, line = 4, column = 8},
             {options = {ignore = {".*"}}, line = 5, column = 1, end_column = 19},
-            {code = "512", line = 7, column = 1, end_column = 3},
+            {code = "512", line = 7, column = 1, end_column = 32},
             {code = "213", name = "_", line = 7, column = 5, end_column = 5},
             {code = "113", name = "pairs", indexing = {"pairs"}, line = 7, column = 10, end_column = 14},
             {pop = true, closure = true, line = 9, column = 1}
@@ -320,7 +320,7 @@ return foo;
          per_line_options = {
             [2] = {{options = {ignore = {"foo"}}, line = 2, column = 16, end_column = 38}}
          },
-         line_lengths = {28, 38, 16, 17, 19, 17, 32, 16, 3},
+         line_lengths = {28, 38, 16, 17, 19, 17, 32, 16, 3, 0},
          line_endings = {"comment", "comment", "comment", nil, "comment", "comment", nil, "comment", nil}
       }, check_full[[
 -- luacheck: push ignore bar

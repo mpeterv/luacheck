@@ -1,16 +1,18 @@
 local check_state = require "luacheck.check_state"
+local unwrap_parens = require "luacheck.stages.unwrap_parens"
 local linearize = require "luacheck.stages.linearize"
 local parse = require "luacheck.stages.parse"
 local resolve_locals = require "luacheck.stages.resolve_locals"
 
-local function used_variables_to_string(item)
+local function used_variables_to_string(chstate, item)
    local buf = {}
 
    for var, values in pairs(item.used_values) do
       local values_buf = {}
 
       for _, value in ipairs(values) do
-         table.insert(values_buf, tostring(value.location.line) .. ":" .. tostring(value.location.column))
+         table.insert(values_buf, ("%d:%d"):format(
+            value.var_node.line, chstate:offset_to_column(value.var_node.line, value.var_node.offset)))
       end
 
       table.insert(buf, var.name .. " = (" .. table.concat(values_buf, ", ") .. ")")
@@ -23,6 +25,7 @@ end
 local function get_used_variables_as_string(src)
    local chstate = check_state.new(src)
    parse.run(chstate)
+   unwrap_parens.run(chstate)
    linearize.run(chstate)
    resolve_locals.run(chstate)
 
@@ -31,7 +34,7 @@ local function get_used_variables_as_string(src)
    for _, item in ipairs(chstate.top_line.items) do
       if item.accesses and next(item.accesses) then
          assert.is_table(item.used_values)
-         table.insert(buf, used_variables_to_string(item))
+         table.insert(buf, used_variables_to_string(chstate, item))
       end
    end
 

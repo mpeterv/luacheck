@@ -1,4 +1,5 @@
 local check_state = require "luacheck.check_state"
+local unwrap_parens = require "luacheck.stages.unwrap_parens"
 local core_utils = require "luacheck.core_utils"
 local detect_cyclomatic_complexity = require "luacheck.stages.detect_cyclomatic_complexity"
 local linearize = require "luacheck.stages.linearize"
@@ -8,6 +9,7 @@ local parse = require "luacheck.stages.parse"
 local function get_warnings(src)
    local chstate = check_state.new(src)
    parse.run(chstate)
+   unwrap_parens.run(chstate)
    linearize.run(chstate)
    name_functions.run(chstate)
    chstate.warnings = {}
@@ -134,20 +136,20 @@ print(a or b)
    it("provides appropriate names and types for functions", function()
       assert_warnings({
          {code = "561", line = 1, column = 1, end_column = 1, complexity = 1, function_type = "main_chunk"},
-         {code = "561", line = 1, column = 8, end_column = 15, complexity = 1,function_type = "function"},
-         {code = "561", line = 2, column = 14, end_column = 21, complexity = 1, function_type = "function",
+         {code = "561", line = 1, column = 8, end_column = 17, complexity = 1,function_type = "function"},
+         {code = "561", line = 2, column = 14, end_column = 27, complexity = 1, function_type = "function",
             function_name = "f"},
-         {code = "561", line = 3, column = 8, end_column = 15, complexity = 1, function_type = "function",
+         {code = "561", line = 3, column = 8, end_column = 21, complexity = 1, function_type = "function",
             function_name = "g"},
-         {code = "561", line = 4, column = 10, end_column = 17, complexity = 1, function_type = "function",
+         {code = "561", line = 4, column = 10, end_column = 25, complexity = 1, function_type = "function",
             function_name = "h"},
-         {code = "561", line = 5, column = 25, end_column = 32, complexity = 1, function_type = "function",
+         {code = "561", line = 5, column = 25, end_column = 38, complexity = 1, function_type = "function",
             function_name = "t.k"},
-         {code = "561", line = 6, column = 26, end_column = 33, complexity = 1, function_type = "function",
+         {code = "561", line = 6, column = 26, end_column = 39, complexity = 1, function_type = "function",
             function_name = "t.k1.k2.k3.k4"},
-         {code = "561", line = 7, column = 11, end_column = 18, complexity = 1, function_type = "function"},
-         {code = "561", line = 8, column = 6, end_column = 13, complexity = 1, function_type = "function"},
-         {code = "561", line = 9, column = 4, end_column = 11, complexity = 1, function_type = "method",
+         {code = "561", line = 7, column = 11, end_column = 24, complexity = 1, function_type = "function"},
+         {code = "561", line = 8, column = 6, end_column = 19, complexity = 1, function_type = "function"},
+         {code = "561", line = 9, column = 4, end_column = 27, complexity = 1, function_type = "method",
             function_name = "t.foo.bar"}
       }, [[
 return function()

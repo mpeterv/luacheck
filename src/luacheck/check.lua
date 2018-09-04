@@ -22,7 +22,7 @@ local function check(source)
       return {
          events = events,
          per_line_options = per_line_options,
-         line_lengths = utils.map(function(s) return #s end, chstate.source_lines),
+         line_lengths = chstate.line_lengths,
          line_endings = chstate.line_endings
       }
    else
@@ -35,13 +35,16 @@ local function check(source)
       local syntax_error = {
          code = "011",
          line = err.line,
-         column = err.column,
-         end_column = err.end_column,
-         prev_line = err.prev_line,
-         prev_column = err.prev_column,
-         prev_end_column = err.prev_end_column,
+         column = chstate:offset_to_column(err.line, err.offset),
+         end_column = chstate:offset_to_column(err.line, err.end_offset),
          msg = err.msg
       }
+
+      if err.prev_line then
+         syntax_error.prev_line = err.prev_line
+         syntax_error.prev_column = chstate:offset_to_column(err.prev_line, err.prev_offset)
+         syntax_error.prev_end_column = chstate:offset_to_column(err.prev_line, err.prev_end_offset)
+      end
 
       return {
          events = {syntax_error},

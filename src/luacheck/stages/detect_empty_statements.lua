@@ -5,8 +5,8 @@ stage.messages = {
 }
 
 function stage.run(chstate)
-   for _, location in ipairs(chstate.useless_semicolons) do
-      chstate:warn_token("551", ";", location)
+   for _, range in ipairs(chstate.useless_semicolons) do
+      chstate:warn_range("551", range)
    end
 end
 

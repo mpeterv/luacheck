@@ -31,10 +31,8 @@ local function detect_uninit_access_in_line(chstate, line)
 
                      if all_possible_values_empty then
                         for _, accessing_node in ipairs(accessing_nodes) do
-                           local name = accessing_node[1]
-
-                           chstate:warn_token(code, name, accessing_node.location, {
-                              name = name
+                           chstate:warn_range(code, accessing_node, {
+                              name = accessing_node[1]
                            })
                         end
                      end

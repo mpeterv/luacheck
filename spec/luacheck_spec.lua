@@ -274,7 +274,7 @@ describe("check_strings", function()
                code = "511",
                line = 9,
                column = 1,
-               end_column = 1
+               end_column = 5
             }
          },
          warnings = 4,
@@ -356,8 +356,8 @@ return f --[=[
                code = "011",
                msg = "expected 'then' near <eof>",
                line = 1,
-               column = 9,
-               end_column = 9
+               column = 8,
+               end_column = 8
             }
          },
          {

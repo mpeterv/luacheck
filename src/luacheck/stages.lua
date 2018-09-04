@@ -8,6 +8,7 @@ local stages = {}
 
 local stage_names = {
    "parse",
+   "unwrap_parens",
    "linearize",
    "name_functions",
    "resolve_locals",

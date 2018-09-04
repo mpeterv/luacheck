@@ -1,4 +1,5 @@
 local check_state = require "luacheck.check_state"
+local unwrap_parens = require "luacheck.stages.unwrap_parens"
 local core_utils = require "luacheck.core_utils"
 local detect_unreachable_code = require "luacheck.stages.detect_unreachable_code"
 local linearize = require "luacheck.stages.linearize"
@@ -7,6 +8,7 @@ local parse = require "luacheck.stages.parse"
 local function get_warnings(src)
    local chstate = check_state.new(src)
    parse.run(chstate)
+   unwrap_parens.run(chstate)
    linearize.run(chstate)
    chstate.warnings = {}
    detect_unreachable_code.run(chstate)
@@ -21,7 +23,7 @@ end
 describe("unreachable code detection", function()
    it("detects unreachable code", function()
       assert_warnings({
-         {code = "511", line = 2, column = 1, end_column = 2}
+         {code = "511", line = 2, column = 1, end_column = 24}
       }, [[
 do return end
 if ... then return 6 end
@@ -29,8 +31,8 @@ return 3
 ]])
 
       assert_warnings({
-         {code = "511", line = 7, column = 1, end_column = 2},
-         {code = "511", line = 13, column = 1, end_column = 6}
+         {code = "511", line = 7, column = 1, end_column = 11},
+         {code = "511", line = 13, column = 1, end_column = 8}
       }, [[
 if ... then
    return 4
@@ -84,7 +86,7 @@ return
          {code = "511", line = 3, column = 7, end_column = 9}
       }, [[
 repeat
-    return
+   return
 until ...
 ]])
 
@@ -101,7 +103,7 @@ end
 
    it("detects unreachable functions", function()
       assert_warnings({
-         {code = "511", line = 3, column = 1, end_column = 8}
+         {code = "511", line = 3, column = 1, end_column = 16}
       }, [[
 local f = nil
 do return end
@@ -124,7 +126,7 @@ end
 
    it("detects unreachable code in unreachable nested function", function()
       assert_warnings({
-         {code = "511", line = 4, column = 4, end_column = 9},
+         {code = "511", line = 4, column = 4, end_column = 20},
          {code = "511", line = 6, column = 7, end_column = 12}
       }, [[
 return function()

@@ -18,8 +18,8 @@ local function detect_unreachable_code(chstate, line)
    -- Only report those that are not reachable from any already reported ones.
    for item_index, item in ipairs(line.items) do
       if not reachable_indexes[item_index] then
-         if item.location then
-            chstate:warn_item(item.loop_end and "512" or "511", item)
+         if item.node then
+            chstate:warn_range(item.loop_end and "512" or "511", item.node)
             -- Mark all items reachable from the item just reported.
             line:walk(reachable_indexes, item_index, noop_callback)
          end

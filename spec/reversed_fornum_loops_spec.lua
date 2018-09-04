@@ -1,4 +1,5 @@
 local check_state = require "luacheck.check_state"
+local unwrap_parens = require "luacheck.stages.unwrap_parens"
 local core_utils = require "luacheck.core_utils"
 local detect_reversed_fornum_loops = require "luacheck.stages.detect_reversed_fornum_loops"
 local linearize = require "luacheck.stages.linearize"
@@ -7,6 +8,7 @@ local parse = require "luacheck.stages.parse"
 local function get_warnings(src)
    local chstate = check_state.new(src)
    parse.run(chstate)
+   unwrap_parens.run(chstate)
    linearize.run(chstate)
    chstate.warnings = {}
    detect_reversed_fornum_loops.run(chstate)
@@ -53,9 +55,9 @@ end
 
    it("detects reversed loops going from #(expr) to limit less than or equal to 1", function()
       assert_warnings({
-         {code = "571", line = 1, column = 1, end_column = 3, limit = "1"},
-         {code = "571", line = 5, column = 1, end_column = 3, limit = "0"},
-         {code = "571", line = 9, column = 1, end_column = 3, limit = "-123.456"}
+         {code = "571", line = 1, column = 1, end_column = 16, limit = "1"},
+         {code = "571", line = 5, column = 1, end_column = 23, limit = "0"},
+         {code = "571", line = 9, column = 1, end_column = 32, limit = "-123.456"}
       }, [[
 for i = #t, 1 do
    print(t[i])
@@ -73,9 +75,9 @@ end
 
    it("detects reversed loops in nested statements and functions", function()
       assert_warnings({
-         {code = "571", line = 7, column = 13, end_column = 15, limit = "1"},
-         {code = "571", line = 8, column = 16, end_column = 18, limit = "1"},
-         {code = "571", line = 10, column = 22, end_column = 24, limit = "1"}
+         {code = "571", line = 7, column = 13, end_column = 28, limit = "1"},
+         {code = "571", line = 8, column = 16, end_column = 31, limit = "1"},
+         {code = "571", line = 10, column = 22, end_column = 43, limit = "1"}
       }, [[
 do
    print("thing")

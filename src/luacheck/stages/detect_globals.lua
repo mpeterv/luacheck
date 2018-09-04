@@ -60,7 +60,7 @@ local function warn_global(chstate, node, index, is_lhs, is_top_line)
       end
    end
 
-   chstate:warn_token("11" .. action_codes[action], node[1], node.location, {
+   chstate:warn_range("11" .. action_codes[action], node, {
       name = global[1],
       indexing = indexing,
       previous_indexing_len = index.previous_indexing_len,
@@ -220,7 +220,7 @@ local function detect_globals_in_line(chstate, line)
 
    for _, item in ipairs(line.items) do
       if item.tag == "Eval" then
-         detect_in_node(chstate, item, item.expr, is_top_line)
+         detect_in_node(chstate, item, item.node, is_top_line)
       elseif item.tag == "Local" then
          if item.rhs then
             detect_in_nodes(chstate, item, item.rhs, is_top_line)

@@ -20,17 +20,19 @@ stage.messages = {
    end
 }
 
-local function warn_cyclomatic_complexity(chstate, node, complexity)
-   if node.location then
-      chstate:warn("561", node.location.line, node.location.column, node.location.column + #"function" - 1, {
-         complexity = complexity,
-         function_type = node[1][1] and node[1][1].implicit and "method" or "function",
-         function_name = node.name
-      })
-   else
+local function warn_cyclomatic_complexity(chstate, line, complexity)
+   if line == chstate.top_line then
       chstate:warn("561", 1, 1, 1, {
          complexity = complexity,
          function_type = "main_chunk"
+      })
+   else
+      local node = line.node
+
+      chstate:warn_range("561", node, {
+         complexity = complexity,
+         function_type = node[1][1] and node[1][1].implicit and "method" or "function",
+         function_name = node.name
       })
    end
 end
@@ -60,7 +62,7 @@ function CyclomaticComplexityMetric:calc_exprs(exprs)
 end
 
 function CyclomaticComplexityMetric:calc_item_Eval(item)
-   self:calc_expr(item.expr)
+   self:calc_expr(item.node)
 end
 
 function CyclomaticComplexityMetric:calc_item_Local(item)
@@ -140,7 +142,7 @@ function CyclomaticComplexityMetric:report(chstate, line)
    self.count = 1
    self:calc_stmts(line.node[2])
    self:calc_items(line.items)
-   warn_cyclomatic_complexity(chstate, line.node, self.count)
+   warn_cyclomatic_complexity(chstate, line, self.count)
 end
 
 function stage.run(chstate)

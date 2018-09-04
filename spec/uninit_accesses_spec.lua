@@ -1,4 +1,5 @@
 local check_state = require "luacheck.check_state"
+local unwrap_parens = require "luacheck.stages.unwrap_parens"
 local core_utils = require "luacheck.core_utils"
 local detect_uninit_accesses = require "luacheck.stages.detect_uninit_accesses"
 local linearize = require "luacheck.stages.linearize"
@@ -8,6 +9,7 @@ local resolve_locals = require "luacheck.stages.resolve_locals"
 local function get_warnings(src)
    local chstate = check_state.new(src)
    parse.run(chstate)
+   unwrap_parens.run(chstate)
    linearize.run(chstate)
    resolve_locals.run(chstate)
    chstate.warnings = {}

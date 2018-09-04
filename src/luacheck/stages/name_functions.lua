@@ -29,7 +29,7 @@ function handle_node(node, name)
    if node.tag == "Function" then
       node.name = name
       handle_nodes(node[2])
-   elseif node.tag == "Set" or node.tag == "Local" then
+   elseif node.tag == "Set" or node.tag == "Local" or node.tag == "Localrec" then
       local lhs = node[1]
       local rhs = node[2]
 
@@ -43,8 +43,6 @@ function handle_node(node, name)
             handle_node(rhs_node, field_name)
          end
       end
-   elseif node.tag == "Localrec" then
-      handle_node(node[2], node[1][1])
    elseif node.tag == "Table" and name then
       for _, pair_node in ipairs(node) do
          if pair_node.tag == "Pair" then
