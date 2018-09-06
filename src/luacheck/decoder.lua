@@ -91,9 +91,10 @@ local function get_first_bytes_and_byte_offsets(bytes)
 
          if codepoint < 0xE0 then
             -- Two bytes.
-            codepoint = cont + (codepoint - 0xC0) * 0x80
+            codepoint = cont + (codepoint - 0xC0) * 0x40
          elseif codepoint < 0xF0 then
-            codepoint = cont + (codepoint - 0xF0) * 0x80
+            -- Three bytes.
+            codepoint = cont + (codepoint - 0xE0) * 0x40
 
             cont = (sbyte(bytes, byte_index) or 0) - 0x80
 
@@ -103,11 +104,10 @@ local function get_first_bytes_and_byte_offsets(bytes)
 
             byte_index = byte_index + 1
 
-            codepoint = cont + codepoint * 0x80
-            -- Three bytes.
+            codepoint = cont + codepoint * 0x40
          elseif codepoint < 0xF8 then
             -- Four bytes.
-            codepoint = cont + (codepoint - 0xF8) * 0x80
+            codepoint = cont + (codepoint - 0xF0) * 0x40
 
             cont = (sbyte(bytes, byte_index) or 0) - 0x80
 
@@ -117,7 +117,7 @@ local function get_first_bytes_and_byte_offsets(bytes)
 
             byte_index = byte_index + 1
 
-            codepoint = cont + codepoint * 0x80
+            codepoint = cont + codepoint * 0x40
 
             cont = (sbyte(bytes, byte_index) or 0) - 0x80
 
@@ -127,7 +127,7 @@ local function get_first_bytes_and_byte_offsets(bytes)
 
             byte_index = byte_index + 1
 
-            codepoint = cont + codepoint * 0x80
+            codepoint = cont + codepoint * 0x40
          else
             return
          end
