@@ -4,3 +4,4 @@ luacov.report.out
 doc
 build
 package
+scripts/UnicodeData-*

@@ -1,3 +1,4 @@
+local unicode = require "luacheck.unicode"
 local utils = require "luacheck.utils"
 
 local decoder = {}
@@ -11,9 +12,9 @@ local ssub = string.sub
 -- and provide Unicode-aware access to them with a common interface.
 -- Source bytes should not be accessed directly.
 -- Provided methods are:
--- `Chars:get_first_byte(index)`: returns the first byte of the character at given index or nil.
+-- `Chars:get_codepoint(index)`: returns codepoint at given index as integer or nil if index is out of range.
 -- `Chars:get_substring(from, to)`: returns substring of original bytes corresponding to characters from `from` to `to`.
--- `Chars:get_quoted_substring(from. to)`: same but quotes and escapes characters to make them printable.
+-- `Chars:get_quoted_substring(from. to)`: like get_substring but quotes and escapes characters to make them printable.
 -- `Chars:get_length()`: returns total number of characters.
 -- `Chars:find(pattern, from)`: `string.find` but `from` is in characters. Return values are still in bytes.
 
@@ -24,7 +25,7 @@ function LatinChars:__init(bytes)
    self._bytes = bytes
 end
 
-function LatinChars:get_first_byte(index)
+function LatinChars:get_codepoint(index)
    return sbyte(self._bytes, index)
 end
 
@@ -32,12 +33,12 @@ function LatinChars:get_substring(from, to)
    return ssub(self._bytes, from, to)
 end
 
-local function decimal_escaper(byte)
-   return "\\" .. tostring(sbyte(byte))
+local function hexadecimal_escaper(byte)
+   return ("\\x%02X"):format(sbyte(byte))
 end
 
 function LatinChars:get_quoted_substring(from, to)
-   return "'" .. sgsub(ssub(self._bytes, from, to), "[^\32-\126]", decimal_escaper) .. "'"
+   return '"' .. sgsub(ssub(self._bytes, from, to), "[^\32-\126]", hexadecimal_escaper) .. '"'
 end
 
 function LatinChars:get_length()
@@ -48,32 +49,28 @@ function LatinChars:find(pattern, from)
    return sfind(self._bytes, pattern, from)
 end
 
--- Decodes `bytes` as UTF8. Returns arrays of first bytes of characters and their byte offsets.
--- Byte offset has one extra item pointing to one byte past the end of `bytes`.
+-- Decodes `bytes` as UTF8. Returns arrays of codepoints as integers and their byte offsets.
+-- Byte offsets have one extra item pointing to one byte past the end of `bytes`.
 -- On decoding error returns nothing.
-local function get_first_bytes_and_byte_offsets(bytes)
-   -- TODO: group codepoints into grapheme clusters.
-   local first_bytes = {}
+local function get_codepoints_and_byte_offsets(bytes)
+   local codepoints = {}
    local byte_offsets = {}
 
    local byte_index = 1
-   local char_index = 1
+   local codepoint_index = 1
 
    while true do
-      byte_offsets[char_index] = byte_index
+      byte_offsets[codepoint_index] = byte_index
 
       -- Attempt to decode the next codepoint from UTF8.
       local codepoint = sbyte(bytes, byte_index)
 
       if not codepoint then
-         return first_bytes, byte_offsets
+         return codepoints, byte_offsets
       end
-
-      first_bytes[char_index] = codepoint
 
       byte_index = byte_index + 1
 
-      -- luacheck: ignore 311/codepoint (TODO: use codepoints for grapheme clustering)
       if codepoint >= 0x80 then
          -- Not ASCII.
 
@@ -133,7 +130,8 @@ local function get_first_bytes_and_byte_offsets(bytes)
          end
       end
 
-      char_index = char_index + 1
+      codepoints[codepoint_index] = codepoint
+      codepoint_index = codepoint_index + 1
    end
 end
 
@@ -141,14 +139,14 @@ end
 -- Assumes UTF8, on decoding error falls back to latin1.
 local UnicodeChars = utils.class()
 
-function UnicodeChars:__init(bytes, first_bytes, byte_offsets)
+function UnicodeChars:__init(bytes, codepoints, byte_offsets)
    self._bytes = bytes
-   self._first_bytes = first_bytes
+   self._codepoints = codepoints
    self._byte_offsets = byte_offsets
 end
 
-function UnicodeChars:get_first_byte(index)
-   return self._first_bytes[index]
+function UnicodeChars:get_codepoint(index)
+   return self._codepoints[index]
 end
 
 function UnicodeChars:get_substring(from, to)
@@ -157,12 +155,26 @@ function UnicodeChars:get_substring(from, to)
 end
 
 function UnicodeChars:get_quoted_substring(from, to)
-   -- TODO: fix for Unicode.
-   return "'" .. sgsub(self:get_substring(from, to), "[^\32-\126]", decimal_escaper) .. "'"
+   -- This is only called on syntax error, it's okay to be slow.
+   local parts = {"'"}
+
+   for index = from, to do
+      local codepoint = self._codepoints[index]
+
+      if unicode.is_printable(codepoint) then
+         table.insert(parts, self:get_substring(index, index))
+      else
+         table.insert(parts, (codepoint > 255 and "\\u{%X}" or "\\x%02X"):format(codepoint))
+      end
+   end
+
+
+   table.insert(parts, "'")
+   return table.concat(parts)
 end
 
 function UnicodeChars:get_length()
-   return #self._first_bytes
+   return #self._codepoints
 end
 
 function UnicodeChars:find(pattern, from)
@@ -172,10 +184,10 @@ end
 function decoder.decode(bytes)
    -- TODO: check if this optimization actually helps.
    if sfind(bytes, "[\128-\255]") then
-      local first_bytes, byte_offsets = get_first_bytes_and_byte_offsets(bytes)
+      local codepoints, byte_offsets = get_codepoints_and_byte_offsets(bytes)
 
-      if first_bytes then
-         return UnicodeChars(bytes, first_bytes, byte_offsets)
+      if codepoints then
+         return UnicodeChars(bytes, codepoints, byte_offsets)
       end
    end
 

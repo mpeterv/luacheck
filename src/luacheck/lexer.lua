@@ -98,7 +98,7 @@ local simple_escapes = {
 local function next_byte(state)
    local offset = state.offset + 1
    state.offset = offset
-   return state.src:get_first_byte(offset)
+   return state.src:get_codepoint(offset)
 end
 
 -- Skipping helpers.
@@ -454,10 +454,10 @@ local function lex_number(state, b)
       if not is_float then
          if b == BYTE_u or b == BYTE_U then
             -- It may be uint64_t literal.
-            local b1 = state.src:get_first_byte(state.offset+1)
+            local b1 = state.src:get_codepoint(state.offset+1)
 
             if b1 == BYTE_l or b1 == BYTE_L then
-               local b2 = state.src:get_first_byte(state.offset+2)
+               local b2 = state.src:get_codepoint(state.offset+2)
 
                if b2 == BYTE_l or b2 == BYTE_L then
                   -- It is uint64_t literal.
@@ -466,10 +466,10 @@ local function lex_number(state, b)
             end
          elseif b == BYTE_l or b == BYTE_L then
             -- It may be uint64_t or int64_t literal.
-            local b1 = state.src:get_first_byte(state.offset+1)
+            local b1 = state.src:get_codepoint(state.offset+1)
 
             if b1 == BYTE_l or b1 == BYTE_L then
-               local b2 = state.src:get_first_byte(state.offset+2)
+               local b2 = state.src:get_codepoint(state.offset+2)
 
                if b2 == BYTE_u or b2 == BYTE_U then
                   -- It is uint64_t literal.
@@ -641,6 +641,11 @@ end
 
 local function lex_any(state, b)
    state.offset = state.offset + 1
+
+   if b > 255 then
+      b = 255
+   end
+
    return schar(b)
 end
 
@@ -718,7 +723,7 @@ end
 -- On error returns nil, error message, error location (line, offset), error end offset.
 function lexer.next_token(state)
    local line_offsets = state.line_offsets
-   local b = skip_space(state, state.src:get_first_byte(state.offset))
+   local b = skip_space(state, state.src:get_codepoint(state.offset))
 
    -- Save location of token start.
    local token_line = state.line

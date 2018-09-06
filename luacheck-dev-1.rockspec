@@ -56,6 +56,8 @@ build = {
       ["luacheck.stages.resolve_locals"] = "src/luacheck/stages/resolve_locals.lua",
       ["luacheck.stages.unwrap_parens"] = "src/luacheck/stages/unwrap_parens.lua",
       ["luacheck.standards"] = "src/luacheck/standards.lua",
+      ["luacheck.unicode"] = "src/luacheck/unicode.lua",
+      ["luacheck.unicode_printability_boundaries"] = "src/luacheck/unicode_printability_boundaries.lua",
       ["luacheck.utils"] = "src/luacheck/utils.lua",
       ["luacheck.version"] = "src/luacheck/version.lua"
    },
