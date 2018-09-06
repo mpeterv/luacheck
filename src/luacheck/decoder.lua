@@ -52,23 +52,88 @@ end
 -- Byte offset has one extra item pointing to one byte past the end of `bytes`.
 -- On decoding error returns nothing.
 local function get_first_bytes_and_byte_offsets(bytes)
-   -- TODO: decode UTF8.
    -- TODO: group codepoints into grapheme clusters.
    local first_bytes = {}
    local byte_offsets = {}
 
    local byte_index = 1
+   local char_index = 1
 
    while true do
-      byte_offsets[byte_index] = byte_index
-      local byte = sbyte(bytes, byte_index)
+      byte_offsets[char_index] = byte_index
 
-      if not byte then
+      -- Attempt to decode the next codepoint from UTF8.
+      local codepoint = sbyte(bytes, byte_index)
+
+      if not codepoint then
          return first_bytes, byte_offsets
       end
 
-      first_bytes[byte_index] = byte
+      first_bytes[char_index] = codepoint
+
       byte_index = byte_index + 1
+
+      -- luacheck: ignore 311/codepoint (TODO: use codepoints for grapheme clustering)
+      if codepoint >= 0x80 then
+         -- Not ASCII.
+
+         if codepoint < 0xC0 then
+            return
+         end
+
+         local cont = (sbyte(bytes, byte_index) or 0) - 0x80
+
+         if cont < 0 or cont >= 0x40 then
+            return
+         end
+
+         byte_index = byte_index + 1
+
+         if codepoint < 0xE0 then
+            -- Two bytes.
+            codepoint = cont + (codepoint - 0xC0) * 0x80
+         elseif codepoint < 0xF0 then
+            codepoint = cont + (codepoint - 0xF0) * 0x80
+
+            cont = (sbyte(bytes, byte_index) or 0) - 0x80
+
+            if cont < 0 or cont >= 0x40 then
+               return
+            end
+
+            byte_index = byte_index + 1
+
+            codepoint = cont + codepoint * 0x80
+            -- Three bytes.
+         elseif codepoint < 0xF8 then
+            -- Four bytes.
+            codepoint = cont + (codepoint - 0xF8) * 0x80
+
+            cont = (sbyte(bytes, byte_index) or 0) - 0x80
+
+            if cont < 0 or cont >= 0x40 then
+               return
+            end
+
+            byte_index = byte_index + 1
+
+            codepoint = cont + codepoint * 0x80
+
+            cont = (sbyte(bytes, byte_index) or 0) - 0x80
+
+            if cont < 0 or cont >= 0x40 then
+               return
+            end
+
+            byte_index = byte_index + 1
+
+            codepoint = cont + codepoint * 0x80
+         else
+            return
+         end
+      end
+
+      char_index = char_index + 1
    end
 end
 
@@ -91,7 +156,7 @@ function UnicodeChars:get_substring(from, to)
    return ssub(self._bytes, byte_offsets[from], byte_offsets[to + 1] - 1)
 end
 
-function LatinChars:get_quoted_substring(from, to)
+function UnicodeChars:get_quoted_substring(from, to)
    -- TODO: fix for Unicode.
    return "'" .. sgsub(self:get_substring(from, to), "[^\32-\126]", decimal_escaper) .. "'"
 end

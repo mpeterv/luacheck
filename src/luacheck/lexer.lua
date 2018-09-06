@@ -688,7 +688,7 @@ function lexer.new_state(src, line_offsets, line_lengths)
 
    state.line_offsets[1] = 1
 
-   if src:get_substring(1, 2) == "#!" then
+   if src:get_length() >= 2 and src:get_substring(1, 2) == "#!" then
       -- Skip shebang line.
       state.offset = 2
       skip_to_newline(state, next_byte(state))
