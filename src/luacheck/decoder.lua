@@ -182,7 +182,7 @@ function UnicodeChars:find(pattern, from)
 end
 
 function decoder.decode(bytes)
-   -- TODO: check if this optimization actually helps.
+   -- Only use UnicodeChars if necessary. LatinChars isn't much faster but noticeably more memory efficient.
    if sfind(bytes, "[\128-\255]") then
       local codepoints, byte_offsets = get_codepoints_and_byte_offsets(bytes)
 
