@@ -25,10 +25,10 @@ stage.messages = {
    ["542"] = "empty if branch"
 }
 
-local function warn_unused_field_value(chstate, node, overwriting_node)
+local function warn_unused_field_value(chstate, node, field_repr, is_index, overwriting_node)
    chstate:warn_range("314", node, {
-      field = node.field,
-      index = node.is_index,
+      field = field_repr,
+      index = is_index,
       overwritten_line = overwriting_node.line,
       overwritten_column = chstate:offset_to_column(overwriting_node.line, overwriting_node.offset),
       overwritten_end_column = chstate:offset_to_column(overwriting_node.line, overwriting_node.end_offset)
@@ -644,33 +644,42 @@ LinState.scan_expr_Paren = LinState.scan_exprs
 
 function LinState:scan_expr_Table(item, node)
    local array_index = 1.0
-   local key_to_node = {}
+   local key_value_to_node = {}
+   local key_node_to_repr = {}
+   local index_key_nodes = {}
 
    for _, pair in ipairs(node) do
-      local key
-      local field
+      local key_value
+      local key_repr
       local key_node
 
       if pair.tag == "Pair" then
          key_node = pair[1]
-         key, field = core_utils.eval_const_node(key_node)
+         key_value, key_repr = core_utils.eval_const_node(key_node)
          self:scan_exprs(item, pair)
       else
          key_node = pair
-         key = array_index
-         field = tostring(math.floor(key))
+         key_value = array_index
+         key_repr = tostring(math.floor(key_value))
          array_index = array_index + 1.0
          self:scan_expr(item, pair)
       end
 
-      if field then
-         if key_to_node[key] then
-            warn_unused_field_value(self.chstate, key_to_node[key], key_node)
+      if key_value then
+         local prev_key_node = key_value_to_node[key_value]
+         local prev_key_repr = key_node_to_repr[prev_key_node]
+         local prev_key_is_index = index_key_nodes[prev_key_node]
+
+         if prev_key_node then
+            warn_unused_field_value(self.chstate, prev_key_node, prev_key_repr, prev_key_is_index, key_node)
          end
 
-         key_to_node[key] = key_node
-         key_node.field = field
-         key_node.is_index = pair.tag ~= "Pair" or nil
+         key_value_to_node[key_value] = key_node
+         key_node_to_repr[key_node] = key_repr
+
+         if pair.tag ~= "Pair" then
+            index_key_nodes[key_node] = true
+         end
       end
    end
 end
