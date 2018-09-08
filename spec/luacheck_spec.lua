@@ -71,7 +71,6 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               indexing = {"embrace"},
                top = true
             },
             {
@@ -80,8 +79,7 @@ describe("luacheck", function()
             },
             {
                code = "113",
-               name = "hepler",
-               indexing = {"hepler"}
+               name = "hepler"
             }
          },
          {
@@ -107,7 +105,6 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               indexing = {"embrace"},
                top = true
             },
             {
@@ -116,8 +113,7 @@ describe("luacheck", function()
             },
             {
                code = "113",
-               name = "hepler",
-               indexing = {"hepler"}
+               name = "hepler"
             }
          },
          {
@@ -145,13 +141,11 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               indexing = {"embrace"},
                top = true
             },
             {
                code = "113",
-               name = "hepler",
-               indexing = {"hepler"}
+               name = "hepler"
             }
          },
          {
@@ -210,8 +204,7 @@ describe("check_strings", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
@@ -423,8 +416,7 @@ return f --[=[
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
@@ -474,8 +466,7 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {},
@@ -491,15 +482,14 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
             {
                code = "113",
                name = "math",
-               indexing = {"math", "floor"}
+               indexing = {"floor"}
             }
          },
          warnings = 2,

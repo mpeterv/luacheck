@@ -57,8 +57,8 @@ return foo
 
    it("does not detect unused values in loops", function()
       assert.same({
-         {code = "113", name = "print", indexing = {"print"}, line = 3, column = 4, end_column = 8},
-         {code = "113", name = "math", indexing = {"math", "floor"}, line = 4, column = 8, end_column = 11}
+         {code = "113", name = "print", line = 3, column = 4, end_column = 8},
+         {code = "113", name = "math", indexing = {"floor"}, line = 4, column = 8, end_column = 11}
       }, check[[
 local a = 10
 while a > 0 do
@@ -115,7 +115,7 @@ goto loop
          {code = "211", name = "foo", line = 1, column = 7, end_column = 9},
          {code = "411", name = "foo", line = 2, column = 7, end_column = 9,
             prev_line = 1, prev_column = 7, prev_end_column = 9},
-         {code = "113", name = "print", indexing = {"print"}, line = 3, column = 1, end_column = 5}
+         {code = "113", name = "print", line = 3, column = 1, end_column = 5}
       }, check[[
 local foo
 local foo = "bar"
@@ -289,7 +289,7 @@ return foo;
             {options = {ignore = {".*"}}, line = 5, column = 1, end_column = 19},
             {code = "512", line = 7, column = 1, end_column = 32},
             {code = "213", name = "_", line = 7, column = 5, end_column = 5},
-            {code = "113", name = "pairs", indexing = {"pairs"}, line = 7, column = 10, end_column = 14},
+            {code = "113", name = "pairs", line = 7, column = 10, end_column = 14},
             {pop = true, closure = true, line = 9, column = 1}
          },
          per_line_options = {

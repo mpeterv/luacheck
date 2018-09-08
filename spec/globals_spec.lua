@@ -25,7 +25,7 @@ end
 describe("global detection", function()
    it("detects global set", function()
       assert_warnings({
-         {code = "111", name = "foo", indexing = {"foo"}, line = 1, column = 1, end_column = 3, top = true}
+         {code = "111", name = "foo", line = 1, column = 1, end_column = 3, top = true}
       }, [[
 foo = {}
 ]])
@@ -33,7 +33,7 @@ foo = {}
 
    it("detects global set in nested functions", function()
       assert_warnings({
-         {code = "111", name = "foo", indexing = {"foo"}, line = 2, column = 4, end_column = 6}
+         {code = "111", name = "foo", line = 2, column = 4, end_column = 6}
       }, [[
 local function bar()
    foo = {}
@@ -44,8 +44,8 @@ bar()
 
    it("detects global access in multi-assignments", function()
       assert_warnings({
-         {code = "111", name = "y", indexing = {"y"}, line = 2, column = 4, end_column = 4, top = true},
-         {code = "113", name = "print", indexing = {"print"}, line = 3, column = 1, end_column = 5}
+         {code = "111", name = "y", line = 2, column = 4, end_column = 4, top = true},
+         {code = "113", name = "print", line = 3, column = 1, end_column = 5}
       }, [[
 local x
 x, y = 1
@@ -55,8 +55,8 @@ print(x)
 
    it("detects global access in self swap", function()
       assert_warnings({
-         {code = "113", name = "a", indexing = {"a"}, line = 1, column = 11, end_column = 11},
-         {code = "113", name = "print", indexing = {"print"}, line = 2, column = 1, end_column = 5}
+         {code = "113", name = "a", line = 1, column = 11, end_column = 11},
+         {code = "113", name = "print", line = 2, column = 1, end_column = 5}
       }, [[
 local a = a
 print(a)
@@ -65,7 +65,7 @@ print(a)
 
    it("detects global mutation", function()
       assert_warnings({
-         {code = "112", name = "a", indexing = {"a", false}, line = 1, column = 1, end_column = 1}
+         {code = "112", name = "a", indexing = {false}, line = 1, column = 1, end_column = 1}
       }, [[
 a[1] = 6
 ]])
@@ -76,14 +76,14 @@ a[1] = 6
          {
             code = "113",
             name = "b",
-            indexing = {"b", false},
+            indexing = {false},
             line = 2,
             column = 15,
             end_column = 15
          }, {
             code = "113",
             name = "b",
-            indexing = {"b", false, false, "foo"},
+            indexing = {false, false, "foo"},
             previous_indexing_len = 2,
             line = 3,
             column = 8,
@@ -102,14 +102,14 @@ return alias[2][c]
          {
             code = "113",
             name = "b",
-            indexing = {"b", false},
+            indexing = {false},
             line = 2,
             column = 15,
             end_column = 15
          }, {
             code = "112",
             name = "b",
-            indexing = {"b", false, false, "foo"},
+            indexing = {false, false, "foo"},
             previous_indexing_len = 2,
             line = 3,
             column = 1,
@@ -123,19 +123,18 @@ alias[2][c] = c
 ]])
    end)
 
-   it("provides indexing information for warnings related to globals", function()
+   it("provides indexing information for warnings related to global fields", function()
       assert_warnings({
          {
             code = "113",
             name = "global",
-            indexing = {"global"},
             line = 2,
             column = 11,
             end_column = 16
          }, {
             code = "113",
             name = "global",
-            indexing = {"global", "foo", "bar", false},
+            indexing = {"foo", "bar", false},
             indirect = true,
             previous_indexing_len = 1,
             line = 3,
@@ -144,7 +143,7 @@ alias[2][c] = c
          }, {
             code = "113",
             name = "global",
-            indexing = {"global", "foo", "bar", false, true},
+            indexing = {"foo", "bar", false, true},
             indirect = true,
             previous_indexing_len = 4,
             line = 5,

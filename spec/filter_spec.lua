@@ -104,8 +104,7 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "413",
@@ -125,8 +124,7 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "413",
@@ -141,8 +139,7 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "321",
@@ -292,21 +289,18 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, {
@@ -320,21 +314,18 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "package",
-               indexing = {"package"}
+               name = "package"
             },
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, {
@@ -347,13 +338,11 @@ describe("filter", function()
          {
             {
                code = "131",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, filter({
@@ -368,13 +357,11 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, {
@@ -387,37 +374,31 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
                name = "foo",
-               indexing = {"foo"},
                top = true
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, {
@@ -431,28 +412,24 @@ describe("filter", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          }
       }, {
@@ -468,13 +445,11 @@ describe("filter", function()
             {
                code = "111",
                name = "string",
-               indexing = {"string"},
                module = true
             },
             {
                code = "111",
                name = "bar",
-               indexing = {"bar"},
                module = true
             }
          }
@@ -482,31 +457,26 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             }
          },
          {
             {
                code = "111",
                name = "foo",
-               indexing = {"foo"},
                top = true
             },
             {
                code = "111",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "string",
-               indexing = {"string"}
+               name = "string"
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             }
          }
       }, {
@@ -529,20 +499,17 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             }
          }
       }, {
@@ -559,9 +526,9 @@ describe("filter", function()
    it("applies inline option events and per-line options", function()
       assert.same({
          {
-            {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
-            {code = "111", name = "print", indexing = {"print"}, line = 5, column = 1},
-            {code = "121", name = "print", indexing = {"print"}, line = 7, column = 1},
+            {code = "111", name = "not_print", line = 1, column = 1},
+            {code = "111", name = "print", line = 5, column = 1},
+            {code = "121", name = "print", line = 7, column = 1},
             {code = "021", msg = "invalid value of option 'std': unknown std 'bad_std'", line = 8, column = 1},
             {code = "021", msg = "invalid value of option 'std': unknown std 'another_bad_std'",
                line = 1000,column = 20}
@@ -569,13 +536,13 @@ describe("filter", function()
       }, filter_full({
          {
             events = {
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
+               {code = "111", name = "not_print", line = 1, column = 1},
                {push = true, line = 2, column = 1},
                {options = {std = "none"}, line = 3, column = 1},
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 4, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 5, column = 1},
+               {code = "111", name = "not_print", line = 4, column = 1},
+               {code = "111", name = "print", line = 5, column = 1},
                {pop = true, line = 6, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 7, column = 1},
+               {code = "111", name = "print", line = 7, column = 1},
                {options = {std = "bad_std"}, line = 8, column = 1}
             },
             per_line_options = {

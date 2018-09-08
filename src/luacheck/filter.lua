@@ -210,9 +210,10 @@ end
 local function get_field_string(warning)
    local parts = {}
 
-   for i = 2, #warning.indexing do
-      local index_string = warning.indexing[i]
-      table.insert(parts, type(index_string) == "string" and index_string or "?")
+   if warning.indexing then
+      for _, index_string in ipairs(warning.indexing) do
+         table.insert(parts, type(index_string) == "string" and index_string or "?")
+      end
    end
 
    return table.concat(parts, ".")
@@ -223,8 +224,8 @@ local function get_field_status(opts, warning, depth)
    local defined = true
    local read_only = true
 
-   for i = 1, depth or #warning.indexing do
-      local index_string = warning.indexing[i]
+   for i = 1, depth or (warning.indexing and #warning.indexing or 0) + 1 do
+      local index_string = i == 1 and warning.name or warning.indexing[i - 1]
 
       if index_string == true then
          -- Indexing with something that may or may not be a string.

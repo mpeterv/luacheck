@@ -48,15 +48,21 @@ local function warn_global(chstate, node, index, is_lhs, is_top_line)
    local global = index[1]
    local action = is_lhs and (#index == 1 and "set" or "mutate") or "access"
 
-   local indexing = {}
+   local indexing
 
-   for i, field in ipairs(index) do
-      if field == "unknown" then
-         indexing[i] = true
-      elseif field == "not_string" then
-         indexing[i] = false
-      else
-         indexing[i] = field[1]
+   if #index > 1 then
+      indexing = {}
+
+      for i, field in ipairs(index) do
+         if i > 1 then
+            if field == "unknown" then
+               indexing[i - 1] = true
+            elseif field == "not_string" then
+               indexing[i - 1] = false
+            else
+               indexing[i - 1] = field[1]
+            end
+         end
       end
    end
 
