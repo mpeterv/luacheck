@@ -12,6 +12,8 @@
 
 ### New features and improvements
 
+* Warning columns are now reported in Unicode codepoints if input is
+  valid UTF-8 (#45).
 * Added detection of numeric for loops going from `#t` to `1` without
   negative step (#160).
 
@@ -19,6 +21,8 @@
 
 * Default set of standard globals is now always `max`, allowing globals of all
   Lua versions. `_G` std is deprecated.
+* Warnings related to statements and expressions (e.g. unreachable code) now
+  point to the entire statement or expression instead of just the first token.
 
 ### Miscellaneous
 
