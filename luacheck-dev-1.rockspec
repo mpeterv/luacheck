@@ -49,6 +49,7 @@ build = {
       ["luacheck.stages.detect_reversed_fornum_loops"] = "src/luacheck/stages/detect_reversed_fornum_loops.lua",
       ["luacheck.stages.detect_uninit_accesses"] = "src/luacheck/stages/detect_uninit_accesses.lua",
       ["luacheck.stages.detect_unreachable_code"] = "src/luacheck/stages/detect_unreachable_code.lua",
+      ["luacheck.stages.detect_unused_fields"] = "src/luacheck/stages/detect_unused_fields.lua",
       ["luacheck.stages.detect_unused_locals"] = "src/luacheck/stages/detect_unused_locals.lua",
       ["luacheck.stages.linearize"] = "src/luacheck/stages/linearize.lua",
       ["luacheck.stages.name_functions"] = "src/luacheck/stages/name_functions.lua",

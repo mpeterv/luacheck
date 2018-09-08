@@ -23,31 +23,6 @@ describe("check", function()
       assert.same({}, check(""))
    end)
 
-   it("detects duplicated fields in table literals", function()
-      assert.same({
-         {code = "314", field = "key", line = 3, column = 5, end_column = 9,
-            overwritten_line = 7, overwritten_column = 4, overwritten_end_column = 6},
-         {code = "314", field = "2", index = true, line = 6, column = 4, end_column = 4,
-            overwritten_line = 9, overwritten_column = 5, overwritten_end_column = 9},
-         {code = "314", field = "key", line = 7, column = 4, end_column = 6,
-            overwritten_line = 8, overwritten_column = 4, overwritten_end_column = 6},
-         {code = "314", field = "0.2e1", line = 9, column = 5, end_column = 9,
-            overwritten_line = 10, overwritten_column = 5, overwritten_end_column = 5}
-      }, check[[
-local x, y, z = 1, 2, 3
-return {
-   ["key"] = 4,
-   [z] = 7,
-   1,
-   y,
-   key = x,
-   key = 0,
-   [0.2e1] = 6,
-   [2] = 7
-}
-]])
-   end)
-
    it("considers a variable assigned even if it can't get a value due to short rhs (it still gets nil)", function()
       assert.same({
          {code = "311", name = "a", line = 1, column = 7, end_column = 7,

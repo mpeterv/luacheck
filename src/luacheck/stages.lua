@@ -19,7 +19,8 @@ local stage_names = {
    "detect_reversed_fornum_loops",
    "detect_uninit_accesses",
    "detect_unreachable_code",
-   "detect_unused_locals",
+   "detect_unused_fields",
+   "detect_unused_locals"
 }
 
 local stage_modules = {}
