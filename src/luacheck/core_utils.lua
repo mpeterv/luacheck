@@ -1,3 +1,5 @@
+local decoder = require "luacheck.decoder"
+
 local core_utils = {}
 
 -- Attempts to evaluate a node as a Lua value, without resolving locals.
@@ -8,7 +10,8 @@ function core_utils.eval_const_node(node)
    elseif node.tag == "False" then
       return false, "false"
    elseif node.tag == "String" then
-      return node[1], node[1]
+      local chars = decoder.decode(node[1])
+      return node[1], chars:get_printable_substring(1, chars:get_length())
    else
       local is_negative
 

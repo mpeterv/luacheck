@@ -1,6 +1,7 @@
+local core_utils = require "luacheck.core_utils"
+local decoder = require "luacheck.decoder"
 local inline_options = require "luacheck.inline_options"
 local options = require "luacheck.options"
-local core_utils = require "luacheck.core_utils"
 local utils = require "luacheck.utils"
 
 local filter = {}
@@ -211,8 +212,17 @@ local function get_field_string(warning)
    local parts = {}
 
    if warning.indexing then
-      for _, index_string in ipairs(warning.indexing) do
-         table.insert(parts, type(index_string) == "string" and index_string or "?")
+      for _, index in ipairs(warning.indexing) do
+         local part
+
+         if type(index) == "string" then
+            local chars = decoder.decode(index)
+            part = chars:get_printable_substring(1, chars:get_length())
+         else
+            part = "?"
+         end
+
+         table.insert(parts, part)
       end
    end
 
