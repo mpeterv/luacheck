@@ -713,7 +713,7 @@ function lexer.get_quoted_substring_or_line(state, line, offset, end_offset)
       end
    end
 
-   return state.src:get_quoted_substring(offset, end_offset)
+   return "'" .. state.src:get_printable_substring(offset, end_offset) .. "'"
 end
 
 -- Looks for next token starting from state.line, state.offset.

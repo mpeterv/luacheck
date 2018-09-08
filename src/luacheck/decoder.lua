@@ -14,7 +14,7 @@ local ssub = string.sub
 -- Provided methods are:
 -- `Chars:get_codepoint(index)`: returns codepoint at given index as integer or nil if index is out of range.
 -- `Chars:get_substring(from, to)`: returns substring of original bytes corresponding to characters from `from` to `to`.
--- `Chars:get_quoted_substring(from. to)`: like get_substring but quotes and escapes characters to make them printable.
+-- `Chars:get_printable_substring(from. to)`: like get_substring but escapes not printable characters.
 -- `Chars:get_length()`: returns total number of characters.
 -- `Chars:find(pattern, from)`: `string.find` but `from` is in characters. Return values are still in bytes.
 
@@ -37,8 +37,8 @@ local function hexadecimal_escaper(byte)
    return ("\\x%02X"):format(sbyte(byte))
 end
 
-function LatinChars:get_quoted_substring(from, to)
-   return "'" .. sgsub(ssub(self._bytes, from, to), "[^\32-\126]", hexadecimal_escaper) .. "'"
+function LatinChars:get_printable_substring(from, to)
+   return (sgsub(ssub(self._bytes, from, to), "[^\32-\126]", hexadecimal_escaper))
 end
 
 function LatinChars:get_length()
@@ -154,9 +154,9 @@ function UnicodeChars:get_substring(from, to)
    return ssub(self._bytes, byte_offsets[from], byte_offsets[to + 1] - 1)
 end
 
-function UnicodeChars:get_quoted_substring(from, to)
+function UnicodeChars:get_printable_substring(from, to)
    -- This is only called on syntax error, it's okay to be slow.
-   local parts = {"'"}
+   local parts = {}
 
    for index = from, to do
       local codepoint = self._codepoints[index]
@@ -168,8 +168,6 @@ function UnicodeChars:get_quoted_substring(from, to)
       end
    end
 
-
-   table.insert(parts, "'")
    return table.concat(parts)
 end
 
