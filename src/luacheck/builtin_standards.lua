@@ -279,8 +279,8 @@ builtin_standards.love = require "luacheck.love_standard"
 
 builtin_standards.rockspec = {
    globals = {
-      "rockspec_format", "package", "version", "description", "supported_platforms",
-      "dependencies", "external_dependencies", "source", "build"
+      "rockspec_format", "package", "version", "description", "dependencies", "supported_platforms",
+      "external_dependencies", "source", "build", "hooks", "deploy", "build_dependencies", "test_dependencies", "test"
    }
 }
 
