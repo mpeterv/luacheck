@@ -1,4 +1,6 @@
 local expand_rockspec = require "luacheck.expand_rockspec"
+local fs = require "luacheck.fs"
+local P = fs.normalize
 
 describe("expand_rockspec", function()
    it("returns sorted array of lua files related to a rock", function()
@@ -12,15 +14,15 @@ describe("expand_rockspec", function()
 
    it("autodetects modules for rockspecs without build table", function()
       assert.same({
-         "spec/rock/src/rock.lua",
-         "spec/rock/src/rock/mod.lua",
-         "spec/rock/bin/rock.lua"
+         P"spec/rock/src/rock.lua",
+         P"spec/rock/src/rock/mod.lua",
+         P"spec/rock/bin/rock.lua"
       }, expand_rockspec("spec/rock/rock-dev-1.rockspec"))
    end)
 
    it("autodetects modules for rockspecs without build.modules table", function()
       assert.same({
-         "spec/rock2/mod.lua"
+         P"spec/rock2/mod.lua"
       }, expand_rockspec("spec/rock2/rock2-dev-1.rockspec"))
    end)
 
