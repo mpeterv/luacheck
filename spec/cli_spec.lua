@@ -415,13 +415,13 @@ Total: 5 warnings / 0 errors in 2 files
    end)
 
    it("handles bad rockspecs", function()
-      assert.equal([[
-Checking spec/folder/bad_rockspec                 1 warning
+      assert.matches([[
+Checking spec/samples/bad.rockspec                Runtime error
 
-    spec/folder/bad_rockspec:1:1: accessing undefined variable 'build'
+    spec/samples/bad%.rockspec: line 1: attempt to call .+
 
-Total: 1 warning / 0 errors in 1 file
-]], get_output "spec/folder/bad_rockspec --no-config")
+Total: 0 warnings / 0 errors in 0 files, couldn't check 1 file
+]], get_output "spec/samples/bad.rockspec --no-config")
    end)
 
    it("allows ignoring defined globals", function()
