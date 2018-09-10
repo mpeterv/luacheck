@@ -16,6 +16,8 @@
   valid UTF-8 (#45).
 * Added detection of numeric for loops going from `#t` to `1` without
   negative step (#160).
+* Added support for LuaRocks 3 module autodetection when checking
+  rockspecs (#176).
 
 ### Changes
 
@@ -23,6 +25,11 @@
   Lua versions. `_G` std is deprecated.
 * Warnings related to statements and expressions (e.g. unreachable code) now
   point to the entire statement or expression instead of just the first token.
+
+### Fixes
+
+* Added missing globals to `rockspec` std: `hooks`, `deploy`,
+  `build_dependencies`, `test_dependencies`, and `test`.
 
 ### Miscellaneous
 
