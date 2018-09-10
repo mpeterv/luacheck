@@ -125,6 +125,10 @@ local function get_codepoints_and_byte_offsets(bytes)
             byte_index = byte_index + 1
 
             codepoint = cont + codepoint * 0x40
+
+            if codepoint > 0x10FFFF then
+               return
+            end
          else
             return
          end
