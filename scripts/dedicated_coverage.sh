@@ -11,6 +11,7 @@ declare -A spec_to_module
 spec_to_module[spec/cache_spec.lua]=src/luacheck/cache.lua
 spec_to_module[spec/check_spec.lua]=src/luacheck/check.lua
 spec_to_module[spec/config_spec.lua]=src/luacheck/config.lua
+spec_to_module[spec/decoder_spec.lua]=src/luacheck/decoder.lua
 spec_to_module[spec/expand_rockspec_spec.lua]=src/luacheck/expand_rockspec.lua
 spec_to_module[spec/filter_spec.lua]=src/luacheck/filter.lua
 spec_to_module[spec/format_spec.lua]=src/luacheck/format.lua

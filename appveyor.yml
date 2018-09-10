@@ -18,6 +18,7 @@ before_build:
   - call here\bin\activate
   - luarocks install busted
   - luarocks install cluacov
+  - luarocks install luautf8
 
 build_script:
   - luarocks make

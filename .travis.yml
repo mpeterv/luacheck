@@ -16,6 +16,7 @@ before_install:
   - luarocks install lanes
   - luarocks install busted
   - luarocks install cluacov
+  - luarocks install luautf8
 
 install:
   - luarocks make

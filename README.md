@@ -113,7 +113,7 @@ Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questio
 
 ## Building and testing
 
-After the Luacheck repo is cloned and changes are made, run `luarocks make` (using `sudo` if necessary) from its root directory to install dev version of Luacheck. To run Luacheck using sources in current directory without installing it, run `lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' bin/luacheck.lua ...`. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted/) installed and run `busted`.
+After the Luacheck repo is cloned and changes are made, run `luarocks make` (using `sudo` if necessary) from its root directory to install dev version of Luacheck. To run Luacheck using sources in current directory without installing it, run `lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' bin/luacheck.lua ...`. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted/) and [luautf8](https://github.com/starwing/luautf8) installed and run `busted`.
 
 ## License
 
