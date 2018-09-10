@@ -40,6 +40,7 @@ build = {
       ["luacheck.ngx_standard"] = "src/luacheck/ngx_standard.lua",
       ["luacheck.options"] = "src/luacheck/options.lua",
       ["luacheck.parser"] = "src/luacheck/parser.lua",
+      ["luacheck.profiler"] = "src/luacheck/profiler.lua",
       ["luacheck.runner"] = "src/luacheck/runner.lua",
       ["luacheck.stages"] = "src/luacheck/stages.lua",
       ["luacheck.stages.detect_bad_whitespace"] = "src/luacheck/stages/detect_bad_whitespace.lua",

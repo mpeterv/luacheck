@@ -68,6 +68,10 @@ Total: 0 warnings / 0 errors in 1 file
       assert.equal(0, get_exitcode "spec/samples/good_code.lua --no-config")
    end)
 
+   it("allows measuring performance", function()
+      assert.equal(0, get_exitcode "spec/samples/good_code.lua --no-config --profile")
+   end)
+
    it("removes ./ in the beginnings of file names", function()
       assert.equal([[
 Checking spec/samples/good_code.lua               OK

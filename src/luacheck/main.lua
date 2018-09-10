@@ -2,6 +2,7 @@ local argparse = require "argparse"
 local config = require "luacheck.config"
 local luacheck = require "luacheck"
 local multithreading = require "luacheck.multithreading"
+local profiler = require "luacheck.profiler"
 local runner = require "luacheck.runner"
 local utils = require "luacheck.utils"
 local version = require "luacheck.version"
@@ -242,6 +243,8 @@ Links:
          :action "store_false"
          :target "color")
 
+   parser:flag("--profile", "Show performance statistics."):hidden(true)
+
    parser:flag("-v --version", "Show version info and exit.")
       :action(function() print(version.string) os.exit(exit_codes.ok) end)
 
@@ -254,6 +257,11 @@ local function main()
    if not ok then
       io.stderr:write(("%s\n\nError: %s\n"):format(parser:get_usage(), args))
       os.exit(exit_codes.critical)
+   end
+
+   if args.profile then
+      args.jobs = 1
+      profiler.init()
    end
 
    if args.quiet == 0 then
@@ -310,6 +318,10 @@ local function main()
    end
 
    io.stdout:write(output)
+
+   if args.profile then
+      profiler.report()
+   end
 
    if report.fatals > 0 then
       os.exit(exit_codes.fatals)
