@@ -416,12 +416,12 @@ Total: 5 warnings / 0 errors in 2 files
 
    it("handles bad rockspecs", function()
       assert.equal([[
-Checking spec/samples/bad.rockspec                Syntax error
+Checking spec/folder/bad_rockspec                 1 warning
 
-    spec/samples/bad.rockspec: rockspec.build is not a table
+    spec/folder/bad_rockspec:1:1: accessing undefined variable 'build'
 
-Total: 0 warnings / 0 errors in 0 files, couldn't check 1 file
-]], get_output "spec/samples/bad.rockspec --no-config")
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/folder/bad_rockspec --no-config")
    end)
 
    it("allows ignoring defined globals", function()

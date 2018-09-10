@@ -128,19 +128,30 @@ function fs.find_file(path, file)
    end
 end
 
+-- Returns iterator over directory items or nil, error message.
+function fs.dir_iter(dir_path)
+   local ok, iter, state, var = pcall(lfs.dir, dir_path)
+
+   if not ok then
+      local err = utils.unprefix(iter, "cannot open " .. dir_path .. ": ")
+      return nil, "couldn't list directory: " .. err
+   end
+
+   return iter, state, var
+end
+
 -- Returns list of all files in directory matching pattern.
--- Returns nil, error message on error.
+-- Additionally returns a mapping from directory paths that couldn't be expanded
+-- to error messages.
 function fs.extract_files(dir_path, pattern)
    local res = {}
    local err_map = {}
 
    local function scan(dir)
-      local ok, iter, state, var = pcall(lfs.dir, dir)
+      local iter, state, var = fs.dir_iter(dir)
 
-      if not ok then
-         local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
-         err = "couldn't recursively check: " .. err
-         err_map[dir] = err
+      if not iter then
+         err_map[dir] = state
          table.insert(res, dir)
          return
       end
@@ -151,7 +162,6 @@ function fs.extract_files(dir_path, pattern)
 
             if fs.is_dir(full_path) then
                scan(full_path)
-
             elseif path:match(pattern) and fs.is_file(full_path) then
                table.insert(res, full_path)
             end
