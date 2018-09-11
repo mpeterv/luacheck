@@ -326,16 +326,16 @@ bar"]]))
    end)
 
    it("parses short comments correctly", function()
-      assert.same({token = "comment", token_value = ""}, get_token("--"))
-      assert.same({token = "comment", token_value = "foo"}, get_token("--foo\nbar"))
-      assert.same({token = "comment", token_value = "["}, get_token("--["))
-      assert.same({token = "comment", token_value = "[=foo"}, get_token("--[=foo\nbar"))
+      assert.same({token = "short_comment", token_value = ""}, get_token("--"))
+      assert.same({token = "short_comment", token_value = "foo"}, get_token("--foo\nbar"))
+      assert.same({token = "short_comment", token_value = "["}, get_token("--["))
+      assert.same({token = "short_comment", token_value = "[=foo"}, get_token("--[=foo\nbar"))
    end)
 
    it("parses long comments correctly", function()
-      assert.same({token = "comment", token_value = ""}, get_token("--[[]]"))
-      assert.same({token = "comment", token_value = ""}, get_token("--[[\n]]"))
-      assert.same({token = "comment", token_value = "foo\nbar"}, get_token("--[[foo\nbar]]"))
+      assert.same({token = "long_comment", token_value = ""}, get_token("--[[]]"))
+      assert.same({token = "long_comment", token_value = ""}, get_token("--[[\n]]"))
+      assert.same({token = "long_comment", token_value = "foo\nbar"}, get_token("--[[foo\nbar]]"))
       assert.same({line = 1, offset = 1, end_offset = 1, msg = "unfinished long comment"}, get_error("--[=[]]"))
    end)
 
@@ -353,11 +353,11 @@ bar"]]))
          {token = "name", token_value = "get_foo", line = 2, offset = 39},
          {token = "string", token_value = "long string\n", line = 2, offset = 46},
          {token = "end", line = 5, offset = 66},
-         {token = "comment", token_value = " hello", line = 6, offset = 70},
+         {token = "short_comment", token_value = " hello", line = 6, offset = 70},
          {token = "name", token_value = "print", line = 7, offset = 79},
          {token = "string", token_value = "123\n", line = 7, offset = 85},
-         {token = "comment", token_value = " this comment ends just before EOF", line = 10, offset = 113},
-         {token = "eof", line = 11, offset = 149}
+         {token = "short_comment", token_value = " this comment ends just before EOF", line = 10, offset = 113},
+         {token = "eof", line = 10, offset = 149}
       }, get_tokens([[
 local function foo(bar)
    return bar:get_foo[=[

@@ -144,7 +144,7 @@ describe("parser", function()
       assert.same({line = 1, offset = 7, end_offset = 7, prev_line = 1, prev_offset = 1, prev_end_offset = 6,
          msg = "expected 'until' near <eof>"},
          get_error("repeat"))
-      assert.same({line = 3, offset = 10, end_offset = 10, prev_line = 1, prev_offset = 1, prev_end_offset = 6,
+      assert.same({line = 2, offset = 10, end_offset = 10, prev_line = 1, prev_offset = 1, prev_end_offset = 6,
          msg = "expected 'until' (to close 'repeat' on line 1) near <eof>"},
          get_error("repeat\n--")
       )
@@ -1199,14 +1199,14 @@ end
    it("provides correct error location info for EOF with no endline", function()
       assert.same({line = 1, offset = 9, end_offset = 9, msg = "expected expression near <eof>"}, get_error("thing = "))
       assert.same(
-         {line = 2, offset = 15, end_offset = 15, msg = "expected expression near <eof>"}, get_error("thing = -- eof"))
+         {line = 1, offset = 15, end_offset = 15, msg = "expected expression near <eof>"}, get_error("thing = -- eof"))
    end)
 
    describe("providing misc information", function()
       it("provides comments correctly", function()
          assert.same({
-            {contents = " ignore something", line = 1, offset = 1, end_offset = 20},
-            {contents = " comments", line = 2, offset = 33, end_offset = 44},
+            {contents = " ignore something", line = 1, offset = 1, end_offset = 19},
+            {contents = " comments", line = 2, offset = 33, end_offset = 43},
             {contents = "long comment", line = 3, offset = 57, end_offset = 77}
          }, get_comments([[
 -- ignore something

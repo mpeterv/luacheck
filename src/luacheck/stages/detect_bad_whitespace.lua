@@ -9,16 +9,28 @@ stage.warnings = {
 }
 
 function stage.run(chstate)
-   for line_number, line_offset in ipairs(chstate.line_offsets) do
+   local num_lines = #chstate.line_offsets
+
+   for line_number = 1, num_lines do
+      local line_offset = chstate.line_offsets[line_number]
       local line_length = chstate.line_lengths[line_number]
 
       if line_length > 0 then
-         local line_start_byte, line_end_byte, trailing_ws_start_byte = chstate.source:find(
-            "^[^\r\n]-()[ \t\f\v]+[\r\n]", line_offset)
+         local trailing_ws_pattern
+
+         if line_number == num_lines then
+            trailing_ws_pattern = "^[^\r\n]-()[ \t\f\v]+()[\r\n]?$"
+         else
+            trailing_ws_pattern = "^[^\r\n]-()[ \t\f\v]+()[\r\n]"
+         end
+
+         local line_start_byte, _, trailing_ws_start_byte, line_end_byte = chstate.source:find(
+            trailing_ws_pattern, line_offset)
 
          local trailing_ws_code
 
          if trailing_ws_start_byte then
+
             if trailing_ws_start_byte == line_start_byte then
                -- Line contains only whitespace (thus never considered "code").
                trailing_ws_code = "611"

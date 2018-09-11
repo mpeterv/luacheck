@@ -106,14 +106,10 @@ end
 
 local function skip_newline(state, newline)
    local first_newline_offset = state.offset
-   local b
+   local b = next_byte(state)
 
-   if newline then
+   if b ~= newline and is_newline(b) then
       b = next_byte(state)
-
-      if b ~= newline and is_newline(b) then
-         b = next_byte(state)
-      end
    end
 
    local line = state.line
@@ -521,16 +517,14 @@ local function lex_dash(state)
       b, long_bracket = skip_long_bracket(state)
 
       if b == BYTE_OBRACK then
-         return lex_long_string(state, long_bracket, "comment")
+         return lex_long_string(state, long_bracket, "long_comment")
       end
    end
 
    -- Short comment.
-   b = skip_to_newline(state, b)
+   skip_to_newline(state, b)
    local comment_value = state.src:get_substring(start, state.offset - 1)
-   -- Comment technically ends at the next line, this way the line end is correctly marked as within a comment.
-   skip_newline(state, b)
-   return "comment", comment_value
+   return "short_comment", comment_value
 end
 
 local function lex_bracket(state)
