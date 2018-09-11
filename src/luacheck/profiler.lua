@@ -1,9 +1,10 @@
-local socket = require "socket"
+-- Require luasocket only when needed.
+local socket
 
 local profiler = {}
 
 local metrics = {
-   {name = "Wall", get = socket.gettime},
+   {name = "Wall", get = function() return socket.gettime() end},
    {name = "CPU", get = os.clock},
    {name = "Memory", get = function() return collectgarbage("count") end}
 }
@@ -93,6 +94,7 @@ local function patch(fn)
 end
 
 function profiler.init()
+   socket = require "socket"
    collectgarbage("stop")
 
    for _, metric in ipairs(metrics) do
