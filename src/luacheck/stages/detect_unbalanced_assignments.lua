@@ -2,9 +2,9 @@ local core_utils = require "luacheck.core_utils"
 
 local stage = {}
 
-stage.messages = {
-   ["531"] = "right side of assignment has more values than left side expects",
-   ["532"] = "right side of assignment has less values than left side expects"
+stage.warnings = {
+   ["531"] = {message_format = "right side of assignment has more values than left side expects", fields = {}},
+   ["532"] = {message_format = "right side of assignment has less values than left side expects", fields = {}}
 }
 
 local function is_unpacking(node)

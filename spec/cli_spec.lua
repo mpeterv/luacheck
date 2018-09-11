@@ -893,13 +893,13 @@ Total: 16 warnings / 1 error in 4 files
 (%d+)
 abspath{spec/samples/good_code.lua}
 (%d+)
-local A,B="561","function";return {{{A,[3]=1,[4]=1,[5]=1,[29]=1,[31]="main_chunk"},{A,[3]=3,[4]=7,[5]=23,[29]=1,[30]="helper",[31]=B},{A,[3]=7,[4]=1,[5]=30,[29]=2,[30]="embracer.embrace",[31]=B}},{},{19,0,23,17,3,0,30,25,26,3,0,15,0},{[4]="comment"}}
+local A,B="561","function";return {{{A,1,1,1,1,"main_chunk"},{A,3,7,23,1,B,"helper"},{A,7,1,30,2,B,"embracer.embrace"}},{},{19,0,23,17,3,0,30,25,26,3,0,15,0},{[4]="comment"}}
 abspath{spec/samples/bad_code.lua}
 (%d+)
-local A,B,C,D="561","helper","function","embrace";return {{{"112","package",1,1,7,[24]={"loaded",true}},{A,[3]=1,[4]=1,[5]=1,[29]=1,[31]="main_chunk"},{A,[3]=3,[4]=7,[5]=26,[29]=1,[30]=B,[31]=C},{"211",B,3,16,21,[11]=true},{"212","...",3,23,25},{A,[3]=7,[4]=1,[5]=21,[29]=2,[30]=D,[31]=C},{"111",D,7,10,16,[12]=true},{"412","opt",8,10,12,7,18,20},{"113","hepler",9,11,16}},{},{24,0,26,9,3,0,21,31,26,3,0,0},{[4]="comment"}}
+local A,B,C,D="561","helper","function","embrace";return {{{"112",1,1,7,"package",{"loaded",true}},{A,1,1,1,1,"main_chunk"},{A,3,7,26,1,C,B},{"211",3,16,21,B,true},{"212",3,23,25,"..."},{A,7,1,21,2,C,D},{"111",7,10,16,D,nil,nil,true},{"412",8,10,12,"opt",7,18,20},{"113",9,11,16,"hepler"}},{},{24,0,26,9,3,0,21,31,26,3,0,0},{[4]="comment"}}
 abspath{spec/samples/python_code.lua}
 (%d+)
-return {{{"011",[3]=1,[4]=6,[5]=15,[13]="expected '=' near '__future__'"}},{},{},{}}
+return {{{"011",1,6,15,"expected '=' near '__future__'"}},{},{},{}}
 ]]):gsub("[%[%]%-]", "%%%0"), nil)
          -- luacheck: pop
 
@@ -918,10 +918,10 @@ return {{{"011",[3]=1,[4]=6,[5]=15,[13]="expected '=' near '__future__'"}},{},{}
 %s
 abspath{spec/samples/python_code.lua}
 %s
-return {{{"111", "global", 1, 1, [24]={"global"}}, {"321", "uninit", 6, 8}},{},{},{}}
+return {{{"111", 1, 1, nil, "global"}, {"321", 6, 8, nil, "uninit"}},{},{},{}}
 abspath{spec/samples/good_code.lua}
 %s
-return {{{"011",[3]=5,[4]=7,[13]="this code is actually bad"}},{},{},{}}
+return {{{"011",5,7,nil, "this code is actually bad"}},{},{},{}}
 abspath{spec/samples/bad_code.lua}
 %s
 return {{},{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))

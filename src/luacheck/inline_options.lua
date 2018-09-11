@@ -18,6 +18,8 @@ local inline_options = {}
 -- -- luacheck: pop
 -- foo() -- Not ignored.
 
+inline_options.event_fields = {"line", "column", "closure", "push", "pop", "end_column", "options"}
+
 local function add_closure_boundaries(chstate, ast, events)
    if ast.tag == "Function" then
       table.insert(events, {push = true, closure = true,

@@ -2,8 +2,9 @@ local core_utils = require "luacheck.core_utils"
 
 local stage = {}
 
-stage.messages = {
-   ["571"] = "numeric for loop goes from #(expr) down to {limit} but loop step is not negative"
+stage.warnings = {
+   ["571"] = {message_format = "numeric for loop goes from #(expr) down to {limit} but loop step is not negative",
+      fields = {"limit"}}
 }
 
 local function check_fornum(chstate, node)

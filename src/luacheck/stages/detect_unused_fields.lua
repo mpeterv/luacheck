@@ -2,11 +2,14 @@ local core_utils = require "luacheck.core_utils"
 
 local stage = {}
 
-stage.messages = {
-   ["314"] = function(warning)
-      local target = warning.index and "index" or "field"
-      return "value assigned to " .. target .. " {field!} is overwritten on line {overwritten_line} before use"
-   end
+local function unused_field_value_message_format(warning)
+   local target = warning.index and "index" or "field"
+   return "value assigned to " .. target .. " {field!} is overwritten on line {overwritten_line} before use"
+end
+
+stage.warnings = {
+   ["314"] = {message_format = unused_field_value_message_format,
+      fields = {"field", "index", "overwritten_line","overwritten_column", "overwritten_end_column"}}
 }
 
 local function warn_unused_field_value(chstate, node, field_repr, is_index, overwriting_node)

@@ -1,8 +1,8 @@
 local stage = {}
 
-stage.messages = {
-   ["511"] = "unreachable code",
-   ["512"] = "loop is executed at most once"
+stage.warnings = {
+   ["511"] = {message_format = "unreachable code", fields = {}},
+   ["512"] = {message_format = "loop is executed at most once", fields = {}}
 }
 
 local function noop_callback() end

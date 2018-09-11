@@ -2,22 +2,25 @@ local utils = require "luacheck.utils"
 
 local stage = {}
 
-stage.messages = {
-   ["561"] = function(warning)
-      local template = "cyclomatic complexity of %s is too high ({complexity} > {max_complexity})"
+local function cyclomatic_complexity_message_format(warning)
+   local template = "cyclomatic complexity of %s is too high ({complexity} > {max_complexity})"
 
-      local function_descr
+   local function_descr
 
-      if warning.function_type == "main_chunk" then
-         function_descr = "main chunk"
-      elseif warning.function_name then
-         function_descr = "{function_type} {function_name!}"
-      else
-         function_descr = "function"
-      end
-
-      return template:format(function_descr)
+   if warning.function_type == "main_chunk" then
+      function_descr = "main chunk"
+   elseif warning.function_name then
+      function_descr = "{function_type} {function_name!}"
+   else
+      function_descr = "function"
    end
+
+   return template:format(function_descr)
+end
+
+stage.warnings = {
+   ["561"] = {message_format = cyclomatic_complexity_message_format,
+      fields = {"complexity", "function_type", "function_name"}}
 }
 
 local function warn_cyclomatic_complexity(chstate, line, complexity)

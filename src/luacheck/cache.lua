@@ -1,3 +1,5 @@
+local inline_options = require "luacheck.inline_options"
+local stages = require "luacheck.stages"
 local utils = require "luacheck.utils"
 
 local cache = {}
@@ -7,9 +9,9 @@ local cache = {}
 -- The rest are contain file records, 3 lines per file.
 -- For each file, first line is the filename, second is modification time,
 -- third is check result in lua table format.
--- String fields are compressed into array indexes.
+-- Event fields are compressed into array indexes.
 
-cache.format_version = 31
+cache.format_version = 32
 
 local option_fields = {
    "ignore", "std", "globals", "unused_args", "self", "compat", "global", "unused", "redefined",
@@ -19,17 +21,7 @@ local option_fields = {
    "max_cyclomatic_complexity"
 }
 
-local event_fields = {
-   "code", "name", "line", "column", "end_column", "prev_line", "prev_column", "prev_end_column", "secondary",
-   "self", "func", "top", "msg", "index", "recursive", "mutually_recursive", "useless",
-   "field", "label", "push", "pop", "options", "indirect", "indexing", "previous_indexing_len",
-   "overwritten_line", "overwritten_column", "overwritten_end_column", "complexity", "function_name", "function_type",
-   "limit"
-}
-
--- Recursively replace string keys with integer keys.
 local function compress(t, fields)
-   fields = fields or event_fields
    local res = {}
 
    for index, field in ipairs(fields) do
@@ -47,13 +39,24 @@ local function compress(t, fields)
    return res
 end
 
+local function compress_events(events)
+   local res = {}
+
+   for _, event in ipairs(events) do
+      local fields = event.code and stages.warnings[event.code].fields or inline_options.event_fields
+      table.insert(res, compress(event, fields))
+   end
+
+   return res
+end
+
 local function compress_report(report)
    local res = {}
-   res[1] = utils.map(compress, report.events)
+   res[1] = compress_events(report.events)
    res[2] = {}
 
    for line, events in pairs(report.per_line_options) do
-      res[2][line] = utils.map(compress, events)
+      res[2][line] = compress_events(events)
    end
 
    res[3] = report.line_lengths
@@ -61,9 +64,7 @@ local function compress_report(report)
    return res
 end
 
--- Recursively restores a table from a compressed array.
 local function decompress(t, fields)
-   fields = fields or event_fields
    local res = {}
 
    for index, field in ipairs(fields) do
@@ -81,13 +82,32 @@ local function decompress(t, fields)
    return res
 end
 
+local function decompress_events(events)
+   local res = {}
+
+   for _, compressed_event in ipairs(events) do
+      local fields
+
+      -- Issues have code as the first field, inline option events have line.
+      if type(compressed_event[1]) == "string" then
+         fields = stages.warnings[compressed_event[1]].fields
+      else
+         fields = inline_options.event_fields
+      end
+
+      table.insert(res, decompress(compressed_event, fields))
+   end
+
+   return res
+end
+
 local function decompress_report(compressed)
    local report = {}
-   report.events = utils.map(decompress, compressed[1])
+   report.events = decompress_events(compressed[1])
    report.per_line_options = {}
 
    for line, events in pairs(compressed[2]) do
-      report.per_line_options[line] = utils.map(decompress, events)
+      report.per_line_options[line] = decompress_events(events)
    end
 
    report.line_lengths = compressed[3]
@@ -113,7 +133,7 @@ end
 -- `strings` is a table mapping string values to where they first occured or to name of local
 -- variable used to represent it.
 -- Array part contains representations of values saved into locals.
-local function add_value(buffer, strings, value)
+local function add_value(buffer, strings, value, level)
    if type(value) == "string" then
       local prev = strings[value]
 
@@ -132,25 +152,35 @@ local function add_value(buffer, strings, value)
          strings[value] = #buffer
       end
    elseif type(value) == "table" then
+      -- Level 1 has the report, level 2 has event/line info arrays, level 3 has events, level 4 has options.
+      local allow_sparse = level ~= 3
+      local nil_tail_start
       local is_sparse
       local put_one
       table.insert(buffer, "{")
 
-      for i = 1, max_n(value) do
-         local item = value[i]
+      for index = 1, max_n(value) do
+         local item = value[index]
 
          if item == nil then
-            is_sparse = true
+            is_sparse = allow_sparse
+            nil_tail_start = nil_tail_start or index
          else
             if put_one then
                table.insert(buffer, ",")
             end
 
             if is_sparse then
-               table.insert(buffer, ("[%d]="):format(i))
+               table.insert(buffer, ("[%d]="):format(index))
+            elseif nil_tail_start then
+               for _ = nil_tail_start, index - 1 do
+                  table.insert(buffer, "nil,")
+               end
+
+               nil_tail_start = nil
             end
 
-            add_value(buffer, strings, item)
+            add_value(buffer, strings, item, level + 1)
             put_one = true
          end
       end
@@ -165,7 +195,7 @@ end
 function cache.serialize(report)
    local strings = {}
    local buffer = {"", "return "}
-   add_value(buffer, strings, compress_report(report))
+   add_value(buffer, strings, compress_report(report), 1)
 
    if strings[1] then
       local names = {}

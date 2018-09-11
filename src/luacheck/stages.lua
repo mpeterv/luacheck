@@ -4,7 +4,9 @@ local stages = {}
 
 -- Checking is organized into stages run one after another.
 -- Each stage is in its own module and provides `run` function operating on a check state,
--- and optionally `messages` table mapping issue codes to message templates.
+-- and optionally `warnings` table mapping issue codes to tables with fields `message_format`
+-- containing format string for the issue or a function returning it given the issue,
+-- and `fields` containing array of extra fields this warning can have.
 
 local stage_names = {
    "parse",
@@ -31,18 +33,38 @@ for _, name in ipairs(stage_names) do
    table.insert(stage_modules, require("luacheck.stages." .. name))
 end
 
--- Messages for issues that do not originate from normal check stages (excluding global related ones).
-stages.messages = {
-   ["011"] = "{msg}",
-   ["021"] = "{msg}",
-   ["022"] = "unpaired push directive",
-   ["023"] = "unpaired pop directive",
-   ["631"] = "line is too long ({end_column} > {max_length})"
-}
+stages.warnings = {}
+
+local base_fields = {"code", "line", "column", "end_column"}
+
+local function register_warnings(warnings)
+   for code, warning in pairs(warnings) do
+      assert(not stages.warnings[code])
+      assert(warning.message_format)
+      assert(warning.fields)
+
+      local full_fields = utils.concat_arrays({base_fields, warning.fields})
+
+      stages.warnings[code] = {
+         message_format = warning.message_format,
+         fields = full_fields,
+         fields_set = utils.array_to_set(full_fields)
+      }
+   end
+end
+
+-- Issues that do not originate from normal check stages (excluding global related ones).
+register_warnings({
+   ["011"] = {message_format = "{msg}", fields = {"msg", "prev_line", "prev_column", "prev_end_column"}},
+   ["021"] = {message_format = "{msg}", fields = {"msg"}},
+   ["022"] = {message_format = "unpaired push directive", fields = {}},
+   ["023"] = {message_format = "unpaired pop directive", fields = {}},
+   ["631"] = {message_format = "line is too long ({end_column} > {max_length})", fields = {}}
+})
 
 for _, stage_module in ipairs(stage_modules) do
-   if stage_module.messages then
-      utils.update(stages.messages, stage_module.messages)
+   if stage_module.warnings then
+      register_warnings(stage_module.warnings)
    end
 end
 

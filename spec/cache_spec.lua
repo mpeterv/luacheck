@@ -18,7 +18,7 @@ describe("cache", function()
 
       it("returns serialized result", function()
          assert.same(
-            [[return {{{"111","foo",5,100,102,[24]={"faa"}},{"211","bar",4,1,3,[9]=true},{"011",[4]=100000,[13]="near '\"'"}},{}}]],
+            [[return {{{"111",5,100,102,"foo",{"faa"}},{"211",4,1,3,"bar",nil,true},{"011",nil,100000,nil,"near '\"'"}},{}}]],
             cache.serialize({
                events = {
                   {code = "111", name = "foo", indexing = {"faa"}, line = 5, column = 100, end_column = 102},
@@ -32,7 +32,7 @@ describe("cache", function()
 
       it("puts repeating string values into locals", function()
          assert.same(
-            [[local A,B="111","foo";return {{{A,B,5,100},{A,B,6,100,[9]=true},{"011",[4]=100000,[13]="near '\"'"}},{},{}}]],
+            [[local A,B="111","foo";return {{{A,5,100,nil,B},{A,6,100,nil,B},{"011",nil,100000,nil,"near '\"'"}},{},{}}]],
             cache.serialize({
                events = {
                   {code = "111", name = "foo", line = 5, column = 100},
@@ -46,45 +46,45 @@ describe("cache", function()
       end)
 
       it("uses at most 52 locals", function()
-         assert.same(
-            'local A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z=' ..
-            '"111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127","128",' ..
-            '"129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145","146",' ..
-            '"147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162";' ..
-            'return {{{A,A},{B,B},{C,C},{D,D},{E,E},{F,F},{G,G},{H,H},{I,I},{J,J},{K,K},{L,L},{M,M},{N,N},{O,O},' ..
-            '{P,P},{Q,Q},{R,R},{S,S},{T,T},{U,U},{V,V},{W,W},{X,X},{Y,Y},{Z,Z},' ..
-            '{a,a},{b,b},{c,c},{d,d},{e,e},{f,f},{g,g},{h,h},{i,i},{j,j},{k,k},{l,l},{m,m},{n,n},{o,o},' ..
-            '{p,p},{q,q},{r,r},{s,s},{t,t},{u,u},{v,v},{w,w},{x,x},{y,y},{z,z},{"163","163"},{"164","164"}},{},{}}',
+         local events = {}
+         local expected_parts1 = {"local A"}
+         local expected_parts2 = {'="111"'}
+         local expected_parts3 = {";return {{"}
+
+         local function add_char(b)
+            local c = string.char(b)
+            table.insert(events, {code = "111", name = c})
+            table.insert(events, {code = "111", name = c})
+            table.insert(expected_parts1, "," .. c)
+            table.insert(expected_parts2, ',"' .. c .. '"')
+            table.insert(expected_parts3, ('{A,nil,nil,nil,%s},{A,nil,nil,nil,%s},'):format(c, c))
+         end
+
+         local function add_extra(name)
+            table.insert(events, {code = "111", name = name})
+            table.insert(events, {code = "111", name = name})
+            table.insert(expected_parts3, ('{A,nil,nil,nil,"%s"},{A,nil,nil,nil,"%s"},'):format(name, name))
+         end
+
+         for b = ("B"):byte(), ("Z"):byte() do
+            add_char(b)
+         end
+
+         for b = ("a"):byte(), ("z"):byte() do
+            add_char(b)
+         end
+
+         add_extra("extra1")
+         add_extra("extra2")
+
+         local expected_part1 = table.concat(expected_parts1)
+         local expected_part2 = table.concat(expected_parts2)
+         local expected_part3 = table.concat(expected_parts3):sub(1, -2)
+         local expected = expected_part1 .. expected_part2 .. expected_part3 .. "},{},{}}"
+
+         assert.same(expected,
             cache.serialize({
-               events = {
-                  {code = "111", name = "111"}, {code = "112", name = "112"},
-                  {code = "113", name = "113"}, {code = "114", name = "114"},
-                  {code = "115", name = "115"}, {code = "116", name = "116"},
-                  {code = "117", name = "117"}, {code = "118", name = "118"},
-                  {code = "119", name = "119"}, {code = "120", name = "120"},
-                  {code = "121", name = "121"}, {code = "122", name = "122"},
-                  {code = "123", name = "123"}, {code = "124", name = "124"},
-                  {code = "125", name = "125"}, {code = "126", name = "126"},
-                  {code = "127", name = "127"}, {code = "128", name = "128"},
-                  {code = "129", name = "129"}, {code = "130", name = "130"},
-                  {code = "131", name = "131"}, {code = "132", name = "132"},
-                  {code = "133", name = "133"}, {code = "134", name = "134"},
-                  {code = "135", name = "135"}, {code = "136", name = "136"},
-                  {code = "137", name = "137"}, {code = "138", name = "138"},
-                  {code = "139", name = "139"}, {code = "140", name = "140"},
-                  {code = "141", name = "141"}, {code = "142", name = "142"},
-                  {code = "143", name = "143"}, {code = "144", name = "144"},
-                  {code = "145", name = "145"}, {code = "146", name = "146"},
-                  {code = "147", name = "147"}, {code = "148", name = "148"},
-                  {code = "149", name = "149"}, {code = "150", name = "150"},
-                  {code = "151", name = "151"}, {code = "152", name = "152"},
-                  {code = "153", name = "153"}, {code = "154", name = "154"},
-                  {code = "155", name = "155"}, {code = "156", name = "156"},
-                  {code = "157", name = "157"}, {code = "158", name = "158"},
-                  {code = "159", name = "159"}, {code = "160", name = "160"},
-                  {code = "161", name = "161"}, {code = "162", name = "162"},
-                  {code = "163", name = "163"}, {code = "164", name = "164"}
-               },
+               events = events,
                per_line_options = {},
                line_lengths = {}
             })
@@ -92,7 +92,7 @@ describe("cache", function()
       end)
 
       it("handles error result", function()
-         assert.same('return {{{"011",[3]=2,[4]=4,[13]="message"}},{},{}}', cache.serialize({
+         assert.same('return {{{"011",2,4,nil,"message"}},{},{}}', cache.serialize({
             events = {
                {code = "011", line = 2, column = 4, msg = "message"}
             },

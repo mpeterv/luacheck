@@ -1,11 +1,11 @@
 local stage = {}
 
-stage.messages = {
-   ["611"] = "line contains only whitespace",
-   ["612"] = "line contains trailing whitespace",
-   ["613"] = "trailing whitespace in a string",
-   ["614"] = "trailing whitespace in a comment",
-   ["621"] = "inconsistent indentation (SPACE followed by TAB)"
+stage.warnings = {
+   ["611"] = {message_format = "line contains only whitespace", fields = {}},
+   ["612"] = {message_format = "line contains trailing whitespace", fields = {}},
+   ["613"] = {message_format = "trailing whitespace in a string", fields = {}},
+   ["614"] = {message_format = "trailing whitespace in a comment", fields = {}},
+   ["621"] = {message_format = "inconsistent indentation (SPACE followed by TAB)", fields = {}}
 }
 
 function stage.run(chstate)

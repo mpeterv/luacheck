@@ -12,23 +12,26 @@ local function prefix_if_indirect(message)
    end
 end
 
-stage.messages = {
-   ["111"] = function(warning)
-      -- `module` field is set during filtering.
-      if warning.module then
-         return "setting non-module global variable {name!}"
-      else
-         return "setting non-standard global variable {name!}"
-      end
-   end,
-   ["112"] = "mutating non-standard global variable {name!}",
-   ["113"] = "accessing undefined variable {name!}",
+local function setting_global_format_message(warning)
+   -- `module` field is set during filtering.
+   if warning.module then
+      return "setting non-module global variable {name!}"
+   else
+      return "setting non-standard global variable {name!}"
+   end
+end
+local global_warning_fields = {"name", "indexing", "previous_indexing_len", "top", "indirect"}
+
+stage.warnings = {
+   ["111"] = {message_format = setting_global_format_message, fields = global_warning_fields},
+   ["112"] = {message_format = "mutating non-standard global variable {name!}", fields = global_warning_fields},
+   ["113"] = {message_format = "accessing undefined variable {name!}", fields = global_warning_fields},
    -- The following warnings are added during filtering.
-   ["121"] = "setting read-only global variable {name!}",
-   ["122"] = prefix_if_indirect("setting read-only field {field!} of global {name!}"),
-   ["131"] = "unused global variable {name!}",
-   ["142"] = prefix_if_indirect("setting undefined field {field!} of global {name!}"),
-   ["143"] = prefix_if_indirect("accessing undefined field {field!} of global {name!}")
+   ["121"] = {message_format = "setting read-only global variable {name!}", fields = {}},
+   ["122"] = {message_format = prefix_if_indirect("setting read-only field {field!} of global {name!}"), fields = {}},
+   ["131"] = {message_format = "unused global variable {name!}", fields = {}},
+   ["142"] = {message_format = prefix_if_indirect("setting undefined field {field!} of global {name!}"), fields = {}},
+   ["143"] = {message_format = prefix_if_indirect("accessing undefined field {field!} of global {name!}"), fields = {}}
 }
 
 local action_codes = {

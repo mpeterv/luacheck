@@ -2,47 +2,55 @@ local utils = require "luacheck.utils"
 
 local stage = {}
 
-local function unused_or_overwritten(fmt)
-   return function(w)
-      if w.overwritten_line then
-         return fmt .. " is overwritten on line {overwritten_line} before use"
+local function unused_local_message_format(warning)
+   if warning.func then
+      if warning.recursive then
+         return "unused recursive function {name!}"
+      elseif warning.mutually_recursive then
+         return "unused mutually recursive function {name!}"
       else
-         return fmt .. " is unused"
+         return "unused function {name!}"
       end
+   else
+      return "unused variable {name!}"
    end
 end
 
-stage.messages = {
-   ["211"] = function(warning)
-      if warning.func then
-         if warning.recursive then
-            return "unused recursive function {name!}"
-         elseif warning.mutually_recursive then
-            return "unused mutually recursive function {name!}"
+local function unused_arg_message_format(warning)
+   if warning.name == "..." then
+      return "unused variable length argument"
+   else
+      return "unused argument {name!}"
+   end
+end
+
+local function unused_or_overwritten_warning(message_format)
+   return {
+      message_format = function(warning)
+         if warning.overwritten_line then
+            return message_format .. " is overwritten on line {overwritten_line} before use"
          else
-            return "unused function {name!}"
+            return message_format .. " is unused"
          end
-      else
-         return "unused variable {name!}"
-      end
-   end,
-   ["212"] = function(w)
-      if w.name == "..." then
-         return "unused variable length argument"
-      else
-         return "unused argument {name!}"
-      end
-   end,
-   ["213"] = "unused loop variable {name!}",
-   ["221"] = "variable {name!} is never set",
-   ["231"] = "variable {name!} is never accessed",
-   ["232"] = "argument {name!} is never accessed",
-   ["233"] = "loop variable {name!} is never accessed",
-   ["241"] = "variable {name!} is mutated but never accessed",
-   ["311"] = unused_or_overwritten("value assigned to variable {name!}"),
-   ["312"] = unused_or_overwritten("value of argument {name!}"),
-   ["313"] = unused_or_overwritten("value of loop variable {name!}"),
-   ["331"] = "value assigned to variable {name!} is mutated but never accessed"
+      end,
+      fields = {"name", "secondary", "overwritten_line", "overwritten_column", "overwritten_end_column"}
+   }
+end
+
+stage.warnings = {
+   ["211"] = {message_format = unused_local_message_format, fields = {"name", "func", "secondary", "useless"}},
+   ["212"] = {message_format = unused_arg_message_format, fields = {"name", "self"}},
+   ["213"] = {message_format = "unused loop variable {name!}", fields = {"name"}},
+   ["221"] = {message_format = "variable {name!} is never set", fields = {"name", "secondary"}},
+   ["231"] = {message_format = "variable {name!} is never accessed", fields = {"name", "secondary"}},
+   ["232"] = {message_format = "argument {name!} is never accessed", fields = {"name"}},
+   ["233"] = {message_format = "loop variable {name!} is never accessed", fields = {"name"}},
+   ["241"] = {message_format = "variable {name!} is mutated but never accessed", fields = {"name", "secondary"}},
+   ["311"] = unused_or_overwritten_warning("value assigned to variable {name!}"),
+   ["312"] = unused_or_overwritten_warning("value of argument {name!}"),
+   ["313"] = unused_or_overwritten_warning("value of loop variable {name!}"),
+   ["331"] = {message_format = "value assigned to variable {name!} is mutated but never accessed",
+      fields = {"name", "secondary"}}
 }
 
 local function is_secondary(value)

@@ -4,6 +4,33 @@ local parser = require "luacheck.parser"
 local stages = require "luacheck.stages"
 local utils = require "luacheck.utils"
 
+local inline_option_event_fields = utils.array_to_set(inline_options.event_fields)
+
+local function validate_events(events)
+   for _, event in ipairs(events) do
+      local fields_set
+
+      if event.code then
+         local warning_info = stages.warnings[event.code]
+
+         if not warning_info then
+            error("Unkown issue code " .. event.code, 0)
+         end
+
+         fields_set = warning_info.fields_set
+      else
+         fields_set = inline_option_event_fields
+      end
+
+      for field in pairs(event) do
+         if not fields_set[field] then
+            error("Unknown field " .. field .. " in " ..
+               (event.code and "issue with code " .. event.code or "inline option event"), 0)
+         end
+      end
+   end
+end
+
 --- Checks source.
 -- Returns a table with results, with the following fields:
 --    `events`: array of issues and inline option events (options, push, or pop).
@@ -15,16 +42,12 @@ local utils = require "luacheck.utils"
 local function check(source)
    local chstate = check_state.new(source)
    local ok, error_wrapper = utils.try(stages.run, chstate)
+   local events, per_line_options, line_lengths, line_endings
 
    if ok then
-      local events, per_line_options = inline_options.get_events(chstate)
-
-      return {
-         events = events,
-         per_line_options = per_line_options,
-         line_lengths = chstate.line_lengths,
-         line_endings = chstate.line_endings
-      }
+      events, per_line_options = inline_options.get_events(chstate)
+      line_lengths = chstate.line_lengths
+      line_endings = chstate.line_endings
    else
       local err = error_wrapper.err
 
@@ -46,13 +69,20 @@ local function check(source)
          syntax_error.prev_end_column = chstate:offset_to_column(err.prev_line, err.prev_end_offset)
       end
 
-      return {
-         events = {syntax_error},
-         per_line_options = {},
-         line_lengths = {},
-         line_endings = {}
-      }
+      events = {syntax_error}
+      per_line_options = {}
+      line_lengths = {}
+      line_endings = {}
    end
+
+   validate_events(events)
+
+   return {
+      events = events,
+      per_line_options = per_line_options,
+      line_lengths = line_lengths,
+      line_endings = line_endings
+   }
 end
 
 return check

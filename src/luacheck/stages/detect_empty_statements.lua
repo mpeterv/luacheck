@@ -1,7 +1,7 @@
 local stage = {}
 
-stage.messages = {
-   ["551"] = "empty statement"
+stage.warnings = {
+   ["551"] = {message_format = "empty statement", fields = {}}
 }
 
 function stage.run(chstate)

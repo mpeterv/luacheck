@@ -3,17 +3,24 @@ local utils = require "luacheck.utils"
 
 local stage = {}
 
-stage.messages = {
-   ["411"] = "variable {name!} was previously defined on line {prev_line}",
-   ["412"] = "variable {name!} was previously defined as an argument on line {prev_line}",
-   ["413"] = "variable {name!} was previously defined as a loop variable on line {prev_line}",
-   ["421"] = "shadowing definition of variable {name!} on line {prev_line}",
-   ["422"] = "shadowing definition of argument {name!} on line {prev_line}",
-   ["423"] = "shadowing definition of loop variable {name!} on line {prev_line}",
-   ["431"] = "shadowing upvalue {name!} on line {prev_line}",
-   ["432"] = "shadowing upvalue argument {name!} on line {prev_line}",
-   ["433"] = "shadowing upvalue loop variable {name!} on line {prev_line}",
-   ["521"] = "unused label {label!}"
+local function redefined_warning(message_format)
+   return {
+      message_format = message_format,
+      fields = {"name", "prev_line", "prev_column", "prev_end_column", "self"}
+   }
+end
+
+stage.warnings = {
+   ["411"] = redefined_warning("variable {name!} was previously defined on line {prev_line}"),
+   ["412"] = redefined_warning("variable {name!} was previously defined as an argument on line {prev_line}"),
+   ["413"] = redefined_warning("variable {name!} was previously defined as a loop variable on line {prev_line}"),
+   ["421"] = redefined_warning("shadowing definition of variable {name!} on line {prev_line}"),
+   ["422"] = redefined_warning("shadowing definition of argument {name!} on line {prev_line}"),
+   ["423"] = redefined_warning("shadowing definition of loop variable {name!} on line {prev_line}"),
+   ["431"] = redefined_warning("shadowing upvalue {name!} on line {prev_line}"),
+   ["432"] = redefined_warning("shadowing upvalue argument {name!} on line {prev_line}"),
+   ["433"] = redefined_warning("shadowing upvalue loop variable {name!} on line {prev_line}"),
+   ["521"] = {message_format = "unused label {label!}", fields = {"label"}}
 }
 
 local type_codes = {

@@ -2,9 +2,9 @@ local core_utils = require "luacheck.core_utils"
 
 local stage = {}
 
-stage.messages = {
-   ["541"] = "empty do..end block",
-   ["542"] = "empty if branch"
+stage.warnings = {
+   ["541"] = {message_format = "empty do..end block", fields = {}},
+   ["542"] = {message_format = "empty if branch", fields = {}}
 }
 
 local function check_block(chstate, block, code)

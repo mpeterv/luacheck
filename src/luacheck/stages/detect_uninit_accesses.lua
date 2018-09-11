@@ -1,8 +1,8 @@
 local stage = {}
 
-stage.messages = {
-   ["321"] = "accessing uninitialized variable {name!}",
-   ["341"] = "mutating uninitialized variable {name!}"
+stage.warnings = {
+   ["321"] = {message_format = "accessing uninitialized variable {name!}", fields = {"name"}},
+   ["341"] = {message_format = "mutating uninitialized variable {name!}", fields = {"name"}}
 }
 
 local function detect_uninit_access_in_line(chstate, line)
