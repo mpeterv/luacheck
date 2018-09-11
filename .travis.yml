@@ -17,6 +17,7 @@ before_install:
   - luarocks install busted
   - luarocks install cluacov
   - luarocks install luautf8
+  - luarocks install luasocket
 
 install:
   - luarocks make
