@@ -1,3 +1,7 @@
+local check_state = require "luacheck.check_state"
+local core_utils = require "luacheck.core_utils"
+local stages = require "luacheck.stages"
+
 local helper = {}
 
 local function get_lua()
@@ -54,6 +58,28 @@ function helper.luacheck_command(loc_path)
    end
 
    return ("%s %sbin%sluacheck.lua"):format(cmd, prefix, dir_sep)
+end
+
+function helper.get_chstate_after_stage(target_stage_name, source)
+   local chstate = check_state.new(source)
+
+   for index, stage_name in ipairs(stages.names) do
+      stages.modules[index].run(chstate)
+
+      if stage_name == target_stage_name then
+         return chstate
+      end
+
+      chstate.warnings = {}
+   end
+
+   error("no stage " .. target_stage_name, 0)
+end
+
+function helper.get_stage_warnings(target_stage_name, source)
+   local chstate = helper.get_chstate_after_stage(target_stage_name, source)
+   core_utils.sort_by_location(chstate.warnings)
+   return chstate.warnings
 end
 
 return helper

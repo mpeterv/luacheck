@@ -8,7 +8,7 @@ local stages = {}
 -- containing format string for the issue or a function returning it given the issue,
 -- and `fields` containing array of extra fields this warning can have.
 
-local stage_names = {
+stages.names = {
    "parse",
    "unwrap_parens",
    "linearize",
@@ -27,10 +27,10 @@ local stage_names = {
    "detect_unused_locals"
 }
 
-local stage_modules = {}
+stages.modules = {}
 
-for _, name in ipairs(stage_names) do
-   table.insert(stage_modules, require("luacheck.stages." .. name))
+for _, name in ipairs(stages.names) do
+   table.insert(stages.modules, require("luacheck.stages." .. name))
 end
 
 stages.warnings = {}
@@ -62,14 +62,14 @@ register_warnings({
    ["631"] = {message_format = "line is too long ({end_column} > {max_length})", fields = {}}
 })
 
-for _, stage_module in ipairs(stage_modules) do
+for _, stage_module in ipairs(stages.modules) do
    if stage_module.warnings then
       register_warnings(stage_module.warnings)
    end
 end
 
 function stages.run(chstate)
-   for _, stage_module in ipairs(stage_modules) do
+   for _, stage_module in ipairs(stages.modules) do
       stage_module.run(chstate)
    end
 end

@@ -1,23 +1,7 @@
-local check_state = require "luacheck.check_state"
-local core_utils = require "luacheck.core_utils"
-local detect_unused_fields = require "luacheck.stages.detect_unused_fields"
-local linearize = require "luacheck.stages.linearize"
-local parse = require "luacheck.stages.parse"
-local unwrap_parens = require "luacheck.stages.unwrap_parens"
-
-local function get_warnings(src)
-   local chstate = check_state.new(src)
-   parse.run(chstate)
-   unwrap_parens.run(chstate)
-   linearize.run(chstate)
-   chstate.warnings = {}
-   detect_unused_fields.run(chstate)
-   core_utils.sort_by_location(chstate.warnings)
-   return chstate.warnings
-end
+local helper = require "spec.helper"
 
 local function assert_warnings(warnings, src)
-   assert.same(warnings, get_warnings(src))
+   assert.same(warnings, helper.get_stage_warnings("detect_unused_fields", src))
 end
 
 describe("unused field detection", function()

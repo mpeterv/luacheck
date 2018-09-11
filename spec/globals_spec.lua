@@ -1,25 +1,7 @@
-local check_state = require "luacheck.check_state"
-local unwrap_parens = require "luacheck.stages.unwrap_parens"
-local core_utils = require "luacheck.core_utils"
-local detect_globals = require "luacheck.stages.detect_globals"
-local linearize = require "luacheck.stages.linearize"
-local parse = require "luacheck.stages.parse"
-local resolve_locals = require "luacheck.stages.resolve_locals"
-
-local function get_warnings(src)
-   local chstate = check_state.new(src)
-   parse.run(chstate)
-   unwrap_parens.run(chstate)
-   linearize.run(chstate)
-   resolve_locals.run(chstate)
-   chstate.warnings = {}
-   detect_globals.run(chstate)
-   core_utils.sort_by_location(chstate.warnings)
-   return chstate.warnings
-end
+local helper = require "spec.helper"
 
 local function assert_warnings(warnings, src)
-   assert.same(warnings, get_warnings(src))
+   assert.same(warnings, helper.get_stage_warnings("detect_globals", src))
 end
 
 describe("global detection", function()

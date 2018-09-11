@@ -1,23 +1,7 @@
-local check_state = require "luacheck.check_state"
-local unwrap_parens = require "luacheck.stages.unwrap_parens"
-local core_utils = require "luacheck.core_utils"
-local detect_empty_blocks = require "luacheck.stages.detect_empty_blocks"
-local linearize = require "luacheck.stages.linearize"
-local parse = require "luacheck.stages.parse"
-
-local function get_warnings(src)
-   local chstate = check_state.new(src)
-   parse.run(chstate)
-   unwrap_parens.run(chstate)
-   linearize.run(chstate)
-   chstate.warnings = {}
-   detect_empty_blocks.run(chstate)
-   core_utils.sort_by_location(chstate.warnings)
-   return chstate.warnings
-end
+local helper = require "spec.helper"
 
 local function assert_warnings(warnings, src)
-   assert.same(warnings, get_warnings(src))
+   assert.same(warnings, helper.get_stage_warnings("detect_empty_blocks", src))
 end
 
 describe("empty block detection", function()

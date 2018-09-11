@@ -1,8 +1,4 @@
-local check_state = require "luacheck.check_state"
-local unwrap_parens = require "luacheck.stages.unwrap_parens"
-local linearize = require "luacheck.stages.linearize"
-local parse = require "luacheck.stages.parse"
-local resolve_locals = require "luacheck.stages.resolve_locals"
+local helper = require "spec.helper"
 
 local function used_variables_to_string(chstate, item)
    local buf = {}
@@ -23,11 +19,7 @@ local function used_variables_to_string(chstate, item)
 end
 
 local function get_used_variables_as_string(src)
-   local chstate = check_state.new(src)
-   parse.run(chstate)
-   unwrap_parens.run(chstate)
-   linearize.run(chstate)
-   resolve_locals.run(chstate)
+   local chstate = helper.get_chstate_after_stage("resolve_locals", src)
 
    local buf = {}
 

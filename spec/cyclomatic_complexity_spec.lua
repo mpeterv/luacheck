@@ -1,25 +1,7 @@
-local check_state = require "luacheck.check_state"
-local unwrap_parens = require "luacheck.stages.unwrap_parens"
-local core_utils = require "luacheck.core_utils"
-local detect_cyclomatic_complexity = require "luacheck.stages.detect_cyclomatic_complexity"
-local linearize = require "luacheck.stages.linearize"
-local name_functions = require "luacheck.stages.name_functions"
-local parse = require "luacheck.stages.parse"
-
-local function get_warnings(src)
-   local chstate = check_state.new(src)
-   parse.run(chstate)
-   unwrap_parens.run(chstate)
-   linearize.run(chstate)
-   name_functions.run(chstate)
-   chstate.warnings = {}
-   detect_cyclomatic_complexity.run(chstate)
-   core_utils.sort_by_location(chstate.warnings)
-   return chstate.warnings
-end
+local helper = require "spec.helper"
 
 local function assert_warnings(warnings, src)
-   assert.same(warnings, get_warnings(src))
+   assert.same(warnings, helper.get_stage_warnings("detect_cyclomatic_complexity", src))
 end
 
 describe("cyclomatic complexity detection", function()

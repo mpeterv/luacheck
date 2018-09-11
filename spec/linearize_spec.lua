@@ -1,14 +1,7 @@
-local check_state = require "luacheck.check_state"
-local unwrap_parens = require "luacheck.stages.unwrap_parens"
-local linearize = require "luacheck.stages.linearize"
-local parse = require "luacheck.stages.parse"
+local helper = require "spec.helper"
 
 local function get_line_or_throw(src)
-   local chstate = check_state.new(src)
-   parse.run(chstate)
-   unwrap_parens.run(chstate)
-   linearize.run(chstate)
-   return chstate.top_line
+   return helper.get_chstate_after_stage("linearize", src).top_line
 end
 
 local function get_line(src)
