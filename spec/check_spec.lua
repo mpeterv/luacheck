@@ -216,41 +216,6 @@ goto fail
 ]])
    end)
 
-   it("detects unbalanced assignments", function()
-      assert.same({
-         {code = "532", line = 4, column = 1, end_column = 8},
-         {code = "531", line = 5, column = 1, end_column = 14}
-      }, check[[
-local a, b = 4; (...)(a)
-
-a, b = (...)(); (...)(a, b)
-a, b = 5; (...)(a, b)
-a, b = 1, 2, 3; (...)(a, b)
-]])
-   end)
-
-   it("detects empty blocks", function()
-      assert.same({
-         {code = "541", line = 1, column = 1, end_column = 6},
-         {code = "542", line = 3, column = 8, end_column = 11},
-         {code = "542", line = 5, column = 12, end_column = 15},
-         {code = "542", line = 7, column = 1, end_column = 4}
-      }, check[[
-do end
-
-if ... then
-
-elseif ... then
-
-else
-
-end
-
-while ... do end
-repeat until ...
-]])
-   end)
-
    it("detects empty statements", function()
       assert.same({
          {code = "551", line = 1, column = 1, end_column = 1},

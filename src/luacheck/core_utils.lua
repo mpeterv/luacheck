@@ -1,4 +1,5 @@
 local decoder = require "luacheck.decoder"
+local utils = require "luacheck.utils"
 
 local core_utils = {}
 
@@ -49,6 +50,30 @@ function core_utils.eval_const_node(node)
       if number == number and number < 1/0 and number > -1/0 then
          return number, (is_negative and "-" or "") .. node[1]
       end
+   end
+end
+
+local statement_containing_tags = utils.array_to_set({"Do", "While", "Repeat", "Fornum", "Forin", "If"})
+
+-- `items` is an array of nodes or nested item arrays.
+local function scan_for_statements(chstate, items, tags, callback, ...)
+   for _, item in ipairs(items) do
+      if tags[item.tag] then
+         callback(chstate, item, ...)
+      end
+
+      if not item.tag or statement_containing_tags[item.tag] then
+         scan_for_statements(chstate, item, tags, callback, ...)
+      end
+   end
+end
+
+-- Calls `callback(chstate, node, ...)` for each statement node within AST with tag in given array.
+function core_utils.each_statement(chstate, tags_array, callback, ...)
+   local tags = utils.array_to_set(tags_array)
+
+   for _, line in ipairs(chstate.lines) do
+      scan_for_statements(chstate, line.node[2], tags, callback, ...)
    end
 end
 

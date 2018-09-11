@@ -13,11 +13,7 @@ stage.messages = {
    ["431"] = "shadowing upvalue {name!} on line {prev_line}",
    ["432"] = "shadowing upvalue argument {name!} on line {prev_line}",
    ["433"] = "shadowing upvalue loop variable {name!} on line {prev_line}",
-   ["521"] = "unused label {label!}",
-   ["531"] = "right side of assignment has more values than left side expects",
-   ["532"] = "right side of assignment has less values than left side expects",
-   ["541"] = "empty do..end block",
-   ["542"] = "empty if branch"
+   ["521"] = "unused label {label!}"
 }
 
 local type_codes = {
@@ -43,11 +39,6 @@ local function warn_unused_label(chstate, label)
    chstate:warn_range("521", label.range, {
       label = label.name
    })
-end
-
-local function warn_unbalanced_assignment(chstate, node)
-   local has_shorter_lhs = #node[1] < #node[2]
-   chstate:warn_range(has_shorter_lhs and "531" or "532", node)
 end
 
 local pseudo_labels = utils.array_to_set({"do", "else", "break", "end", "return"})
@@ -307,26 +298,6 @@ function LinState:register_label(name, range)
    self.scopes.top.labels[name] = new_label(self.lines.top, name, range)
 end
 
-function LinState:check_assignment_balance(node)
-   local lhs = node[1]
-   local rhs = node[2]
-
-   if not rhs then
-      return
-   end
-
-   if (#lhs < #rhs) or ((#lhs > #rhs) and node.tag == "Set" and not is_unpacking(rhs[#rhs])) then
-      warn_unbalanced_assignment(self.chstate, node)
-   end
-end
-
--- Block is either a `Do` statement or a `Then` block within an `If` statement.
-function LinState:check_empty_block(block)
-   if #block == 0 then
-      self.chstate:warn_range((block.tag == "Do") and "541" or "542", block)
-   end
-end
-
 function LinState:emit(item)
    self.lines.top.items:push(item)
 end
@@ -372,7 +343,6 @@ function LinState:emit_block(block)
 end
 
 function LinState:emit_stmt_Do(node)
-   self:check_empty_block(node)
    self:emit_noop(node)
    self:emit_block(node)
 end
@@ -451,7 +421,6 @@ function LinState:emit_stmt_If(node)
       self:enter_scope()
       self:emit_expr(node[i])
       self:emit_cond_goto("else", node[i])
-      self:check_empty_block(node[i + 1])
       self:emit_block(node[i + 1])
       self:emit_goto("end")
       self:register_label("else")
@@ -459,7 +428,6 @@ function LinState:emit_stmt_If(node)
    end
 
    if #node % 2 == 1 then
-      self:check_empty_block(node[#node])
       self:emit_block(node[#node])
    end
 
@@ -502,7 +470,6 @@ LinState.emit_stmt_Call = LinState.emit_expr
 LinState.emit_stmt_Invoke = LinState.emit_expr
 
 function LinState:emit_stmt_Local(node)
-   self:check_assignment_balance(node)
    local item = new_local_item(node)
    self:emit(item)
 
@@ -521,7 +488,6 @@ function LinState:emit_stmt_Localrec(node)
 end
 
 function LinState:emit_stmt_Set(node)
-   self:check_assignment_balance(node)
    local item = new_set_item(node)
    self:scan_exprs(item, node[2])
 
@@ -718,7 +684,7 @@ end
 
 -- Builds linear representation (line) of AST and assigns it as `chstate.top_line`.
 -- Assings an array of all lines as `chstate.lines`.
--- Adds warnings: redefined/shadowed, unused field, unused label, unbalanced assignment, empty block.
+-- Adds warnings for redefined/shadowed locals and unused labels.
 function stage.run(chstate)
    local linstate = LinState(chstate)
    chstate.top_line = linstate:build_line({{{tag = "Dots", "..."}}, chstate.ast})

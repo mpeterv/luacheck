@@ -57,7 +57,7 @@ describe("decoder", function()
       end
    end)
 
-   it("falls back to latin1 on invalid utf8 #this", function()
+   it("falls back to latin1 on invalid utf8", function()
       -- Bad first byte.
       assert_encoding("latin1", 0xC0, 0x80, 0x80, 0x80)
       assert_encoding("latin1", 0x00, 0xF8, 0x80, 0x80, 0x80)
