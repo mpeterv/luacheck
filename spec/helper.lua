@@ -1,7 +1,3 @@
-local check_state = require "luacheck.check_state"
-local core_utils = require "luacheck.core_utils"
-local stages = require "luacheck.stages"
-
 local helper = {}
 
 local function get_lua()
@@ -61,6 +57,11 @@ function helper.luacheck_command(loc_path)
 end
 
 function helper.get_chstate_after_stage(target_stage_name, source)
+   -- Luacov isn't yet started when helper is required, defer requiring luacheck
+   -- modules so that their main chunks get covered.
+   local check_state = require "luacheck.check_state"
+   local stages = require "luacheck.stages"
+
    local chstate = check_state.new(source)
 
    for index, stage_name in ipairs(stages.names) do
@@ -77,6 +78,8 @@ function helper.get_chstate_after_stage(target_stage_name, source)
 end
 
 function helper.get_stage_warnings(target_stage_name, source)
+   local core_utils = require "luacheck.core_utils"
+
    local chstate = helper.get_chstate_after_stage(target_stage_name, source)
    core_utils.sort_by_location(chstate.warnings)
    return chstate.warnings
