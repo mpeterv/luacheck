@@ -242,6 +242,13 @@ return foo;
 ]])
    end)
 
+   it("provides correct locations in presence of utf8", function()
+      assert.same({
+         {code = "211", name = "a", line = 2, column = 15, end_column = 15},
+         {code = "113", name = "math", line = 2, column = 17, end_column = 20, indexing = {"\204\130"}}
+      }, check("-- \240\144\128\128\224\166\152\nlocal --[[\204\128]] a;math['\204\130']()\n"))
+   end)
+
    it("emits events, per-line options, and line lengths", function()
       assert.same({
          events = {

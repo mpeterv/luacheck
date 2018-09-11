@@ -62,4 +62,13 @@ describe("bad whitespace detection", function()
          {code = "611", line = 3, column = 1, end_column = 3}
       }, "local foo    \r\n   \tlocal bar\n\r   ")
    end)
+
+   it("provides correct column ranges in presence of utf8", function()
+      assert_warnings({
+         {code = "612", line = 1, column = 17, end_column = 20},
+         {code = "611", line = 2, column = 1, end_column = 4},
+         {code = "621", line = 3, column = 1, end_column = 4},
+         {code = "614", line = 3, column = 20, end_column = 24},
+      }, "local foo = '\204\128\204\130'    \n    \n   \tlocal bar -- \240\144\128\128\224\166\152     \n")
+   end)
 end)
