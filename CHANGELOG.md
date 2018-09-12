@@ -6,6 +6,8 @@
 
 * Removed `--no-inline` CLI option and `inline` config option, inline options
   are now always enabled.
+* Inline comments are now supposed to be only in short comments
+  but not long ones.
 * Installer script (install.lua) is removed. Luacheck can still be installed
   manually by recursively copying `src/*` to a directory in `package.path`
   and copying `bin/luacheck.lua` to a directory in `PATH` as `luacheck`.

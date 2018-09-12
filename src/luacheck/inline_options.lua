@@ -4,7 +4,7 @@ local utils = require "luacheck.utils"
 
 local inline_options = {}
 
--- Inline option is a comment starting with "luacheck:".
+-- Inline option is a short comment starting with "luacheck:".
 -- Body can be "push", "pop" or comma delimited options, where option
 -- is option name plus space delimited arguments.
 -- "push" can also be immediately followed by options.

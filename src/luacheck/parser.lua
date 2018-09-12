@@ -47,7 +47,7 @@ local function skip_token(state)
          parser.syntax_error(token_value, state)
       end
 
-      if token == "short_comment" or token == "long_comment" then
+      if token == "short_comment" then
          state.comments[#state.comments + 1] = {
             contents = token_value,
             line = line,
@@ -55,12 +55,9 @@ local function skip_token(state)
             end_offset = state.end_offset
          }
 
-         if token == "short_comment" then
-            -- Short comments end on the same line the start so mark_line_endings doesn't work.
-            state.line_endings[line] = "comment"
-         else
-            mark_line_endings(state, "comment")
-         end
+         state.line_endings[line] = "comment"
+      elseif token == "long_comment" then
+         mark_line_endings(state, "comment")
       else
          if token ~= "eof" then
             mark_line_endings(state, "string")

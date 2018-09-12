@@ -299,14 +299,14 @@ do return t end
                code = "023",
                line = 3,
                column = 4,
-               end_column = 26
+               end_column = 19
             },
             {
                code = "021",
                msg = "unknown inline option 'some invalid comment'",
-               line = 6,
-               column = 10,
-               end_column = 14
+               line = 7,
+               column = 3,
+               end_column = 35
             }
          },
          warnings = 0,
@@ -315,12 +315,11 @@ do return t end
       }, luacheck.check_strings({[[
 -- luacheck: push
 local function f()
-   --[=[ luacheck: pop ]=]
+   -- luacheck: pop
 end
 
-return f --[=[
-   luacheck: some invalid comment
-]=]
+return f
+  -- luacheck: some invalid comment
 ]]}))
    end)
 

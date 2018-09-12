@@ -1203,11 +1203,10 @@ end
    end)
 
    describe("providing misc information", function()
-      it("provides comments correctly", function()
+      it("provides short comments correctly", function()
          assert.same({
             {contents = " ignore something", line = 1, offset = 1, end_offset = 19},
-            {contents = " comments", line = 2, offset = 33, end_offset = 43},
-            {contents = "long comment", line = 3, offset = 57, end_offset = 77}
+            {contents = " comments", line = 2, offset = 33, end_offset = 43}
          }, get_comments([[
 -- ignore something
 foo = bar() -- comments

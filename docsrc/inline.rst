@@ -3,7 +3,7 @@ Inline options
 
 Luacheck supports setting some options directly in the checked files using inline configuration comments. These inline options have the highest priority, overwriting both config options and CLI options.
 
-An inline configuration comment starts with ``luacheck:`` label, possibly after some whitespace. The body of the comment should contain comma separated options, where option invocation consists of its name plus space separated arguments. It can also contain notes enclosed in balanced parentheses, which are ignored. The following options are supported:
+An inline configuration comment is a short comment starting with ``luacheck:`` label, possibly after some whitespace. The body of the comment should contain comma separated options, where option invocation consists of its name plus space separated arguments. It can also contain notes enclosed in balanced parentheses, which are ignored. The following options are supported:
 
 ======================= ====================================================================
 Option                  Number of arguments
@@ -60,5 +60,3 @@ For fine-grained control over inline option visibility use ``luacheck: push`` an
    foo() -- No warning.
    -- luacheck: pop
    foo() -- Warning is emitted.
-
-Inline options can be completely disabled using ``--no-inline`` CLI option or ``inline`` config option.
