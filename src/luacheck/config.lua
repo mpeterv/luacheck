@@ -100,7 +100,7 @@ local function locate_config(path, global_path)
    global_path = global_path or config.get_default_global_path()
 
    if global_path and fs.is_file(global_path) then
-      return global_path
+      return global_path, (fs.split_base(global_path))
    end
 end
 
@@ -229,7 +229,7 @@ local function add_default_path_options(opts)
    set_default_std(files, "**/*.luacheckrc", "+luacheckrc")
 end
 
-local fallback_config = {options = {}}
+local fallback_config = {options = {}, anchor_dir = ""}
 add_default_path_options(fallback_config.options)
 
 -- Loads config from a file, if possible.
@@ -494,7 +494,13 @@ local function add_applying_overrides(option_stack, conf, filename)
 
    local current_dir = fs.get_current_dir()
    local abs_filename = fs.normalize(fs.join(current_dir, filename))
-   local anchor_dir = conf.anchor_dir or current_dir
+   local anchor_dir
+
+   if conf.anchor_dir == "" then
+      anchor_dir = fs.split_base(current_dir)
+   else
+      anchor_dir = conf.anchor_dir or current_dir
+   end
 
    local matching_pairs = {}
 
