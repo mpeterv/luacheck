@@ -10,6 +10,10 @@ local function autodetect_modules(rockspec_path)
    local base, rest = fs.split_base(rockspec_path)
    local project_dir = base .. (rest:match("^(.*)" .. utils.dir_sep .. ".*$") or "")
 
+   if project_dir == "" then
+      project_dir = "."
+   end
+
    local module_dir = project_dir
 
    for _, module_subdir in ipairs({"src", "lua", "lib"}) do
