@@ -6,7 +6,9 @@ source = {
 description = {
    summary = "A static analyzer and a linter for Lua",
    detailed = [[
-Luacheck is a command-line tool for linting and static analysis of Lua code. It is able to spot usage of undefined global variables, unused local variables and a few other typical problems within Lua programs.
+Luacheck is a command-line tool for linting and static analysis of Lua code.
+It is able to spot usage of undefined global variables, unused local variables and
+a few other typical problems within Lua programs.
 ]],
    homepage = "https://github.com/mpeterv/luacheck",
    license = "MIT"

@@ -1210,6 +1210,71 @@ Total: 4 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/override_config.luacheckrc")
          end)
 
+         it("adds per-file overrides with default stds", function()
+            assert.equal(([[
+Checking .luacheckrc                              3 warnings
+
+    .luacheckrc:14:6: accessing undefined variable 'it'
+    .luacheckrc:14:10: accessing undefined variable 'version'
+    .luacheckrc:14:25: accessing undefined variable 'newproxy'
+
+Checking default_stds-scm-1.rockspec              3 warnings
+
+    default_stds-scm-1.rockspec:13:1: accessing undefined variable 'it'
+    default_stds-scm-1.rockspec:13:21: accessing undefined variable 'newproxy'
+    default_stds-scm-1.rockspec:13:37: accessing undefined variable 'new_globals'
+
+Checking nested/spec/sample_spec.lua              3 warnings
+
+    nested/spec/sample_spec.lua:1:39: accessing undefined variable 'newproxy'
+    nested/spec/sample_spec.lua:1:55: accessing undefined variable 'version'
+    nested/spec/sample_spec.lua:1:64: accessing undefined variable 'read_globals'
+
+Checking normal_file.lua                          4 warnings
+
+    normal_file.lua:1:1: accessing undefined variable 'it'
+    normal_file.lua:1:29: accessing undefined variable 'newproxy'
+    normal_file.lua:1:45: accessing undefined variable 'version'
+    normal_file.lua:1:54: accessing undefined variable 'read_globals'
+
+Checking sample_spec.lua                          4 warnings
+
+    sample_spec.lua:1:1: accessing undefined variable 'it'
+    sample_spec.lua:1:28: accessing undefined variable 'newproxy'
+    sample_spec.lua:1:44: accessing undefined variable 'version'
+    sample_spec.lua:1:53: accessing undefined variable 'read_globals'
+
+Checking test/nested_normal_file.lua              4 warnings
+
+    test/nested_normal_file.lua:1:1: accessing undefined variable 'it'
+    test/nested_normal_file.lua:1:47: accessing undefined variable 'newproxy'
+    test/nested_normal_file.lua:1:63: accessing undefined variable 'version'
+    test/nested_normal_file.lua:1:72: accessing undefined variable 'read_globals'
+
+Checking test/sample_spec.lua                     5 warnings
+
+    test/sample_spec.lua:1:1: accessing undefined variable 'it'
+    test/sample_spec.lua:1:37: accessing undefined variable 'newproxy'
+    test/sample_spec.lua:1:47: accessing undefined variable 'math'
+    test/sample_spec.lua:1:53: accessing undefined variable 'version'
+    test/sample_spec.lua:1:62: accessing undefined variable 'read_globals'
+
+Checking tests/nested/sample_spec.lua             3 warnings
+
+    tests/nested/sample_spec.lua:1:44: accessing undefined variable 'newproxy'
+    tests/nested/sample_spec.lua:1:60: accessing undefined variable 'version'
+    tests/nested/sample_spec.lua:1:69: accessing undefined variable 'read_globals'
+
+Checking tests/sample_spec.lua                    3 warnings
+
+    tests/sample_spec.lua:1:17: accessing undefined variable 'newproxy'
+    tests/sample_spec.lua:1:33: accessing undefined variable 'version'
+    tests/sample_spec.lua:1:42: accessing undefined variable 'read_globals'
+
+Total: 32 warnings / 0 errors in 9 files
+]]):gsub("([a-z])/", "%1" .. package.config:sub(1, 1)), get_output(". --include-files .", "spec/projects/default_stds/"))
+         end)
+
          it("uses new filename when selecting per-file overrides", function()
             assert.equal([[
 Checking spec/samples/unused_code.lua             OK

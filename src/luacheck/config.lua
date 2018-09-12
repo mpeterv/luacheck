@@ -203,6 +203,35 @@ local function remove_env_mt(env, special_values)
    utils.update(env, special_values)
 end
 
+local function set_default_std(files, pattern, std)
+   -- Avoid mutating option tables, they may be shared between different patterns.
+   local pattern_opts = {std = std}
+
+   if files[pattern] then
+      pattern_opts = utils.update(pattern_opts, files[pattern])
+   end
+
+   files[pattern] = pattern_opts
+end
+
+local function add_default_path_options(opts)
+   local files = {}
+
+   if opts.files then
+      files = utils.update(files, opts.files)
+   end
+
+   opts.files = files
+   set_default_std(files, "**/spec/**/*_spec.lua", "+busted")
+   set_default_std(files, "**/test/**/*_spec.lua", "+busted")
+   set_default_std(files, "**/tests/**/*_spec.lua", "+busted")
+   set_default_std(files, "**/*.rockspec", "+rockspec")
+   set_default_std(files, "**/*.luacheckrc", "+luacheckrc")
+end
+
+local fallback_config = {options = {}}
+add_default_path_options(fallback_config.options)
+
 -- Loads config from a file, if possible.
 -- `path` and `global_path` can be nil (will use default), false (will disable loading), or a string.
 -- Doesn't validate the config.
@@ -214,7 +243,7 @@ function config.load_config(path, global_path)
       if anchor_dir then
          return nil, anchor_dir
       else
-         return {options = {}}
+         return fallback_config
       end
    end
 
@@ -234,7 +263,7 @@ function config.load_config(path, global_path)
    end
 
    remove_env_mt(env, special_values)
-
+   add_default_path_options(env)
    return {options = env, config_path = config_path, anchor_dir = anchor_dir}
 end
 
