@@ -81,9 +81,9 @@ Option                                  Meaning
                                         * ``luajit`` - globals of LuaJIT 2.x;
                                         * ``ngx_lua`` - globals of Openresty `lua-nginx-module <https://github.com/openresty/lua-nginx-module>`_ 0.10.10, including standard LuaJIT 2.x globals;
                                         * ``love`` - globals added by `LÖVE <https://love2d.org>`_ (love2d);
-                                        * ``busted`` - globals added by Busted 2.0;
-                                        * ``rockspec`` - globals allowed in rockspecs;
-                                        * ``luacheckrc`` - globals allowed in Luacheck configs;
+                                        * ``busted`` - globals added by Busted 2.0, by default added for files ending with ``_spec.lua`` within ``spec``, ``test``, and ``tests`` subdirectories;
+                                        * ``rockspec`` - globals allowed in rockspecs, by default added for files ending with ``.rockspec``;
+                                        * ``luacheckrc`` - globals allowed in Luacheck configs, by default added for files ending with ``.luacheckrc``;
                                         * ``none`` - no standard globals.
 
                                         See :ref:`stds`
@@ -180,7 +180,7 @@ CLI options ``--globals``, ``--new-globals``, ``--read-globals``, ``--new-read-g
 Sets of standard globals
 ------------------------
 
-CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51c+lua52c+lua53c+luajit``. Leading plus sign adds new sets to current one instead of replacing it. For instance, ``--std +busted`` is suitable for checking test files that use `Busted <http://olivinelabs.com/busted/>`_ testing framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
+CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51c+lua52c+lua53c+luajit``. Leading plus sign adds new sets to current one instead of replacing it. For instance, ``--std +love`` is suitable for checking files using `LÖVE <https://love2d.org>`_ (love2d) framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
 
 Formatters
 ----------

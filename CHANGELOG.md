@@ -14,12 +14,19 @@
 
 * Warning columns are now reported in Unicode codepoints if input is
   valid UTF-8 (#45).
+* Added `luacheckrc` set of allowed globals containing globals used in
+  Luacheck config to set options.
+* Added default stds equivalent to predefined per-path std overrides
+  in config:
+  - `files["**/spec/**/*_spec.lua"].std = "+busted"`;
+  - `files["**/test/**/*_spec.lua"].std = "+busted"`;
+  - `files["**/tests/**/*_spec.lua"].std = "+busted"`;
+  - `files["**/*.rockspec"].std = "+rockspec"`;
+  - `files["**/*.luacheckrc"].std = "+luacheckrc"`.
 * Added detection of numeric for loops going from `#t` to `1` without
   negative step (#160).
 * Added support for LuaRocks 3 module autodetection when checking
   rockspecs (#176).
-* Added `luacheckrc` set of allowed globals containing globals used in
-  Luacheck config to set options.
 
 ### Changes
 

@@ -152,7 +152,7 @@ In config, ``globals``, ``new_globals``, ``read_globals``, and ``new_read_global
 Per-file and per-path overrides
 -------------------------------
 
-The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<glob>]`` if ``<glob>`` matches ``<path>``, applying entries for more general globs first. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for files ending with ``_special.lua``, and allows using `Busted <http://olivinelabs.com/busted/>`_ globals within ``spec/``:
+The environment in which ``luacheck`` loads the config contains a special global ``files``. When checking a file ``<path>``, ``luacheck`` will override options from the main config with entries from ``files[<glob>]`` if ``<glob>`` matches ``<path>``, applying entries for more general globs first. For example, the following config re-enables detection of unused arguments only for files in ``src/dir``, but not for files ending with ``_special.lua``:
 
 .. code-block:: lua
    :linenos:
@@ -161,7 +161,6 @@ The environment in which ``luacheck`` loads the config contains a special global
    ignore = {"212"}
    files["src/dir"] = {enable = {"212"}}
    files["src/dir/**/*_special.lua"] = {ignore = {"212"}}
-   files["spec"] = {std = "+busted"}
 
 Note that ``files`` table supports autovivification, so that
 
@@ -176,3 +175,19 @@ and
    files["src/dir"] = {enable = {"212"}}
 
 are equivalent.
+
+Default per-path std overrides
+------------------------------
+
+``luacheck`` uses a set of default per-path overrides:
+
+.. code-block:: lua
+   :linenos:
+
+   files["**/spec/**/*_spec.lua"].std = "+busted"
+   files["**/test/**/*_spec.lua"].std = "+busted"
+   files["**/tests/**/*_spec.lua"].std = "+busted"
+   files["**/*.rockspec"].std = "+rockspec"
+   files["**/*.luacheckrc"].std = "+luacheckrc"
+
+Each of these can be overriden by setting a different ``std`` value for the corresponding key in ``files``.

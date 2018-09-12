@@ -83,9 +83,10 @@ Links:
          "   luajit - globals of LuaJIT 2.x;\n" ..
          "   ngx_lua - globals of Openresty lua-nginx-module 0.10.10, including standard LuaJIT 2.x globals;\n" ..
          "   love - globals added by LOVE (love2d);\n" ..
-         "   busted - globals added by Busted 2.0;\n" ..
-         "   rockspec - globals allowed in rockspecs;\n" ..
-         "   luacheckrc - globals allowed in Luacheck configs;\n" ..
+         "   busted - globals added by Busted 2.0, by default added for files ending with _spec.lua within spec, " ..
+         "test, and tests subdirectories;\n" ..
+         "   rockspec - globals allowed in rockspecs, by default added for files ending with .rockspec;\n" ..
+         "   luacheckrc - globals allowed in Luacheck configs, by default added for files ending with .luacheckrc;\n" ..
          "   none - no standard globals.\n\n" ..
          "Sets can be combined using '+'. Extra sets can be defined in config by " ..
          "adding to `stds` global in config."),
