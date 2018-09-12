@@ -18,6 +18,8 @@
   negative step (#160).
 * Added support for LuaRocks 3 module autodetection when checking
   rockspecs (#176).
+* Added `luacheckrc` set of allowed globals containing globals used in
+  Luacheck config to set options.
 
 ### Changes
 

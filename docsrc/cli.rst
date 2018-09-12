@@ -83,6 +83,7 @@ Option                                  Meaning
                                         * ``love`` - globals added by `LÖVE <https://love2d.org>`_ (love2d);
                                         * ``busted`` - globals added by Busted 2.0;
                                         * ``rockspec`` - globals allowed in rockspecs;
+                                        * ``luacheckrc`` - globals allowed in Luacheck configs;
                                         * ``none`` - no standard globals.
 
                                         See :ref:`stds`

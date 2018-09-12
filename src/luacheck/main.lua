@@ -85,9 +85,10 @@ Links:
          "   love - globals added by LOVE (love2d);\n" ..
          "   busted - globals added by Busted 2.0;\n" ..
          "   rockspec - globals allowed in rockspecs;\n" ..
+         "   luacheckrc - globals allowed in Luacheck configs;\n" ..
          "   none - no standard globals.\n\n" ..
          "Sets can be combined using '+'. Extra sets can be defined in config by " ..
-         "adding to `stds` global."),
+         "adding to `stds` global in config."),
       parser:flag("-c --compat", "Equivalent to --std max."),
 
       parser:option("--globals", "Add custom global variables (e.g. foo) or fields (e.g. foo.bar) " ..

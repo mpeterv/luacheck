@@ -284,6 +284,16 @@ builtin_standards.rockspec = {
    }
 }
 
+builtin_standards.luacheckrc = {
+   globals = {
+      "global", "unused", "redefined", "unused_args", "unused_secondaries", "self", "compat", "allow_defined",
+      "allow_defined_top", "module", "globals", "read_globals", "new_globals", "new_read_globals", "not_globals",
+      "ignore", "enable", "only", "std", "max_line_length", "max_code_line_length", "max_string_line_length",
+      "max_comment_line_length", "max_cyclomatic_complexity", "quiet", "color", "codes", "ranges", "formatter",
+      "cache", "jobs", "files", "stds", "exclude_files", "include_files"
+   }
+}
+
 builtin_standards.none = {}
 
 return builtin_standards
