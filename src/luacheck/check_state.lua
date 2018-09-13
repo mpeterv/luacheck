@@ -23,6 +23,16 @@ function CheckState:offset_to_column(line, offset)
    return math.max(1, math.min(line_length, column))
 end
 
+function CheckState:warn_column_range(code, range, warning)
+   warning = warning or {}
+   warning.code = code
+   warning.line = range.line
+   warning.column = range.column
+   warning.end_column = range.end_column
+   table.insert(self.warnings, warning)
+   return warning
+end
+
 function CheckState:warn(code, line, offset, end_offset, warning)
    warning = warning or {}
    warning.code = code

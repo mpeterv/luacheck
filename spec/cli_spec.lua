@@ -939,7 +939,7 @@ return {{{"011",1,6,15,"expected '=' near '__future__'"}},{},{},{}}
 %s
 abspath{spec/samples/python_code.lua}
 %s
-return {{{"111", 1, 1, nil, "global"}, {"321", 6, 8, nil, "uninit"}},{},{},{}}
+return {{{"111", 1, 1, nil, "global"}, {"321", 6, 8, nil, "uninit"}},{},{1, 1, 1, 1, 1, 1},{}}
 abspath{spec/samples/good_code.lua}
 %s
 return {{{"011",5,7,nil, "this code is actually bad"}},{},{},{}}

@@ -1,4 +1,4 @@
-local inline_options = require "luacheck.inline_options"
+local parse_inline_options = require "luacheck.stages.parse_inline_options"
 local stages = require "luacheck.stages"
 local utils = require "luacheck.utils"
 
@@ -11,7 +11,7 @@ local cache = {}
 -- third is check result in lua table format.
 -- Event fields are compressed into array indexes.
 
-cache.format_version = 32
+cache.format_version = 33
 
 local option_fields = {
    "ignore", "std", "globals", "unused_args", "self", "compat", "global", "unused", "redefined",
@@ -21,7 +21,7 @@ local option_fields = {
    "max_cyclomatic_complexity"
 }
 
-local function compress(t, fields)
+local function compress_table(t, fields)
    local res = {}
 
    for index, field in ipairs(fields) do
@@ -29,7 +29,7 @@ local function compress(t, fields)
 
       if value ~= nil then
          if field == "options" then
-            value = compress(value, option_fields)
+            value = compress_table(value, option_fields)
          end
 
          res[index] = value
@@ -39,12 +39,12 @@ local function compress(t, fields)
    return res
 end
 
-local function compress_events(events)
+local function compress_tables(tables, per_code_fields)
    local res = {}
 
-   for _, event in ipairs(events) do
-      local fields = event.code and stages.warnings[event.code].fields or inline_options.event_fields
-      table.insert(res, compress(event, fields))
+   for _, t in ipairs(tables) do
+      local fields = per_code_fields and stages.warnings[t.code].fields or parse_inline_options.inline_option_fields
+      table.insert(res, compress_table(t, fields))
    end
 
    return res
@@ -52,19 +52,14 @@ end
 
 local function compress_report(report)
    local res = {}
-   res[1] = compress_events(report.events)
-   res[2] = {}
-
-   for line, events in pairs(report.per_line_options) do
-      res[2][line] = compress_events(events)
-   end
-
+   res[1] = compress_tables(report.warnings, true)
+   res[2] = compress_tables(report.inline_options)
    res[3] = report.line_lengths
    res[4] = report.line_endings
    return res
 end
 
-local function decompress(t, fields)
+local function decompress_table(t, fields)
    local res = {}
 
    for index, field in ipairs(fields) do
@@ -72,7 +67,7 @@ local function decompress(t, fields)
 
       if value ~= nil then
          if field == "options" then
-            value = decompress(value, option_fields)
+            value = decompress_table(value, option_fields)
          end
 
          res[field] = value
@@ -82,20 +77,19 @@ local function decompress(t, fields)
    return res
 end
 
-local function decompress_events(events)
+local function decompress_tables(tables, per_code_fields)
    local res = {}
 
-   for _, compressed_event in ipairs(events) do
+   for _, t in ipairs(tables) do
       local fields
 
-      -- Issues have code as the first field, inline option events have line.
-      if type(compressed_event[1]) == "string" then
-         fields = stages.warnings[compressed_event[1]].fields
+      if per_code_fields then
+         fields = stages.warnings[t[1]].fields
       else
-         fields = inline_options.event_fields
+         fields = parse_inline_options.inline_option_fields
       end
 
-      table.insert(res, decompress(compressed_event, fields))
+      table.insert(res, decompress_table(t, fields))
    end
 
    return res
@@ -103,13 +97,8 @@ end
 
 local function decompress_report(compressed)
    local report = {}
-   report.events = decompress_events(compressed[1])
-   report.per_line_options = {}
-
-   for line, events in pairs(compressed[2]) do
-      report.per_line_options[line] = decompress_events(events)
-   end
-
+   report.warnings = decompress_tables(compressed[1], true)
+   report.inline_options = decompress_tables(compressed[2])
    report.line_lengths = compressed[3]
    report.line_endings = compressed[4]
    return report
@@ -152,7 +141,8 @@ local function add_value(buffer, strings, value, level)
          strings[value] = #buffer
       end
    elseif type(value) == "table" then
-      -- Level 1 has the report, level 2 has event/line info arrays, level 3 has events, level 4 has options.
+      -- Level 1 has the report, level 2 has warning/inline option/line info arrays,
+      -- level 3 has warnings/inline option containers, level 4 has inline options.
       local allow_sparse = level ~= 3
       local nil_tail_start
       local is_sparse

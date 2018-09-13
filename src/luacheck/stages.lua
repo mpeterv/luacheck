@@ -12,6 +12,7 @@ stages.names = {
    "parse",
    "unwrap_parens",
    "linearize",
+   "parse_inline_options",
    "name_functions",
    "resolve_locals",
    "detect_bad_whitespace",
@@ -56,9 +57,6 @@ end
 -- Issues that do not originate from normal check stages (excluding global related ones).
 register_warnings({
    ["011"] = {message_format = "{msg}", fields = {"msg", "prev_line", "prev_column", "prev_end_column"}},
-   ["021"] = {message_format = "{msg}", fields = {"msg"}},
-   ["022"] = {message_format = "unpaired push directive", fields = {}},
-   ["023"] = {message_format = "unpaired pop directive", fields = {}},
    ["631"] = {message_format = "line is too long ({end_column} > {max_length})", fields = {}}
 })
 

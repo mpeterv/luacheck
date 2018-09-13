@@ -20,12 +20,12 @@ describe("cache", function()
          assert.same(
             [[return {{{"111",5,100,102,"foo",{"faa"}},{"211",4,1,3,"bar",nil,true},{"011",nil,100000,nil,"near '\"'"}},{}}]],
             cache.serialize({
-               events = {
+               warnings = {
                   {code = "111", name = "foo", indexing = {"faa"}, line = 5, column = 100, end_column = 102},
                   {code = "211", name = "bar", line = 4, column = 1, end_column = 3, secondary = true},
                   {code = "011", column = 100000, msg = "near '\"'"}
                },
-               per_line_options = {}
+               inline_options = {}
             })
          )
       end)
@@ -34,35 +34,35 @@ describe("cache", function()
          assert.same(
             [[local A,B="111","foo";return {{{A,5,100,nil,B},{A,6,100,nil,B},{"011",nil,100000,nil,"near '\"'"}},{},{}}]],
             cache.serialize({
-               events = {
+               warnings = {
                   {code = "111", name = "foo", line = 5, column = 100},
                   {code = "111", name = "foo", line = 6, column = 100, secondary = true},
                   {code = "011", column = 100000, msg = "near '\"'"}
                },
-               per_line_options = {},
+               inline_options = {},
                line_lengths = {}
             })
          )
       end)
 
       it("uses at most 52 locals", function()
-         local events = {}
+         local warnings = {}
          local expected_parts1 = {"local A"}
          local expected_parts2 = {'="111"'}
          local expected_parts3 = {";return {{"}
 
          local function add_char(b)
             local c = string.char(b)
-            table.insert(events, {code = "111", name = c})
-            table.insert(events, {code = "111", name = c})
+            table.insert(warnings, {code = "111", name = c})
+            table.insert(warnings, {code = "111", name = c})
             table.insert(expected_parts1, "," .. c)
             table.insert(expected_parts2, ',"' .. c .. '"')
             table.insert(expected_parts3, ('{A,nil,nil,nil,%s},{A,nil,nil,nil,%s},'):format(c, c))
          end
 
          local function add_extra(name)
-            table.insert(events, {code = "111", name = name})
-            table.insert(events, {code = "111", name = name})
+            table.insert(warnings, {code = "111", name = name})
+            table.insert(warnings, {code = "111", name = name})
             table.insert(expected_parts3, ('{A,nil,nil,nil,"%s"},{A,nil,nil,nil,"%s"},'):format(name, name))
          end
 
@@ -84,8 +84,8 @@ describe("cache", function()
 
          assert.same(expected,
             cache.serialize({
-               events = events,
-               per_line_options = {},
+               warnings = warnings,
+               inline_options = {},
                line_lengths = {}
             })
          )
@@ -93,10 +93,10 @@ describe("cache", function()
 
       it("handles error result", function()
          assert.same('return {{{"011",2,4,nil,"message"}},{},{}}', cache.serialize({
-            events = {
+            warnings = {
                {code = "011", line = 2, column = 4, msg = "message"}
             },
-            per_line_options = {},
+            inline_options = {},
             line_lengths = {}
          }))
       end)
@@ -120,10 +120,10 @@ describe("cache", function()
 
       local function report(code)
          return {
-            events = {
+            warnings = {
                code and {code = code}
             },
-            per_line_options = {},
+            inline_options = {},
             line_lengths = {}
          }
       end
@@ -214,31 +214,28 @@ return {{{"122"}},{},{}}
          local tmpname
 
          local foo_report = {
-            events = {
+            warnings = {
                {code = "111", name = "not_print", line = 1, column = 1},
-               {push = true, line = 2, column = 1},
-               {options = {std = "none"}, line = 3, column = 1},
                {code = "111", name = "not_print", line = 4, column = 1},
                {code = "111", name = "print", line = 5, column = 1},
-               {pop = true, line = 6, column = 1},
                {code = "111", name = "print", line = 7, column = 1},
-               {options = {std = "bad_std"}, line = 8, column = 1}
             },
-            per_line_options = {
-               [4] = {
-                  {options = {ignore = {",*"}}, line = 4, column = 10}
-               },
-               [1000] = {
-                  {options = {std = "max"}, line = 1000, column = 1},
-                  {options = {std = "another_bad_std"}, line = 1000, column = 20}
-               }
+            inline_options = {
+               {options = {std = "none"}, line = 3, column = 1},
+               {options = {ignore = {",*"}}, line = 4, column = 10},
+               {pop_count = 1, line = 5},
+               {pop_count = 1, line = 6},
+               {options = {std = "bad_std"}, line = 8, column = 1},
+               {options = {std = "max"}, line = 1000, column = 1},
+               {pop_count = 1, options = {std = "another_bad_std"}, line = 1001, column = 20},
+               {pop_count = 1, line = 1002},
             },
             line_lengths = {10, 20, 30}
          }
 
          local bar_report = {
-            events = {{code = "011", line = 2, column = 4, msg = "message"}},
-            per_line_options = {},
+            warnings = {{code = "011", line = 2, column = 4, msg = "message"}},
+            inline_options = {},
             line_lengths = {40, 50}
          }
 

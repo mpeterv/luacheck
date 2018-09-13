@@ -29,6 +29,7 @@
   negative step (#160).
 * Added support for LuaRocks 3 module autodetection when checking
   rockspecs (#176).
+* Reduced amout of RAM used, particularly when checking many files.
 
 ### Changes
 
@@ -41,6 +42,8 @@
 
 * Added missing globals to `rockspec` std: `hooks`, `deploy`,
   `build_dependencies`, `test_dependencies`, and `test`.
+* Fixed line lengths appearing in the output before other warnings on the same
+  line even if their column numbers are smaller.
 
 ### Miscellaneous
 

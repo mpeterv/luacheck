@@ -1,21 +1,21 @@
 local raw_check = require "luacheck.check"
 
-local function remove_cyclomatic_complexity_warnings(events)
-   for i = #events, 1, -1 do
-      if events[i].code == "561" then
-         table.remove(events, i)
+local function remove_cyclomatic_complexity_warnings(warnings)
+   for i = #warnings, 1, -1 do
+      if warnings[i].code == "561" then
+         table.remove(warnings, i)
       end
    end
 end
 
 local function check_full(src)
    local report = raw_check(src)
-   remove_cyclomatic_complexity_warnings(report.events)
+   remove_cyclomatic_complexity_warnings(report.warnings)
    return report
 end
 
 local function check(src)
-   return check_full(src).events
+   return check_full(src).warnings
 end
 
 describe("check", function()
@@ -249,26 +249,31 @@ return foo;
       }, check("-- \240\144\128\128\224\166\152\nlocal --[[\204\128]] a;math['\204\130']()\n"))
    end)
 
-   it("emits events, per-line options, and line lengths", function()
+   it("provides inline options, line lengths, and line endings", function()
       assert.same({
-         events = {
-            {push = true, line = 1, column = 1, end_column = 28},
-            {options = {ignore = {"bar"}}, line = 1, column = 1, end_column = 28},
+         warnings = {
             {code = "211", name = "foo", line = 2, column = 7, end_column = 9},
             {code = "211", name = "bar", line = 2, column = 12, end_column = 14},
-            {pop = true, line = 3, column = 1, end_column = 16},
-            {push = true, closure = true, line = 4, column = 8},
-            {options = {ignore = {".*"}}, line = 5, column = 1, end_column = 19},
             {code = "512", line = 7, column = 1, end_column = 32},
             {code = "213", name = "_", line = 7, column = 5, end_column = 5},
             {code = "113", name = "pairs", line = 7, column = 10, end_column = 14},
-            {pop = true, closure = true, line = 9, column = 1}
+            {code = "211", name = "f", func = true, line = 11, column = 16, end_column = 16}
          },
-         per_line_options = {
-            [2] = {{options = {ignore = {"foo"}}, line = 2, column = 16, end_column = 38}}
+         inline_options = {
+            {options = {ignore = {"bar"}}, line = 1, column = 1, end_column = 28},
+            {options = {ignore = {"foo"}}, line = 2, column = 16, end_column = 38},
+            {pop_count = 1, line = 3},
+            {pop_count = 1, line = 4},
+            {options = {ignore = {".*"}}, line = 5, column = 1, end_column = 19},
+            {options = {ignore = {"f"}}, line = 11, column = 24, end_column = 44},
+            {pop_count = 1, options = {std = "max"}, line = 12, column = 1, end_column = 20},
+            {options = {std = "none"}, line = 13, column = 1, end_column = 21},
+            {pop_count = 2, line = 15},
+            {pop_count = 1, line = 16}
          },
-         line_lengths = {28, 38, 16, 17, 19, 17, 32, 16, 3, 0},
-         line_endings = {"comment", "comment", "comment", nil, "comment", "comment", nil, "comment", nil}
+         line_lengths = {28, 38, 16, 17, 19, 17, 32, 16, 0, 17, 44, 20, 21, 16, 3, 0},
+         line_endings = {"comment", "comment", "comment", nil, "comment", "comment", nil, "comment", nil,
+            "comment", "comment", "comment", "comment", "comment"}
       }, check_full[[
 -- luacheck: push ignore bar
 local foo, bar -- luacheck: ignore foo
@@ -277,6 +282,12 @@ return function()
 -- luacheck: ignore
 -- luacheck: push
 for _ in pairs({}) do return end
+-- luacheck: pop
+
+-- luacheck: push
+local function f() end -- luacheck: ignore f
+-- luacheck: std max
+-- luacheck: std none
 -- luacheck: pop
 end
 ]])
@@ -305,7 +316,7 @@ end
 -- luacheck: no ignore anything please
 -- luacheck:
 -- luacheck: no unused, , no redefined
-]].events)
+]].warnings)
    end)
 
    it("handles argparse sample", function()

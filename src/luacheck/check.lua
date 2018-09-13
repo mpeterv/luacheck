@@ -1,31 +1,36 @@
 local check_state = require "luacheck.check_state"
-local inline_options = require "luacheck.inline_options"
+local core_utils = require "luacheck.core_utils"
+local parse_inline_options = require "luacheck.stages.parse_inline_options"
 local parser = require "luacheck.parser"
 local stages = require "luacheck.stages"
 local utils = require "luacheck.utils"
 
-local inline_option_event_fields = utils.array_to_set(inline_options.event_fields)
+local inline_option_fields = utils.array_to_set(parse_inline_options.inline_option_fields)
 
-local function validate_events(events)
-   for _, event in ipairs(events) do
+local function validate_fields(tables, per_code_fields)
+   for _, t in ipairs(tables) do
       local fields_set
 
-      if event.code then
-         local warning_info = stages.warnings[event.code]
+      if per_code_fields then
+         if not t.code then
+            error("Warning has no code", 0)
+         end
+
+         local warning_info = stages.warnings[t.code]
 
          if not warning_info then
-            error("Unkown issue code " .. event.code, 0)
+            error("Unknown issue code " .. t.code, 0)
          end
 
          fields_set = warning_info.fields_set
       else
-         fields_set = inline_option_event_fields
+         fields_set = inline_option_fields
       end
 
-      for field in pairs(event) do
+      for field in pairs(t) do
          if not fields_set[field] then
             error("Unknown field " .. field .. " in " ..
-               (event.code and "issue with code " .. event.code or "inline option event"), 0)
+               (per_code_fields and "issue with code " .. t.code or "inline option table"), 0)
          end
       end
    end
@@ -42,10 +47,12 @@ end
 local function check(source)
    local chstate = check_state.new(source)
    local ok, error_wrapper = utils.try(stages.run, chstate)
-   local events, per_line_options, line_lengths, line_endings
+   local warnings, inline_options, line_lengths, line_endings
 
    if ok then
-      events, per_line_options = inline_options.get_events(chstate)
+      warnings = chstate.warnings
+      core_utils.sort_by_location(warnings)
+      inline_options = chstate.inline_options
       line_lengths = chstate.line_lengths
       line_endings = chstate.line_endings
    else
@@ -69,17 +76,18 @@ local function check(source)
          syntax_error.prev_end_column = chstate:offset_to_column(err.prev_line, err.prev_end_offset)
       end
 
-      events = {syntax_error}
-      per_line_options = {}
+      warnings = {syntax_error}
+      inline_options = {}
       line_lengths = {}
       line_endings = {}
    end
 
-   validate_events(events)
+   validate_fields(warnings, true)
+   validate_fields(inline_options)
 
    return {
-      events = events,
-      per_line_options = per_line_options,
+      warnings = warnings,
+      inline_options = inline_options,
       line_lengths = line_lengths,
       line_endings = line_endings
    }
