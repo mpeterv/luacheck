@@ -38,7 +38,8 @@ local function unused_or_overwritten_warning(message_format)
 end
 
 stage.warnings = {
-   ["211"] = {message_format = unused_local_message_format, fields = {"name", "func", "secondary", "useless"}},
+   ["211"] = {message_format = unused_local_message_format,
+      fields = {"name", "func", "secondary", "useless", "recursive", "mutually_recursive"}},
    ["212"] = {message_format = unused_arg_message_format, fields = {"name", "self"}},
    ["213"] = {message_format = "unused loop variable {name!}", fields = {"name"}},
    ["221"] = {message_format = "variable {name!} is never set", fields = {"name", "secondary"}},
