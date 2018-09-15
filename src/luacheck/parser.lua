@@ -74,7 +74,7 @@ local function token_name(token)
    return token == "name" and "identifier" or (token == "eof" and "<eof>" or ("'" .. token .. "'"))
 end
 
-local function parse_error(state, msg, prev_range)
+local function parse_error(state, msg, prev_range, is_indentation_guess)
    local token_repr
 
    if state.token == "eof" then
@@ -83,7 +83,13 @@ local function parse_error(state, msg, prev_range)
       token_repr = lexer.get_quoted_substring_or_line(state.lexer, state.line, state.offset, state.end_offset)
    end
 
-   parser.syntax_error(msg .. " near " .. token_repr, state, prev_range)
+   msg = msg .. " near " .. token_repr
+
+   if is_indentation_guess then
+      msg = msg .. " (indentation-based guess)"
+   end
+
+   parser.syntax_error(msg, state, prev_range)
 end
 
 local function check_token(state, token)
@@ -104,15 +110,147 @@ local function test_and_skip_token(state, token)
    end
 end
 
+local function copy_range(range)
+   return {
+      line = range.line,
+      offset = range.offset,
+      end_offset = range.end_offset
+   }
+end
+
+local opening_tokens = utils.array_to_set({"do", "if", "else", "elseif", "for", "while", "repeat", "function"})
+
+local opening_token_to_block_start_token = {
+   ["if"] = "then",
+   ["elseif"] = "then",
+   ["for"] = "do",
+   ["while"] = "do",
+   ["function"] = ")"
+}
+
+-- Attempts to guess a better location for a missing `end` or `until` error based on indentation levels.
+-- Returns a table with range info for the opening token range and the token itself in `token` field.
+-- Missing closing token and range will be in the parser state.
+local function guess_unpaired_opening_token(state, error_closing_token)
+   -- Re-scan token stream.
+   -- Important tokens are two pairs of opening and closing tokens:
+   -- (all tokens requiring closing `end`)/`end`; `repeat`/`until`.
+   -- The idea is to track the stack of opening tokens and their indentations.
+   -- For the first token with the same or smaller indentation than the opening token on the top of the stack:
+   -- * If it has the same indentation but is not the appropriate closing token for the opening one, pick it
+   --   as the guessed error location.
+   -- * If it has a lower indentation level, pick it as the guessed error location even it closes the opening token.
+   -- Example:
+   -- local function f()
+   --    <code>
+   --
+   --    if cond then                   <- `if` is the guessed opening token
+   --       <code>
+   --
+   --    <code not starting with `end`> <- first token on this line is the guessed error location
+   -- end
+   -- Another one:
+   -- local function g()
+   --    <code>
+   --
+   --    if cond then  <- `if` is the guessed opening token
+   --       <code>
+   --
+   -- end              <- `end` is the guessed error location
+   --
+   -- The heuristic can not trigger on a line after the end of a multi-line string.
+   -- The heuristic can not trigger until the innermost block can actually end, so,
+   -- not until `)` of the argument list for `function`, not until `do` for `while` and `for`,
+   -- and not until more `then` tokens than `elseif` tokens for `if`.
+
+   -- Rewind.
+   local error_offset = state.offset
+   state.lexer.line = 1
+   state.lexer.offset = 1
+
+   local opening_tokens_stack = utils.Stack()
+   local multi_line_token_end_line
+   local line = 0
+   local line_indentation
+
+   while true do
+      skip_token(state)
+
+      if state.offset == error_offset then
+         return
+      end
+
+      local after_multi_line_token = state.line == multi_line_token_end_line
+
+      if state.lexer.line > state.line then
+         -- This is a multi-line token.
+         multi_line_token_end_line = state.lexer.line
+      end
+
+      local top = opening_tokens_stack.top
+
+      if state.line > line then
+         line = state.line
+         -- This breaks a bit if both tabs and spaces are used, don't do that.
+         line_indentation = state.offset - state.lexer.line_offsets[state.line]
+
+         -- Check if the heuristic is triggered.
+         if not after_multi_line_token then
+            if top and top.eligible and not top.block_start_token then
+               if line_indentation < top.indentation then
+                  return top
+               elseif line_indentation == top.indentation and state.token ~= top.closing_token then
+                  -- Allow `else` and `elseif` instead of `end` on the same indentation as an opening `if`/`elseif`.
+                  if (top.token ~= "if" and top.token ~= "elseif") or
+                        (state.token ~= "else" and state.token ~= "elseif") then
+                     return top
+                  end
+               end
+            end
+         end
+      end
+
+      if top and state.token == top.block_start_token then
+         top.block_start_token = nil
+      elseif opening_tokens[state.token] then
+         if state.token == "elseif" or state.token == "else" then
+            -- Top opening token has to be an `if`, pop it.
+            opening_tokens_stack:pop()
+         end
+
+         local token_wrapper = copy_range(state)
+         token_wrapper.token = state.token
+         token_wrapper.closing_token = state.token == "repeat" and "until" or "end"
+         token_wrapper.block_start_token = opening_token_to_block_start_token[state.token]
+         token_wrapper.indentation = line_indentation
+         token_wrapper.eligible = token_wrapper.closing_token == error_closing_token and not after_multi_line_token
+         opening_tokens_stack:push(token_wrapper)
+      elseif state.token == "end" or state.token == "until" then
+         opening_tokens_stack:pop()
+      end
+   end
+end
+
 local function check_closing_token(state, opening_range, opening_token, closing_token)
    if state.token ~= closing_token then
+      local guess
+
+      if closing_token == "end" or closing_token == "until" then
+         guess = guess_unpaired_opening_token(state, closing_token)
+
+         if guess then
+            opening_range = guess
+            opening_token = guess.token
+         end
+      end
+
       local msg = "expected " .. token_name(closing_token)
 
       if opening_range.line ~= state.line then
          msg = msg .. " (to close " .. token_name(opening_token) .. " on line " .. tostring(opening_range.line) .. ")"
       end
 
-      parse_error(state, msg, opening_range)
+      parse_error(state, msg, opening_range, guess)
    end
 
    skip_token(state)
@@ -121,14 +259,6 @@ end
 local function check_name(state)
    check_token(state, "name")
    return state.token_value
-end
-
-local function copy_range(range)
-   return {
-      line = range.line,
-      offset = range.offset,
-      end_offset = range.end_offset
-   }
 end
 
 local function new_outer_node(range, tag, node)

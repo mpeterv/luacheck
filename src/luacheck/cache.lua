@@ -11,7 +11,7 @@ local cache = {}
 -- third is check result in lua table format.
 -- Event fields are compressed into array indexes.
 
-cache.format_version = 33
+cache.format_version = 34
 
 local option_fields = {
    "ignore", "std", "globals", "unused_args", "self", "compat", "global", "unused", "redefined",

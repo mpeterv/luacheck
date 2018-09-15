@@ -267,8 +267,8 @@ describe("parser", function()
             msg = "expected 'end' near <eof>"},
             get_error("for i=1, #t do")
          )
-         assert.same({line = 2, offset = 19, end_offset = 19, prev_line = 1, prev_offset = 1, prev_end_offset = 3,
-            msg = "expected 'end' (to close 'for' on line 1) near <eof>"},
+         assert.same({line = 2, offset = 16, end_offset = 16, prev_line = 1, prev_offset = 1, prev_end_offset = 3,
+            msg = "expected 'end' (to close 'for' on line 1) near 'a' (indentation-based guess)"},
             get_error("for i=1, #t do\na()")
          )
          assert.same(

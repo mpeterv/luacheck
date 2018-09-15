@@ -16,6 +16,8 @@
 
 * Warning columns are now reported in Unicode codepoints if input is
   valid UTF-8 (#45).
+* Add indentaion-based guessing of a better location for missing `end`
+  and `until` syntax errors.
 * Added `luacheckrc` set of allowed globals containing globals used in
   Luacheck config to set options.
 * Added default stds equivalent to predefined per-path std overrides
@@ -29,7 +31,6 @@
   negative step (#160).
 * Added support for LuaRocks 3 module autodetection when checking
   rockspecs (#176).
-* Reduced amout of RAM used, particularly when checking many files.
 
 ### Changes
 
