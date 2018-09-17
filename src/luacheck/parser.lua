@@ -74,7 +74,7 @@ local function token_name(token)
    return token == "name" and "identifier" or (token == "eof" and "<eof>" or ("'" .. token .. "'"))
 end
 
-local function parse_error(state, msg, prev_range, is_indentation_guess)
+local function parse_error(state, msg, prev_range, token_prefix, message_suffix)
    local token_repr
 
    if state.token == "eof" then
@@ -83,10 +83,14 @@ local function parse_error(state, msg, prev_range, is_indentation_guess)
       token_repr = lexer.get_quoted_substring_or_line(state.lexer, state.line, state.offset, state.end_offset)
    end
 
+   if token_prefix then
+      token_repr = token_prefix .. " " .. token_repr
+   end
+
    msg = msg .. " near " .. token_repr
 
-   if is_indentation_guess then
-      msg = msg .. " (indentation-based guess)"
+   if message_suffix then
+      msg = msg .. " " .. message_suffix
    end
 
    parser.syntax_error(msg, state, prev_range)
@@ -118,141 +122,166 @@ local function copy_range(range)
    }
 end
 
-local opening_tokens = utils.array_to_set({"do", "if", "else", "elseif", "for", "while", "repeat", "function"})
+local new_state
+local parse_block
+local missing_closing_token_error
 
-local opening_token_to_block_start_token = {
-   ["if"] = "then",
-   ["elseif"] = "then",
-   ["for"] = "do",
-   ["while"] = "do",
-   ["function"] = ")"
+-- Attempt to guess a better location for missing `end` and `until` errors (usually they uselessly point to eof).
+-- Guessed error token should be selected in such a way that inserting previously missing closing token
+-- in front of it should fix the error or at least move its opening token forward.
+-- The idea is to track the stack of opening tokens and their indentations.
+-- For the first statement or closing token with the same or smaller indentation than the opening token
+-- on the top of the stack:
+-- * If it has the same indentation but is not the appropriate closing token for the opening one, pick it
+--   as the guessed error location.
+-- * If it has a lower indentation level, pick it as the guessed error location even it closes the opening token.
+-- Example:
+-- local function f()
+--    <code>
+--
+--    if cond then                   <- `if` is the guessed opening token
+--       <code>
+--
+--    <code not starting with `end`> <- first token on this line is the guessed error location
+-- end
+-- Another one:
+-- local function g()
+--    <code>
+--
+--    if cond then  <- `if` is the guessed opening token
+--       <code>
+--
+-- end              <- `end` is the guessed error location
+
+local opening_token_to_closing = {
+   ["("] = ")",
+   ["["] = "]",
+   ["{"] = "}",
+   ["do"] = "end",
+   ["if"] = "end",
+   ["else"] = "end",
+   ["elseif"] = "end",
+   ["while"] = "end",
+   ["repeat"] = "until",
+   ["for"] = "end",
+   ["function"] = "end"
 }
 
--- Attempts to guess a better location for a missing `end` or `until` error based on indentation levels.
--- Returns a table with range info for the opening token range and the token itself in `token` field.
--- Missing closing token and range will be in the parser state.
-local function guess_unpaired_opening_token(state, error_closing_token)
-   -- Re-scan token stream.
-   -- Important tokens are two pairs of opening and closing tokens:
-   -- (all tokens requiring closing `end`)/`end`; `repeat`/`until`.
-   -- The idea is to track the stack of opening tokens and their indentations.
-   -- For the first token with the same or smaller indentation than the opening token on the top of the stack:
-   -- * If it has the same indentation but is not the appropriate closing token for the opening one, pick it
-   --   as the guessed error location.
-   -- * If it has a lower indentation level, pick it as the guessed error location even it closes the opening token.
-   -- Example:
-   -- local function f()
-   --    <code>
-   --
-   --    if cond then                   <- `if` is the guessed opening token
-   --       <code>
-   --
-   --    <code not starting with `end`> <- first token on this line is the guessed error location
-   -- end
-   -- Another one:
-   -- local function g()
-   --    <code>
-   --
-   --    if cond then  <- `if` is the guessed opening token
-   --       <code>
-   --
-   -- end              <- `end` is the guessed error location
-   --
-   -- The heuristic can not trigger on a line after the end of a multi-line string.
-   -- The heuristic can not trigger until the innermost block can actually end, so,
-   -- not until `)` of the argument list for `function`, not until `do` for `while` and `for`,
-   -- and not until more `then` tokens than `elseif` tokens for `if`.
+local function get_indentation(state, line)
+   local ws_start, ws_end = state.lexer.src:find("^[ \t\v\f]*", state.lexer.line_offsets[line])
+   return ws_end - ws_start
+end
 
-   -- Rewind.
-   local error_offset = state.offset
-   state.lexer.line = 1
-   state.lexer.offset = 1
+local UnpairedTokenGuesser = utils.class()
 
-   local opening_tokens_stack = utils.Stack()
-   local multi_line_token_end_line
-   local line = 0
-   local line_indentation
+function UnpairedTokenGuesser:__init(state, error_opening_range, error_closing_token)
+   self.old_state = state
+   self.error_opening_range = error_opening_range
+   self.error_closing_token = error_closing_token
+   self.opening_tokens_stack = utils.Stack()
+end
 
-   while true do
-      skip_token(state)
+function UnpairedTokenGuesser:guess()
+   -- Need to reinitialize lexer (e.g. to skip shebang again).
+   self.state = new_state(self.old_state.lexer.src)
+   self.state.unpaired_token_guesser = self
+   skip_token(self.state)
+   parse_block(self.state)
+   error("No syntax error in second parse", 0)
+end
 
-      if state.offset == error_offset then
-         return
-      end
+function UnpairedTokenGuesser:on_block_start(opening_token_range, opening_token)
+   local token_wrapper = copy_range(opening_token_range)
+   token_wrapper.token = opening_token
+   token_wrapper.closing_token = opening_token_to_closing[opening_token]
+   token_wrapper.eligible = token_wrapper.closing_token == self.error_closing_token
+   token_wrapper.indentation = get_indentation(self.state, opening_token_range.line)
+   self.opening_tokens_stack:push(token_wrapper)
+end
 
-      local after_multi_line_token = state.line == multi_line_token_end_line
+function UnpairedTokenGuesser:error()
+   local top = self.opening_tokens_stack.top
+   missing_closing_token_error(self.state, top, top.token, top.closing_token, true)
+end
 
-      if state.lexer.line > state.line then
-         -- This is a multi-line token.
-         multi_line_token_end_line = state.lexer.line
-      end
+function UnpairedTokenGuesser:check_token()
+   if self.state.offset < self.error_opening_range.offset then
+      return
+   end
 
-      local top = opening_tokens_stack.top
+   local top = self.opening_tokens_stack.top
 
-      if state.line > line then
-         line = state.line
-         -- This breaks a bit if both tabs and spaces are used, don't do that.
-         line_indentation = state.offset - state.lexer.line_offsets[state.line]
+   if not top or not top.eligible then
+      return
+   end
 
-         -- Check if the heuristic is triggered.
-         if not after_multi_line_token then
-            if top and top.eligible and not top.block_start_token then
-               if line_indentation < top.indentation then
-                  return top
-               elseif line_indentation == top.indentation and state.token ~= top.closing_token then
-                  -- Allow `else` and `elseif` instead of `end` on the same indentation as an opening `if`/`elseif`.
-                  if (top.token ~= "if" and top.token ~= "elseif") or
-                        (state.token ~= "else" and state.token ~= "elseif") then
-                     return top
-                  end
-               end
-            end
-         end
-      end
+   local token_indentation = get_indentation(self.state, self.state.line)
 
-      if top and state.token == top.block_start_token then
-         top.block_start_token = nil
-      elseif opening_tokens[state.token] then
-         if state.token == "elseif" or state.token == "else" then
-            -- Top opening token has to be an `if`, pop it.
-            opening_tokens_stack:pop()
-         end
+   if token_indentation < top.indentation then
+      self:error()
+   elseif token_indentation == top.indentation then
+      local token = self.state.token
 
-         local token_wrapper = copy_range(state)
-         token_wrapper.token = state.token
-         token_wrapper.closing_token = state.token == "repeat" and "until" or "end"
-         token_wrapper.block_start_token = opening_token_to_block_start_token[state.token]
-         token_wrapper.indentation = line_indentation
-         token_wrapper.eligible = token_wrapper.closing_token == error_closing_token and not after_multi_line_token
-         opening_tokens_stack:push(token_wrapper)
-      elseif state.token == "end" or state.token == "until" then
-         opening_tokens_stack:pop()
+      if token ~= top.closing_token and
+            ((top.token ~= "if" and top.token ~= "elseif") or (token ~= "elseif" and token ~= "else")) then
+         self:error()
       end
    end
 end
 
-local function check_closing_token(state, opening_range, opening_token, closing_token)
-   if state.token ~= closing_token then
-      local guess
+function UnpairedTokenGuesser:on_block_end()
+   self:check_token()
+   self.opening_tokens_stack:pop()
+end
 
-      if closing_token == "end" or closing_token == "until" then
-         guess = guess_unpaired_opening_token(state, closing_token)
+function UnpairedTokenGuesser:on_statement()
+   self:check_token()
+end
 
-         if guess then
-            opening_range = guess
-            opening_token = guess.token
-         end
-      end
+function missing_closing_token_error(state, opening_range, opening_token, closing_token, is_guess)
+   local msg = "expected " .. token_name(closing_token)
 
-      local msg = "expected " .. token_name(closing_token)
-
-      if opening_range.line ~= state.line then
-         msg = msg .. " (to close " .. token_name(opening_token) .. " on line " .. tostring(opening_range.line) .. ")"
-      end
-
-      parse_error(state, msg, opening_range, guess)
+   if opening_range and opening_range.line ~= state.line then
+      msg = msg .. " (to close " .. token_name(opening_token) .. " on line " .. tostring(opening_range.line) .. ")"
    end
 
+   local token_prefix
+   local message_suffix
+
+   if is_guess then
+      if state.token == closing_token then
+         -- "expected 'end' near 'end'" seems confusing.
+         token_prefix = "less indented"
+      end
+
+      message_suffix = "(indentation-based guess)"
+   end
+
+   parse_error(state, msg, opening_range, token_prefix, message_suffix)
+end
+
+local function check_closing_token(state, opening_range, opening_token)
+   local closing_token = opening_token_to_closing[opening_token] or "eof"
+
+   if state.token == closing_token then
+      return
+   end
+
+   if (opening_token == "if" or opening_token == "elseif") and (state.token == "else" or state.token == "elseif") then
+      return
+   end
+
+   if closing_token == "end" or closing_token == "until" then
+      if not state.unpaired_token_guesser then
+         UnpairedTokenGuesser(state, opening_range, closing_token):guess()
+      end
+   end
+
+   missing_closing_token_error(state, opening_range, opening_token, closing_token)
+end
+
+local function check_and_skip_closing_token(state, opening_range, opening_token)
+   check_closing_token(state, opening_range, opening_token)
    skip_token(state)
 end
 
@@ -279,7 +308,7 @@ local function new_inner_node(start_range, end_range, tag, node)
    return node
 end
 
-local parse_block, parse_expression
+local parse_expression
 
 local function parse_expression_list(state, list)
    list = list or {}
@@ -350,7 +379,7 @@ simple_expressions["{"] = function(state)
          -- [ `expr` ] = `expr`.
          skip_token(state)
          key_node = parse_expression(state)
-         check_closing_token(state, first_token_range, "[", "]")
+         check_and_skip_closing_token(state, first_token_range, "[")
          check_and_skip_token(state, "=")
          value_node = parse_expression(state)
       else
@@ -368,7 +397,7 @@ simple_expressions["{"] = function(state)
    until not (test_and_skip_token(state, ",") or test_and_skip_token(state, ";"))
 
    new_inner_node(start_range, state, "Table", ast_node)
-   check_closing_token(state, start_range, "{", "}")
+   check_and_skip_closing_token(state, start_range, "{")
    return ast_node
 end
 
@@ -392,10 +421,11 @@ local function parse_function(state, function_range)
       until not test_and_skip_token(state, ",")
    end
 
-   check_closing_token(state, paren_range, "(", ")")
-   local body = parse_block(state)
+   check_and_skip_closing_token(state, paren_range, "(")
+   local body = parse_block(state, function_range, "function")
    local end_range = copy_range(state)
-   check_closing_token(state, function_range, "function", "end")
+   -- Skip "function".
+   skip_token(state)
    return new_inner_node(function_range, end_range, "Function", {args, body, end_range = end_range})
 end
 
@@ -420,7 +450,7 @@ call_handlers["("] = function(state, base_node, tag, node)
    end
 
    new_inner_node(base_node, state, tag, node)
-   check_closing_token(state, paren_range, "(", ")")
+   check_and_skip_closing_token(state, paren_range, "(")
    return node
 end
 
@@ -447,7 +477,7 @@ suffix_handlers["["] = function(state, base_node)
    skip_token(state)
    local index_node = parse_expression(state)
    local ast_node = new_inner_node(base_node, state, "Index", {base_node, index_node})
-   check_closing_token(state, bracket_range, "[", "]")
+   check_and_skip_closing_token(state, bracket_range, "[")
    return ast_node
 end
 
@@ -479,7 +509,7 @@ local function parse_simple_expression(state, kind, no_literals)
       skip_token(state)
       local inner_expression = parse_expression(state)
       expression = new_inner_node(paren_range, state, "Paren", {inner_expression})
-      check_closing_token(state, paren_range, "(", ")")
+      check_and_skip_closing_token(state, paren_range, "(")
    elseif state.token == "name" then
       expression = parse_id(state)
    else
@@ -608,14 +638,14 @@ statements["if"] = function(state)
       -- Add range of the "then" token to the block statement array.
       local branch_range = copy_range(state)
       check_and_skip_token(state, "then")
-      ast_node[#ast_node + 1] = parse_block(state, branch_range)
+      ast_node[#ast_node + 1] = parse_block(state, block_start_range, block_start_token, branch_range)
 
       if state.token == "else" then
          branch_range = copy_range(state)
          block_start_token = "else"
          block_start_range = branch_range
          skip_token(state)
-         ast_node[#ast_node + 1] = parse_block(state, branch_range)
+         ast_node[#ast_node + 1] = parse_block(state, block_start_range, block_start_token, branch_range)
          break
       elseif state.token == "elseif" then
          block_start_token = "elseif"
@@ -627,7 +657,8 @@ statements["if"] = function(state)
    end
 
    new_inner_node(start_range, state, "If", ast_node)
-   check_closing_token(state, block_start_range, block_start_token, "end")
+   -- Skip "end".
+   skip_token(state)
    return ast_node
 end
 
@@ -637,9 +668,10 @@ statements["while"] = function(state)
    skip_token(state)
    local condition = parse_expression(state, "condition")
    check_and_skip_token(state, "do")
-   local block = parse_block(state)
+   local block = parse_block(state, start_range, "while")
    local ast_node = new_inner_node(start_range, state, "While", {condition, block})
-   check_closing_token(state, start_range, "while", "end")
+   -- Skip "end".
+   skip_token(state)
    return ast_node
 end
 
@@ -647,9 +679,10 @@ statements["do"] = function(state)
    local start_range = copy_range(state)
    -- Skip "do".
    skip_token(state)
-   local block = parse_block(state)
+   local block = parse_block(state, start_range, "do")
    local ast_node = new_inner_node(start_range, state, "Do", block)
-   check_closing_token(state, start_range, "do", "end")
+   -- Skip "end".
+   skip_token(state)
    return ast_node
 end
 
@@ -677,7 +710,7 @@ statements["for"] = function(state)
       end
 
       check_and_skip_token(state, "do")
-      ast_node[#ast_node + 1] = parse_block(state)
+      ast_node[#ast_node + 1] = parse_block(state, start_range, "for")
    elseif state.token == "," or state.token == "in" then
       -- Generic "for" loop.
       tag = "Forin"
@@ -691,13 +724,14 @@ statements["for"] = function(state)
       check_and_skip_token(state, "in")
       ast_node[2] = parse_expression_list(state)
       check_and_skip_token(state, "do")
-      ast_node[3] = parse_block(state)
+      ast_node[3] = parse_block(state, start_range, "for")
    else
       parse_error(state, "expected '=', ',' or 'in'")
    end
 
    new_inner_node(start_range, state, tag, ast_node)
-   check_closing_token(state, start_range, "for", "end")
+   -- Skip "end".
+   skip_token(state)
    return ast_node
 end
 
@@ -705,8 +739,9 @@ statements["repeat"] = function(state)
    local start_range = copy_range(state)
    -- Skip "repeat".
    skip_token(state)
-   local block = parse_block(state)
-   check_closing_token(state, start_range, "repeat", "until")
+   local block = parse_block(state, start_range, "repeat")
+   -- Skip "until".
+   skip_token(state)
    local condition = parse_expression(state, "condition")
    return new_inner_node(start_range, condition, "Repeat", {block, condition})
 end
@@ -852,7 +887,13 @@ local function parse_statement(state)
    return (statements[state.token] or parse_expression_statement)(state)
 end
 
-function parse_block(state, block)
+function parse_block(state, opening_token_range, opening_token, block)
+   local unpaired_token_guesser = state.unpaired_token_guesser
+
+   if unpaired_token_guesser and opening_token then
+      unpaired_token_guesser:on_block_start(opening_token_range, opening_token)
+   end
+
    block = block or {}
    local after_statement = false
 
@@ -869,6 +910,10 @@ function parse_block(state, block)
          -- Further semicolons are considered hanging.
          after_statement = false
       else
+         if unpaired_token_guesser then
+            unpaired_token_guesser:on_statement()
+         end
+
          local statement = parse_statement(state)
          after_statement = true
          block[#block + 1] = statement
@@ -877,18 +922,21 @@ function parse_block(state, block)
             -- "return" must be the last statement.
             -- However, one ";" after it is allowed.
             test_and_skip_token(state, ";")
-
-            if not closing_tokens[state.token] then
-               parse_error(state, "expected end of block")
-            end
+            break
          end
       end
+   end
+
+   check_closing_token(state, opening_token_range, opening_token)
+
+   if unpaired_token_guesser and opening_token then
+      unpaired_token_guesser:on_block_end()
    end
 
    return block
 end
 
-local function new_state(src, line_offsets, line_lengths)
+function new_state(src, line_offsets, line_lengths)
    return {
       lexer = lexer.new_state(src, line_offsets, line_lengths),
       -- Set of line numbers containing code.
@@ -913,7 +961,6 @@ function parser.parse(src, line_offsets, line_lengths)
    local state = new_state(src, line_offsets, line_lengths)
    skip_token(state)
    local ast = parse_block(state)
-   check_token(state, "eof")
    return ast, state.comments, state.code_lines, state.line_endings, state.hanging_semicolons,
       state.lexer.line_offsets, state.lexer.line_lengths
 end

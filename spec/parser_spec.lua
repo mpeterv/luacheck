@@ -891,17 +891,17 @@ describe("parser", function()
       it("does not allow statements after return", function()
          assert.same({line = 1, offset = 8, end_offset = 12, msg = "expected expression near 'break'"},
             get_error("return break"))
-         assert.same({line = 1, offset = 9, end_offset = 13, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 9, end_offset = 13, msg = "expected <eof> near 'break'"},
             get_error("return; break"))
-         assert.same({line = 1, offset = 8, end_offset = 8, msg = "expected end of block near ';'"},
+         assert.same({line = 1, offset = 8, end_offset = 8, msg = "expected <eof> near ';'"},
             get_error("return;;"))
-         assert.same({line = 1, offset = 10, end_offset = 14, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 10, end_offset = 14, msg = "expected <eof> near 'break'"},
             get_error("return 1 break"))
-         assert.same({line = 1, offset = 11, end_offset = 15, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 11, end_offset = 15, msg = "expected <eof> near 'break'"},
             get_error("return 1; break"))
-         assert.same({line = 1, offset = 13, end_offset = 17, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 13, end_offset = 17, msg = "expected <eof> near 'break'"},
             get_error("return 1, 2 break"))
-         assert.same({line = 1, offset = 14, end_offset = 18, msg = "expected end of block near 'break'"},
+         assert.same({line = 1, offset = 14, end_offset = 18, msg = "expected <eof> near 'break'"},
             get_error("return 1, 2; break"))
       end)
 
