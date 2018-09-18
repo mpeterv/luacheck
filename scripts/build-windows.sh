@@ -21,6 +21,11 @@ echo
 luarocks unpack luafilesystem 1.6.3-2
 
 echo
+echo "=== Downloading Argparse 0.6.0-1 ==="
+echo
+luarocks unpack argparse 0.6.0-1
+
+echo
 echo "=== Downloading Lanes 3.10.1-1 ==="
 echo
 luarocks unpack lanes 3.10.1-1
@@ -64,11 +69,12 @@ echo
 cp -r ../src/luacheck .
 mkdir -p bin
 cp ../bin/luacheck.lua bin
+cp argparse-0.6.0-1/argparse/src/argparse.lua .
 
 echo
 echo "=== Building luacheck.exe ==="
 echo
-CC="x86_64-w64-mingw32-gcc" luastatic bin/luacheck.lua luacheck/*.lua lanes.lua liblua.a lfs.a lanes.a -Ilua-5.3.4/src
+CC="x86_64-w64-mingw32-gcc" luastatic bin/luacheck.lua luacheck/*.lua argparse-0.6.0-1/argparse/src/argparse.lua lanes.lua liblua.a lfs.a lanes.a -Ilua-5.3.4/src
 strip luacheck.exe
 
 cd ..
