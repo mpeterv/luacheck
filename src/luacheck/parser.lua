@@ -176,6 +176,7 @@ local UnpairedTokenGuesser = utils.class()
 
 function UnpairedTokenGuesser:__init(state, error_opening_range, error_closing_token)
    self.old_state = state
+   self.error_offset = state.offset
    self.error_opening_range = error_opening_range
    self.error_closing_token = error_closing_token
    self.opening_tokens_stack = utils.Stack()
@@ -199,32 +200,42 @@ function UnpairedTokenGuesser:on_block_start(opening_token_range, opening_token)
    self.opening_tokens_stack:push(token_wrapper)
 end
 
-function UnpairedTokenGuesser:error()
-   local top = self.opening_tokens_stack.top
-   missing_closing_token_error(self.state, top, top.token, top.closing_token, true)
+function UnpairedTokenGuesser:set_guessed()
+   -- Keep the first detected location.
+   if self.guessed then
+      return
+   end
+
+   self.guessed = self.opening_tokens_stack.top
+   self.guessed.error_token = self.state.token
+   self.guessed.error_range = copy_range(self.state)
 end
 
 function UnpairedTokenGuesser:check_token()
-   if self.state.offset < self.error_opening_range.offset then
-      return
-   end
-
    local top = self.opening_tokens_stack.top
 
-   if not top or not top.eligible then
-      return
+   if top and top.eligible then
+      local token_indentation = get_indentation(self.state, self.state.line)
+
+      if token_indentation < top.indentation then
+         self:set_guessed()
+      elseif token_indentation == top.indentation then
+         local token = self.state.token
+
+         if token ~= top.closing_token and
+               ((top.token ~= "if" and top.token ~= "elseif") or (token ~= "elseif" and token ~= "else")) then
+            self:set_guessed()
+         end
+      end
    end
 
-   local token_indentation = get_indentation(self.state, self.state.line)
-
-   if token_indentation < top.indentation then
-      self:error()
-   elseif token_indentation == top.indentation then
-      local token = self.state.token
-
-      if token ~= top.closing_token and
-            ((top.token ~= "if" and top.token ~= "elseif") or (token ~= "elseif" and token ~= "else")) then
-         self:error()
+   if self.state.offset == self.error_offset then
+      if self.guessed and self.guessed.error_range.offset ~= self.state.offset then
+         self.state.line = self.guessed.error_range.line
+         self.state.offset = self.guessed.error_range.offset
+         self.state.end_offset = self.guessed.error_range.end_offset
+         self.state.token = self.guessed.error_token
+         missing_closing_token_error(self.state, self.guessed, self.guessed.token, self.guessed.closing_token, true)
       end
    end
 end
@@ -232,6 +243,11 @@ end
 function UnpairedTokenGuesser:on_block_end()
    self:check_token()
    self.opening_tokens_stack:pop()
+
+   if not self.opening_tokens_stack.top then
+      -- Inserting an end token into a balanced sequence of tokens adds an error earlier than original one.
+      self.guessed = nil
+   end
 end
 
 function UnpairedTokenGuesser:on_statement()
@@ -927,11 +943,11 @@ function parse_block(state, opening_token_range, opening_token, block)
       end
    end
 
-   check_closing_token(state, opening_token_range, opening_token)
-
    if unpaired_token_guesser and opening_token then
       unpaired_token_guesser:on_block_end()
    end
+
+   check_closing_token(state, opening_token_range, opening_token)
 
    return block
 end

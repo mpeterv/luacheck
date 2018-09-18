@@ -1017,6 +1017,231 @@ end
       end)
    end)
 
+   describe("indentation-based missing until/end location guessing", function()
+      it("provides a better location on the same indentation level for missing end", function()
+         assert.same({line = 11, offset = 145, end_offset = 150, prev_line = 2, prev_offset = 23, prev_end_offset = 24,
+            msg = "expected 'end' (to close 'if' on line 2) near 'whoops' (indentation-based guess)"}, get_error([[
+local function f()
+   if cond then
+      do_thing()
+
+      do_more_things()
+
+      while true do
+         things_keep_happening()
+      end
+
+   whoops()
+end
+]]))
+
+         assert.same({line = 10, offset = 131, end_offset = 136, prev_line = 7, prev_offset = 84, prev_end_offset = 89,
+            msg = "expected 'until' (to close 'repeat' on line 7) near 'whoops' (indentation-based guess)"
+         }, get_error([[
+local function f()
+   if cond then
+      do_thing()
+
+      do_more_things()
+
+      repeat
+         things_keep_happening()
+
+      whoops()
+end
+]]))
+         assert.same({line = 8, offset = 64, end_offset = 68, prev_line = 5, prev_offset = 41, prev_end_offset = 48,
+            msg = "expected 'end' (to close 'function' on line 5) near 'local' (indentation-based guess)"
+         }, get_error([[
+local function f()
+   good()
+end
+
+local function g()
+   bad()
+
+local function t()
+   irrelevant()
+end
+]]))
+
+         assert.same({line = 9, offset = 56, end_offset = 65, prev_line = 4, prev_offset = 15, prev_end_offset = 16,
+            msg = "expected 'end' (to close 'do' on line 4) near 'two_things' (indentation-based guess)"
+         }, get_error([[
+do end
+do
+end
+do
+   do end
+   do
+   end
+   one_thing()
+two_things()
+]]))
+
+         assert.same({line = 8, offset = 91, end_offset = 92, prev_line = 3, prev_offset = 16, prev_end_offset = 20,
+            msg = "expected 'end' (to close 'while' on line 3) near 'if' (indentation-based guess)"
+         }, get_error([[
+do
+   do
+      while cond
+      do
+         thing = thing
+         another = thing
+
+      if yes then end
+   end
+end
+]]))
+
+         assert.same({line = 6, offset = 117, end_offset = 125, prev_line = 3, prev_offset = 74, prev_end_offset = 76,
+            msg = "expected 'end' (to close 'for' on line 3) near 'something' (indentation-based guess)"
+         }, get_error([[
+function g()
+   for i in ipairs("this is not even an error...") do
+      for i = 1, 2, 3 do
+         thing()
+
+      something = smth
+   end
+]]))
+      end)
+
+      it("provides a better location on a lower indentation level for missing end", function()
+         assert.same({line = 5, offset = 36, end_offset = 38, prev_line = 2, prev_offset = 7, prev_end_offset = 11,
+            msg = "expected 'end' (to close 'while' on line 2) near less indented 'end' (indentation-based guess)"
+         }, get_error([[
+do
+   while true do
+      thing()
+
+end
+]]))
+
+         assert.same({line = 5, offset = 51, end_offset = 51, prev_line = 2, prev_offset = 7, prev_end_offset = 11,
+            msg = "expected 'end' (to close 'while' on line 2) near 'a' (indentation-based guess)"
+         }, get_error([[
+do
+   while true do
+      thing()
+         more()
+a()
+]]))
+      end)
+
+      it("provides a better location for various configurations of if statements", function()
+         assert.same({line = 6, offset = 67, end_offset = 69, prev_line = 2, prev_offset = 7, prev_end_offset = 8,
+            msg = "expected 'end' (to close 'if' on line 2) near less indented 'end' (indentation-based guess)"
+         }, get_error([[
+do
+   if thing({
+long, long, long, line}) then
+      something()
+
+end
+]]))
+
+         assert.same({line = 7, offset = 66, end_offset = 66, prev_line = 4, prev_offset = 43, prev_end_offset = 46,
+            msg = "expected 'end' (to close 'else' on line 4) near 'a' (indentation-based guess)"
+         }, get_error([[
+do
+   if cond() then
+      something()
+   else
+      thing()
+
+   a = b
+end
+]]))
+
+         assert.same({line = 6, offset = 66, end_offset = 68, prev_line = 4, prev_offset = 43, prev_end_offset = 48,
+            msg = "expected 'end' (to close 'elseif' on line 4) near less indented 'end' (indentation-based guess)"
+         }, get_error([[
+do
+   if cond() then
+      something()
+   elseif something then
+
+end
+]]))
+
+         assert.same({line = 10, offset = 119, end_offset = 119, prev_line = 8, prev_offset = 99, prev_end_offset = 104,
+            msg = "expected 'end' (to close 'elseif' on line 8) near 'e' (indentation-based guess)"
+         }, get_error([[
+do
+   if cond() then
+      s()
+   elseif something then
+      b()
+   elseif a() then
+      c()
+   elseif d() then
+
+   e()
+end
+]]))
+      end)
+
+      it("reports the first guess location outside complete blocks", function()
+         assert.same({line = 12, offset = 92, end_offset = 98, prev_line = 10, prev_offset = 61, prev_end_offset = 65,
+            msg = "expected 'end' (to close 'while' on line 10) near 'another' (indentation-based guess)"
+         }, get_error([[
+do
+   while true do
+      thing()
+
+another()
+end
+end
+
+do
+   while true do
+      thing()
+   another()
+end
+
+do
+   while true do
+      thing()
+   another()
+end
+]]))
+      end)
+
+      it("does not report blocks with different closing token comparing to original error", function()
+         assert.same({line = 10, offset = 87, end_offset = 91, prev_line = 8, prev_offset = 60, prev_end_offset = 65,
+            msg = "expected 'until' (to close 'repeat' on line 8) near less indented 'until' (indentation-based guess)"
+         }, get_error([[
+do
+   while true do
+      thing()
+
+   a()
+
+   repeat
+      repeat
+         thing()
+   until cond
+end
+]]))
+
+         assert.same({line = 8, offset = 58, end_offset = 63, prev_line = 5, prev_offset = 30, prev_end_offset = 31,
+            msg = "expected 'end' (to close 'do' on line 5) near 'thing3' (indentation-based guess)"
+         }, get_error([[
+repeat
+thing1()
+
+   do
+      do
+         thing2()
+
+      thing3()
+   end
+until another_thing
+]]))
+      end)
+   end)
+
    it("provides correct location info", function()
       assert.same({
          {tag = "Localrec", line = 1, offset = 1, end_offset = 80,
