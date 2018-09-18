@@ -214,7 +214,7 @@ end
 function UnpairedTokenGuesser:check_token()
    local top = self.opening_tokens_stack.top
 
-   if top and top.eligible then
+   if top and top.eligible and self.state.line > top.line then
       local token_indentation = get_indentation(self.state, self.state.line)
 
       if token_indentation < top.indentation then

@@ -1240,6 +1240,19 @@ thing1()
 until another_thing
 ]]))
       end)
+
+      it("does not report tokens on the same line as the innermost block opening token", function()
+         assert.same({line = 6, offset = 78, end_offset = 80, prev_line = 3, prev_offset = 60, prev_end_offset = 61,
+            msg = "expected 'end' (to close 'do' on line 3) near less indented 'end' (indentation-based guess)"
+         }, get_error([[
+local function f()
+   local function g() return ret end
+   do
+      thing()
+
+end
+]]))
+      end)
    end)
 
    it("provides correct location info", function()
