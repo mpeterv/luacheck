@@ -180,7 +180,7 @@ CLI options ``--globals``, ``--new-globals``, ``--read-globals``, ``--new-read-g
 Sets of standard globals
 ------------------------
 
-CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51c+lua52c+lua53c+luajit``. Leading plus sign adds new sets to current one instead of replacing it. For instance, ``--std +love`` is suitable for checking files using `LÖVE <https://love2d.org>`_ (love2d) framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
+CLI option ``--stds`` allows combining built-in sets described above using ``+``. For example, ``--std max`` is equivalent to ``--std=lua51c+lua52c+lua53c+luajit``. Leading plus sign adds new sets to current one instead of replacing it. For instance, ``--std +love`` is suitable for checking files using `LÖVE <https://love2d.org>`_ framework. Custom sets of globals can be defined by mutating global variable ``stds`` in config. See :ref:`custom_stds`
 
 Formatters
 ----------

@@ -212,7 +212,7 @@ Reversed numeric for loops
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Iterating a table in reverse using a numeric for loop going from ``#t`` to ``1`` requires a negative loop step. Luacheck warns about loops
-going from ``#(some expression)`` to ``1`` or a lesser constant when the loop step is not negative:
+going from ``#(some expression)`` to ``1`` or a smaller constant when the loop step is not negative:
 
 .. code-block:: lua
    :linenos:

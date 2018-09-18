@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.23.0 (unreleased)
+## 0.23.0 (2018-09-18)
 
 ### Breaking changes
 
@@ -16,7 +16,7 @@
 
 * Warning columns are now reported in Unicode codepoints if input is
   valid UTF-8 (#45).
-* Add indentaion-based guessing of a better location for missing `end`
+* Added indentaion-based guessing of a better location for missing `end`
   and `until` syntax errors.
 * Added `luacheckrc` set of allowed globals containing globals used in
   Luacheck config to set options.
@@ -37,8 +37,6 @@
 
 * Default set of standard globals is now always `max`, allowing globals of all
   Lua versions. `_G` std is deprecated.
-* Warnings related to statements and expressions (e.g. unreachable code) now
-  point to the entire statement or expression instead of just the first token.
 
 ### Fixes
 
