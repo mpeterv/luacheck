@@ -31,6 +31,7 @@
   negative step (#160).
 * Added support for LuaRocks 3 module autodetection when checking
   rockspecs (#176).
+* Updated `love` standard for LÖVE 11.1 (#178).
 
 ### Changes
 

@@ -80,7 +80,7 @@ Option                                  Meaning
                                         * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2;
                                         * ``luajit`` - globals of LuaJIT 2.x;
                                         * ``ngx_lua`` - globals of Openresty `lua-nginx-module <https://github.com/openresty/lua-nginx-module>`_ 0.10.10, including standard LuaJIT 2.x globals;
-                                        * ``love`` - globals added by `LÖVE <https://love2d.org>`_ (love2d);
+                                        * ``love`` - globals added by `LÖVE <https://love2d.org>`_;
                                         * ``busted`` - globals added by Busted 2.0, by default added for files ending with ``_spec.lua`` within ``spec``, ``test``, and ``tests`` subdirectories;
                                         * ``rockspec`` - globals allowed in rockspecs, by default added for files ending with ``.rockspec``;
                                         * ``luacheckrc`` - globals allowed in Luacheck configs, by default added for files ending with ``.luacheckrc``;

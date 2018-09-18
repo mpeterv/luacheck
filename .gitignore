@@ -5,3 +5,4 @@ doc
 build
 package
 scripts/UnicodeData-*
+docsrc/.doctrees
