@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.23.1 (not yet released)
+
+### Miscellaneous
+
+* Upgraded Windows binary components: Lua 5.3.4 -> 5.3.5,
+  LuaFileSystem 1.6.3 -> 1.7.0.
+
 ## 0.23.0 (2018-09-18)
 
 ### Breaking changes
