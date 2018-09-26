@@ -79,7 +79,7 @@ bin/luacheck.lua.c: $(LUA_A) $(LFS_A) $(LANES_A)
 	cp $(LANES_A) .
 	cp $(LANES_DIR)/src/lanes.lua .
 	cp -r ../src/luacheck .
-	CC="" luastatic bin/luacheck.lua luacheck/*.lua luacheck/*/*.lua argparse.lua lanes.lua liblua.a lfs.a lanes.a
+	CC="" luastatic bin/luacheck.lua luacheck/*.lua luacheck/*/*.lua luacheck/*/*/*.lua argparse.lua lanes.lua liblua.a lfs.a lanes.a
 
 $(TARGET):	bin/luacheck.lua.c
 	$(CC) $(if $(LINUX),-static) -Os $< $(LUA_A) $(LFS_A) $(LANES_A) -I$(LUA_DIR)/src -lm $(if $(LINUX),-lpthread) -o $@

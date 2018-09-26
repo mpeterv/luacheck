@@ -1,3 +1,4 @@
+local cache = require "luacheck.cache"
 local options = require "luacheck.options"
 local builtin_standards = require "luacheck.builtin_standards"
 local fs = require "luacheck.fs"
@@ -474,7 +475,7 @@ function ConfigStack:get_top_options()
       if conf.options.cache ~= nil then
          if conf.options.cache == true then
             if not res.cache then
-               res.cache = fs.normalize(fs.join(last_anchor_dir or current_dir, ".luacheckcache"))
+               res.cache = fs.normalize(fs.join(last_anchor_dir or current_dir, cache.get_default_dir()))
             end
          elseif conf.options.cache == false then
             res.cache = false

@@ -1,219 +1,139 @@
+local fs = require "luacheck.fs"
 local serializer = require "luacheck.serializer"
+local sha1 = require "luacheck.vendor.sha1"
 local utils = require "luacheck.utils"
 
 local cache = {}
 
--- Cache file contains check results for n unique filenames.
--- Header format:
--- \n(cache format version number)\n
--- File record format:
--- (file name)\n(file modification time)\n(serialized result length)\n(serialized result)\n
+-- Check results can be cached inside a given cache directory.
+-- Check result for a file is stored in `<cache_dir>/<SHA1(filename)>`.
+-- Cache file format: <format_version>\n<filename>\n<serialized check result`.
 
-cache.format_version = 35
+-- Returns default cache directory or nothing.
+function cache.get_default_dir()
+   if utils.is_windows then
+      local local_app_data_dir = os.getenv("LOCALAPPDATA")
 
--- Reads a file record (table with fields `filename`, `mtime`, and `serialized_result`).
--- Returns file record or nil + flag indicating whether EOF was reached.
-local function read_record(fh)
-   local filename = fh:read()
+      if not local_app_data_dir then
+         local user_profile_dir = os.getenv("USERPROFILE")
 
-   if not filename then
-      return nil, true
-   end
-
-   if filename:sub(-1) == "\r" then
-      filename = filename:sub(1, -2)
-   end
-
-   local mtime = tonumber((fh:read()))
-
-   if not mtime then
-      return nil, false
-   end
-
-   local serialized_result_length = tonumber((fh:read()))
-
-   if not serialized_result_length then
-      return nil, false
-   end
-
-   local serialized_result = fh:read(serialized_result_length)
-
-   if not serialized_result or #serialized_result ~= serialized_result_length then
-      return nil, false
-   end
-
-   if not fh:read() then
-      return nil, false
-   end
-
-   return {
-      filename = filename,
-      mtime = mtime,
-      serialized_result = serialized_result
-   }
-end
-
--- Returns array of file records from cache fh.
-local function read_records(fh)
-   local records = {}
-
-   while true do
-      local record = read_record(fh)
-
-      if not record then
-         break
+         if user_profile_dir then
+            local_app_data_dir = fs.join(user_profile_dir, "Local Settings", "Application Data")
+         end
       end
 
-      table.insert(records, record)
+      if local_app_data_dir then
+         return fs.join(local_app_data_dir, "Luacheck", "Cache")
+      end
+   else
+      local fh = assert(io.popen("uname -s"))
+      local system = fh:read("*l")
+      fh:close()
+
+      if system == "Darwin" then
+         local home_dir = os.getenv("HOME")
+
+         if home_dir then
+            return fs.join(home_dir, "Library", "Caches", "Luacheck")
+         end
+      else
+         local config_home_dir = os.getenv("XDG_CACHE_HOME")
+
+         if not config_home_dir then
+            local home_dir = os.getenv("HOME")
+
+            if home_dir then
+               config_home_dir = fs.join(home_dir, ".cache")
+            end
+         end
+
+         if config_home_dir then
+            return fs.join(config_home_dir, "luacheck")
+         end
+      end
+   end
+end
+
+local format_version = "1"
+
+local Cache = utils.class()
+
+function Cache:__init(cache_directory)
+   local ok, err = fs.make_dirs(cache_directory)
+
+   if not ok then
+      return nil, ("Couldn't initialize cache in %s: %s"):format(cache_directory, err)
    end
 
-   return records
+   self._dir = cache_directory
+   self._current_dir = fs.get_current_dir()
 end
 
--- Writes an array of file records into fh.
-local function write_records(fh, records)
-   for _, record in ipairs(records) do
-      fh:write(record.filename, "\n")
-      fh:write(tonumber(record.mtime), "\n")
-      fh:write(tonumber(#record.serialized_result), "\n")
-      fh:write(record.serialized_result, "\n")
-   end
-end
+-- Caches check result for a file. Returns true on success, nothing on error.
+function Cache:put(filename, check_result)
+   local normalized_filename = fs.normalize(fs.join(self._current_dir, filename))
+   local cache_filename = fs.join(self._dir, sha1.sha1(normalized_filename))
 
-local function check_version_header(fh)
-   local first_line = fh:read()
+   local fh = io.open(cache_filename, "wb")
 
-   if first_line ~= "" and first_line ~= "\r" then
-      return false
+   if not fh then
+      return
    end
 
-   local second_line = fh:read()
-   return tonumber(second_line) == cache.format_version
+   local serialized_result = serializer.dump_check_result(check_result)
+   fh:write(format_version, "\n", normalized_filename, "\n", serialized_result)
+   fh:close()
+   return true
 end
 
-local function write_version_header(fh)
-   fh:write("\n", tostring(cache.format_version), "\n")
-end
+-- Retrieves cached check result for a file.
+-- Returns check result on cache hit, nothing on cache miss,
+-- nil and true on malformed cache data.
+function Cache:get(filename)
+   local normalized_filename = fs.normalize(fs.join(self._current_dir, filename))
+   local cache_filename = fs.join(self._dir, sha1.sha1(normalized_filename))
 
--- Loads cache for filenames given mtimes from cache cache_filename.
--- Returns table mapping filenames to cached check results.
--- On corrupted cache returns nil, on version mismatch returns {}.
-function cache.load(cache_filename, filenames, mtimes)
+   local file_mtime = fs.get_mtime(filename)
+   local cache_mtime = fs.get_mtime(cache_filename)
+
+   if not file_mtime or not cache_mtime or file_mtime >= cache_mtime then
+      return
+   end
+
    local fh = io.open(cache_filename, "rb")
 
    if not fh then
-      return {}
+      return
    end
 
-   if not check_version_header(fh) then
+   if fh:read() ~= format_version then
       fh:close()
-      return {}
+      return
    end
 
-   local result = {}
-   local not_yet_found = utils.array_to_set(filenames)
-
-   while next(not_yet_found) do
-      local record, reached_eof = read_record(fh)
-
-      if not record then
-         fh:close()
-         return reached_eof and result or nil
-      end
-
-      if not_yet_found[record.filename] then
-         if mtimes[not_yet_found[record.filename]] == record.mtime then
-            local check_result = serializer.load_check_result(record.serialized_result)
-
-            if not check_result then
-               fh:close()
-               return
-            end
-
-            result[record.filename] = check_result
-         end
-
-         not_yet_found[record.filename] = nil
-      end
+   if fh:read() ~= normalized_filename then
+      fh:close()
+      return
    end
 
+   local serialized_result = fh:read("*a")
    fh:close()
+
+   if not serialized_result then
+      return nil, true
+   end
+
+   local result = serializer.load_check_result(serialized_result)
+
+   if not result then
+      return nil, true
+   end
+
    return result
 end
 
--- Updates cache at cache_filename with results for filenames.
--- Returns success flag + whether update was append-only.
-function cache.update(cache_filename, filenames, mtimes, results)
-   local old_records = {}
-   local can_append = false
-   local fh = io.open(cache_filename, "rb")
-
-   if fh then
-      if check_version_header(fh) then
-         old_records = read_records(fh)
-         can_append = true
-      end
-
-      fh:close()
-   end
-
-   local filename_set = utils.array_to_set(filenames)
-   local old_filename_set = {}
-
-   -- Update old cache for files which got a new result.
-   for _, record in ipairs(old_records) do
-      old_filename_set[record.filename] = true
-      local file_index = filename_set[record.filename]
-
-      if file_index then
-         can_append = false
-         record.mtime = mtimes[file_index]
-         record.serialized_result = serializer.dump_check_result(results[file_index])
-      end
-   end
-
-   local new_records = {}
-
-   for _, filename in ipairs(filenames) do
-      -- Use unique index (there could be duplicate filenames).
-      local file_index = filename_set[filename]
-
-      if file_index and not old_filename_set[filename] then
-         table.insert(new_records, {
-            filename = filename,
-            mtime = mtimes[file_index],
-            serialized_result = serializer.dump_check_result(results[file_index])
-         })
-         -- Do not save result for this filename again.
-         filename_set[filename] = nil
-      end
-   end
-
-   if can_append then
-      if #new_records > 0 then
-         fh = io.open(cache_filename, "ab")
-
-         if not fh then
-            return false
-         end
-
-         write_records(fh, new_records)
-         fh:close()
-      end
-   else
-      fh = io.open(cache_filename, "wb")
-
-      if not fh then
-         return false
-      end
-
-      write_version_header(fh)
-      write_records(fh, old_records)
-      write_records(fh, new_records)
-      fh:close()
-   end
-
-   return true, can_append
+function cache.new(cache_directory)
+   return Cache(cache_directory)
 end
 
 return cache

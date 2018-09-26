@@ -66,6 +66,12 @@ build = {
       ["luacheck.unicode"] = "src/luacheck/unicode.lua",
       ["luacheck.unicode_printability_boundaries"] = "src/luacheck/unicode_printability_boundaries.lua",
       ["luacheck.utils"] = "src/luacheck/utils.lua",
+      ["luacheck.vendor.sha1"] = "src/luacheck/vendor/sha1/init.lua",
+      ["luacheck.vendor.sha1.bit_ops"] = "src/luacheck/vendor/sha1/bit_ops.lua",
+      ["luacheck.vendor.sha1.bit32_ops"] = "src/luacheck/vendor/sha1/bit32_ops.lua",
+      ["luacheck.vendor.sha1.common"] = "src/luacheck/vendor/sha1/common.lua",
+      ["luacheck.vendor.sha1.lua53_ops"] = "src/luacheck/vendor/sha1/lua53_ops.lua",
+      ["luacheck.vendor.sha1.pure_lua_ops"] = "src/luacheck/vendor/sha1/pure_lua_ops.lua",
       ["luacheck.version"] = "src/luacheck/version.lua"
    },
    install = {

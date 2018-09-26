@@ -174,6 +174,38 @@ function fs.extract_files(dir_path, pattern)
    return res, err_map
 end
 
+local function make_absolute_dirs(dir_path)
+   if fs.is_dir(dir_path) then
+      return true
+   end
+
+   local upper_dir = fs.normalize(fs.join(dir_path, ".."))
+
+   if upper_dir == dir_path then
+      return nil, ("Filesystem root %s is not a directory"):format(upper_dir)
+   end
+
+   local upper_ok, upper_err = make_absolute_dirs(upper_dir)
+
+   if not upper_ok then
+      return nil, upper_err
+   end
+
+   local make_ok, make_error = lfs.mkdir(dir_path)
+
+   if not make_ok then
+      return nil, ("Couldn't make directory %s: %s"):format(dir_path, make_error)
+   end
+
+   return true
+end
+
+-- Ensures that a given path is a directory, creating intermediate directories if necessary.
+-- Returns true on success, nil and an error message on failure.
+function fs.make_dirs(dir_path)
+   return make_absolute_dirs(fs.normalize(fs.join(fs.get_current_dir(), dir_path)))
+end
+
 -- Returns modification time for a file.
 function fs.get_mtime(path)
    return lfs.attributes(path, "modification")

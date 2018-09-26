@@ -1,4 +1,7 @@
-local unpack = table.unpack or unpack -- luacheck: compat
+-- luacheck: push compat
+local unpack = table.unpack or unpack
+local pack = table.pack or function(...) return {n = select("#", ...), ...} end
+-- luacheck: pop
 
 local utils = {}
 
@@ -126,7 +129,11 @@ function class_metatable.__call(class, ...)
    local obj = setmetatable({}, class)
 
    if class.__init then
-      class.__init(obj, ...)
+      local init_returns = pack(class.__init(obj, ...))
+
+      if init_returns.n > 0 then
+         return unpack(init_returns, 1, init_returns.n)
+      end
    end
 
    return obj

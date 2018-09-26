@@ -24,7 +24,10 @@ before_build:
 build_script:
   - luarocks make
 
-test_script: busted -c
+test_script:
+  - busted -c
+  - luacheck .
+  - luacheck .
 
 after_test:
   - luacov

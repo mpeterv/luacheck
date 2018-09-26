@@ -177,41 +177,22 @@ function Runner:_prepare_inputs(inputs)
    return res
 end
 
--- Adds `mtime` field to inputs eligible for caching.
--- On failure no field is added, most likely the file doesn't exist
--- or is unreadable and it's better to get the error when trying to read it.
-local function add_mtimes(inputs)
-   for _, input in ipairs(inputs) do
-      if input.path and not input.fatal then
-         input.mtime = fs.get_mtime(input.path)
-      end
-   end
-end
-
--- Loads cached reports for input with `mtime` field, assigns them to `cached_report` field.
--- Returns true on success or nil and an error message on failure.
+-- Loads cached reports for inputs with `path` field, assigns them to `cached_report` field.
+-- For each file on cache load error sets its `fatal` and `msg` fields.
 function Runner:_add_cached_reports(inputs)
-   local potentially_cached_filenames = {}
-   local mtimes = {}
-
    for _, input in ipairs(inputs) do
-      if input.mtime then
-         table.insert(potentially_cached_filenames, input.abs_path)
-         table.insert(mtimes, input.mtime)
+      if not input.fatal and input.path then
+         local report, err = self._cache:get(input.path)
+
+         if err then
+            input.fatal = "I/O"
+            input.msg = ("Couldn't load cache for %s from %s: malformed data"):format(
+               self._top_opts.cache, input.path)
+         else
+            input.cached_report = report
+         end
       end
    end
-
-   local filename_to_cached_report = cache.load(self._top_opts.cache, potentially_cached_filenames, mtimes)
-
-   if not filename_to_cached_report then
-      return nil, ("Couldn't load cache from %s: data corrupted"):format(self._top_opts.cache)
-   end
-
-   for _, input in ipairs(inputs) do
-      input.cached_report = filename_to_cached_report[input.abs_path]
-   end
-
-   return true
 end
 
 -- Adds report as `new_report` field to all inputs that don't have a fatal error or a cached report.
@@ -250,29 +231,17 @@ end
 -- Saves `new_report` for files eligible for caching to cache.
 -- Returns true on success or nil and an error message on failure.
 function Runner:_save_new_reports_to_cache(inputs)
-   local filenames = {}
-   local mtimes = {}
-   local reports = {}
-
    for _, input in ipairs(inputs) do
       if input.new_report and input.path then
-         -- If report for a file could be cached but getting its `mtime` has failed,
-         -- ignore the error - report is already here, might as well return it.
-         if input.mtime then
-            table.insert(filenames, input.abs_path)
-            table.insert(mtimes, input.mtime)
-            table.insert(reports, input.new_report)
+         local ok = self._cache:put(input.path, input.new_report)
+
+         if not ok then
+            return nil, ("Couldn't save cache for %s from %s: I/O error"):format(input.path, self._top_opts.cache)
          end
       end
    end
 
-   local ok = cache.update(self._top_opts.cache, filenames, mtimes, reports)
-
-   if ok then
-      return true
-   else
-      return nil, ("Couldn't save cache to %s: I/O error"):format(self._top_opts.cache)
-   end
+   return true
 end
 
 -- Inputs are prepared here, see `Runner:_prepare_inputs`.
@@ -280,12 +249,14 @@ end
 -- On critical error returns nil and an error message.
 function Runner:_get_reports(inputs)
    if self._top_opts.cache then
-      add_mtimes(inputs)
-      local ok, err = self:_add_cached_reports(inputs)
+      local err
+      self._cache, err = cache.new(self._top_opts.cache)
 
-      if not ok then
+      if not self._cache then
          return nil, err
       end
+
+      self:_add_cached_reports(inputs)
    end
 
    self:_add_new_reports(inputs)

@@ -1,4 +1,5 @@
 local argparse = require "argparse"
+local cache = require "luacheck.cache"
 local config = require "luacheck.config"
 local luacheck = require "luacheck"
 local multithreading = require "luacheck.multithreading"
@@ -206,7 +207,8 @@ Links:
 
    parser:option("--filename", "Use another filename in output and for selecting configuration overrides.")
 
-   local cache_opt = parser:option("--cache", "Path to cache file (default: .luacheckcache).")
+   local cache_opt = parser:option("--cache", ("Path to cache directory. (default: %s)"):format(
+         cache.get_default_dir()))
       :args "?"
 
    local no_cache_opt = parser:flag("--no-cache", "Do not use cache.")

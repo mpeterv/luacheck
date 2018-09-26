@@ -10,6 +10,7 @@ local metrics = {
 }
 
 local functions = {
+   {name = "sha1", module = "vendor.sha1"},
    {name = "load", module = "cache"},
    {name = "update", module = "cache"},
    {name = "decode", module = "decoder"},
