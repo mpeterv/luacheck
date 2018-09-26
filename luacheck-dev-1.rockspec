@@ -43,6 +43,7 @@ build = {
       ["luacheck.parser"] = "src/luacheck/parser.lua",
       ["luacheck.profiler"] = "src/luacheck/profiler.lua",
       ["luacheck.runner"] = "src/luacheck/runner.lua",
+      ["luacheck.serializer"] = "src/luacheck/serializer.lua",
       ["luacheck.stages"] = "src/luacheck/stages/init.lua",
       ["luacheck.stages.detect_bad_whitespace"] = "src/luacheck/stages/detect_bad_whitespace.lua",
       ["luacheck.stages.detect_cyclomatic_complexity"] = "src/luacheck/stages/detect_cyclomatic_complexity.lua",

@@ -24,6 +24,7 @@ spec_to_module[spec/lexer_spec.lua]=src/luacheck/lexer.lua
 spec_to_module[spec/cli_spec.lua]=src/luacheck/main.lua
 spec_to_module[spec/options_spec.lua]=src/luacheck/options.lua
 spec_to_module[spec/parser_spec.lua]=src/luacheck/parser.lua
+spec_to_module[spec/serializer_spec.lua]=src/luacheck/serializer.lua
 spec_to_module[spec/cyclomatic_complexity_spec.lua]=src/luacheck/stages/detect_cyclomatic_complexity.lua
 spec_to_module[spec/globals_spec.lua]=src/luacheck/stages/detect_globals.lua
 spec_to_module[spec/reversed_fornum_loops_spec.lua]=src/luacheck/stages/detect_reversed_fornum_loops.lua
