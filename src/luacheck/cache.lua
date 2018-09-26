@@ -43,7 +43,12 @@ end
 local function check_version_header(fh)
    local first_line = fh:read()
 
-   return (first_line == "" or first_line == "\r") and tonumber(fh:read()) == cache.format_version
+   if first_line ~= "" and first_line ~= "\r" then
+      return false
+   end
+
+   local second_line = fh:read()
+   return tonumber(second_line) == cache.format_version
 end
 
 local function write_version_header(fh)
