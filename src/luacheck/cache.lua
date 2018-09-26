@@ -4,39 +4,79 @@ local utils = require "luacheck.utils"
 local cache = {}
 
 -- Cache file contains check results for n unique filenames.
--- Cache file consists of 3n+2 lines, the first line is empty and the second is cache format version.
--- The rest are contain file records, 3 lines per file.
--- For each file, first line is the filename, second is modification time,
--- third is check result in lua table format.
--- Event fields are compressed into array indexes.
+-- Header format:
+-- \n(cache format version number)\n
+-- File record format:
+-- (file name)\n(file modification time)\n(serialized result length)\n(serialized result)\n
 
-cache.format_version = 34
+cache.format_version = 35
 
--- Returns array of triplets of lines from cache fh.
-local function read_triplets(fh)
-   local res = {}
+-- Reads a file record (table with fields `filename`, `mtime`, and `serialized_result`).
+-- Returns file record or nil + flag indicating whether EOF was reached.
+local function read_record(fh)
+   local filename = fh:read()
 
-   while true do
-      local filename = fh:read()
-
-      if filename then
-         local mtime = fh:read() or ""
-         local cached = fh:read() or ""
-         table.insert(res, {filename, mtime, cached})
-      else
-         break
-      end
+   if not filename then
+      return nil, true
    end
 
-   return res
+   if filename:sub(-1) == "\r" then
+      filename = filename:sub(1, -2)
+   end
+
+   local mtime = tonumber((fh:read()))
+
+   if not mtime then
+      return nil, false
+   end
+
+   local serialized_result_length = tonumber((fh:read()))
+
+   if not serialized_result_length then
+      return nil, false
+   end
+
+   local serialized_result = fh:read(serialized_result_length)
+
+   if not serialized_result or #serialized_result ~= serialized_result_length then
+      return nil, false
+   end
+
+   if not fh:read() then
+      return nil, false
+   end
+
+   return {
+      filename = filename,
+      mtime = mtime,
+      serialized_result = serialized_result
+   }
 end
 
--- Writes cache triplets into fh.
-local function write_triplets(fh, triplets)
-   for _, triplet in ipairs(triplets) do
-      fh:write(triplet[1], "\n")
-      fh:write(triplet[2], "\n")
-      fh:write(triplet[3], "\n")
+-- Returns array of file records from cache fh.
+local function read_records(fh)
+   local records = {}
+
+   while true do
+      local record = read_record(fh)
+
+      if not record then
+         break
+      end
+
+      table.insert(records, record)
+   end
+
+   return records
+end
+
+-- Writes an array of file records into fh.
+local function write_records(fh, records)
+   for _, record in ipairs(records) do
+      fh:write(record.filename, "\n")
+      fh:write(tonumber(record.mtime), "\n")
+      fh:write(tonumber(#record.serialized_result), "\n")
+      fh:write(record.serialized_result, "\n")
    end
 end
 
@@ -74,43 +114,26 @@ function cache.load(cache_filename, filenames, mtimes)
    local not_yet_found = utils.array_to_set(filenames)
 
    while next(not_yet_found) do
-      local filename = fh:read()
+      local record, reached_eof = read_record(fh)
 
-      if not filename then
+      if not record then
          fh:close()
-         return result
+         return reached_eof and result or nil
       end
 
-      if filename:sub(-1) == "\r" then
-         filename = filename:sub(1, -2)
-      end
+      if not_yet_found[record.filename] then
+         if mtimes[not_yet_found[record.filename]] == record.mtime then
+            local check_result = serializer.load_check_result(record.serialized_result)
 
-      local mtime = fh:read()
-      local cached = fh:read()
-
-      if not mtime or not cached then
-         fh:close()
-         return
-      end
-
-      mtime = tonumber(mtime)
-
-      if not mtime then
-         fh:close()
-         return
-      end
-
-      if not_yet_found[filename] then
-         if mtimes[not_yet_found[filename]] == mtime then
-            result[filename] = serializer.load_check_result(cached)
-
-            if result[filename] == nil then
+            if not check_result then
                fh:close()
                return
             end
+
+            result[record.filename] = check_result
          end
 
-         not_yet_found[filename] = nil
+         not_yet_found[record.filename] = nil
       end
    end
 
@@ -121,13 +144,13 @@ end
 -- Updates cache at cache_filename with results for filenames.
 -- Returns success flag + whether update was append-only.
 function cache.update(cache_filename, filenames, mtimes, results)
-   local old_triplets = {}
+   local old_records = {}
    local can_append = false
    local fh = io.open(cache_filename, "rb")
 
    if fh then
       if check_version_header(fh) then
-         old_triplets = read_triplets(fh)
+         old_records = read_records(fh)
          can_append = true
       end
 
@@ -138,28 +161,28 @@ function cache.update(cache_filename, filenames, mtimes, results)
    local old_filename_set = {}
 
    -- Update old cache for files which got a new result.
-   for i, triplet in ipairs(old_triplets) do
-      old_filename_set[triplet[1]] = true
-      local file_index = filename_set[triplet[1]]
+   for _, record in ipairs(old_records) do
+      old_filename_set[record.filename] = true
+      local file_index = filename_set[record.filename]
 
       if file_index then
          can_append = false
-         old_triplets[i][2] = mtimes[file_index]
-         old_triplets[i][3] = serializer.dump_check_result(results[file_index])
+         record.mtime = mtimes[file_index]
+         record.serialized_result = serializer.dump_check_result(results[file_index])
       end
    end
 
-   local new_triplets = {}
+   local new_records = {}
 
    for _, filename in ipairs(filenames) do
       -- Use unique index (there could be duplicate filenames).
       local file_index = filename_set[filename]
 
       if file_index and not old_filename_set[filename] then
-         table.insert(new_triplets, {
-            filename,
-            mtimes[file_index],
-            serializer.dump_check_result(results[file_index])
+         table.insert(new_records, {
+            filename = filename,
+            mtime = mtimes[file_index],
+            serialized_result = serializer.dump_check_result(results[file_index])
          })
          -- Do not save result for this filename again.
          filename_set[filename] = nil
@@ -167,14 +190,14 @@ function cache.update(cache_filename, filenames, mtimes, results)
    end
 
    if can_append then
-      if #new_triplets > 0 then
+      if #new_records > 0 then
          fh = io.open(cache_filename, "ab")
 
          if not fh then
             return false
          end
 
-         write_triplets(fh, new_triplets)
+         write_records(fh, new_records)
          fh:close()
       end
    else
@@ -185,8 +208,8 @@ function cache.update(cache_filename, filenames, mtimes, results)
       end
 
       write_version_header(fh)
-      write_triplets(fh, old_triplets)
-      write_triplets(fh, new_triplets)
+      write_records(fh, old_records)
+      write_records(fh, new_records)
       fh:close()
    end
 

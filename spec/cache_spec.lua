@@ -47,9 +47,11 @@ describe("cache", function()
 0
 foo
 1
+24
 return {{{"112"}},{},{}}
 bar
 2
+17
 return {{},{},{}}
 ]], data)
       end)
@@ -65,12 +67,15 @@ return {{},{},{}}
 0
 foo
 1
+24
 return {{{"112"}},{},{}}
 bar
 2
+17
 return {{},{},{}}
 baz
 3
+24
 return {{{"122"}},{},{}}
 ]], data)
       end)
@@ -86,12 +91,15 @@ return {{{"122"}},{},{}}
 0
 foo
 4
+17
 return {{},{},{}}
 bar
 2
+17
 return {{},{},{}}
 baz
 3
+24
 return {{{"122"}},{},{}}
 ]], data)
       end)

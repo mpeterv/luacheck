@@ -914,12 +914,15 @@ Total: 16 warnings / 1 error in 4 files
 (%d+)
 abspath{spec/samples/good_code.lua}
 (%d+)
+%d+
 local A,B="561","function";return {{{A,1,1,1,1,"main_chunk"},{A,3,7,23,1,B,"helper"},{A,7,1,30,2,B,"embracer.embrace"}},{},{19,0,23,17,3,0,30,25,26,3,0,15,0},{[4]="comment"}}
 abspath{spec/samples/bad_code.lua}
 (%d+)
+%d+
 local A,B,C,D="561","helper","function","embrace";return {{{"112",1,1,7,"package",{"loaded",true}},{A,1,1,1,1,"main_chunk"},{A,3,7,26,1,C,B},{"211",3,16,21,B,true},{"212",3,23,25,"..."},{A,7,1,21,2,C,D},{"111",7,10,16,D,nil,nil,true},{"412",8,10,12,"opt",7,18,20},{"113",9,11,16,"hepler"}},{},{24,0,26,9,3,0,21,31,26,3,0,0},{[4]="comment"}}
 abspath{spec/samples/python_code.lua}
 (%d+)
+%d+
 return {{{"011",1,6,15,"expected '=' near '__future__'"}},{},{},{}}
 ]]):gsub("[%[%]%-]", "%%%0"), nil)
          -- luacheck: pop
@@ -932,20 +935,32 @@ return {{{"011",1,6,15,"expected '=' near '__future__'"}},{},{},{}}
 
          assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
 
+         local python_result = 'return {{{"111", 1, 1, nil, "global"}, {"321", 6, 8, nil, "uninit"}},{},{1, 1, 1, 1, 1, 1},{}}'
+         local good_result = 'return {{{"011",5,7,nil, "this code is actually bad"}},{},{},{}}'
+         local bad_result = 'return {{},{},{}}'
+
          local function write_new_cache(version)
             local fh = io.open(tmpname, "wb")
             assert.userdata(fh)
+
             fh:write(replace_abspath([[
 %s
 abspath{spec/samples/python_code.lua}
 %s
-return {{{"111", 1, 1, nil, "global"}, {"321", 6, 8, nil, "uninit"}},{},{1, 1, 1, 1, 1, 1},{}}
+%d
+%s
 abspath{spec/samples/good_code.lua}
 %s
-return {{{"011",5,7,nil, "this code is actually bad"}},{},{},{}}
+%d
+%s
 abspath{spec/samples/bad_code.lua}
 %s
-return {{},{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
+%d
+%s
+]]):format(version,
+   python_mtime, #python_result, python_result,
+   good_mtime, #good_result, good_result,
+   tostring(tonumber(bad_mtime) - 1), #bad_result, bad_result))
             fh:close()
          end
 
