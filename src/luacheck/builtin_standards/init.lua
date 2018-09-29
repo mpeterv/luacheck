@@ -273,7 +273,7 @@ builtin_standards.busted = {
    read_globals = {
       "describe", "insulate", "expose", "it", "pending", "before_each", "after_each",
       "lazy_setup", "lazy_teardown", "strict_setup", "strict_teardown", "setup", "teardown",
-      "context", "spec", "test", "assert", "spy", "mock", "stub", "finally"
+      "context", "spec", "test", "assert", "spy", "mock", "stub", "finally", "randomize"
    }
 }
 
