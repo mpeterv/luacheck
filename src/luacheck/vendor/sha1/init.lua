@@ -50,7 +50,7 @@ local function choose_ops()
    end
 end
 
-local ops = require("sha1." .. choose_ops())
+local ops = require("luacheck.vendor.sha1." .. choose_ops())
 local uint32_lrot = ops.uint32_lrot
 local byte_xor = ops.byte_xor
 local uint32_xor_3 = ops.uint32_xor_3
