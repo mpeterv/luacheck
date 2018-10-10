@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.23.1 (not yet released)
+## 0.24.0 (not yet released)
+
+### Changes
+
+* Caching now uses files in a global directory instead of local
+  `.luacheckcache` file. Default cache directory is
+  `%LOCALAPPDATA%\Luacheck\Cache` on Windows,
+  `~/Library/Caches/Luacheck` on OS X/macOS, and
+  `$XDG_CACHE_HOME/luacheck` or `~/.config/luacheck` on other systems.
+
+### Fixes
+
+* Fixed `randomize` missing from `busted` set of standard globals (#183).
 
 ### Miscellaneous
 
