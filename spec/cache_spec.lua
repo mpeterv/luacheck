@@ -42,7 +42,12 @@ describe("cache", function()
 
       after_each(function()
          os.remove(filename)
-         os.remove(cache_filename)
+
+         if lfs.attributes(cache_filename, "mode") == "directory" then
+            lfs.rmdir(cache_filename)
+         else
+            os.remove(cache_filename)
+         end
       end)
 
       local function make_report(code)
