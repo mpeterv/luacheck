@@ -946,6 +946,129 @@ not ok 8 spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
 ]], get_output "bad_file spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter JUnit --no-config")
    end)
 
+   it("has built-in JUnit formatter", function()
+      assert.equal([[{
+  "issues": [
+    {
+      "engineId": "luacheck",
+      "ruleId": "FATAL",
+      "severity": "BLOCKER",
+      "type": "BUG",
+      "effortMinutes": 10,
+      "primaryLocation": {
+        "message": "I/O error",
+        "filePath": "bad_file",
+        "textRange": {
+          "startLine": 1
+        }
+      }
+    },
+    {
+      "engineId": "luacheck",
+      "ruleId": "211",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "effortMinutes": 10,
+      "primaryLocation": {
+        "message": "unused function 'helper'",
+        "filePath": "spec/samples/bad_code.lua",
+        "textRange": {
+          "startLine": 3,
+          "startColumn": 15
+        }
+      }
+    },
+    {
+      "engineId": "luacheck",
+      "ruleId": "212",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "effortMinutes": 10,
+      "primaryLocation": {
+        "message": "unused variable length argument",
+        "filePath": "spec/samples/bad_code.lua",
+        "textRange": {
+          "startLine": 3,
+          "startColumn": 22
+        }
+      }
+    },
+    {
+      "engineId": "luacheck",
+      "ruleId": "111",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "effortMinutes": 10,
+      "primaryLocation": {
+        "message": "setting non-standard global variable 'embrace'",
+        "filePath": "spec/samples/bad_code.lua",
+        "textRange": {
+          "startLine": 7,
+          "startColumn": 9
+        }
+      }
+    },
+    {
+      "engineId": "luacheck",
+      "ruleId": "412",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "effortMinutes": 10,
+      "primaryLocation": {
+        "message": "variable 'opt' was previously defined as an argument on line 7",
+        "filePath": "spec/samples/bad_code.lua",
+        "textRange": {
+          "startLine": 8,
+          "startColumn": 9
+        }
+      },
+      "secondaryLocations": [
+        {
+          "message": "opt",
+          "filePath": "spec/samples/bad_code.lua",
+          "textRange": {
+            "startLine": 7,
+            "startColumn": 17,
+            "endColumn": 19
+          }
+        }
+      ]
+    },
+    {
+      "engineId": "luacheck",
+      "ruleId": "113",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "effortMinutes": 10,
+      "primaryLocation": {
+        "message": "accessing undefined variable 'hepler'",
+        "filePath": "spec/samples/bad_code.lua",
+        "textRange": {
+          "startLine": 9,
+          "startColumn": 10
+        }
+      }
+    },
+    {
+      "engineId": "luacheck",
+      "ruleId": "011",
+      "severity": "BLOCKER",
+      "type": "BUG",
+      "effortMinutes": 10,
+      "primaryLocation": {
+        "message": "expected '=' near '__future__'",
+        "filePath": "spec/samples/python_code.lua",
+        "textRange": {
+          "startLine": 1,
+          "startColumn": 5
+        }
+      }
+    }
+  ]
+}
+]], get_output "bad_file spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter sonar --no-config")
+   end)
+
    it("has built-in Visual Studio aware formatter", function()
       assert.equal([[
 luacheck : fatal error F1: couldn't check bad_file: couldn't read: No such file or directory
