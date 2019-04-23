@@ -85,11 +85,15 @@ local function fatal_type(file_report)
    return capitalize(file_report.fatal) .. " error"
 end
 
+local function is_error(event)
+   return event.code:sub(1, 1) == "0"
+end
+
 local function count_warnings_errors(events)
    local warnings, errors = 0, 0
 
    for _, event in ipairs(events) do
-      if event.code:sub(1, 1) == "0" then
+      if is_error(event) then
          errors = errors + 1
       else
          warnings = warnings + 1
@@ -134,7 +138,7 @@ local function format_location(file, location, opts)
 end
 
 local function event_code(event)
-   return (event.code:sub(1, 1) == "0" and "E" or "W")..event.code
+   return (is_error(event) and "E" or "W")..event.code
 end
 
 local function format_event(file_name, event, opts)
@@ -268,6 +272,108 @@ function format.builtin_formatters.JUnit(report, file_names)
    return table.concat(buf, "\n")
 end
 
+local sonar_error = {
+   severity = "BLOCKER",
+   type = "BUG",
+}
+local sonar_warning = {
+   severity = "MAJOR",
+   type = "CODE_SMELL",
+}
+
+local function add_json_line(buf, text, comma)
+   local final = comma and text..',' or text
+   table.insert(buf, final)
+end
+
+local function append_sonar_issue(buf, file_name, event, is_last_event)
+   local category = is_error(event) and sonar_error or sonar_warning
+   local message = format_message(event, false)
+   local has_secondary_locations = event.prev_line ~= nil
+
+   add_json_line(buf, ('    {'))
+   add_json_line(buf, ('      "engineId": "luacheck",'))
+   add_json_line(buf, ('      "ruleId": "%s",'):format(event.code))
+   add_json_line(buf, ('      "severity": "%s",'):format(category.severity))
+   add_json_line(buf, ('      "type": "%s",'):format(category.type))
+   add_json_line(buf, ('      "effortMinutes": %d,'):format(10))
+   add_json_line(buf, ('      "primaryLocation": {'))
+   add_json_line(buf, ('        "message": "%s",'):format(message))
+   add_json_line(buf, ('        "filePath": "%s",'):format(file_name))
+   add_json_line(buf, ('        "textRange": {'))
+   add_json_line(buf, ('          "startLine": %d,'):format(event.line))
+   local has_end_column = event.endColumn and event.endColumn > event.column
+   add_json_line(buf, ('          "startColumn": %d'):format(event.column - 1), has_end_column)
+   if has_end_column then
+      add_json_line(buf, ('          "endColumn": %d'):format(event.endColumn - 1))
+   end
+   add_json_line(buf, ('        }'))
+   add_json_line(buf, ('      }'), has_secondary_locations)
+
+   if has_secondary_locations then
+      add_json_line(buf, ('      "secondaryLocations": ['))
+      add_json_line(buf, ('        {'))
+      add_json_line(buf, ('          "message": "%s",'):format(event.name))
+      add_json_line(buf, ('          "filePath": "%s",'):format(file_name))
+      add_json_line(buf, ('          "textRange": {'))
+      local has_prev_column = event.prev_column ~= nil
+      add_json_line(buf, ('            "startLine": %d'):format(event.prev_line), has_prev_column)
+      if has_prev_column then
+         local has_prev_end_column = event.prev_end_column and event.prev_end_column > event.prev_column
+         add_json_line(buf, ('            "startColumn": %d'):format(event.prev_column - 1), has_prev_end_column)
+         if has_prev_end_column then
+            add_json_line(buf, ('            "endColumn": %d'):format(event.prev_end_column - 1))
+         end
+      end
+      add_json_line(buf, ('          }'))
+      add_json_line(buf, ('        }'))
+      add_json_line(buf, ('      ]'))
+   end
+
+   add_json_line(buf, ('    }'), not is_last_event)
+end
+
+local function append_snoar_fatal(buf, file_name, file_report, is_last_file)
+   add_json_line(buf, ('    {'))
+   add_json_line(buf, ('      "engineId": "luacheck",'))
+   add_json_line(buf, ('      "ruleId": "FATAL",'))
+   add_json_line(buf, ('      "severity": "BLOCKER",'))
+   add_json_line(buf, ('      "type": "BUG",'))
+   add_json_line(buf, ('      "effortMinutes": %d,'):format(10))
+   add_json_line(buf, ('      "primaryLocation": {'))
+   add_json_line(buf, ('        "message": "%s",'):format(fatal_type(file_report)))
+   add_json_line(buf, ('        "filePath": "%s",'):format(file_name))
+   add_json_line(buf, ('        "textRange": {'))
+   add_json_line(buf, ('          "startLine": 1'))
+   add_json_line(buf, ('        }'))
+   add_json_line(buf, ('      }'))
+   add_json_line(buf, ('    }'), not is_last_file)
+end
+
+function format.builtin_formatters.sonar(report, file_names)
+   local buf = {}
+   add_json_line(buf, '{')
+   add_json_line(buf, '  "issues": [')
+
+   for file_i, file_report in ipairs(report) do
+      local file_name = file_names[file_i]
+      local is_last_file = file_i == #file_names
+      if file_report.fatal then
+         append_snoar_fatal(buf, file_name, file_report, is_last_file)
+      else
+         for event_i, event in ipairs(file_report) do
+            local is_last_event = event_i == #file_report
+            append_sonar_issue(buf, file_name, event, is_last_file and is_last_event)
+         end
+      end
+   end
+
+   add_json_line(buf, '  ]')
+   add_json_line(buf, '}')
+
+   return table.concat(buf, "\n")
+end
+
 local fatal_error_codes = {
    ["I/O"] = "F1",
    ["syntax"] = "F2",
@@ -287,7 +393,7 @@ function format.builtin_formatters.visual_studio(report, file_names)
          for _, event in ipairs(file_report) do
                -- Older documentation on the format suggests that it could support column range.
                -- Newer docs don't mention it. Don't use it for now.
-               local event_type = event.code:sub(1, 1) == "0" and "error" or "warning"
+               local event_type = is_error(event) and "error" or "warning"
                local message = format_message(event)
                table.insert(buf, ("%s(%d,%d) : %s %s: %s"):format(
                   file_names[i], event.line, event.column, event_type, event_code(event), message))
