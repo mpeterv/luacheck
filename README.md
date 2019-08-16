@@ -114,6 +114,28 @@ Use the Luacheck issue tracker on GitHub to submit bugs, suggestions and questio
 
 After the Luacheck repo is cloned and changes are made, run `luarocks make` (using `sudo` if necessary) from its root directory to install dev version of Luacheck. To run Luacheck using sources in current directory without installing it, run `lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' bin/luacheck.lua ...`. To test Luacheck, ensure that you have [busted](http://olivinelabs.com/busted/) and [luautf8](https://github.com/starwing/luautf8) installed and run `busted`.
 
+## Docker
+Luacheck can be run inside a docker container, so it can be distributed across
+different platforms and can be run against any source directory. The usage of
+docker is fairly simple by executing the following two commands, the container
+will be built and be run in any source directory applicable:
+
+Execute the following command in the root directory of this repository:
+`docker build -t luacheck:latest .`
+
+Or, just to pull the image from the public DockerHub repositories, execute:
+`docker pull martinbrothers/luacheck:latest`
+
+To run the docker, execute this command in the source directory to be linted:
+`docker run --rm -v $(pwd):/workdir luacheck:latest`.
+
+For example, to run luacheck on itself:
+`docker run --rm -v $(pwd):/workdir luacheck:latest luacheck bin/luacheck.lua`
+
+Note, while the script supports omitting the 'luacheck' command in true docker
+image consitency fashion,  if the script however to be linted is an executable,
+this fails (as the container will try to execute the executable).
+
 ## License
 
 ```
