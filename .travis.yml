@@ -27,6 +27,17 @@ matrix:
     - env: OS=el DIST=7 PRODUCT=tarantool-luacheck
     - env: OS=fedora DIST=26 PRODUCT=tarantool-luacheck
     - env: OS=fedora DIST=27 PRODUCT=tarantool-luacheck
+    - env: OS=fedora DIST=28 PRODUCT=tarantool-luacheck
+    - env: OS=fedora DIST=29 PRODUCT=tarantool-luacheck
+    - env: OS=fedora DIST=30 PRODUCT=tarantool-luacheck
+    - env: OS=ubuntu DIST=trusty PRODUCT=tarantool-luacheck
+    - env: OS=ubuntu DIST=xenial PRODUCT=tarantool-luacheck
+    - env: OS=ubuntu DIST=bionic PRODUCT=tarantool-luacheck
+    - env: OS=ubuntu DIST=cosmic PRODUCT=tarantool-luacheck
+    - env: OS=ubuntu DIST=disco PRODUCT=tarantool-luacheck
+    - env: OS=debian DIST=jessie PRODUCT=tarantool-luacheck
+    - env: OS=debian DIST=stretch PRODUCT=tarantool-luacheck
+    - env: OS=debian DIST=buster PRODUCT=tarantool-luacheck
 
 install:
   - |
