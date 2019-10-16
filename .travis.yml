@@ -1,109 +1,95 @@
-sudo: required
 services:
   - docker
 
 language: c
 
 cache:
-    directories:
-      - $HOME/.cache
+  directories:
+    - $HOME/.cache
 
 git:
-    depth: 100500
+  depth: 100500
 
-matrix:
+_lua: &lua
+  install:
+    - sudo apt-get install luarocks
+    - pip install --user hererocks
+    - pip install --user codecov
+    - hererocks here --$LUA -r latest
+    - source here/bin/activate
+    - luarocks install lanes
+    - luarocks install busted
+    - luarocks install cluacov
+    - luarocks install luautf8
+    - luarocks install luasocket
+    - luarocks make
+
+  script:
+    - busted -c
+    - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua luacheck-dev-1.rockspec -j2
+    - lua -e 'package.preload.lanes=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua --version | grep 'Not found'
+    - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec/*.lua
+    - luacheck .
+    - luacheck .
+
+  after_script:
+    - luacov
+    - codecov -f luacov.report.out -X gcov
+
+_tarantool: &tarantool
+  script:
+    - git clone https://github.com/packpack/packpack.git packpack
+    # Luacheck has a major.minor.patch versioning with unannotated tags.
+    # Packpack can't handle it automaticaly, because it expects
+    # annotated tags. We had to pass version by setting VERSION.
+    # We set VERSION like: major.minor.patch.number_of_commits above
+    # last major.minor.patch tag.
+    - VERSION=`git describe --tags | sed -e 's/\(.*\)-.*/\1/' -e 's/-/./'` PRODUCT=tarantool-luacheck packpack/packpack
+
+jobs:
   include:
-    - compiler: ": Lua51"
+    - <<: *lua
       env: LUA="lua 5.1"
-    - compiler: ": Lua52"
+    - <<: *lua
       env: LUA="lua 5.2"
-    - compiler: ": Lua53"
+    - <<: *lua
       env: LUA="lua 5.3"
-    - compiler: ": LuaJIT20"
+    - <<: *lua
       env: LUA="luajit 2.0"
-    - compiler: ": LuaJIT21"
+    - <<: *lua
       env: LUA="luajit 2.1"
-    - env: OS=el DIST=6 PRODUCT=tarantool-luacheck
-    - env: OS=el DIST=7 PRODUCT=tarantool-luacheck
-    - env: OS=fedora DIST=26 PRODUCT=tarantool-luacheck
-    - env: OS=fedora DIST=27 PRODUCT=tarantool-luacheck
-
-install:
-  - |
-    if [ -n "${LUA}" ]; then
-        sudo apt-get install luarocks
-        pip install --user hererocks
-        pip install --user codecov
-        hererocks here --$LUA -r latest
-        source here/bin/activate
-        luarocks install lanes
-        luarocks install busted
-        luarocks install cluacov
-        luarocks make
-    fi;
-script:
-  - |
-    if [ -n "${LUA}" ]; then
-        busted -c
-        lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' \
-          -lluacov bin/luacheck.lua luacheck-dev-1.rockspec -j2
-        lua -e 'package.preload.lanes=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' \
-          -lluacov bin/luacheck.lua --version | grep 'Not found'
-        lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec/*.lua
-        luacheck .
-        luacheck .
-    else
-        # Luacheck has a major.minor.patch versioning with unannotated tags.
-        # Packpack can't handle it automaticaly, because it expects
-        # annotated tags. We had to pass version by setting VERSION.
-        # We set VERSION like: major.minor.patch.number_of_commits above
-        # last major.minor.patch tag.
-        VERSION=`git describe --tags | sed -e 's/\(.*\)-.*/\1/' -e 's/-/./'`
-        git clone https://github.com/packpack/packpack.git packpack;
-        VERSION=$VERSION packpack/packpack;
-    fi;
-
-after_script:
-    if [ -n "${LUA}" ]; then
-        luacov
-        codecov -f luacov.report.out -X gcov
-    fi;
+    - <<: *tarantool
+      env: OS=el DIST=6
+    - <<: *tarantool
+      env: OS=el DIST=7
+    - <<: *tarantool
+      env: OS=fedora DIST=26
+    - <<: *tarantool
+      env: OS=fedora DIST=27
 
 before_deploy:
   - ls -l build/
 
+_deploy: &deploy
+  # Deploy packages to PackageCloud
+  provider: packagecloud
+  username: ${PACKAGECLOUD_USER}
+  token: ${PACKAGECLOUD_TOKEN}
+  dist: ${OS}/${DIST}
+  package_glob: build/*.{rpm,deb}
+  skip_cleanup: true
+  on:
+    branch: master
+    condition: -n "${OS}" && -n "${DIST}" && -n "${PACKAGECLOUD_TOKEN}"
+
 deploy:
   # Deploy packages to PackageCloud
-  - provider: packagecloud
-    username: ${PACKAGECLOUD_USER}
+  - <<: *deploy
     repository: "1_9"
-    token: ${PACKAGECLOUD_TOKEN}
-    dist: ${OS}/${DIST}
-    package_glob: build/*.{rpm,deb}
-    skip_cleanup: true
-    on:
-      branch: master
-      condition: -n "${OS}" && -n "${DIST}" && -n "${PACKAGECLOUD_TOKEN}"
-  - provider: packagecloud
-    username: ${PACKAGECLOUD_USER}
+  - <<: *deploy
     repository: "1_10"
-    token: ${PACKAGECLOUD_TOKEN}
-    dist: ${OS}/${DIST}
-    package_glob: build/*.{rpm,deb}
-    skip_cleanup: true
-    on:
-      branch: master
-      condition: -n "${OS}" && -n "${DIST}" && -n "${PACKAGECLOUD_TOKEN}"
-  - provider: packagecloud
-    username: ${PACKAGECLOUD_USER}
+  - <<: *deploy
     repository: "2x"
-    token: ${PACKAGECLOUD_TOKEN}
-    dist: ${OS}/${DIST}
-    package_glob: build/*.{rpm,deb}
-    skip_cleanup: true
-    on:
-      branch: master
-      condition: -n "${OS}" && -n "${DIST}" && -n "${PACKAGECLOUD_TOKEN}"
 
 notifications:
   email:
