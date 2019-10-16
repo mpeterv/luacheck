@@ -31,29 +31,27 @@ matrix:
 install:
   - |
     if [ -n "${LUA}" ]; then
+        sudo apt-get install luarocks
         pip install --user hererocks
         pip install --user codecov
-        sudo apt-get install luarocks
-        hererocks here --$LUA -r https://github.com/mpeterv/luarocks@upgrade-install
-        export PATH="$PWD/here/bin:$PATH"
-        luarocks install lanes --upgrade --upgrade-deps
-        luarocks install busted --upgrade --upgrade-deps
-        luarocks install cluacov --upgrade --upgrade-deps
+        hererocks here --$LUA -r latest
+        source here/bin/activate
+        luarocks install lanes
+        luarocks install busted
+        luarocks install cluacov
+        luarocks make
     fi;
 script:
   - |
     if [ -n "${LUA}" ]; then
         busted -c
         lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' \
-            -lluacov bin/luacheck.lua luacheck-dev-1.rockspec -j2
-        lua -e 'package.preload.lfs=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' \
-            -lluacov bin/luacheck.lua src | grep 'I/O error'
+          -lluacov bin/luacheck.lua luacheck-dev-1.rockspec -j2
         lua -e 'package.preload.lanes=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' \
-            -lluacov bin/luacheck.lua --version | grep 'Not found'
-        lua install.lua path/to/luacheck
-        mv src src2
-        path/to/luacheck/bin/luacheck spec/*.lua
-        mv src2 src
+          -lluacov bin/luacheck.lua --version | grep 'Not found'
+        lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec/*.lua
+        luacheck .
+        luacheck .
     else
         # Luacheck has a major.minor.patch versioning with unannotated tags.
         # Packpack can't handle it automaticaly, because it expects

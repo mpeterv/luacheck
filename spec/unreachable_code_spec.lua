@@ -1,26 +1,13 @@
-local core_utils = require "luacheck.core_utils"
-local detect_unreachable_code = require "luacheck.detect_unreachable_code"
-local linearize = require "luacheck.linearize"
-local parser = require "luacheck.parser"
-
-local function get_warnings(src)
-   local ast = parser.parse(src)
-   local chstate = {ast = ast, warnings = {}}
-   linearize(chstate)
-   chstate.warnings = {}
-   detect_unreachable_code(chstate)
-   core_utils.sort_by_location(chstate.warnings)
-   return chstate.warnings
-end
+local helper = require "spec.helper"
 
 local function assert_warnings(warnings, src)
-   assert.same(warnings, get_warnings(src))
+   assert.same(warnings, helper.get_stage_warnings("detect_unreachable_code", src))
 end
 
 describe("unreachable code detection", function()
    it("detects unreachable code", function()
       assert_warnings({
-         {code = "511", line = 2, column = 1, end_column = 2}
+         {code = "511", line = 2, column = 1, end_column = 24}
       }, [[
 do return end
 if ... then return 6 end
@@ -28,8 +15,8 @@ return 3
 ]])
 
       assert_warnings({
-         {code = "511", line = 7, column = 1, end_column = 2},
-         {code = "511", line = 13, column = 1, end_column = 6}
+         {code = "511", line = 7, column = 1, end_column = 11},
+         {code = "511", line = 13, column = 1, end_column = 8}
       }, [[
 if ... then
    return 4
@@ -83,7 +70,7 @@ return
          {code = "511", line = 3, column = 7, end_column = 9}
       }, [[
 repeat
-    return
+   return
 until ...
 ]])
 
@@ -100,7 +87,7 @@ end
 
    it("detects unreachable functions", function()
       assert_warnings({
-         {code = "511", line = 3, column = 1, end_column = 8}
+         {code = "511", line = 3, column = 1, end_column = 16}
       }, [[
 local f = nil
 do return end
@@ -123,7 +110,7 @@ end
 
    it("detects unreachable code in unreachable nested function", function()
       assert_warnings({
-         {code = "511", line = 4, column = 4, end_column = 9},
+         {code = "511", line = 4, column = 4, end_column = 20},
          {code = "511", line = 6, column = 7, end_column = 12}
       }, [[
 return function()

@@ -4,11 +4,15 @@ local function filter(issue_arrays, opts)
    local report = {}
 
    for i, issues in ipairs(issue_arrays) do
+      local line_lengths = {}
+
       for issue_index, issue in ipairs(issues) do
          issue.line = issue_index
+         issue.column = 1
+         line_lengths[issue_index] = 0
       end
 
-      report[i] = {events = issues, per_line_options = {}, line_lengths = {}}
+      report[i] = {warnings = issues, inline_options = {}, line_lengths = line_lengths, line_endings = {}}
    end
 
    local result = filter_full(report, opts)
@@ -16,6 +20,7 @@ local function filter(issue_arrays, opts)
    for _, file_report in ipairs(result) do
       for _, issue in ipairs(file_report) do
          issue.line = nil
+         issue.column = nil
       end
    end
 
@@ -104,8 +109,7 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "413",
@@ -125,8 +129,7 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "413",
@@ -141,8 +144,7 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "321",
@@ -292,21 +294,18 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, {
@@ -320,21 +319,18 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "package",
-               indexing = {"package"}
+               name = "package"
             },
             {
                code = "111",
-               name = "module",
-               indexing = {"module"}
+               name = "module"
             }
          }
       }, {
@@ -347,13 +343,11 @@ describe("filter", function()
          {
             {
                code = "131",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, filter({
@@ -368,13 +362,11 @@ describe("filter", function()
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, {
@@ -387,37 +379,31 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
                name = "foo",
-               indexing = {"foo"},
                top = true
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             },
             {
                code = "113",
-               name = "baz",
-               indexing = {"baz"}
+               name = "baz"
             }
          }
       }, {
@@ -431,28 +417,24 @@ describe("filter", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          }
       }, filter({
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          }
       }, {
@@ -468,13 +450,11 @@ describe("filter", function()
             {
                code = "111",
                name = "string",
-               indexing = {"string"},
                module = true
             },
             {
                code = "111",
                name = "bar",
-               indexing = {"bar"},
                module = true
             }
          }
@@ -482,31 +462,26 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             }
          },
          {
             {
                code = "111",
                name = "foo",
-               indexing = {"foo"},
                top = true
             },
             {
                code = "111",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "string",
-               indexing = {"string"}
+               name = "string"
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             }
          }
       }, {
@@ -529,20 +504,17 @@ describe("filter", function()
          {
             {
                code = "111",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             },
             {
                code = "111",
-               name = "bar",
-               indexing = {"bar"}
+               name = "bar"
             }
          }
       }, {
@@ -559,78 +531,43 @@ describe("filter", function()
    it("applies inline option events and per-line options", function()
       assert.same({
          {
-            {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
-            {code = "111", name = "print", indexing = {"print"}, line = 5, column = 1},
-            {code = "121", name = "print", indexing = {"print"}, line = 7, column = 1},
+            {code = "111", name = "not_print", line = 1, column = 1},
+            {code = "111", name = "print", line = 5, column = 1},
+            {code = "121", name = "print", line = 7, column = 1},
             {code = "021", msg = "invalid value of option 'std': unknown std 'bad_std'", line = 8, column = 1},
             {code = "021", msg = "invalid value of option 'std': unknown std 'another_bad_std'",
-               line = 1000,column = 20}
+               line = 11, column = 20},
+            {code = "211", name = "not_print", line = 14, column = 1}
          }
       }, filter_full({
          {
-            events = {
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
-               {push = true, line = 2, column = 1},
+            warnings = {
+               {code = "111", name = "not_print", line = 1, column = 1},
+               {code = "111", name = "not_print", line = 4, column = 1},
+               {code = "111", name = "print", line = 5, column = 1},
+               {code = "111", name = "print", line = 7, column = 1},
+               {code = "111", name = "not_print", line = 12, column = 1},
+               {code = "211", name = "not_print", line = 14, column = 1},
+               {code = "311", name = "c", line = 14, column = 2}
+            },
+            inline_options = {
                {options = {std = "none"}, line = 3, column = 1},
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 4, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 5, column = 1},
-               {pop = true, line = 6, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 7, column = 1},
-               {options = {std = "bad_std"}, line = 8, column = 1}
+               {options = {ignore = {".*"}}, line = 4, column = 10},
+               {pop_count = 1, line = 5},
+               {pop_count = 1, line = 7},
+               {options = {std = "bad_std"}, line = 8, column = 1},
+               {options = {std = "max"}, line = 9, column = 1},
+               {options = {std = "another_bad_std"}, line = 11, column = 20},
+               {options = {ignore = {"not_print"}}, line = 12, column = 1},
+               {options = {ignore = {"211"}}, line = 13, column = 1},
+               {pop_count = 2, options = {ignore = {"c"}}, line = 14, column = 1}
             },
-            per_line_options = {
-               [4] = {
-                  {options = {ignore = {",*"}}, line = 4, column = 10}
-               },
-               [1000] = {
-                  {options = {std = "max"}, line = 1000, column = 1},
-                  {options = {std = "another_bad_std"}, line = 1000, column = 20}
-               }
-            },
-            line_lengths = {}
+            line_lengths = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            line_endings = {}
          }
       }, {
             {
                std = "max"
-            }
-      }))
-   end)
-
-   it("ignores inline options completely with inline = false", function()
-      assert.same({
-         {
-            {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
-            {code = "111", name = "not_print", indexing = {"not_print"}, line = 4, column = 1},
-            {code = "121", name = "print", indexing = {"print"}, line = 5, column = 1},
-            {code = "121", name = "print", indexing = {"print"}, line = 7, column = 1}
-         }
-      }, filter_full({
-         {
-            events = {
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 1, column = 1},
-               {push = true, line = 2, column = 1},
-               {options = {std = "none"}, line = 3, column = 1},
-               {code = "111", name = "not_print", indexing = {"not_print"}, line = 4, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 5, column = 1},
-               {pop = true, line = 6, column = 1},
-               {code = "111", name = "print", indexing = {"print"}, line = 7, column = 1},
-               {options = {std = "bad_std"}, line = 8, column = 1}
-            },
-            per_line_options = {
-               [4] = {
-                  {options = {ignore = {",*"}}, line = 4, column = 10}
-               },
-               [1000] = {
-                  {options = {std = "max"}, line = 1000, column = 1},
-                  {options = {std = "another_bad_std"}, line = 1000, column = 20}
-               }
-            },
-            line_lengths = {}
-         }
-      }, {
-            {
-               std = "max",
-               inline = false
             }
       }))
    end)
@@ -643,12 +580,12 @@ describe("filter", function()
          }
       }, filter_full({
          {
-            events = {
+            warnings = {},
+            inline_options = {
                {options = {max_line_length = 20}, line = 3, column = 1},
                {options = {max_string_line_length = 15}, line = 4, column = 1},
                {options = {max_line_length = false}, line = 6, column = 1}
             },
-            per_line_options = {},
             line_lengths = {120, 121, 15, 20, 18, 15, 200},
             line_endings = {[5] = "string"}
          }

@@ -79,8 +79,7 @@ options.all_options = {
    max_code_line_length = number_or_false,
    max_string_line_length = number_or_false,
    max_comment_line_length = number_or_false,
-   max_cyclomatic_complexity = number_or_false,
-   inline = boolean
+   max_cyclomatic_complexity = number_or_false
 }
 
 utils.update(options.all_options, options.nullary_inline_options)
@@ -148,7 +147,7 @@ local function get_std_tables(opts_stack, stds)
       end
    end
 
-   table.insert(add_stds, 1, base_std or stds._G)
+   table.insert(add_stds, 1, base_std or stds.max)
    return add_stds
 end
 
@@ -389,7 +388,6 @@ end
 local scalar_options = {
    unused_secondaries = true,
    self = true,
-   inline = true,
    module = false,
    allow_defined = false,
    allow_defined_top = false,
@@ -399,7 +397,7 @@ local scalar_options = {
 -- Returns normalized options.
 -- Normalized options have fields:
 --    std: normalized std table, see `luacheck.standards` module;
---    unused_secondaries, self, inline, module, allow_defined, allow_defined_top: booleans;
+--    unused_secondaries, self, module, allow_defined, allow_defined_top: booleans;
 --    max_line_length: number or false;
 --    rules: see get_rules.
 function options.normalize(opts_stack, stds)

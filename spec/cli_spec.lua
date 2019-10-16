@@ -1,4 +1,3 @@
-local fs = require "luacheck.fs"
 local utils = require "luacheck.utils"
 local multithreading = require "luacheck.multithreading"
 local helper = require "spec.helper"
@@ -66,6 +65,10 @@ Checking spec/samples/good_code.lua               OK
 Total: 0 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/good_code.lua --no-config")
       assert.equal(0, get_exitcode "spec/samples/good_code.lua --no-config")
+   end)
+
+   it("allows measuring performance", function()
+      assert.equal(0, get_exitcode "spec/samples/good_code.lua --no-config --profile")
    end)
 
    it("removes ./ in the beginnings of file names", function()
@@ -415,10 +418,10 @@ Total: 5 warnings / 0 errors in 2 files
    end)
 
    it("handles bad rockspecs", function()
-      assert.equal([[
-Checking spec/samples/bad.rockspec                Syntax error
+      assert.matches([[
+Checking spec/samples/bad.rockspec                Runtime error
 
-    spec/samples/bad.rockspec: rockspec.build is not a table
+    spec/samples/bad%.rockspec: line 1: attempt to call .+
 
 Total: 0 warnings / 0 errors in 0 files, couldn't check 1 file
 ]], get_output "spec/samples/bad.rockspec --no-config")
@@ -529,8 +532,8 @@ Checking spec/samples/bad_flow.lua                6 warnings
 
     spec/samples/bad_flow.lua:1:28: empty if branch
     spec/samples/bad_flow.lua:6:4: empty do..end block
-    spec/samples/bad_flow.lua:12:15: right side of assignment has less values than left side expects
-    spec/samples/bad_flow.lua:16:15: right side of assignment has more values than left side expects
+    spec/samples/bad_flow.lua:12:10: right side of assignment has less values than left side expects
+    spec/samples/bad_flow.lua:16:10: right side of assignment has more values than left side expects
     spec/samples/bad_flow.lua:21:7: unreachable code
     spec/samples/bad_flow.lua:25:1: loop is executed at most once
 
@@ -683,6 +686,16 @@ Total: 7 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/global_fields.lua --config=spec/configs/custom_fields_config.luacheckrc")
    end)
 
+   it("detects fornums going from #(expr) down to 1 with positive step", function()
+      assert.equal([[
+Checking spec/samples/reversed_fornum.lua         1 warning
+
+    spec/samples/reversed_fornum.lua:1:1: numeric for loop goes from #(expr) down to -1.5 but loop step is not negative
+
+Total: 1 warning / 0 errors in 1 file
+]], get_output "spec/samples/reversed_fornum.lua --no-config")
+   end)
+
    it("allows showing warning codes", function()
       assert.equal([[
 Checking spec/samples/read_globals.lua            5 warnings
@@ -709,7 +722,7 @@ Checking spec/samples/inline_options.lua          8 warnings / 2 errors
     spec/samples/inline_options.lua:24:10-10: unused variable 'g'
     spec/samples/inline_options.lua:26:1-17: unpaired push directive
     spec/samples/inline_options.lua:28:4-19: unpaired pop directive
-    spec/samples/inline_options.lua:34:1-2: empty do..end block
+    spec/samples/inline_options.lua:34:1-6: empty do..end block
     spec/samples/inline_options.lua:35:10-13: empty if branch
 
 Checking spec/samples/python_code.lua             1 error
@@ -718,6 +731,23 @@ Checking spec/samples/python_code.lua             1 error
 
 Total: 8 warnings / 3 errors in 2 files
 ]], get_output "spec/samples/inline_options.lua spec/samples/python_code.lua --ranges --no-config")
+   end)
+
+   it("shows correct ranges for files with utf8", function()
+      assert.equal([[
+Checking spec/samples/utf8.lua                    4 warnings
+
+    spec/samples/utf8.lua:2:1-4: setting undefined field '분야 명' of global 'math'
+    spec/samples/utf8.lua:2:16-19: accessing undefined field '値' of global 'math'
+    spec/samples/utf8.lua:3:25-25: unused variable 't'
+    spec/samples/utf8.lua:4:5-28: value assigned to field 'päällekkäinen nimi a\u{200B}b' is overwritten on line 5 before use
+
+Checking spec/samples/utf8_error.lua              1 error
+
+    spec/samples/utf8_error.lua:2:11-11: expected statement near 'о'
+
+Total: 4 warnings / 1 error in 2 files
+]], get_output "spec/samples/utf8.lua spec/samples/utf8_error.lua --ranges --no-config")
    end)
 
    it("applies inline options", function()
@@ -799,172 +829,6 @@ Checking spec/samples/custom_std_inline_options.lua 3 warnings
 
 Total: 3 warnings / 0 errors in 1 file
 ]], get_output "spec/samples/custom_std_inline_options.lua --config=spec/configs/custom_stds_config.luacheckrc")
-   end)
-
-   it("inline options can be disabled", function()
-      assert.equal([[
-Checking spec/samples/inline_options.lua          26 warnings
-
-    spec/samples/inline_options.lua:3:1: accessing undefined variable 'foo'
-    spec/samples/inline_options.lua:4:1: accessing undefined variable 'bar'
-    spec/samples/inline_options.lua:6:16: unused function 'f'
-    spec/samples/inline_options.lua:6:18: unused argument 'a'
-    spec/samples/inline_options.lua:8:4: accessing undefined variable 'foo'
-    spec/samples/inline_options.lua:9:4: accessing undefined variable 'bar'
-    spec/samples/inline_options.lua:10:4: accessing undefined variable 'baz'
-    spec/samples/inline_options.lua:11:4: accessing undefined variable 'qu'
-    spec/samples/inline_options.lua:12:4: accessing undefined variable 'qu'
-    spec/samples/inline_options.lua:15:1: accessing undefined variable 'baz'
-    spec/samples/inline_options.lua:18:7: unused variable 'f'
-    spec/samples/inline_options.lua:18:7: variable 'f' was previously defined on line 6
-    spec/samples/inline_options.lua:20:7: unused variable 'g'
-    spec/samples/inline_options.lua:22:7: unused variable 'f'
-    spec/samples/inline_options.lua:22:7: variable 'f' was previously defined on line 18
-    spec/samples/inline_options.lua:22:10: unused variable 'g'
-    spec/samples/inline_options.lua:22:10: variable 'g' was previously defined on line 20
-    spec/samples/inline_options.lua:24:7: unused variable 'f'
-    spec/samples/inline_options.lua:24:7: variable 'f' was previously defined on line 22
-    spec/samples/inline_options.lua:24:10: unused variable 'g'
-    spec/samples/inline_options.lua:24:10: variable 'g' was previously defined on line 22
-    spec/samples/inline_options.lua:27:16: unused function 'f'
-    spec/samples/inline_options.lua:27:16: variable 'f' was previously defined on line 24
-    spec/samples/inline_options.lua:32:1: empty do..end block
-    spec/samples/inline_options.lua:34:1: empty do..end block
-    spec/samples/inline_options.lua:35:10: empty if branch
-
-Total: 26 warnings / 0 errors in 1 file
-]], get_output "spec/samples/inline_options.lua --std=none --no-inline --no-config")
-   end)
-
-   describe("caching", function()
-      local tmpname
-
-      before_each(function()
-         tmpname = os.tmpname()
-
-         -- Work around os.tmpname being broken on Windows sometimes.
-         if utils.is_windows and not tmpname:find(':') then
-            tmpname = os.getenv("TEMP") .. tmpname
-         end
-      end)
-
-      after_each(function()
-         os.remove(tmpname)
-      end)
-
-      it("caches results", function()
-         local normal_output = [[
-Checking spec/samples/good_code.lua               OK
-Checking spec/samples/bad_code.lua                5 warnings
-
-    spec/samples/bad_code.lua:3:16: unused function 'helper'
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'
-    spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'
-
-Checking spec/samples/python_code.lua             1 error
-
-    spec/samples/python_code.lua:1:6: expected '=' near '__future__'
-
-Total: 5 warnings / 1 error in 3 files
-]]
-
-         local mocked_output = [[
-Checking spec/samples/good_code.lua               1 error
-
-    spec/samples/good_code.lua:5:7: this code is actually bad
-
-Checking spec/samples/bad_code.lua                5 warnings
-
-    spec/samples/bad_code.lua:3:16: unused function 'helper'
-    spec/samples/bad_code.lua:3:23: unused variable length argument
-    spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'
-    spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7
-    spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'
-
-Checking spec/samples/python_code.lua             2 warnings
-
-    spec/samples/python_code.lua:1:1: setting non-standard global variable 'global'
-    spec/samples/python_code.lua:6:8: accessing uninitialized variable 'uninit'
-
-Checking spec/samples/unused_code.lua             9 warnings
-
-    spec/samples/unused_code.lua:3:18: unused argument 'baz'
-    spec/samples/unused_code.lua:4:8: unused loop variable 'i'
-    spec/samples/unused_code.lua:5:13: unused variable 'q'
-    spec/samples/unused_code.lua:7:11: unused loop variable 'a'
-    spec/samples/unused_code.lua:7:14: unused loop variable 'b'
-    spec/samples/unused_code.lua:7:17: unused loop variable 'c'
-    spec/samples/unused_code.lua:13:7: value assigned to variable 'x' is overwritten on line 14 before use
-    spec/samples/unused_code.lua:14:1: value assigned to variable 'x' is overwritten on line 15 before use
-    spec/samples/unused_code.lua:21:7: variable 'z' is never accessed
-
-Total: 16 warnings / 1 error in 4 files
-]]
-
-         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
-
-         local cache = utils.read_file(tmpname)
-         assert.string(cache)
-
-         local function replace_abspath(s)
-            return (s:gsub("abspath{(.-)}", function(p) return fs.normalize(fs.join(fs.get_current_dir(), p)) end))
-         end
-
-         -- luacheck: push no max string line length
-         local format_version, good_mtime, bad_mtime, python_mtime = cache:match(replace_abspath([[
-
-(%d+)
-abspath{spec/samples/good_code.lua}
-(%d+)
-local A,B="561","function";return {{{A,[3]=1,[4]=1,[5]=1,[29]=1,[31]="main_chunk"},{A,[3]=3,[4]=7,[5]=14,[29]=1,[30]="helper",[31]=B},{A,[3]=7,[4]=1,[5]=8,[29]=2,[30]="embracer.embrace",[31]=B}},{},{19,0,23,17,3,0,30,25,26,3,0,15},{[4]="comment"}}
-abspath{spec/samples/bad_code.lua}
-(%d+)
-local A,B,C,D,E,F="package","561","helper","function","embrace","hepler";return {{{"112",A,1,1,7,[24]={A,"loaded",true}},{B,[3]=1,[4]=1,[5]=1,[29]=1,[31]="main_chunk"},{B,[3]=3,[4]=7,[5]=14,[29]=1,[30]=C,[31]=D},{"211",C,3,16,21,[11]=true},{"212","...",3,23,25},{B,[3]=7,[4]=1,[5]=8,[29]=2,[30]=E,[31]=D},{"111",E,7,10,16,[12]=true,[24]={E}},{"412","opt",8,10,12,7,18,20},{"113",F,9,11,16,[24]={F}}},{},{24,0,26,9,3,0,21,31,26,3,0},{[4]="comment"}}
-abspath{spec/samples/python_code.lua}
-(%d+)
-return {{{"011",[3]=1,[4]=6,[5]=15,[13]="expected '=' near '__future__'"}},{},{},{}}
-]]):gsub("[%[%]%-]", "%%%0"), nil)
-         -- luacheck: pop
-
-         format_version = tonumber(format_version)
-         assert.number(format_version, "Cache string is:" .. cache)
-         assert.string(good_mtime)
-         assert.string(bad_mtime)
-         assert.string(python_mtime)
-
-         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
-
-         local function write_new_cache(version)
-            local fh = io.open(tmpname, "wb")
-            assert.userdata(fh)
-            fh:write(replace_abspath([[
-%s
-abspath{spec/samples/python_code.lua}
-%s
-return {{{"111", "global", 1, 1, [24]={"global"}}, {"321", "uninit", 6, 8}},{},{},{}}
-abspath{spec/samples/good_code.lua}
-%s
-return {{{"011",[3]=5,[4]=7,[13]="this code is actually bad"}},{},{},{}}
-abspath{spec/samples/bad_code.lua}
-%s
-return {{},{},{}}]]):format(version, python_mtime, good_mtime, tostring(tonumber(bad_mtime) - 1)))
-            fh:close()
-         end
-
-         write_new_cache("\n"..tostring(format_version))
-         assert.equal(mocked_output,
-            get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
-         assert.equal(mocked_output,
-            get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua spec/samples/unused_code.lua --std=lua52 --no-config --cache "..tmpname))
-
-         write_new_cache("\n"..tostring(format_version + 1))
-         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
-
-         write_new_cache("")
-         assert.equal(normal_output, get_output("spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --no-config --cache "..tmpname))
-      end)
    end)
 
    if not multithreading.has_lanes then
@@ -1122,11 +986,11 @@ spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
 
    it("provides version info", function()
       local output = get_output "--version"
-      assert.truthy(output:match("^Luacheck: [%w%p ]+\nLua: [%w%p ]+\nLuaFileSystem: [%w%p ]+\nLuaLanes: [%w%p ]+\n$"))
+      assert.truthy(output:match("^Luacheck: [%w%p ]+\nLua: [%w%p ]+\nArgparse: [%w%p ]+\nLuaFileSystem: [%w%p ]+\nLuaLanes: [%w%p ]+\n$"))
    end)
 
    it("expands folders", function()
-      assert.matches("^Total: %d+ warnings / %d+ errors in 23 files\n$", get_output "spec/samples -qqq --no-config --exclude-files spec/samples/global_fields.lua")
+      assert.matches("^Total: %d+ warnings / %d+ errors in 26 files\n$", get_output "spec/samples -qqq --no-config --exclude-files spec/samples/global_fields.lua")
    end)
 
    it("uses --include-files when expanding folders", function()
@@ -1214,6 +1078,71 @@ Total: 4 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/bad_code.lua spec/samples/unused_code.lua --config=spec/configs/override_config.luacheckrc")
          end)
 
+         it("adds per-file overrides with default stds", function()
+            assert.equal(([[
+Checking .luacheckrc                              3 warnings
+
+    .luacheckrc:14:6: accessing undefined variable 'it'
+    .luacheckrc:14:10: accessing undefined variable 'version'
+    .luacheckrc:14:25: accessing undefined variable 'newproxy'
+
+Checking default_stds-scm-1.rockspec              3 warnings
+
+    default_stds-scm-1.rockspec:13:1: accessing undefined variable 'it'
+    default_stds-scm-1.rockspec:13:21: accessing undefined variable 'newproxy'
+    default_stds-scm-1.rockspec:13:37: accessing undefined variable 'new_globals'
+
+Checking nested/spec/sample_spec.lua              3 warnings
+
+    nested/spec/sample_spec.lua:1:39: accessing undefined variable 'newproxy'
+    nested/spec/sample_spec.lua:1:55: accessing undefined variable 'version'
+    nested/spec/sample_spec.lua:1:64: accessing undefined variable 'read_globals'
+
+Checking normal_file.lua                          4 warnings
+
+    normal_file.lua:1:1: accessing undefined variable 'it'
+    normal_file.lua:1:29: accessing undefined variable 'newproxy'
+    normal_file.lua:1:45: accessing undefined variable 'version'
+    normal_file.lua:1:54: accessing undefined variable 'read_globals'
+
+Checking sample_spec.lua                          4 warnings
+
+    sample_spec.lua:1:1: accessing undefined variable 'it'
+    sample_spec.lua:1:28: accessing undefined variable 'newproxy'
+    sample_spec.lua:1:44: accessing undefined variable 'version'
+    sample_spec.lua:1:53: accessing undefined variable 'read_globals'
+
+Checking test/nested_normal_file.lua              4 warnings
+
+    test/nested_normal_file.lua:1:1: accessing undefined variable 'it'
+    test/nested_normal_file.lua:1:47: accessing undefined variable 'newproxy'
+    test/nested_normal_file.lua:1:63: accessing undefined variable 'version'
+    test/nested_normal_file.lua:1:72: accessing undefined variable 'read_globals'
+
+Checking test/sample_spec.lua                     5 warnings
+
+    test/sample_spec.lua:1:1: accessing undefined variable 'it'
+    test/sample_spec.lua:1:37: accessing undefined variable 'newproxy'
+    test/sample_spec.lua:1:47: accessing undefined variable 'math'
+    test/sample_spec.lua:1:53: accessing undefined variable 'version'
+    test/sample_spec.lua:1:62: accessing undefined variable 'read_globals'
+
+Checking tests/nested/sample_spec.lua             3 warnings
+
+    tests/nested/sample_spec.lua:1:44: accessing undefined variable 'newproxy'
+    tests/nested/sample_spec.lua:1:60: accessing undefined variable 'version'
+    tests/nested/sample_spec.lua:1:69: accessing undefined variable 'read_globals'
+
+Checking tests/sample_spec.lua                    3 warnings
+
+    tests/sample_spec.lua:1:17: accessing undefined variable 'newproxy'
+    tests/sample_spec.lua:1:33: accessing undefined variable 'version'
+    tests/sample_spec.lua:1:42: accessing undefined variable 'read_globals'
+
+Total: 32 warnings / 0 errors in 9 files
+]]):gsub("([a-z])/", "%1" .. package.config:sub(1, 1)), get_output(". --include-files .", "spec/projects/default_stds/"))
+         end)
+
          it("uses new filename when selecting per-file overrides", function()
             assert.equal([[
 Checking spec/samples/unused_code.lua             OK
@@ -1271,7 +1200,7 @@ Codes: true
 
          it("uses exclude_files option", function()
             assert.equal(([[
-Checking spec/samples/argparse.lua                9 warnings
+Checking spec/samples/argparse-0.2.0.lua          9 warnings
 Checking spec/samples/compat.lua                  4 warnings
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
 Checking spec/samples/global_inline_options.lua   3 warnings
@@ -1283,17 +1212,20 @@ Checking spec/samples/python_code.lua             1 error
 Checking spec/samples/read_globals.lua            5 warnings
 Checking spec/samples/read_globals_inline_options.lua 3 warnings
 Checking spec/samples/redefined.lua               7 warnings
+Checking spec/samples/reversed_fornum.lua         1 warning
 Checking spec/samples/unused_code.lua             9 warnings
 Checking spec/samples/unused_secondaries.lua      4 warnings
+Checking spec/samples/utf8.lua                    4 warnings
+Checking spec/samples/utf8_error.lua              1 error
 
-Total: 67 warnings / 4 errors in 16 files
+Total: 72 warnings / 5 errors in 19 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files spec/samples/global_fields.lua")
          end)
 
          it("loads exclude_files option correctly from upper directory", function()
             assert.equal([[
-Checking argparse.lua                             9 warnings
+Checking argparse-0.2.0.lua                       9 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
@@ -1305,16 +1237,19 @@ Checking python_code.lua                          1 error
 Checking read_globals.lua                         5 warnings
 Checking read_globals_inline_options.lua          3 warnings
 Checking redefined.lua                            7 warnings
+Checking reversed_fornum.lua                      1 warning
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
+Checking utf8.lua                                 4 warnings
+Checking utf8_error.lua                           1 error
 
-Total: 67 warnings / 4 errors in 16 files
+Total: 72 warnings / 5 errors in 19 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua", "spec/samples/"))
          end)
 
          it("combines excluded files from config and cli", function()
             assert.equal([[
-Checking argparse.lua                             9 warnings
+Checking argparse-0.2.0.lua                       9 warnings
 Checking compat.lua                               4 warnings
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
@@ -1324,10 +1259,13 @@ Checking inline_options.lua                       7 warnings / 2 errors
 Checking line_length.lua                          8 warnings
 Checking python_code.lua                          1 error
 Checking redefined.lua                            7 warnings
+Checking reversed_fornum.lua                      1 warning
 Checking unused_code.lua                          9 warnings
 Checking unused_secondaries.lua                   4 warnings
+Checking utf8.lua                                 4 warnings
+Checking utf8_error.lua                           1 error
 
-Total: 59 warnings / 4 errors in 14 files
+Total: 64 warnings / 5 errors in 17 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 
@@ -1426,12 +1364,12 @@ Total: 2 warnings / 0 errors in 1 file
             it("does not use global path as fallback if --config is used", function()
                assert.equal([[
 Files: 1
-Warnings: 2
+Warnings: 4
 Errors: 0
 Quiet: 0
 Color: false
 Codes: true
-]], get_output "spec/samples/compat.lua --default-config=spec/configs/global_config.luacheckrc --config=spec/configs/cli_specific_config.luacheckrc")
+]], get_output "spec/samples/compat.lua --std=min --default-config=spec/configs/global_config.luacheckrc --config=spec/configs/cli_specific_config.luacheckrc")
             end)
 
             it("does not use global path as fallback if --no-config is used", function()

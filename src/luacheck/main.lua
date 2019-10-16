@@ -1,9 +1,9 @@
-local argparse = require "luacheck.argparse"
-local builtin_standards = require "luacheck.builtin_standards"
+local argparse = require "argparse"
+local cache = require "luacheck.cache"
 local config = require "luacheck.config"
-local fs = require "luacheck.fs"
 local luacheck = require "luacheck"
 local multithreading = require "luacheck.multithreading"
+local profiler = require "luacheck.profiler"
 local runner = require "luacheck.runner"
 local utils = require "luacheck.utils"
 local version = require "luacheck.version"
@@ -30,14 +30,7 @@ Links:
    Luacheck documentation: https://luacheck.readthedocs.org]])
       :help_max_width(80)
 
-   local lfs_dir_notice = ""
-
-   if not fs.has_lfs then
-      lfs_dir_notice = "\nWarning: LuaFileSystem not found, directory checking disabled."
-   end
-
-   parser:argument "files"
-      :description("List of files, directories and rockspecs to check. Pass '-' to check stdin." .. lfs_dir_notice)
+   parser:argument("files", "List of files, directories and rockspecs to check. Pass '-' to check stdin.")
       :args "+"
       :argname "<file>"
 
@@ -78,17 +71,10 @@ Links:
          :action "concat"
          :init(nil))
 
-   local default_std_name = "max"
-
-   for _, name in ipairs({"lua51c", "lua52c", "lua53c", "luajit"}) do
-      if builtin_standards._G == builtin_standards[name] then
-         default_std_name = name
-         break
-      end
-   end
-
    parser:group("Options for configuring allowed globals",
-      parser:option("--std", ("Set standard globals, default is _G. <std> can be one of:\n" ..
+      parser:option("--std", "Set standard globals, default is max. <std> can be one of:\n" ..
+         "   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
+         "   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
          "   lua51 - globals of Lua 5.1 without deprecated ones;\n" ..
          "   lua51c - globals of Lua 5.1;\n" ..
          "   lua52 - globals of Lua 5.2;\n" ..
@@ -97,16 +83,14 @@ Links:
          "   lua53c - globals of Lua 5.3 with LUA_COMPAT_5_2;\n" ..
          "   luajit - globals of LuaJIT 2.x;\n" ..
          "   ngx_lua - globals of Openresty lua-nginx-module 0.10.10, including standard LuaJIT 2.x globals;\n" ..
-         "   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
-         "   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
-         "   _G - same as lua51c, lua52c, lua53c, or luajit depending on version of Lua used to run luacheck " ..
-         "or same as max if couldn't detect the version. Currently %s;\n" ..
-         "   love - globals added by LOVE (love2d);\n" ..
-         "   busted - globals added by Busted 2.0;\n" ..
-         "   rockspec - globals allowed in rockspecs;\n" ..
+         "   love - globals added by LÖVE;\n" ..
+         "   busted - globals added by Busted 2.0, by default added for files ending with _spec.lua within spec, " ..
+         "test, and tests subdirectories;\n" ..
+         "   rockspec - globals allowed in rockspecs, by default added for files ending with .rockspec;\n" ..
+         "   luacheckrc - globals allowed in Luacheck configs, by default added for files ending with .luacheckrc;\n" ..
          "   none - no standard globals.\n\n" ..
          "Sets can be combined using '+'. Extra sets can be defined in config by " ..
-         "adding to `stds` global."):format(default_std_name)),
+         "adding to `stds` global in config."),
       parser:flag("-c --compat", "Equivalent to --std max."),
 
       parser:option("--globals", "Add custom global variables (e.g. foo) or fields (e.g. foo.bar) " ..
@@ -183,8 +167,6 @@ Links:
       :action "store_false"
       :target "max_cyclomatic_complexity"
 
-   parser:flag("--no-inline", "Disable inline options."):target("inline"):action("store_false")
-
    local default_global_path = config.get_default_global_path()
 
    local config_opt = parser:option("--config", "Path to configuration file. (default: "..config.default_path..")")
@@ -225,13 +207,8 @@ Links:
 
    parser:option("--filename", "Use another filename in output and for selecting configuration overrides.")
 
-   local lfs_cache_notice = ""
-
-   if not fs.has_lfs then
-      lfs_cache_notice = "\nWarning: LuaFileSystem not found, caching disabled."
-   end
-
-   local cache_opt = parser:option("--cache", "Path to cache file (default: .luacheckcache)." .. lfs_cache_notice)
+   local cache_opt = parser:option("--cache", ("Path to cache directory. (default: %s)"):format(
+         cache.get_default_dir()))
       :args "?"
 
    local no_cache_opt = parser:flag("--no-cache", "Do not use cache.")
@@ -270,6 +247,8 @@ Links:
          :action "store_false"
          :target "color")
 
+   parser:flag("--profile", "Show performance statistics."):hidden(true)
+
    parser:flag("-v --version", "Show version info and exit.")
       :action(function() print(version.string) os.exit(exit_codes.ok) end)
 
@@ -284,16 +263,17 @@ local function main()
       os.exit(exit_codes.critical)
    end
 
+   if args.profile then
+      args.jobs = 1
+      profiler.init()
+   end
+
    if args.quiet == 0 then
       args.quiet = nil
    end
 
    if args.cache then
-      if fs.has_lfs then
-         args.cache = args.cache[1] or true
-      else
-         args.cache = nil
-      end
+      args.cache = args.cache[1] or true
    end
 
    local checker, err, is_invalid_args_error = runner.new(args)
@@ -342,6 +322,10 @@ local function main()
    end
 
    io.stdout:write(output)
+
+   if args.profile then
+      profiler.report()
+   end
 
    if report.fatals > 0 then
       os.exit(exit_codes.fatals)

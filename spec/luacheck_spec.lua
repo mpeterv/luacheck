@@ -71,7 +71,6 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               indexing = {"embrace"},
                top = true
             },
             {
@@ -80,8 +79,7 @@ describe("luacheck", function()
             },
             {
                code = "113",
-               name = "hepler",
-               indexing = {"hepler"}
+               name = "hepler"
             }
          },
          {
@@ -107,7 +105,6 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               indexing = {"embrace"},
                top = true
             },
             {
@@ -116,8 +113,7 @@ describe("luacheck", function()
             },
             {
                code = "113",
-               name = "hepler",
-               indexing = {"hepler"}
+               name = "hepler"
             }
          },
          {
@@ -145,13 +141,11 @@ describe("luacheck", function()
             {
                code = "111",
                name = "embrace",
-               indexing = {"embrace"},
                top = true
             },
             {
                code = "113",
-               name = "hepler",
-               indexing = {"hepler"}
+               name = "hepler"
             }
          },
          {
@@ -210,8 +204,7 @@ describe("check_strings", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
@@ -274,7 +267,7 @@ describe("check_strings", function()
                code = "511",
                line = 9,
                column = 1,
-               end_column = 1
+               end_column = 5
             }
          },
          warnings = 4,
@@ -306,14 +299,14 @@ do return t end
                code = "023",
                line = 3,
                column = 4,
-               end_column = 26
+               end_column = 19
             },
             {
                code = "021",
                msg = "unknown inline option 'some invalid comment'",
-               line = 6,
-               column = 10,
-               end_column = 14
+               line = 7,
+               column = 3,
+               end_column = 35
             }
          },
          warnings = 0,
@@ -322,12 +315,11 @@ do return t end
       }, luacheck.check_strings({[[
 -- luacheck: push
 local function f()
-   --[=[ luacheck: pop ]=]
+   -- luacheck: pop
 end
 
-return f --[=[
-   luacheck: some invalid comment
-]=]
+return f
+  -- luacheck: some invalid comment
 ]]}))
    end)
 
@@ -356,8 +348,8 @@ return f --[=[
                code = "011",
                msg = "expected 'then' near <eof>",
                line = 1,
-               column = 9,
-               end_column = 9
+               column = 8,
+               end_column = 8
             }
          },
          {
@@ -423,8 +415,7 @@ return f --[=[
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
@@ -448,7 +439,7 @@ describe("get_report", function()
    end)
 
    it("returns a table with single error event on syntax error", function()
-      local report = strip_locations({luacheck.get_report("return return").events})[1]
+      local report = strip_locations({luacheck.get_report("return return").warnings})[1]
       assert.same({code = "011", msg = "expected expression near 'return'"}, report[1])
    end)
 end)
@@ -474,8 +465,7 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {},
@@ -491,15 +481,14 @@ describe("process_reports", function()
          {
             {
                code = "113",
-               name = "foo",
-               indexing = {"foo"}
+               name = "foo"
             }
          },
          {
             {
                code = "113",
                name = "math",
-               indexing = {"math", "floor"}
+               indexing = {"floor"}
             }
          },
          warnings = 2,

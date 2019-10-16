@@ -1,4 +1,7 @@
-local unpack = table.unpack or unpack -- luacheck: compat
+-- luacheck: push compat
+local unpack = table.unpack or unpack
+local pack = table.pack or function(...) return {n = select("#", ...), ...} end
+-- luacheck: pop
 
 local utils = {}
 
@@ -120,19 +123,17 @@ function utils.update(t1, t2)
    return t1
 end
 
-function utils.remove(t1, t2)
-   for k in pairs(t2) do
-      t1[k] = nil
-   end
-end
-
 local class_metatable = {}
 
 function class_metatable.__call(class, ...)
    local obj = setmetatable({}, class)
 
    if class.__init then
-      class.__init(obj, ...)
+      local init_returns = pack(class.__init(obj, ...))
+
+      if init_returns.n > 0 then
+         return unpack(init_returns, 1, init_returns.n)
+      end
    end
 
    return obj
@@ -276,39 +277,6 @@ function utils.split(str, sep)
    end
 
    return parts
-end
-
--- Splits a string into an array of lines.
--- "\n", "\r", "\r\n", and "\n\r" are considered
--- line endings to be consistent with Lua lexer.
-function utils.split_lines(str)
-   local lines = {}
-   local pos = 1
-
-   while true do
-      local line_end_pos, _, line_end = str:find("([\n\r])", pos)
-
-      if not line_end_pos then
-         break
-      end
-
-      local line = str:sub(pos, line_end_pos - 1)
-      table.insert(lines, line)
-
-      pos = line_end_pos + 1
-      local next_char = str:sub(pos, pos)
-
-      if next_char:match("[\n\r]") and next_char ~= line_end then
-         pos = pos + 1
-      end
-   end
-
-   if pos <= #str then
-      local last_line = str:sub(pos)
-      table.insert(lines, last_line)
-   end
-
-   return lines
 end
 
 utils.InvalidPatternError = utils.class()

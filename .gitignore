@@ -1,7 +1,13 @@
-bin/luacheck
 .luacheckcache
 luacov.stats.out
 luacov.report.out
 doc
-build
+!build/
+build/*
+!build/Makefile
+!build/bin
+build/bin/*
+!build/bin/luacheck.lua
 package
+scripts/UnicodeData-*
+docsrc/.doctrees

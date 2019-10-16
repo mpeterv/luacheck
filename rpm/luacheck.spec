@@ -30,7 +30,7 @@ chmod +x luacheck
 mkdir -p %{buildroot}%{_bindir}
 mv luacheck %{buildroot}%{_bindir}/luacheck
 mkdir -p %{buildroot}%{_prefix}/share/tarantool/luacheck/
-cp ./src/luacheck/* %{buildroot}%{_prefix}/share/tarantool/luacheck/
+cp -r ./src/luacheck/* %{buildroot}%{_prefix}/share/tarantool/luacheck/
 
 %files
 %{_prefix}/share/tarantool/luacheck

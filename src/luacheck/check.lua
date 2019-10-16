@@ -1,66 +1,39 @@
-local detect_bad_whitespace = require "luacheck.detect_bad_whitespace"
-local detect_cyclomatic_complexity = require "luacheck.detect_cyclomatic_complexity"
-local detect_globals = require "luacheck.detect_globals"
-local detect_uninit_access = require "luacheck.detect_uninit_access"
-local detect_unreachable_code = require "luacheck.detect_unreachable_code"
-local detect_unused_locals = require "luacheck.detect_unused_locals"
-local detect_unused_rec_funcs = require "luacheck.detect_unused_rec_funcs"
-local inline_options = require "luacheck.inline_options"
-local linearize = require "luacheck.linearize"
-local name_functions = require "luacheck.name_functions"
+local check_state = require "luacheck.check_state"
+local core_utils = require "luacheck.core_utils"
+local parse_inline_options = require "luacheck.stages.parse_inline_options"
 local parser = require "luacheck.parser"
-local resolve_locals = require "luacheck.resolve_locals"
+local stages = require "luacheck.stages"
 local utils = require "luacheck.utils"
 
-local function new_empty_statement_warning(location)
-   return {
-      code = "551",
-      line = location.line,
-      column = location.column,
-      end_column = location.column
-   }
-end
+local inline_option_fields = utils.array_to_set(parse_inline_options.inline_option_fields)
 
-local function detect_empty_statements(chstate)
-   for _, location in ipairs(chstate.useless_semicolons) do
-      table.insert(chstate.warnings, new_empty_statement_warning(location))
+local function validate_fields(tables, per_code_fields)
+   for _, t in ipairs(tables) do
+      local fields_set
+
+      if per_code_fields then
+         if not t.code then
+            error("Warning has no code", 0)
+         end
+
+         local warning_info = stages.warnings[t.code]
+
+         if not warning_info then
+            error("Unknown issue code " .. t.code, 0)
+         end
+
+         fields_set = warning_info.fields_set
+      else
+         fields_set = inline_option_fields
+      end
+
+      for field in pairs(t) do
+         if not fields_set[field] then
+            error("Unknown field " .. field .. " in " ..
+               (per_code_fields and "issue with code " .. t.code or "inline option table"), 0)
+         end
+      end
    end
-end
-
-local function check_or_throw(src)
-   local ast, comments, code_lines, line_endings, useless_semicolons = parser.parse(src)
-
-   local chstate = {
-      ast = ast,
-      comments = comments,
-      code_lines = code_lines,
-      line_endings = line_endings,
-      useless_semicolons = useless_semicolons,
-      source_lines = utils.split_lines(src),
-      warnings = {}
-   }
-
-   linearize(chstate)
-   name_functions(chstate)
-   resolve_locals(chstate)
-
-   detect_bad_whitespace(chstate)
-   detect_cyclomatic_complexity(chstate)
-   detect_empty_statements(chstate)
-   detect_globals(chstate)
-   detect_uninit_access(chstate)
-   detect_unreachable_code(chstate)
-   detect_unused_locals(chstate)
-   detect_unused_rec_funcs(chstate)
-
-   local events, per_line_options = inline_options.get_events(chstate)
-
-   return {
-      events = events,
-      per_line_options = per_line_options,
-      line_lengths = utils.map(function(s) return #s end, chstate.source_lines),
-      line_endings = line_endings
-   }
 end
 
 --- Checks source.
@@ -71,32 +44,53 @@ end
 --    `line_endings`: map from line numbers to "comment", "string", or `nil` base on
 --                    whether the line ending is within a token.
 -- If `events` array contains a syntax error, the other fields are empty tables.
-local function check(src)
-   local ok, res = utils.try(check_or_throw, src)
+local function check(source)
+   local chstate = check_state.new(source)
+   local ok, error_wrapper = utils.try(stages.run, chstate)
+   local warnings, inline_options, line_lengths, line_endings
 
    if ok then
-      return res
-   elseif utils.is_instance(res.err, parser.SyntaxError) then
+      warnings = chstate.warnings
+      core_utils.sort_by_location(warnings)
+      inline_options = chstate.inline_options
+      line_lengths = chstate.line_lengths
+      line_endings = chstate.line_endings
+   else
+      local err = error_wrapper.err
+
+      if not utils.is_instance(err, parser.SyntaxError) then
+         error(error_wrapper, 0)
+      end
+
       local syntax_error = {
          code = "011",
-         line = res.err.line,
-         column = res.err.column,
-         end_column = res.err.end_column,
-         prev_line = res.err.prev_line,
-         prev_column = res.err.prev_column,
-         prev_end_column = res.err.prev_end_column,
-         msg = res.err.msg
+         line = err.line,
+         column = chstate:offset_to_column(err.line, err.offset),
+         end_column = chstate:offset_to_column(err.line, err.end_offset),
+         msg = err.msg
       }
 
-      return {
-         events = {syntax_error},
-         per_line_options = {},
-         line_lengths = {},
-         line_endings = {}
-      }
-   else
-      error(res, 0)
+      if err.prev_line then
+         syntax_error.prev_line = err.prev_line
+         syntax_error.prev_column = chstate:offset_to_column(err.prev_line, err.prev_offset)
+         syntax_error.prev_end_column = chstate:offset_to_column(err.prev_line, err.prev_end_offset)
+      end
+
+      warnings = {syntax_error}
+      inline_options = {}
+      line_lengths = {}
+      line_endings = {}
    end
+
+   validate_fields(warnings, true)
+   validate_fields(inline_options)
+
+   return {
+      warnings = warnings,
+      inline_options = inline_options,
+      line_lengths = line_lengths,
+      line_endings = line_endings
+   }
 end
 
 return check

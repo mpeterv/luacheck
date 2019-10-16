@@ -1,15 +1,11 @@
-local linearize = require "luacheck.linearize"
-local parser = require "luacheck.parser"
+local helper = require "spec.helper"
 
-local function get_line_(src)
-   local ast = parser.parse(src)
-   local chstate = {ast = ast, warnings = {}}
-   linearize(chstate)
-   return chstate.main_line
+local function get_line_or_throw(src)
+   return helper.get_chstate_after_stage("linearize", src).top_line
 end
 
 local function get_line(src)
-   local ok, res = pcall(get_line_, src)
+   local ok, res = pcall(get_line_or_throw, src)
 
    if ok or type(res) == "table" then
       return res
@@ -22,7 +18,7 @@ local function item_to_string(item)
    if item.tag == "Jump" or item.tag == "Cjump" then
       return item.tag .. " -> " .. tostring(item.to)
    elseif item.tag == "Eval" then
-      return "Eval " .. item.expr.tag
+      return "Eval " .. item.node.tag
    elseif item.tag == "Local" then
       local buf = {}
 
@@ -53,7 +49,7 @@ local function value_info_to_string(item)
    for var, value in pairs(item.set_variables) do
       table.insert(buf, ("%s (%s / %s%s%s%s)"):format(
          var.name, var.type, value.type,
-         value.empty and ", empty" or (value.initial and ", initial" or ""),
+         value.empty and ", empty" or "",
          value.secondaries and (", " .. tostring(#value.secondaries) .. " secondaries") or "",
          value.secondaries and value.secondaries.used and ", used" or ""))
    end
@@ -79,27 +75,27 @@ end
 describe("linearize", function()
    describe("when handling post-parse syntax errors", function()
       it("detects gotos without labels", function()
-         assert.same({line = 1, column = 1, end_column = 4, msg = "no visible label 'fail'"},
+         assert.same({line = 1, offset = 1, end_offset = 4, msg = "no visible label 'fail'"},
             get_line("goto fail"))
       end)
 
       it("detects break outside loops", function()
-         assert.same({line = 1, column = 1, end_column = 5, msg = "'break' is not inside a loop"},
+         assert.same({line = 1, offset = 1, end_offset = 5, msg = "'break' is not inside a loop"},
             get_line("break"))
-         assert.same({line = 1, column = 28, end_column = 32, msg = "'break' is not inside a loop"},
+         assert.same({line = 1, offset = 28, end_offset = 32, msg = "'break' is not inside a loop"},
             get_line("while true do function f() break end end"))
       end)
 
       it("detects duplicate labels", function()
-         assert.same({line = 2, column = 1, end_column = 8, prev_line = 1, prev_column = 1, prev_end_column = 8,
+         assert.same({line = 2, offset = 10, end_offset = 17, prev_line = 1, prev_offset = 1, prev_end_offset = 8,
             msg = "label 'fail' already defined on line 1"},
             get_line("::fail::\n::fail::"))
       end)
 
       it("detects varargs outside vararg functions", function()
-         assert.same({line = 1, column = 21, end_column = 23, msg = "cannot use '...' outside a vararg function"},
+         assert.same({line = 1, offset = 21, end_offset = 23, msg = "cannot use '...' outside a vararg function"},
             get_line("function f() return ... end"))
-         assert.same({line = 1, column = 42, end_column = 44, msg = "cannot use '...' outside a vararg function"},
+         assert.same({line = 1, offset = 42, end_offset = 44, msg = "cannot use '...' outside a vararg function"},
             get_line("function f(...) return function() return ... end end"))
       end)
    end)
@@ -353,13 +349,13 @@ end]]))
    describe("when registering values", function()
       it("registers values in empty chunk correctly", function()
          assert.equal([[
-Local: ... (arg / arg, initial)]], get_value_info_as_string(""))
+Local: ... (arg / arg)]], get_value_info_as_string(""))
       end)
 
       it("registers values in assignments correctly", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
-Local: a (var / var, initial)
+Local: ... (arg / arg)
+Local: a (var / var)
 Set: a (var / var)]], get_value_info_as_string([[
 local a = b
 a = d]]))
@@ -367,8 +363,8 @@ a = d]]))
 
       it("registers empty values correctly", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
-Local: a (var / var, initial), b (var / var, empty)
+Local: ... (arg / arg)
+Local: a (var / var), b (var / var, empty)
 Set: a (var / var), b (var / var)]], get_value_info_as_string([[
 local a, b = 4
 a, b = 5]]))
@@ -376,23 +372,23 @@ a, b = 5]]))
 
       it("registers function values as of type func", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
-Local: f (var / func, initial)]], get_value_info_as_string([[
+Local: ... (arg / arg)
+Local: f (var / func)]], get_value_info_as_string([[
 local function f() end]]))
       end)
 
       it("registers overwritten args and counters as of type var", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
-Local: i (loopi / loopi, initial)
+Local: ... (arg / arg)
+Local: i (loopi / loopi)
 Set: i (loopi / var)]], get_value_info_as_string([[
 for i = 1, 10 do i = 6 end]]))
       end)
 
       it("registers groups of secondary values", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
-Local: a (var / var, initial), b (var / var, initial, 2 secondaries), c (var / var, initial, 2 secondaries)
+Local: ... (arg / arg)
+Local: a (var / var), b (var / var, 2 secondaries), c (var / var, 2 secondaries)
 Set: a (var / var), b (var / var, 2 secondaries), c (var / var, 2 secondaries)]], get_value_info_as_string([[
 local a, b, c = f(), g()
 a, b, c = f(), g()]]))
@@ -400,7 +396,7 @@ a, b, c = f(), g()]]))
 
       it("marks groups of secondary values used if one of values is put into global or index", function()
          assert.equal([[
-Local: ... (arg / arg, initial)
+Local: ... (arg / arg)
 Local: a (var / var, empty)
 Set: a (var / var, 1 secondaries, used)]], get_value_info_as_string([[
 local a

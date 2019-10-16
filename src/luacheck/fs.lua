@@ -1,16 +1,7 @@
 local fs = {}
 
+local lfs = require "lfs"
 local utils = require "luacheck.utils"
-
-fs.has_lfs = pcall(require, "lfs")
-
-local base_fs
-
-if fs.has_lfs then
-   base_fs = require "luacheck.lfs_fs"
-else
-   base_fs = require "luacheck.lua_fs"
-end
 
 local function ensure_dir_sep(path)
    if path:sub(-1) ~= utils.dir_sep then
@@ -105,11 +96,11 @@ function fs.is_subpath(path, subpath)
 end
 
 function fs.is_dir(path)
-   return base_fs.get_mode(path) == "directory"
+   return lfs.attributes(path, "mode") == "directory"
 end
 
 function fs.is_file(path)
-   return base_fs.get_mode(path) == "file"
+   return lfs.attributes(path, "mode") == "file"
 end
 
 -- Searches for file starting from path, going up until the file
@@ -137,20 +128,30 @@ function fs.find_file(path, file)
    end
 end
 
+-- Returns iterator over directory items or nil, error message.
+function fs.dir_iter(dir_path)
+   local ok, iter, state, var = pcall(lfs.dir, dir_path)
+
+   if not ok then
+      local err = utils.unprefix(iter, "cannot open " .. dir_path .. ": ")
+      return nil, "couldn't list directory: " .. err
+   end
+
+   return iter, state, var
+end
+
 -- Returns list of all files in directory matching pattern.
--- Returns nil, error message on error.
+-- Additionally returns a mapping from directory paths that couldn't be expanded
+-- to error messages.
 function fs.extract_files(dir_path, pattern)
-   assert(fs.has_lfs)
    local res = {}
    local err_map = {}
 
    local function scan(dir)
-      local ok, iter, state, var = pcall(base_fs.dir_iter, dir)
+      local iter, state, var = fs.dir_iter(dir)
 
-      if not ok then
-         local err = utils.unprefix(iter, "cannot open " .. dir .. ": ")
-         err = "couldn't recursively check: " .. err
-         err_map[dir] = err
+      if not iter then
+         err_map[dir] = state
          table.insert(res, dir)
          return
       end
@@ -161,7 +162,6 @@ function fs.extract_files(dir_path, pattern)
 
             if fs.is_dir(full_path) then
                scan(full_path)
-
             elseif path:match(pattern) and fs.is_file(full_path) then
                table.insert(res, full_path)
             end
@@ -174,15 +174,46 @@ function fs.extract_files(dir_path, pattern)
    return res, err_map
 end
 
+local function make_absolute_dirs(dir_path)
+   if fs.is_dir(dir_path) then
+      return true
+   end
+
+   local upper_dir = fs.normalize(fs.join(dir_path, ".."))
+
+   if upper_dir == dir_path then
+      return nil, ("Filesystem root %s is not a directory"):format(upper_dir)
+   end
+
+   local upper_ok, upper_err = make_absolute_dirs(upper_dir)
+
+   if not upper_ok then
+      return nil, upper_err
+   end
+
+   local make_ok, make_error = lfs.mkdir(dir_path)
+
+   if not make_ok then
+      return nil, ("Couldn't make directory %s: %s"):format(dir_path, make_error)
+   end
+
+   return true
+end
+
+-- Ensures that a given path is a directory, creating intermediate directories if necessary.
+-- Returns true on success, nil and an error message on failure.
+function fs.make_dirs(dir_path)
+   return make_absolute_dirs(fs.normalize(fs.join(fs.get_current_dir(), dir_path)))
+end
+
 -- Returns modification time for a file.
 function fs.get_mtime(path)
-   assert(fs.has_lfs)
-   return base_fs.get_mtime(path)
+   return lfs.attributes(path, "modification")
 end
 
 -- Returns absolute path to current working directory, with trailing directory separator.
 function fs.get_current_dir()
-   return ensure_dir_sep(base_fs.get_current_dir())
+   return ensure_dir_sep(assert(lfs.currentdir()))
 end
 
 return fs

@@ -1,3 +1,4 @@
+local cache = require "luacheck.cache"
 local options = require "luacheck.options"
 local builtin_standards = require "luacheck.builtin_standards"
 local fs = require "luacheck.fs"
@@ -100,7 +101,7 @@ local function locate_config(path, global_path)
    global_path = global_path or config.get_default_global_path()
 
    if global_path and fs.is_file(global_path) then
-      return global_path
+      return global_path, (fs.split_base(global_path))
    end
 end
 
@@ -203,6 +204,35 @@ local function remove_env_mt(env, special_values)
    utils.update(env, special_values)
 end
 
+local function set_default_std(files, pattern, std)
+   -- Avoid mutating option tables, they may be shared between different patterns.
+   local pattern_opts = {std = std}
+
+   if files[pattern] then
+      pattern_opts = utils.update(pattern_opts, files[pattern])
+   end
+
+   files[pattern] = pattern_opts
+end
+
+local function add_default_path_options(opts)
+   local files = {}
+
+   if opts.files then
+      files = utils.update(files, opts.files)
+   end
+
+   opts.files = files
+   set_default_std(files, "**/spec/**/*_spec.lua", "+busted")
+   set_default_std(files, "**/test/**/*_spec.lua", "+busted")
+   set_default_std(files, "**/tests/**/*_spec.lua", "+busted")
+   set_default_std(files, "**/*.rockspec", "+rockspec")
+   set_default_std(files, "**/*.luacheckrc", "+luacheckrc")
+end
+
+local fallback_config = {options = {}, anchor_dir = ""}
+add_default_path_options(fallback_config.options)
+
 -- Loads config from a file, if possible.
 -- `path` and `global_path` can be nil (will use default), false (will disable loading), or a string.
 -- Doesn't validate the config.
@@ -214,7 +244,7 @@ function config.load_config(path, global_path)
       if anchor_dir then
          return nil, anchor_dir
       else
-         return {options = {}}
+         return fallback_config
       end
    end
 
@@ -234,7 +264,7 @@ function config.load_config(path, global_path)
    end
 
    remove_env_mt(env, special_values)
-
+   add_default_path_options(env)
    return {options = env, config_path = config_path, anchor_dir = anchor_dir}
 end
 
@@ -445,7 +475,7 @@ function ConfigStack:get_top_options()
       if conf.options.cache ~= nil then
          if conf.options.cache == true then
             if not res.cache then
-               res.cache = fs.normalize(fs.join(last_anchor_dir or current_dir, ".luacheckcache"))
+               res.cache = fs.normalize(fs.join(last_anchor_dir or current_dir, cache.get_default_dir()))
             end
          elseif conf.options.cache == false then
             res.cache = false
@@ -465,7 +495,13 @@ local function add_applying_overrides(option_stack, conf, filename)
 
    local current_dir = fs.get_current_dir()
    local abs_filename = fs.normalize(fs.join(current_dir, filename))
-   local anchor_dir = conf.anchor_dir or current_dir
+   local anchor_dir
+
+   if conf.anchor_dir == "" then
+      anchor_dir = fs.split_base(current_dir)
+   else
+      anchor_dir = conf.anchor_dir or current_dir
+   end
 
    local matching_pairs = {}
 

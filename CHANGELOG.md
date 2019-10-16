@@ -1,5 +1,80 @@
 # Changelog
 
+## 0.24.0 (not yet released)
+
+### Changes
+
+* Caching now uses files in a global directory instead of local
+  `.luacheckcache` file. Default cache directory is
+  `%LOCALAPPDATA%\Luacheck\Cache` on Windows,
+  `~/Library/Caches/Luacheck` on OS X/macOS, and
+  `$XDG_CACHE_HOME/luacheck` or `~/.config/luacheck` on other systems.
+
+### Fixes
+
+* Fixed `randomize` missing from `busted` set of standard globals (#183).
+
+### Miscellaneous
+
+* Upgraded Windows binary components: Lua 5.3.4 -> 5.3.5,
+  LuaFileSystem 1.6.3 -> 1.7.0.
+
+## 0.23.0 (2018-09-18)
+
+### Breaking changes
+
+* Removed `--no-inline` CLI option and `inline` config option, inline options
+  are now always enabled.
+* Inline comments are now supposed to be only in short comments
+  but not long ones.
+* Installer script (install.lua) is removed. Luacheck can still be installed
+  manually by recursively copying `src/*` to a directory in `package.path`
+  and copying `bin/luacheck.lua` to a directory in `PATH` as `luacheck`.
+
+### New features and improvements
+
+* Warning columns are now reported in Unicode codepoints if input is
+  valid UTF-8 (#45).
+* Added indentaion-based guessing of a better location for missing `end`
+  and `until` syntax errors.
+* Added `luacheckrc` set of allowed globals containing globals used in
+  Luacheck config to set options.
+* Added default stds equivalent to predefined per-path std overrides
+  in config:
+  - `files["**/spec/**/*_spec.lua"].std = "+busted"`;
+  - `files["**/test/**/*_spec.lua"].std = "+busted"`;
+  - `files["**/tests/**/*_spec.lua"].std = "+busted"`;
+  - `files["**/*.rockspec"].std = "+rockspec"`;
+  - `files["**/*.luacheckrc"].std = "+luacheckrc"`.
+* Added detection of numeric for loops going from `#t` to `1` without
+  negative step (#160).
+* Added support for LuaRocks 3 module autodetection when checking
+  rockspecs (#176).
+* Updated `love` standard for LÖVE 11.1 (#178).
+
+### Changes
+
+* Default set of standard globals is now always `max`, allowing globals of all
+  Lua versions. `_G` std is deprecated.
+
+### Fixes
+
+* Added missing globals to `rockspec` std: `hooks`, `deploy`,
+  `build_dependencies`, `test_dependencies`, and `test`.
+* Fixed line lengths appearing in the output before other warnings on the same
+  line even if their column numbers are smaller.
+
+### Miscellaneous
+
+* Luacheck now depends on argparse instead of bundling it.
+* LuaFileSystem dependency is now required.
+
+## 0.22.1 (2018-07-01)
+
+### Improvements
+
+* Reduced amount of RAM used when checking a large number of files.
+
 ## 0.22.0 (2018-05-09)
 
 ### New features and improvements
@@ -17,8 +92,9 @@
   redefined label errors point to the previous definition,
   unpaired tokens such as `function`/`end` point to the the first token (#134).
 * `luacheck` module now adds `prev_end_column` field to warning events that
-  already have `prev_line` and `prev_column` fields, and `overwritten_end_column`
-  for warnings with `overwritten_line` and `overwritten_column`.
+  already have `prev_line` and `prev_column` fields, and
+  `overwritten_end_column` for warnings with `overwritten_line` and
+  `overwritten_column`.
 * Improved error messages for invalid options and config: when an option is
   invalid, extra context is provided instead of just the name.
 * Custom stds are now validated on config load.
