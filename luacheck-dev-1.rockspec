@@ -16,7 +16,6 @@ a few other typical problems within Lua programs.
 dependencies = {
    "lua >= 5.1, < 5.4",
    "argparse >= 0.6.0",
-   "luafilesystem >= 1.6.3"
 }
 build = {
    type = "builtin",
@@ -35,6 +34,7 @@ build = {
       ["luacheck.filter"] = "src/luacheck/filter.lua",
       ["luacheck.format"] = "src/luacheck/format.lua",
       ["luacheck.fs"] = "src/luacheck/fs.lua",
+      ["luacheck.fs_adapter"] = "src/luacheck/fs_adapter.lua",
       ["luacheck.globbing"] = "src/luacheck/globbing.lua",
       ["luacheck.lexer"] = "src/luacheck/lexer.lua",
       ["luacheck.main"] = "src/luacheck/main.lua",

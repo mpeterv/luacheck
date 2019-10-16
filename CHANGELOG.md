@@ -4,6 +4,8 @@
 
 ### Changes
 
+* Remove luafilesystem dependency from rockspec.
+  Make it work with Tarantool's `fio` module if available.
 * Caching now uses files in a global directory instead of local
   `.luacheckcache` file. Default cache directory is
   `%LOCALAPPDATA%\Luacheck\Cache` on Windows,

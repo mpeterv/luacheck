@@ -1,6 +1,6 @@
 local fs = {}
 
-local lfs = require "lfs"
+local lfs = require "luacheck.fs_adapter"
 local utils = require "luacheck.utils"
 
 local function ensure_dir_sep(path)
