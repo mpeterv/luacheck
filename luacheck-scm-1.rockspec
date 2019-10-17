@@ -1,5 +1,5 @@
 package = "luacheck"
-version = "dev-1"
+version = "scm-1"
 source = {
    url = "git+https://github.com/tarantool/luacheck.git"
 }

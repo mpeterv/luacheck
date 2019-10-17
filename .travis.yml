@@ -26,7 +26,7 @@ _lua: &lua
 
   script:
     - busted -c
-    - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua luacheck-dev-1.rockspec -j2
+    - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua luacheck-scm-1.rockspec -j2
     - lua -e 'package.preload.lanes=error;package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua --version | grep 'Not found'
     - lua -e 'package.path="./src/?.lua;./src/?/init.lua;"..package.path' -lluacov bin/luacheck.lua spec/*.lua
     - luacheck .
@@ -76,12 +76,7 @@ deploy:
 _packpack: &packpack
   script:
     - git clone https://github.com/packpack/packpack.git packpack
-    # Luacheck has a major.minor.patch versioning with unannotated tags.
-    # Packpack can't handle it automaticaly, because it expects
-    # annotated tags. We had to pass version by setting VERSION.
-    # We set VERSION like: major.minor.patch.number_of_commits above
-    # last major.minor.patch tag.
-    - VERSION=`git describe --tags | sed -e 's/\(.*\)-.*/\1/' -e 's/-/./'` PRODUCT=tarantool-luacheck packpack/packpack
+    - PRODUCT=tarantool-luacheck packpack/packpack
     - ls -l build/
 
 jobs:
