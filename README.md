@@ -31,7 +31,11 @@ Luacheck supports checking Lua files using syntax of Lua 5.1, Lua 5.2, Lua 5.3 a
 From your command line run the following command (using `sudo` if necessary):
 
 ```
+tarantoolctl rocks install luacheck
+
+# or
 luarocks install luacheck
+luarocks install luafilesystem
 ```
 
 For parallel checking Luacheck additionally requires [LuaLanes](https://github.com/LuaLanes/lanes), which can be installed using LuaRocks as well (`luarocks install lanes`).

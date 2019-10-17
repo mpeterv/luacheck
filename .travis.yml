@@ -1,7 +1,7 @@
+dist: xenial
+language: c
 services:
   - docker
-
-language: c
 
 cache:
   directories:
@@ -37,38 +37,20 @@ _lua: &lua
     - codecov -f luacov.report.out -X gcov
 
 _tarantool: &tarantool
+  install:
+    - curl http://download.tarantool.org/tarantool/$TARANTOOL_VERSION/gpgkey | sudo apt-key add -
+    - echo "deb http://download.tarantool.org/tarantool/$TARANTOOL_VERSION/ubuntu/ xenial main" |
+      sudo tee /etc/apt/sources.list.d/tarantool.list
+    - sudo apt-get -y update
+    - sudo apt-get install -y tarantool tarantool-dev
+    - tarantoolctl rocks install --server=http://luarocks.org/repositories/rocks busted
+    - tarantoolctl rocks install --server=http://luarocks.org/repositories/rocks luautf8
+    - tarantoolctl rocks make
+
   script:
-    - git clone https://github.com/packpack/packpack.git packpack
-    # Luacheck has a major.minor.patch versioning with unannotated tags.
-    # Packpack can't handle it automaticaly, because it expects
-    # annotated tags. We had to pass version by setting VERSION.
-    # We set VERSION like: major.minor.patch.number_of_commits above
-    # last major.minor.patch tag.
-    - VERSION=`git describe --tags | sed -e 's/\(.*\)-.*/\1/' -e 's/-/./'` PRODUCT=tarantool-luacheck packpack/packpack
-
-jobs:
-  include:
-    - <<: *lua
-      env: LUA="lua 5.1"
-    - <<: *lua
-      env: LUA="lua 5.2"
-    - <<: *lua
-      env: LUA="lua 5.3"
-    - <<: *lua
-      env: LUA="luajit 2.0"
-    - <<: *lua
-      env: LUA="luajit 2.1"
-    - <<: *tarantool
-      env: OS=el DIST=6
-    - <<: *tarantool
-      env: OS=el DIST=7
-    - <<: *tarantool
-      env: OS=fedora DIST=26
-    - <<: *tarantool
-      env: OS=fedora DIST=27
-
-before_deploy:
-  - ls -l build/
+    - .rocks/bin/busted
+    - .rocks/bin/luacheck .
+    - .rocks/bin/luacheck .
 
 _deploy: &deploy
   # Deploy packages to PackageCloud
@@ -90,6 +72,40 @@ deploy:
     repository: "1_10"
   - <<: *deploy
     repository: "2x"
+
+_packpack: &packpack
+  script:
+    - git clone https://github.com/packpack/packpack.git packpack
+    # Luacheck has a major.minor.patch versioning with unannotated tags.
+    # Packpack can't handle it automaticaly, because it expects
+    # annotated tags. We had to pass version by setting VERSION.
+    # We set VERSION like: major.minor.patch.number_of_commits above
+    # last major.minor.patch tag.
+    - VERSION=`git describe --tags | sed -e 's/\(.*\)-.*/\1/' -e 's/-/./'` PRODUCT=tarantool-luacheck packpack/packpack
+    - ls -l build/
+
+jobs:
+  include:
+    - <<: *lua
+      env: LUA="lua 5.1"
+    - <<: *lua
+      env: LUA="lua 5.2"
+    - <<: *lua
+      env: LUA="lua 5.3"
+    - <<: *lua
+      env: LUA="luajit 2.0"
+    - <<: *lua
+      env: LUA="luajit 2.1"
+    - <<: *tarantool
+      env: TARANTOOL_VERSION=1.10
+    - <<: *packpack
+      env: OS=el DIST=6
+    - <<: *packpack
+      env: OS=el DIST=7
+    - <<: *packpack
+      env: OS=fedora DIST=26
+    - <<: *packpack
+      env: OS=fedora DIST=27
 
 notifications:
   email:

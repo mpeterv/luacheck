@@ -1,10 +1,10 @@
 -- Require luasocket only when needed.
-local socket
+local get_time_ms
 
 local profiler = {}
 
 local metrics = {
-   {name = "Wall", get = function() return socket.gettime() end},
+   {name = "Wall", get = function() return get_time_ms() end},
    {name = "CPU", get = os.clock},
    {name = "Memory", get = function() return collectgarbage("count") end}
 }
@@ -96,7 +96,16 @@ local function patch(fn)
 end
 
 function profiler.init()
-   socket = require "socket"
+   if rawget(_G, '_TARANTOOL') then
+      get_time_ms = function()
+         return require("clock").time()
+      end
+   else
+      get_time_ms = function()
+         return require("socket").gettime()
+      end
+   end
+
    collectgarbage("stop")
 
    for _, metric in ipairs(metrics) do
