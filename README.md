@@ -3,7 +3,7 @@
 [![Join the chat at https://gitter.im/luacheck/Lobby](https://badges.gitter.im/luacheck/Lobby.svg)](https://gitter.im/luacheck/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Build Status](https://travis-ci.org/tarantool/luacheck.png?branch=master)](https://travis-ci.org/tarantool/luacheck)
-[![Windows build status](https://ci.appveyor.com/api/projects/status/pgox2vvelagw1fux/branch/master?svg=true&passingText=Windows%20build%20passing&failingText=Windows%20build%20failing)](https://ci.appveyor.com/project/tarantool/luacheck/branch/master)
+<!-- [![Windows build status](https://ci.appveyor.com/api/projects/status/pgox2vvelagw1fux/branch/master?svg=true&passingText=Windows%20build%20passing&failingText=Windows%20build%20failing)](https://ci.appveyor.com/project/tarantool/luacheck/branch/master) -->
 [![codecov](https://codecov.io/gh/tarantool/luacheck/branch/master/graph/badge.svg)](https://codecov.io/gh/tarantool/luacheck)
 [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 
@@ -39,12 +39,12 @@ luarocks install luafilesystem
 ```
 
 For parallel checking Luacheck additionally requires [LuaLanes](https://github.com/LuaLanes/lanes), which can be installed using LuaRocks as well (`luarocks install lanes`).
-
+<!--
 ### Windows binary download
 
 For Windows there is single-file 64-bit binary distribution, bundling Lua 5.3.4, Luacheck, LuaFileSystem, and LuaLanes using [LuaStatic](https://github.com/ers35/luastatic):
 [download](https://github.com/tarantool/luacheck/releases/download/0.23.0/luacheck.exe).
-
+ -->
 ## Basic usage
 
 After Luacheck is installed, run `luacheck` program from the command line. Pass a list of files, [rockspecs](https://github.com/luarocks/luarocks/wiki/Rockspec-format) or directories (requires LuaFileSystem) to be checked:
