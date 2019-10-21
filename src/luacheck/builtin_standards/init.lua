@@ -1,5 +1,6 @@
 local love = require "luacheck.builtin_standards.love"
 local ngx = require "luacheck.builtin_standards.ngx"
+local tarantool = require "luacheck.builtin_standards.tarantool"
 local standards = require "luacheck.standards"
 
 local builtin_standards = {}
@@ -254,7 +255,9 @@ for name, def in pairs(lua_defs) do
 end
 
 local function get_running_lua_std_name()
-   if rawget(_G, "jit") then
+   if rawget(_G, "_TARANTOOL") then
+      return "tarantool"
+   elseif rawget(_G, "jit") then
       return "luajit"
    elseif _VERSION == "Lua 5.1" then
       return "lua51c"
@@ -295,6 +298,8 @@ builtin_standards.luacheckrc = {
       "cache", "jobs", "files", "stds", "exclude_files", "include_files"
    }
 }
+
+builtin_standards.tarantool = def_to_std(add_defs(lua_defs.luajit, tarantool))
 
 builtin_standards.none = {}
 

@@ -36,7 +36,7 @@ Option                        Type                                     Default v
 ``unused_args``               Boolean                                  ``true``
 ``unused_secondaries``        Boolean                                  ``true``
 ``self``                      Boolean                                  ``true``
-``std``                       String or set of standard globals        ``"max"``
+``std``                       String or set of standard globals        ``"max"`` or ``"tarantool"``
 ``globals``                   Array of strings or field definition map ``{}``
 ``new_globals``               Array of strings or field definition map (Do not overwrite)
 ``read_globals``              Array of strings or field definition map ``{}``
