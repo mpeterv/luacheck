@@ -72,9 +72,10 @@ Links:
          :init(nil))
 
    parser:group("Options for configuring allowed globals",
-      parser:option("--std", "Set standard globals, default is max. <std> can be one of:\n" ..
+      parser:option("--std", "Set standard globals, default is max or tarantool. <std> can be one of:\n" ..
          "   max - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
          "   min - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;\n" ..
+         "   tarantool - globals of Tarantool;\n" ..
          "   lua51 - globals of Lua 5.1 without deprecated ones;\n" ..
          "   lua51c - globals of Lua 5.1;\n" ..
          "   lua52 - globals of Lua 5.2;\n" ..

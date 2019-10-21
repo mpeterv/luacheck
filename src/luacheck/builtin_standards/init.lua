@@ -255,7 +255,9 @@ for name, def in pairs(lua_defs) do
 end
 
 local function get_running_lua_std_name()
-   if rawget(_G, "jit") then
+   if rawget(_G, "_TARANTOOL") then
+      return "tarantool"
+   elseif rawget(_G, "jit") then
       return "luajit"
    elseif _VERSION == "Lua 5.1" then
       return "lua51c"

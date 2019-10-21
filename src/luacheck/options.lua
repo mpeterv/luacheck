@@ -147,7 +147,8 @@ local function get_std_tables(opts_stack, stds)
       end
    end
 
-   table.insert(add_stds, 1, base_std or stds.max)
+   local default_std = rawget(_G, '_TARANTOOL') and stds.tarantool or stds.max
+   table.insert(add_stds, 1, base_std or default_std)
    return add_stds
 end
 
