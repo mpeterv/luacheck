@@ -1,5 +1,6 @@
 local love = require "luacheck.builtin_standards.love"
 local ngx = require "luacheck.builtin_standards.ngx"
+local tarantool = require "luacheck.builtin_standards.tarantool"
 local standards = require "luacheck.standards"
 
 local builtin_standards = {}
@@ -295,6 +296,8 @@ builtin_standards.luacheckrc = {
       "cache", "jobs", "files", "stds", "exclude_files", "include_files"
    }
 }
+
+builtin_standards.tarantool = def_to_std(add_defs(lua_defs.luajit, tarantool))
 
 builtin_standards.none = {}
 
