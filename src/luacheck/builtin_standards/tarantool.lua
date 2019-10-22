@@ -43,14 +43,38 @@ for _, x in pairs(box_table_fields) do
 end
 
 return {fields = {
+   _TARANTOOL = {},
+   debug = standards.def_fields(
+      'sourcedir',
+      'sourcefile'
+   ),
+   dostring = {},
    box = box_defs,
+   os = standards.def_fields(
+      'environ',
+      'setenv'
+   ),
    package = standards.def_fields(
       'setsearchroot',
       'searchroot',
       'search'
    ),
+   string = standards.def_fields(
+      'center',
+      'endswith',
+      'fromhex',
+      'hex',
+      'ljust',
+      'lstrip',
+      'rjust',
+      'rstrip',
+      'split',
+      'startswith',
+      'strip'
+   ),
    table = standards.def_fields(
       'copy',
       'deepcopy'
    ),
+   tonumber64 = {},
 }}
