@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.25.0
+
+* Add `tarantool` standard. Make it default when running with Tarantool.
+
 ## 0.24.0
 
 ### Changes
