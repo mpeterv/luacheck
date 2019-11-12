@@ -271,7 +271,7 @@ builtin_standards._G = builtin_standards[get_running_lua_std_name()]
 
 builtin_standards.busted = {
    read_globals = {
-      "describe", "insulate", "expose", "it", "pending", "before_each", "after_each",
+      "describe", "insulate", "expose", "it", "pending", "before_each", "after_each", "match",
       "lazy_setup", "lazy_teardown", "strict_setup", "strict_teardown", "setup", "teardown",
       "context", "spec", "test", "assert", "spy", "mock", "stub", "finally", "randomize"
    }
