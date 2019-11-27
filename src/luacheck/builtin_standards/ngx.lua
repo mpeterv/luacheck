@@ -146,6 +146,8 @@ local ngx_defs = {
             set_var = {other_fields = true},
          },
       },
+      table = standards.def_fields("clear", "clone", "isarray", "isempty", "nkeys"),
+      thread = standards.def_fields("exdata"),
    },
 }
 
