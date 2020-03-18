@@ -530,6 +530,21 @@ describe("process_reports", function()
          errors = 0,
          fatals = 0
       }, strip_locations(luacheck.process_reports({luacheck.get_report(source)}, {std = "max"})))
+
+      assert.same({
+         {
+            {code = "143", name = "box", field = "session.invalid", indexing = {"session", "invalid"}},
+         },
+         warnings = 1,
+         errors = 0,
+         fatals = 0,
+      }, strip_locations(luacheck.process_reports({luacheck.get_report([[
+         box.session.storage.field1 = 1
+         box.session.storage['field11'] = 1
+         print(box.session.storage.field2, box.session.storage['field22'])
+         box.session.push()
+         box.session.invalid()
+]])}, {std = "tarantool"})))
    end)
 end)
 
