@@ -19,6 +19,22 @@ local box_defs = standards.def_fields(
 
 box_defs.fields.backup = standards.def_fields('start', 'stop')
 box_defs.fields.runtime = standards.def_fields('info')
+box_defs.fields.session = standards.def_fields(
+   'id',
+   'exists',
+   'peer',
+   'sync',
+   'user',
+   'type',
+   'su',
+   'uid',
+   'euid',
+   'on_connect',
+   'on_disconnect',
+   'on_auth',
+   'push'
+)
+box_defs.fields.session.fields.storage = {other_fields = true, read_only = false}
 box_defs.fields.slab = standards.def_fields('info', 'check', 'stats')
 
 local box_table_fields = {
@@ -33,7 +49,6 @@ local box_table_fields = {
    'cfg',
    'space',
    'sequence',
-   'session',
    'stat',
    'priv',
 }

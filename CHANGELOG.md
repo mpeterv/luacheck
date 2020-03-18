@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Tarantool: Add rules for box.session.
+  Fixes warnings for writing to box.session.storage.
+
 ## 0.25.0
 
 * Add `tarantool` standard. Make it default when running with Tarantool.
