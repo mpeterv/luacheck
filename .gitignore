@@ -11,3 +11,9 @@ build/bin/*
 package
 scripts/UnicodeData-*
 docsrc/.doctrees
+
+*.snap
+*.xlog
+/.rocks
+/tmp/*
+!/tmp/.keep
