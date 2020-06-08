@@ -37,6 +37,7 @@ build = {
       ["luacheck.formatter.default"] = "src/luacheck/formatter/default.lua",
       ["luacheck.formatter.junit"] = "src/luacheck/formatter/junit.lua",
       ["luacheck.formatter.plain"] = "src/luacheck/formatter/plain.lua",
+      ["luacheck.formatter.sonar"] = "src/luacheck/formatter/sonar.lua",
       ["luacheck.formatter.tap"] = "src/luacheck/formatter/tap.lua",
       ["luacheck.formatter.visual_studio"] = "src/luacheck/formatter/visual_studio.lua",
       ["luacheck.fs"] = "src/luacheck/fs.lua",
