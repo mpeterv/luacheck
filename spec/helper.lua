@@ -86,4 +86,26 @@ function helper.get_stage_warnings(target_stage_name, source)
    return chstate.warnings
 end
 
+function helper.get_output(command, wd, color)
+   local utils = require "luacheck.utils" -- don't require in toplevel to collect coverage
+   if color then
+      if utils.is_windows and not os.getenv("ANSICON") then
+         pending("uses terminal colors") -- luacheck: no global
+      end
+   else
+      command = "--no-color " .. command
+   end
+
+   command = ("%s %s 2>&1"):format(helper.luacheck_command(wd), command)
+   local handler = io.popen(command)
+   local output = handler:read("*a")
+   handler:close()
+
+   if color then
+      return (output:gsub("\27%[%d+m", "\27"):gsub("\27+", "#"))
+   else
+      return output
+   end
+end
+
 return helper

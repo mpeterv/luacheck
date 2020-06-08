@@ -2,6 +2,7 @@ local utils = require "luacheck.utils"
 local multithreading = require "luacheck.multithreading"
 local helper = require "spec.helper"
 local luacheck_cmd = helper.luacheck_command()
+local get_output = helper.get_output
 
 local function quote(argument)
    -- Do not worry about special characters too much, just quote.
@@ -13,27 +14,6 @@ local function norm_output(output)
    -- Replace "/" with native slashes, except when it's used to separate
    -- warning and error numbers on the last line.
    return output:gsub("(%w)/(%w)", "%1" .. utils.dir_sep .. "%2")
-end
-
-local function get_output(command, wd, color)
-   if color then
-      if utils.is_windows and not os.getenv("ANSICON") then
-         pending("uses terminal colors")
-      end
-   else
-      command = "--no-color " .. command
-   end
-
-   command = ("%s %s 2>&1"):format(helper.luacheck_command(wd), command)
-   local handler = io.popen(command)
-   local output = handler:read("*a")
-   handler:close()
-
-   if color then
-      return (output:gsub("\27%[%d+m", "\27"):gsub("\27+", "#"))
-   else
-      return output
-   end
 end
 
 local function get_exitcode(command)
@@ -888,100 +868,6 @@ Total: 5 warnings / 0 errors in 2 files
 
 Total: 5 warnings / 0 errors in 2 files
 ]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua -qq --config=spec/configs/format_opts_config.luacheckrc")
-   end)
-
-   it("has built-in TAP formatter", function()
-      assert.equal([[
-1..8
-not ok 1 bad_file: I/O error
-ok 2 spec/samples/good_code.lua
-not ok 3 spec/samples/bad_code.lua:3:16: unused function 'helper'
-not ok 4 spec/samples/bad_code.lua:3:23: unused variable length argument
-not ok 5 spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'
-not ok 6 spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7
-not ok 7 spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'
-not ok 8 spec/samples/python_code.lua:1:6: expected '=' near '__future__'
-]], get_output "bad_file spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter TAP --no-config")
-
-      assert.equal([[
-1..8
-not ok 1 bad_file: I/O error
-ok 2 spec/samples/good_code.lua
-not ok 3 spec/samples/bad_code.lua:3:16: (W211) unused function 'helper'
-not ok 4 spec/samples/bad_code.lua:3:23: (W212) unused variable length argument
-not ok 5 spec/samples/bad_code.lua:7:10: (W111) setting non-standard global variable 'embrace'
-not ok 6 spec/samples/bad_code.lua:8:10: (W412) variable 'opt' was previously defined as an argument on line 7
-not ok 7 spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
-not ok 8 spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
-]], get_output "bad_file spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter TAP --codes --no-config")
-   end)
-
-   it("has built-in JUnit formatter", function()
-      assert.equal([[
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Luacheck report" tests="8">
-    <testcase name="bad_file" classname="bad_file">
-        <error type="I/O error"/>
-    </testcase>
-    <testcase name="spec/samples/good_code.lua" classname="spec/samples/good_code.lua"/>
-    <testcase name="spec/samples/bad_code.lua:1" classname="spec/samples/bad_code.lua">
-        <failure type="W211" message="spec/samples/bad_code.lua:3:16: unused function &apos;helper&apos;"/>
-    </testcase>
-    <testcase name="spec/samples/bad_code.lua:2" classname="spec/samples/bad_code.lua">
-        <failure type="W212" message="spec/samples/bad_code.lua:3:23: unused variable length argument"/>
-    </testcase>
-    <testcase name="spec/samples/bad_code.lua:3" classname="spec/samples/bad_code.lua">
-        <failure type="W111" message="spec/samples/bad_code.lua:7:10: setting non-standard global variable &apos;embrace&apos;"/>
-    </testcase>
-    <testcase name="spec/samples/bad_code.lua:4" classname="spec/samples/bad_code.lua">
-        <failure type="W412" message="spec/samples/bad_code.lua:8:10: variable &apos;opt&apos; was previously defined as an argument on line 7"/>
-    </testcase>
-    <testcase name="spec/samples/bad_code.lua:5" classname="spec/samples/bad_code.lua">
-        <failure type="W113" message="spec/samples/bad_code.lua:9:11: accessing undefined variable &apos;hepler&apos;"/>
-    </testcase>
-    <testcase name="spec/samples/python_code.lua:1" classname="spec/samples/python_code.lua">
-        <failure type="E011" message="spec/samples/python_code.lua:1:6: expected &apos;=&apos; near &apos;__future__&apos;"/>
-    </testcase>
-</testsuite>
-]], get_output "bad_file spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter JUnit --no-config")
-   end)
-
-   it("has built-in Visual Studio aware formatter", function()
-      assert.equal([[
-luacheck : fatal error F1: couldn't check bad_file: couldn't read: No such file or directory
-spec/samples/bad_code.lua(3,16) : warning W211: unused function 'helper'
-spec/samples/bad_code.lua(3,23) : warning W212: unused variable length argument
-spec/samples/bad_code.lua(7,10) : warning W111: setting non-standard global variable 'embrace'
-spec/samples/bad_code.lua(8,10) : warning W412: variable 'opt' was previously defined as an argument on line 7
-spec/samples/bad_code.lua(9,11) : warning W113: accessing undefined variable 'hepler'
-spec/samples/python_code.lua(1,6) : error E011: expected '=' near '__future__'
-]], get_output "bad_file spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter visual_studio --no-config")
-   end)
-
-   it("has built-in simple warning-per-line formatter", function()
-      assert.equal("", get_output "spec/samples/good_code.lua --std=lua52 --formatter plain --no-config")
-
-      assert.equal([[
-spec/samples/bad_code.lua:3:16: unused function 'helper'
-spec/samples/bad_code.lua:3:23: unused variable length argument
-spec/samples/bad_code.lua:7:10: setting non-standard global variable 'embrace'
-spec/samples/bad_code.lua:8:10: variable 'opt' was previously defined as an argument on line 7
-spec/samples/bad_code.lua:9:11: accessing undefined variable 'hepler'
-spec/samples/python_code.lua:1:6: expected '=' near '__future__'
-]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter plain --no-config")
-
-      assert.equal([[
-spec/samples/404.lua: I/O error (couldn't read: No such file or directory)
-]], get_output "spec/samples/404.lua --formatter plain --no-config")
-
-      assert.equal([[
-spec/samples/bad_code.lua:3:16: (W211) unused function 'helper'
-spec/samples/bad_code.lua:3:23: (W212) unused variable length argument
-spec/samples/bad_code.lua:7:10: (W111) setting non-standard global variable 'embrace'
-spec/samples/bad_code.lua:8:10: (W412) variable 'opt' was previously defined as an argument on line 7
-spec/samples/bad_code.lua:9:11: (W113) accessing undefined variable 'hepler'
-spec/samples/python_code.lua:1:6: (E011) expected '=' near '__future__'
-]], get_output "spec/samples/good_code.lua spec/samples/bad_code.lua spec/samples/python_code.lua --std=lua52 --formatter plain --codes --no-config")
    end)
 
    it("provides version info", function()

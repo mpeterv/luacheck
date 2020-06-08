@@ -1,4 +1,4 @@
-return function(report, file_names, options)
+return function(_, file_names, options)
    return ([[
 Files: %d
 Formatter: %s

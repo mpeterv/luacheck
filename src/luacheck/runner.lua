@@ -377,7 +377,7 @@ function Runner:format(report, format_opts)
 
    local output
 
-   if format.builtin_formatters[combined_opts.formatter] then
+   if pcall(format.get_formatter, combined_opts.formatter) then
       output = format.format(report, filenames, combined_opts)
    else
       local formatter_func = combined_opts.formatter
