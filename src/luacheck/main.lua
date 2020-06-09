@@ -237,6 +237,7 @@ Links:
          "   JUnit - JUnit XML formatter;\n" ..
          "   visual_studio - MSBuild/Visual Studio aware formatter;\n" ..
          "   plain - simple warning-per-line formatter;\n" ..
+         "   sonar - formatter for SonarQube;\n" ..
          "   default - standard formatter."),
       parser:flag("-q --quiet", "Suppress output for files without warnings.\n" ..
          "-qq: Suppress output of warnings.\n" ..

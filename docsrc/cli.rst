@@ -139,6 +139,7 @@ Option                                  Meaning
                                         * ``JUnit`` - JUnit XML formatter;
                                         * ``visual_studio`` - MSBuild/Visual Studio aware formatter;
                                         * ``plain`` - simple warning-per-line formatter;
+                                        * ``sonar`` - formatter for SonarQube;
                                         * ``default`` - standard formatter.
 ``-q | --quiet``                        Suppress report output for files without warnings.
 
