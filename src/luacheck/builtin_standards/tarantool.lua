@@ -1,8 +1,10 @@
 local standards = require "luacheck.standards"
 
 local box_defs = standards.def_fields(
-   'execute',
    'NULL',
+   'execute',
+   'prepare',
+   'unprepare',
    'once',
    'snapshot',
    -- https://www.tarantool.io/en/doc/2.2/book/box/box_txn_management/
@@ -41,6 +43,7 @@ local box_table_fields = {
    'tuple',
    'schema',
    'feedback',
+   'func',
    'info',
    'ctl',
    'index',
