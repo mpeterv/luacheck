@@ -1,3 +1,4 @@
+os: linux
 dist: xenial
 language: c
 services:
@@ -9,6 +10,21 @@ cache:
 
 git:
   depth: 100500
+
+stages:
+  - test
+  - name: deploy
+    # Deploy packages to PackageCloud from tags and master
+    # see:
+    #   * https://github.com/tarantool/tarantool/issues/3745
+    #   * https://github.com/travis-ci/travis-ci/issues/7780#issuecomment-302389370
+    # Also skip deploys for pull-requests, api and cron events.
+    if: (type = push) AND (branch = master OR tag IS present) AND (env(PACKAGECLOUD_TOKEN) IS present)
+
+env:
+  global:
+    - PRODUCT=tarantool-luacheck
+    - ROCK_NAME=luacheck
 
 _lua: &lua
   install:
@@ -65,20 +81,20 @@ _deploy: &deploy
     branch: master
     condition: -n "${OS}" && -n "${DIST}" && -n "${PACKAGECLOUD_TOKEN}"
 
-deploy:
-  # Deploy packages to PackageCloud
-  - <<: *deploy
-    repository: "1_9"
-  - <<: *deploy
-    repository: "1_10"
-  - <<: *deploy
-    repository: "2x"
-
 _packpack: &packpack
+  stage: deploy
   script:
     - git clone https://github.com/packpack/packpack.git packpack
-    - PRODUCT=tarantool-luacheck packpack/packpack
+    - packpack/packpack
     - ls -l build/
+  deploy:
+    # Deploy packages to PackageCloud
+    - <<: *deploy
+      repository: "1_9"
+    - <<: *deploy
+      repository: "1_10"
+    - <<: *deploy
+      repository: "2x"
 
 jobs:
   include:
@@ -94,6 +110,29 @@ jobs:
       env: LUA="luajit 2.1"
     - <<: *tarantool
       env: TARANTOOL_VERSION=1.10
+
+    - stage: deploy
+      name: Publish rockspecs
+      script: skip
+      deploy:
+        - provider: script
+          script: curl --fail -X PUT -F rockspec=@$ROCK_NAME-scm-1.rockspec
+            https://$ROCKS_USERNAME:$ROCKS_PASSWORD@rocks.tarantool.org
+        - on:
+            tags: true
+          provider: script
+          script: cat $ROCK_NAME-scm-1.rockspec |
+            sed -E
+              -e "s/branch = '.+'/tag = '$TRAVIS_TAG'/g"
+              -e "s/version = '.+'/version = '$TRAVIS_TAG-1'/g" |
+            curl --fail -X PUT -F "rockspec=@-;filename=$ROCK_NAME-$TRAVIS_TAG-1.rockspec"
+              https://$ROCKS_USERNAME:$ROCKS_PASSWORD@rocks.tarantool.org
+
+    # Run single packpack job on test stage
+    - <<: *packpack
+      stage: test
+      deploy: []
+      env: OS=el DIST=7
     - <<: *packpack
       env: OS=el DIST=6
     - <<: *packpack
