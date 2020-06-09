@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add SonarQube formatter.
+* Tarantool: add new fields from 2.3.1.
 * Tarantool: Add rules for box.session.
   Fixes warnings for writing to box.session.storage.
 
