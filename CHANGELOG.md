@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.24.0 (not yet released)
+## 0.24.0 (2020-08-20)
 
 ### Changes
 
@@ -12,7 +12,12 @@
 
 ### Fixes
 
+* Fixes for using Luacheck with Lua 5.4:
+  - Parse 5.4 attributes in `local` declarations (but ignores them for now)
+  - Luacheck itself can also run with Lua 5.4
 * Fixed `randomize` missing from `busted` set of standard globals (#183).
+* Added additional `table` and `thread` definitions for `ngx_lua`.
+* Added additional `match` definition for `busted`.
 
 ### Miscellaneous
 
