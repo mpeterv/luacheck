@@ -26,7 +26,7 @@ local function get_parser()
       "luacheck", "luacheck " .. luacheck._VERSION .. ", a linter and a static analyzer for Lua.", [[
 Links:
 
-   Luacheck on GitHub: https://github.com/mpeterv/luacheck
+   Luacheck on GitHub: https://github.com/luarocks/luacheck
    Luacheck documentation: https://luacheck.readthedocs.org]])
       :help_max_width(80)
 
@@ -347,7 +347,7 @@ if utils.is_instance(err, utils.InvalidPatternError) then
 elseif type(err) == "string" and err:find("interrupted!$") then
    critical("Interrupted")
 else
-   local msg = ("Luacheck %s bug (please report at https://github.com/mpeterv/luacheck/issues):\n%s\n%s"):format(
+   local msg = ("Luacheck %s bug (please report at https://github.com/luarocks/luacheck/issues):\n%s\n%s"):format(
       luacheck._VERSION, err, traceback)
    critical(msg)
 end
