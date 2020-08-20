@@ -492,6 +492,38 @@ describe("parser", function()
          )
       end)
 
+      it("accepts (and ignores for now) Lua 5.4 attributes", function()
+         assert.same({tag = "Local", {
+                           {tag = "Id", "a"}
+                        }
+                     }, get_node("local a <close>"))
+         assert.same({tag = "Local", {
+                           {tag = "Id", "a"},
+                           {tag = "Id", "b"}
+                        }
+                     }, get_node("local a <close>, b <const>"))
+         assert.same({
+            tag = "Local", {
+               {tag = "Id", "a"}
+            }, {
+               {tag = "Id", "b"}
+            }
+         }, get_node("local a <close> = b"))
+         assert.same({
+            tag = "Local", {
+               {tag = "Id", "a"},
+               {tag = "Id", "b"}
+         }, {
+               {tag = "Id", "c"},
+               {tag = "Id", "d"}
+            }
+         }, get_node("local a <close>, b <const> = c, d"))
+         assert.same(
+            {line = 1, offset = 16, end_offset = 16, msg = "expected '>' near '='"},
+            get_error("local a <close = ")
+         )
+      end)
+
       it("parses local declaration with assignment correctly", function()
          assert.same({
             tag = "Local", {
