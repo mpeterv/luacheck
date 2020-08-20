@@ -809,6 +809,15 @@ statements["local"] = function(state)
 
    repeat
       lhs[#lhs + 1] = parse_id(state)
+
+      -- Check if a Lua 5.4 attribute is present
+      if state.token == "<" then
+         -- For now, just consume and ignore it.
+         skip_token(state)
+         check_name(state)
+         skip_token(state)
+         check_and_skip_token(state, ">")
+      end
    until not test_and_skip_token(state, ",")
 
    if test_and_skip_token(state, "=") then
