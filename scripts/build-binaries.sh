@@ -27,6 +27,6 @@ function build {
 }
 
 build "Linux x86-64" LINUX=1
-build "Linux x86" LINUX=1 "BASE_CC=gcc -m32" SUFFIX=32
+#build "Linux x86" LINUX=1 "BASE_CC=gcc -m32" SUFFIX=32
 build "Windows x86-64" CROSS=x86_64-w64-mingw32- SUFFIX=.exe
 build "Windows x86" CROSS=i686-w64-mingw32- SUFFIX=32.exe
