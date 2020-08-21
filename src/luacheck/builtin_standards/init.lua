@@ -230,7 +230,11 @@ lua_defs.lua54 = add_defs(lua_defs.lua53, {
       coroutine = standards.def_fields("close"),
    }
 })
-lua_defs.lua54c = add_defs(lua_defs.lua54)
+lua_defs.lua54c = add_defs(lua_defs.lua54, {
+   fields = {
+      math = standards.def_fields("atan2", "cosh", "frexp", "ldexp", "log10", "pow", "sinh", "tanh")
+   }
+})
 lua_defs.luajit = add_defs(make_min_def("luajit"), {
    fields = {
       bit = standards.def_fields("arshift", "band", "bnot", "bor", "bswap", "bxor", "lshift", "rol", "ror",
