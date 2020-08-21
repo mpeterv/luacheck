@@ -223,31 +223,11 @@ lua_defs.lua53c = add_defs(lua_defs.lua53, {
       math = standards.def_fields("atan2", "cosh", "frexp", "ldexp", "log10", "pow", "sinh", "tanh")
    }
 })
-lua_defs.lua54 = add_defs(make_min_def("lua54"), {
+lua_defs.lua54 = add_defs(lua_defs.lua53, {
    fields = {
-      _ENV = {other_fields = true, read_only = false},
-      coroutine = standards.def_fields("close", "isyieldable"),
-      debug = standards.def_fields("getuservalue", "setcstacklimit", "setuservalue", "upvalueid", "upvaluejoin"),
-      math = standards.def_fields("maxinteger", "mininteger", "tointeger", "type", "ult"),
-      package = {
-         fields = {
-            searchers = {other_fields = true, read_only = false},
-            searchpath = empty
-         }
-      },
-      rawlen = empty,
-      table = standards.def_fields("move", "pack", "unpack"),
-      utf8 = {
-         fields = {
-            char = empty,
-            charpattern = string_defs.lua54,
-            codepoint = empty,
-            codes = empty,
-            len = empty,
-            offset = empty
-         }
-      },
-      warn = empty
+      warn = empty,
+      debug = standards.def_fields("setcstacklimit"),
+      coroutine = standards.def_fields("close"),
    }
 })
 lua_defs.lua54c = add_defs(lua_defs.lua54)
