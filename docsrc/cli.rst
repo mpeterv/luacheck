@@ -78,6 +78,8 @@ Option                                  Meaning
                                         * ``lua52c`` - globals of Lua 5.2 compiled with LUA_COMPAT_ALL;
                                         * ``lua53`` - globals of Lua 5.3;
                                         * ``lua53c`` - globals of Lua 5.3 compiled with LUA_COMPAT_5_2;
+                                        * ``lua54`` - globals of Lua 5.4;
+                                        * ``lua54c`` - globals of Lua 5.4 compiled with LUA_COMPAT_5_3;
                                         * ``luajit`` - globals of LuaJIT 2.x;
                                         * ``ngx_lua`` - globals of Openresty `lua-nginx-module <https://github.com/openresty/lua-nginx-module>`_ 0.10.10, including standard LuaJIT 2.x globals;
                                         * ``love`` - globals added by `LÖVE <https://love2d.org>`_;

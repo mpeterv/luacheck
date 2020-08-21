@@ -81,6 +81,8 @@ Links:
          "   lua52c - globals of Lua 5.2 with LUA_COMPAT_ALL;\n" ..
          "   lua53 - globals of Lua 5.3;\n" ..
          "   lua53c - globals of Lua 5.3 with LUA_COMPAT_5_2;\n" ..
+         "   lua54 - globals of Lua 5.4;\n" ..
+         "   lua54c - globals of Lua 5.4 with LUA_COMPAT_5_3;\n" ..
          "   luajit - globals of LuaJIT 2.x;\n" ..
          "   ngx_lua - globals of Openresty lua-nginx-module 0.10.10, including standard LuaJIT 2.x globals;\n" ..
          "   love - globals added by LÖVE;\n" ..
