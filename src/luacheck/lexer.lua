@@ -1,6 +1,6 @@
 local utils = require "luacheck.utils"
 
--- Lexer should support syntax of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT(64bit and complex cdata literals).
+-- Lexer should support syntax of Lua 5.1, Lua 5.2, Lua 5.3, Lua 5.4 and LuaJIT(64bit and complex cdata literals).
 local lexer = {}
 
 local sbyte = string.byte
@@ -285,7 +285,7 @@ local function lex_short_string(state, quote)
                   hexdigits = hexdigits + 1
                   codepoint = codepoint*16 + hex
 
-                  if codepoint > 0x10FFFF then
+                  if codepoint > 0x7FFFFFFF then
                      -- UTF-8 value too large.
                      return nil, "invalid UTF-8 escape sequence", -hexdigits-3
                   end

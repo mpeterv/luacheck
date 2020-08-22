@@ -176,8 +176,8 @@ bar"]]))
          assert.same({token = "string", token_value = "\240\144\128\128\244\143\191\191"},
             get_token([["\u{10000}\u{10FFFF}"]]))
          assert.same(
-            {line = 1, offset = 2, end_offset = 10, msg = "invalid UTF-8 escape sequence '\\u{110000'"},
-            get_error([["\u{110000}"]])
+            {line = 1, offset = 2, end_offset = 13, msg = "invalid UTF-8 escape sequence '\\u{110000000'"},
+            get_error([["\u{110000000}"]])
          )
          assert.same(
             {line = 1, offset = 2, end_offset = 4, msg = "invalid UTF-8 escape sequence '\\u\"'"},
