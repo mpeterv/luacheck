@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.25.0 (2020-08-25)
+
+### New features
+
+* New values for CLI option --std: lua54, lua54c
+* New lua54 standard library definitions
+
+### Fixes
+
+* Lua 5.4 allows 31bits utf8 codepoint
+
 ## 0.24.0 (2020-08-20)
 
 ### Changes
