@@ -15,11 +15,13 @@ BASE_CC= gcc
 BASE_AR= ar rc
 BASE_RANLIB= ranlib
 BASE_STRIP= strip
+BASE_NM= nm
 
 CROSS=
 CC= $(CROSS)$(BASE_CC)
 CFLAGS= -O2 -Wall -Wextra
 AR= $(CROSS)$(BASE_AR)
+NM= $(CROSS)$(BASE_NM)
 RANLIB= $(CROSS)$(BASE_RANLIB)
 STRIP= $(CROSS)$(BASE_STRIP)
 
@@ -72,23 +74,24 @@ $(LANES_A):	$(LANES_O)
 	$(AR) $@ $^
 	$(RANLIB) $@
 
-luacheck.luastatic.c: $(LUA_A) $(LFS_A) $(LANES_A)
+$(TARGET): $(LUA_A) $(LFS_A) $(LANES_A)
 	cp $(LUA_A) .
 	cp $(LFS_A) .
 	cp $(ARGPARSE_DIR)/src/argparse.lua .
 	cp $(LANES_A) .
 	cp $(LANES_DIR)/src/lanes.lua .
 	cp -r ../src/luacheck .
-	CC="" luastatic bin/luacheck.lua luacheck/*.lua luacheck/*/*.lua luacheck/*/*/*.lua argparse.lua lanes.lua liblua.a lfs.a lanes.a
-
-$(TARGET):	luacheck.luastatic.c
-	$(CC) $(if $(LINUX),-static) -Os $< $(LUA_A) $(LFS_A) $(LANES_A) -I$(LUA_DIR)/src -lm $(if $(LINUX),-lpthread) -o $@
-	$(STRIP) $@
+	cp -f bin/luacheck.lua bin/luacheck_bin.lua
+	CC=$(CC) NM=$(NM) RANLIB=$(RANLIB) luastatic bin/luacheck_bin.lua luacheck/*.lua luacheck/*/*.lua luacheck/*/*/*.lua argparse.lua lanes.lua $(LUA_A) $(LFS_A) $(LANES_A) -lm $(if $(LINUX),-lpthread) -I$(LUA_DIR)/src
+	rm luacheck_bin.luastatic.c
+	$(STRIP) luacheck_bin*
+	mv luacheck_bin* $(TARGET)
 
 clean:
 	rm -f $(TARGET) luacheck.luastatic.c
 	rm -f $(LUA_O) $(LUA_A) $(LFS_O) $(LFS_A) $(LANES_O) $(LANES_A)
-	rm -f argparse.lua lanes.lua liblua.a lfs.a lanes.a
+	rm -f argparse.lua lanes.lua lfs.a lanes.a liblua.a
 	rm -rf luacheck
+	rm -f luacheck_bin*
 
 .PHONY: default fetch clean
