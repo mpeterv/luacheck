@@ -109,6 +109,7 @@ local function new_var(line, node, type_)
       type = type_,
       self = node.implicit,
       line = line,
+      hint_unused = type_ == "arg" and node[1]:match("^_%a"),
       scope_start = line.items.size + 1,
       values = {}
    }
