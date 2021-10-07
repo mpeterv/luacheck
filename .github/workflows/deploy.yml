@@ -1,0 +1,71 @@
+name: Deploy
+
+on:
+  push:
+    paths:
+      - rockspecs/*.rockspec
+
+jobs:
+
+  affected:
+    runs-on: ubuntu-20.04
+    outputs:
+      rockspecs: '["${{ steps.changed-files.outputs.all_modified_files }}"]'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - id: changed-files
+      uses: tj-actions/changed-files@v1.0.2
+      with:
+        files: rockspecs/*.rockspec
+        separator: '", "'
+
+  build:
+    needs: affected
+    if: ${{ needs.affected.outputs.rockspecs }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Upstream Issue: https://github.com/leafo/gh-actions-luarocks/issues/8
+        luaVersion: ["5.4", "5.3", "5.2", "5.1"] #, "luajit", "luajit-openresty"]
+        # Upstream Issue: https://github.com/leafo/gh-actions-luarocks/issues/8
+        luarocksVersion: ["3.1.3"] # , "2.4.2"]
+        rockspec: ${{ fromJSON(needs.affected.outputs.rockspecs) }}
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup ‘lua’
+      uses: leafo/gh-actions-lua@v8
+      with:
+        luaVersion: ${{ matrix.luaVersion }}
+    - name: Setup ‘luarocks’
+      uses: leafo/gh-actions-luarocks@v4
+      with:
+        luarocksVersion: ${{ matrix.luarocksVersion }}
+    - name: Confirm rockspec builds
+      run: |
+        luarocks --lua-version ${{ matrix.luaVersion }} --local build -- ${{ matrix.rockspec }}
+
+  upload:
+    needs: [affected, build]
+    if: ${{ needs.affected.outputs.rockspecs && github.ref == 'refs/heads/master' && github.repository == 'lunarmadules/luacheck' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        rockspec: ${{ fromJSON(needs.affected.outputs.rockspecs) }}
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup ‘lua’
+      uses: leafo/gh-actions-lua@v8
+    - name: Setup ‘luarocks’
+      uses: leafo/gh-actions-luarocks@v4
+    - name: Setup dependencies
+      run: |
+        luarocks install dkjson
+    - run: |
+        luarocks upload --force --api-key ${{ secrets.LUAROCKS_APIKEY }} -- ${{ matrix.rockspec }}
