@@ -2,10 +2,9 @@
 
 [![Join the chat at https://gitter.im/luacheck/Lobby](https://badges.gitter.im/luacheck/Lobby.svg)](https://gitter.im/luacheck/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Build Status](https://travis-ci.org/luarocks/luacheck.png?branch=master)](https://travis-ci.org/luarocks/luacheck)
-[![Windows build status](https://ci.appveyor.com/api/projects/status/pgox2vvelagw1fux/branch/master?svg=true&passingText=Windows%20build%20passing&failingText=Windows%20build%20failing)](https://ci.appveyor.com/project/luarocks/luacheck/branch/master)
-[![codecov](https://codecov.io/gh/luarocks/luacheck/branch/master/graph/badge.svg)](https://codecov.io/gh/luarocks/luacheck)
-[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
+[![Luacheck](https://img.shields.io/github/workflow/status/lunarmodules/luacheck/Luacheck?label=Luacheck&logo=Lua)](https://github.com/lunarmodules/luacheck/actions?workflow=Luacheck)
+[![Busted](https://img.shields.io/github/workflow/status/lunarmodules/luacheck/Busted?label=Busted&logo=Lua)](https://github.com/lunarmodules/luacheck/actions?workflow=Busted)
+[![Coverage Status](https://img.shields.io/coveralls/github/lunarmodules/luacheck?label=Coveralls&logo=Coveralls)](https://coveralls.io/github/lunarmodules/luacheck?branch=master)
 
 ## Contents
 
@@ -39,7 +38,7 @@ For parallel checking Luacheck additionally requires [LuaLanes](https://github.c
 ### Windows binary download
 
 For Windows there is single-file 64-bit binary distribution, bundling Lua 5.3.4, Luacheck, LuaFileSystem, and LuaLanes using [LuaStatic](https://github.com/ers35/luastatic):
-[download](https://github.com/luarocks/luacheck/releases/download/0.25.0/luacheck.exe).
+[download](https://github.com/lunarmodules/luacheck/releases/download/0.25.0/luacheck.exe).
 
 ## Basic usage
 

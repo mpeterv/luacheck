@@ -1,7 +1,7 @@
 package = "luacheck"
 version = "dev-1"
 source = {
-   url = "git+https://github.com/luarocks/luacheck.git"
+   url = "git+https://github.com/lunarmodules/luacheck.git"
 }
 description = {
    summary = "A static analyzer and a linter for Lua",
@@ -10,7 +10,7 @@ Luacheck is a command-line tool for linting and static analysis of Lua code.
 It is able to spot usage of undefined global variables, unused local variables and
 a few other typical problems within Lua programs.
 ]],
-   homepage = "https://github.com/luarocks/luacheck",
+   homepage = "https://github.com/lunarmodules/luacheck",
    license = "MIT"
 }
 dependencies = {
