@@ -21,6 +21,7 @@ Code Description
 211  Unused local variable.
 212  Unused argument.
 213  Unused loop variable.
+214  Used variable.
 221  Local variable is accessed but never set.
 231  Local variable is set but never accessed.
 232  An argument is set but never accessed.
@@ -99,6 +100,11 @@ Unused variables (2xx) and values (3xx)
 ---------------------------------------
 
 Luacheck generates warnings for all unused local variables except one named ``_``. It also detects variables which are set but never accessed or accessed but never set.
+
+"Unused hint" (214)
+^^^^^^^^^^^^^^^^^^^
+
+If a function argument starts with an underscore ``_``, it recevies an "unused hint", meaning that it's intended to be left unused.  If it is used, a 214 warning is generated.
 
 Unused values and uninitialized variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

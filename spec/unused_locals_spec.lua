@@ -70,6 +70,24 @@ end
 ]])
    end)
 
+   it("allows unused function arguments with underscore prefix", function()
+      assert_warnings({}, [[
+return function(_foo, ...)
+   return ...
+end
+]])
+   end)
+
+   it("warns against using arguments with underscore prefix", function()
+      assert_warnings({
+         {code = "214", name = "_foo", line = 1, column = 17, end_column = 20}
+      }, [[
+return function(_foo)
+   return _foo
+end
+]])
+   end)
+
    it("detects unused implicit self", function()
       assert_warnings({
          {code = "212", name = "self", self = true, line = 2, column = 11, end_column = 11}
