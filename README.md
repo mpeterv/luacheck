@@ -152,6 +152,35 @@ $ alias luacheck='docker run -v "$(pwd):/data" luacheck:latest'
 # Thereafter just run:
 $ luacheck .
 ```
+### Use as a CI job
+
+There are actually many ways to run Luacheck remotely as part of a CI work flow.
+Because packages are available for many platforms, one way would be to just use your platforms native package installation system to pull them into whatever CI runner environment you already use.
+Another way is to pull in the prebuilt Docker container and run that.
+
+As a case study, here is how a workflow could be setup in GitHub Actions:
+
+```yaml
+name: Luacheck
+on: [push, pull_request]
+jobs:
+  sile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Luacheck linter
+        uses: lunarmadules/luacheck@v0
+```
+
+By default the GH Action is configured to run `luacheck .`, but you can also pass it your own `args` to replace the default input of `.`.
+
+```yaml
+      - name: Luacheck linter
+        uses: lunarmadules/luacheck@v0
+		with:
+			args: myfile.lua
+```
 
 ## License
 
