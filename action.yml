@@ -1,0 +1,17 @@
+name: Luacheck
+description: Luacheck
+inputs:
+  args:
+    description: Arguments passed to luacheck
+    required: false
+    default: "."
+runs:
+  using: docker
+  image: docker://ghcr.io/lunarmodules/luacheck:v0.25.0
+  entrypoint: sh
+  args:
+    - -c
+    - luacheck ${{ inputs.args }}
+branding:
+  icon: check
+  color: yellow
