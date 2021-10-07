@@ -23,6 +23,10 @@ jobs:
       run: |
         luarocks install --deps-only luacheck-dev-1.rockspec
         luarocks install busted
+        luarocks install lanes # required for parallel execution
+        luarocks install luautf8 # required for decoder unit test
+        luarocks install luasocket # required for profiler unit test
+        luarocks install cluacov
         luarocks install luacov-coveralls
     - name: Run busted test suite
       run: busted -c -v
