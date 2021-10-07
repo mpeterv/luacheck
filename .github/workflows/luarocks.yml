@@ -1,0 +1,21 @@
+name: Luarocks
+
+on: [push, pull_request]
+
+jobs:
+
+  luarocks:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup ‘lua’
+      uses: leafo/gh-actions-lua@v8
+    - name: Setup ‘luarocks’
+      uses: leafo/gh-actions-luarocks@v4
+    - name: Luarocks lint
+      run: |
+        luarocks --local lint -- luacheck-dev-1.rockspec
+    - name: Luarocks make
+      run: |
+        luarocks --local make -- luacheck-dev-1.rockspec
