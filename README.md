@@ -2,10 +2,9 @@
 
 [![Join the chat at https://gitter.im/luacheck/Lobby](https://badges.gitter.im/luacheck/Lobby.svg)](https://gitter.im/luacheck/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Build Status](https://travis-ci.org/lunarmodules/luacheck.png?branch=master)](https://travis-ci.org/lunarmodules/luacheck)
-[![Windows build status](https://ci.appveyor.com/api/projects/status/pgox2vvelagw1fux/branch/master?svg=true&passingText=Windows%20build%20passing&failingText=Windows%20build%20failing)](https://ci.appveyor.com/project/lunarmodules/luacheck/branch/master)
-[![codecov](https://codecov.io/gh/lunarmodules/luacheck/branch/master/graph/badge.svg)](https://codecov.io/gh/lunarmodules/luacheck)
-[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
+[![Luacheck](https://img.shields.io/github/workflow/status/lunarmodules/luacheck/Luacheck?label=Luacheck&logo=Lua)](https://github.com/lunarmodules/luacheck/actions?workflow=Luacheck)
+[![Busted](https://img.shields.io/github/workflow/status/lunarmodules/luacheck/Busted?label=Busted&logo=Lua)](https://github.com/lunarmodules/luacheck/actions?workflow=Busted)
+[![Coverage Status](https://img.shields.io/coveralls/github/lunarmodules/luacheck?label=Coveralls&logo=Coveralls)](https://coveralls.io/github/lunarmodules/luacheck?branch=master)
 
 ## Contents
 

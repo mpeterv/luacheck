@@ -421,7 +421,7 @@ Total: 5 warnings / 0 errors in 2 files
       assert.matches([[
 Checking spec/samples/bad.rockspec                Runtime error
 
-    spec/samples/bad%.rockspec: line 1: attempt to call .+
+    spec/samples/bad%.rockspec: line 1: .*call.*
 
 Total: 0 warnings / 0 errors in 0 files, couldn't check 1 file
 ]], get_output "spec/samples/bad.rockspec --no-config")
