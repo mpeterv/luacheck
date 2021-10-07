@@ -26,13 +26,12 @@ jobs:
         luarocks install lanes # required for parallel execution
         luarocks install luautf8 # required for decoder unit test
         luarocks install luasocket # required for profiler unit test
-        luarocks install cluacov
         luarocks install luacov-coveralls
     - name: Run busted test suite
       run: busted -c -v
     - name: Report test coverage
       if: success()
       continue-on-error: true
-      run: luacov-coveralls -i luacheck -e .luarocks
+      run: luacov-coveralls -i src/luacheck -e .luarocks
       env:
         COVERALLS_REPO_TOKEN: ${{ github.token }}
