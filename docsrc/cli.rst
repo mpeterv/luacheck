@@ -70,8 +70,8 @@ Option                                  Meaning
 ``--no-self``                           Filter out warnings related to implicit ``self`` argument.
 ``--std <std>``                         Set standard globals, default is ``max``. ``<std>`` can be one of:
 
-                                        * ``max`` - union of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;
-                                        * ``min`` - intersection of globals of Lua 5.1, Lua 5.2, Lua 5.3 and LuaJIT 2.x;
+                                        * ``max`` - union of globals of Lua 5.1 - 5.4 and LuaJIT 2.x;
+                                        * ``min`` - intersection of globals of Lua 5.1 - 5.4 and LuaJIT 2.x;
                                         * ``lua51`` - globals of Lua 5.1 without deprecated ones;
                                         * ``lua51c`` - globals of Lua 5.1;
                                         * ``lua52`` - globals of Lua 5.2;
