@@ -1,0 +1,43 @@
+# NOTICE
+# This is not your usual luacheck workflow! Don't copy this to other projects.
+# Instead of installing and using this somewhere, we're actually building and
+# running the current HEAD version on ourselves: basically this is a combination
+# bootstrap test and dogfooding. The upshot is that we both check that
+# everything works (and end-to-end test) and thata the current codebase lints
+# against itself. This ensures we can fix a bug or make a breaking change in
+# lualink without being blocked by CI using a different luacheck verision.
+
+name: Luacheck
+
+on: [push, pull_request]
+
+jobs:
+
+  luacheck:
+    strategy:
+      fail-fast: false
+      matrix:
+        luaVersion: ["5.4", "5.3", "5.2", "5.1", "luajit-2.0.5", "luajit-2.1.0-beta3", "luajit-openresty", "tarantool"]
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup ‘lua’
+      uses: leafo/gh-actions-lua@v8
+      if: ${{ matrix.luaVersion }} != 'tarantool'
+      with:
+        luaVersion: ${{ matrix.luaVersion }}
+    - name: Setup Tarantool
+      if: ${{ matrix.luaVersion }} == 'tarantool'
+      uses: tarantool/setup-tarantool@v1
+      with:
+        tarantool-version: '1.10'
+    - name: Setup ‘luarocks’
+      uses: leafo/gh-actions-luarocks@v4
+    - name: Setup dependencies
+      run: |
+        luarocks install --deps-only luacheck-dev-1.rockspec
+    - name: Build ‘luacheck’ (bootstrap)
+      run: luarocks make
+    - name: Run ‘luacheck’ (dogfood)
+      run: luacheck .

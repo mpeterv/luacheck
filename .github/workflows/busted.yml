@@ -1,0 +1,43 @@
+name: Busted
+
+on: [push, pull_request]
+
+jobs:
+
+  busted:
+    strategy:
+      fail-fast: false
+      matrix:
+        luaVersion: ["5.4", "5.3", "5.2", "5.1", "luajit-2.0.5", "luajit-2.1.0-beta3", "luajit-openresty", "tarantool"]
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup ‘lua’
+      uses: leafo/gh-actions-lua@v8
+      if: ${{ matrix.luaVersion }} != 'tarantool'
+      with:
+        luaVersion: ${{ matrix.luaVersion }}
+    - name: Setup Tarantool
+      if: ${{ matrix.luaVersion }} == 'tarantool'
+      uses: tarantool/setup-tarantool@v1
+      with:
+        tarantool-version: '1.10'
+    - name: Setup ‘luarocks’
+      uses: leafo/gh-actions-luarocks@v4
+    - name: Setup dependencies
+      run: |
+        luarocks install --deps-only luacheck-dev-1.rockspec
+        luarocks install busted
+        luarocks install lanes # required for parallel execution
+        luarocks install luautf8 # required for decoder unit test
+        luarocks install luasocket # required for profiler unit test
+        luarocks install luacov-coveralls
+    - name: Run busted test suite
+      run: busted -c -v
+    - name: Report test coverage
+      if: success()
+      continue-on-error: true
+      run: luacov-coveralls -i src/luacheck -e .luarocks
+      env:
+        COVERALLS_REPO_TOKEN: ${{ github.token }}
