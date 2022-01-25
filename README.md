@@ -126,11 +126,11 @@ To build your own, execute the following command from the source directory of th
 $ docker build -t luacheck:HEAD .
 ```
 
-To use a prebuilt one, download it from Docker Hub.
+To use a prebuilt one, download it from the GitHub Container Registry.
 Here we use the one tagged *latest*, but you can substitute *latest* for any tagged release.
 
 ```console
-$ docker pull lunarmodules/luacheck:latest
+$ docker pull ghcr.io/lunarmodules/luacheck:latest
 ```
 
 Once you have a container you can run it on one file or a source tree (substitute *latest* with *HEAD* if you built your own or with the tagged version you want if applicable):
