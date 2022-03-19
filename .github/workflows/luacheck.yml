@@ -1,11 +1,15 @@
-# NOTICE
-# This is not your usual luacheck workflow! Don't copy this to other projects.
-# Instead of installing and using this somewhere, we're actually building and
-# running the current HEAD version on ourselves: basically this is a combination
-# bootstrap test and dogfooding. The upshot is that we both check that
-# everything works (and end-to-end test) and thata the current codebase lints
-# against itself. This ensures we can fix a bug or make a breaking change in
-# lualink without being blocked by CI using a different luacheck verision.
+# ATTENTION
+#
+# This is *not* a typical luacheck workflow! Do not copy this to other projects!
+# Instead of installing luacheck from somewhere and using it on a code base,
+# we're actually building and running the current HEAD version on ourselves:
+# basically this is a combination bootstrap test and dogfooding. The upshot is
+# that we check both that everything works (and end-to-end test) and that the
+# current codebase lints against itself. This ensures we can fix a bug or make
+# a breaking change in luacheck without being blocked by our own CI using a
+# different luacheck verision.
+#
+# See the README.md file for examples suitable for use in other projects.
 
 name: Luacheck
 
@@ -21,9 +25,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Setup ‘lua’
-      uses: leafo/gh-actions-lua@v8
+      uses: leafo/gh-actions-lua@v9
       with:
         luaVersion: ${{ matrix.luaVersion }}
     - name: Setup ‘luarocks’
