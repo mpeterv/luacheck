@@ -168,7 +168,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Luacheck linter
         uses: lunarmadules/luacheck@v0
 ```
@@ -178,8 +178,8 @@ By default the GH Action is configured to run `luacheck .`, but you can also pas
 ```yaml
       - name: Luacheck linter
         uses: lunarmadules/luacheck@v0
-		with:
-			args: myfile.lua
+        with:
+            args: myfile.lua
 ```
 
 ## License
