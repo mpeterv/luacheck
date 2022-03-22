@@ -32,3 +32,17 @@ jobs:
       rockspecs: ${{ needs.affected.outputs.rockspecs }}
     secrets:
       apikey: ${{ secrets.LUAROCKS_APIKEY }}
+
+  docker:
+    needs: upload
+    if: >-
+      ${{
+        ( github.ref_name == 'master' || startsWith(github.ref, 'refs/tags/') ) &&
+        github.repository == 'lunarmodules/luacheck'
+      }}
+    uses: ./.github/workflows/docker.yml
+    with:
+      username: ${{ github.repository_owner }}
+      tag: ${{ github.ref_name }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
