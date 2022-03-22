@@ -1,4 +1,4 @@
-name: Build and push Docker
+name: Docker
 
 on:
   workflow_call:
@@ -15,9 +15,11 @@ on:
 
 jobs:
   docker:
-    name: Build Docker image and push to GHRC
+    name: Build image and push to GHRC
     runs-on: ubuntu-20.04
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to GitHub Container Registry
