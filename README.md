@@ -125,7 +125,7 @@ You can either build your own or download a prebuilt version.
 To build your own, execute the following command from the source directory of this project:
 
 ```console
-$ docker build -t luacheck:HEAD .
+$ docker build -t ghcr.io/lunarmodules/luacheck:HEAD .
 ```
 
 To use a prebuilt one, download it from the GitHub Container Registry.
@@ -139,17 +139,17 @@ Once you have a container you can run it on one file or a source tree (substitut
 
 ```console
 # Run on an entire directory
-$ docker run -v "$(pwd):/data" luacheck:latest .
+$ docker run -v "$(pwd):/data" ghcr.io/lunarmodules/luacheck:latest .
 
 # Run on one file:
-$ docker run -v "$(pwd):/data" luacheck:latest bin/luacheck.lua
+$ docker run -v "$(pwd):/data" ghcr.io/lunarmodules/luacheck:latest bin/luacheck.lua
 ```
 
 A less verbose way to run it in most shells is with at alias:
 
 ```console
 # In a shell or in your shell's RC file:
-$ alias luacheck='docker run -v "$(pwd):/data" luacheck:latest'
+$ alias luacheck='docker run -v "$(pwd):/data" ghcr.io/lunarmodules/luacheck:latest'
 
 # Thereafter just run:
 $ luacheck .
@@ -172,14 +172,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Luacheck linter
-        uses: lunarmadules/luacheck@v0
+        uses: lunarmodules/luacheck@v0
 ```
 
 By default the GH Action is configured to run `luacheck .`, but you can also pass it your own `args` to replace the default input of `.`.
 
 ```yaml
       - name: Luacheck linter
-        uses: lunarmadules/luacheck@v0
+        uses: lunarmodules/luacheck@v0
         with:
             args: myfile.lua
 ```
