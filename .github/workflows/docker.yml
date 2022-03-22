@@ -32,6 +32,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          push: true
+          push: ${{ github.ref == 'refs/heads/master' }}
           tags: |
             ghcr.io/lunarmodules/luacheck:${{ inputs.tag }}

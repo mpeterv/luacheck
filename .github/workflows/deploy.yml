@@ -36,12 +36,12 @@ jobs:
   docker:
     if: >-
       ${{
-        ( github.ref_name == 'master' || startsWith(github.ref, 'refs/tags/') ) &&
+        github.ref == 'refs/heads/master' &&
         github.repository == 'lunarmodules/luacheck'
       }}
     uses: ./.github/workflows/docker.yml
     with:
-      username: ${{ github.repository_owner }}
+      username: ${{ github.actor }}
       tag: ${{ github.ref_name }}
     secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+      token: ${{ secrets.GHCR_PAT }}
