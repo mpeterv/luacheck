@@ -611,7 +611,7 @@ function LinState:scan_expr_Op(item, node)
    end
 end
 
--- Puts tables {var = value{} into field `set_variables` of items in line which set values.
+-- Puts tables {var = value} into field `set_variables` of items in line which set values.
 -- Registers set values in field `values` of variables.
 function LinState:register_set_variables()
    local line = self.lines.top

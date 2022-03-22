@@ -53,6 +53,8 @@ Code Description
 551  An empty statement.
 561  Cyclomatic complexity of a function is too high.
 571  A numeric for loop goes from #(expr) down to 1 or less without negative step.
+581  Negation of a relational operator- operator can be flipped.
+582  Error prone negation: negation has a higher priority than equality.
 611  A line consists of nothing but whitespace.
 612  A line contains trailing whitespace.
 613  Trailing whitespace in a string.
@@ -233,6 +235,22 @@ going from ``#(some expression)`` to ``1`` or a smaller constant when the loop s
    for i = #t, 1, -1 do
       print(t[i])
    end
+
+Error-prone and Unnecessary Negations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Negation has a higher priority than relational operators; (not x == 3) is interpreted as (not x) == 3, rather than not (x == 3).
+
+Negating the output of a relational operator is unnecessary; each one has another operator that can be used directly:
+
+not (x == y) => x ~= y
+not (x ~= y) => x == y
+not (x > y) => x <= y
+not (x >= y) => x < y
+not (x < y) => x >= y
+not (x <= y) => x > y
+
+These replacements work for all numbers, but can fail with metatables or NaN's.
 
 Formatting issues (6xx)
 -----------------------

@@ -1,0 +1,6 @@
+-   id: luacheck
+    name: Luacheck
+    description: Lint and static analysis of Lua code
+    entry: luacheck
+    language: lua
+    types: [lua]

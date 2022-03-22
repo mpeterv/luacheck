@@ -176,6 +176,8 @@ and
 
 are equivalent.
 
+The configs are processed in order of increasing specificity. ``globals`` and ``read_globals`` will add to the set of allowed globals. ``not_globals`` can be used to remove previously allowed globals; ``new_globals`` and ``new_read_globals`` can be used to override the set of globals, wiping all previously allowed ``globals`` or ``read_globals`` respectively, and replacing them with new entries.
+
 Default per-path std overrides
 ------------------------------
 

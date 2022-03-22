@@ -322,4 +322,33 @@ end
    it("handles argparse sample", function()
       assert.table(check(io.open("spec/samples/argparse-0.2.0.lua", "rb"):read("*a")))
    end)
+
+   it("recommends using the opposite operator when negating a relational operator", function()
+      assert.same({
+         {code = "581", line = 1, column = 13, end_column = 23, operator = ">", replacement_operator = "<="}
+      }, check[[
+         if not (5 > 5) then return end
+]])
+   end)
+
+   it("warns about error-prone negations", function()
+      assert.same({
+         {code = "582", line = 1, column = 13, end_column = 21}
+      }, check[[
+         if not 5 > 5 then return end
+]])
+   end)
+
+   it("doesn't warn on similarly named variables", function()
+      assert.same({}, check[[
+         local eq = true
+         if not eq then return end
+]])
+   end)
+
+   it("doesn't warn on error-prone negations if they have explicit parentheses", function()
+      assert.same({}, check[[
+         if (not 5) > 5 then return end
+]])
+   end)
 end)
