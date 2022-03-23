@@ -1,14 +1,14 @@
 # Makefile for (cross)compiling luacheck binaries.
 # Do not use directly, run scripts/build-binaries.sh instead.
 
-LUA_VERSION= 5.3.5
-LFS_VERSION= 1.7.0-2
-ARGPARSE_VERSION= 0.6.0-1
-LANES_VERSION= 3.10.1-1
+LUA_VERSION= 5.4.4
+LFS_VERSION= 1.8.0-1
+ARGPARSE_VERSION= 0.7.1-1
+LANES_VERSION= 3.16.0-0
 
 LUA_DIR= lua-$(LUA_VERSION)
 LFS_DIR= luafilesystem-$(LFS_VERSION)/luafilesystem
-ARGPARSE_DIR= argparse-$(ARGPARSE_VERSION)/argparse
+ARGPARSE_DIR= argparse-$(ARGPARSE_VERSION)/argparse-$(ARGPARSE_VERSION:-1=)
 LANES_DIR= lanes-$(LANES_VERSION)/lanes
 
 BASE_CC= gcc

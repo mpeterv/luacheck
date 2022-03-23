@@ -39,7 +39,7 @@ For parallel checking Luacheck additionally requires [LuaLanes](https://github.c
 
 ### Windows binary download
 
-For Windows there is single-file 64-bit binary distribution, bundling Lua 5.3.4, Luacheck, LuaFileSystem, and LuaLanes using [LuaStatic](https://github.com/ers35/luastatic):
+For Windows there is single-file 64-bit binary distribution, bundling Lua 5.4.4, Luacheck, LuaFileSystem, and LuaLanes using [LuaStatic](https://github.com/ers35/luastatic):
 [download](https://github.com/lunarmodules/luacheck/releases/download/0.25.0/luacheck.exe).
 
 ## Basic usage
