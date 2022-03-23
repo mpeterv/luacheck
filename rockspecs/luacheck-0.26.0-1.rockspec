@@ -1,7 +1,8 @@
 package = "luacheck"
-version = "dev-1"
+version = "0.26.0-1"
 source = {
-   url = "git+https://github.com/lunarmodules/luacheck.git"
+   url = "git+https://github.com/lunarmodules/luacheck.git",
+   tag = "v0.26.0"
 }
 description = {
    summary = "A static analyzer and a linter for Lua",

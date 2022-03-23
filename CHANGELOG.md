@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.26.0 (2022-03-23)
+
+### New Features
+
+* Add "unused hint" flag — @javierguerragiraldez
+  Function arguments that start with a single underscore get an "unused hint".
+  Leaving them unused doesn't result in a warning.
+  Using them, on the other hand, is a new warning (№ 214).
+* Add hook to enable Luacheck for use in pre-commit — @mblayman
+* Warn on error-prone and unnecessary negations — @arichard4
+  Two new warnings (№ 581 and 582) flag error-prone operator orders.
+* Add Dockerfile implementation — @MartinBroers
+  A 6.34MB containerized image with everything needed to run the linter.
+  Build your own or pull prebuilt images from GHRC.
+* Setup repository for use *as* a GitHub Action — @alerque
+  Lint your repositories using GitHub Action workflows with just a single `uses:` step.
+
+### Fixes
+
+* Don't mark variables as accessed if only references are circular — @arichard4
+* Make test suite Lua 5.4 compatible — @alerque
+* Correct small issues in documentation — various
+
+### Miscellaneous
+
+* Overhaul CI workflows for testing, linting, building, and releasing — @alerque
+* Update URLs and documentation reflecting new repository home — @lunarmodules
+
 ## 0.25.0 (2020-08-25)
 
 ### New features
