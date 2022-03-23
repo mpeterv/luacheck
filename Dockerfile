@@ -16,4 +16,4 @@ COPY "bin/luacheck.lua" "/usr/bin/luacheck"
 
 WORKDIR /data
 
-ENTRYPOINT ["luacheck"]
+ENTRYPOINT ["luacheck", "--no-cache"]
