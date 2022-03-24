@@ -78,6 +78,46 @@ local function in_scope(var, index)
    return (var.scope_start <= index) and (index <= var.scope_end)
 end
 
+local function contains_call(node)
+   if node.tag == "Call" or node.tag == "Invoke" then
+      return true
+   end
+
+   if node.tag ~= "Function" then
+      for _, sub_node in ipairs(node) do
+         if type(sub_node) == 'table' and contains_call(sub_node) then
+            return true
+         end
+      end
+   end
+
+   return false
+end
+
+local function is_circular_reference(item, var)
+   -- No support for matching multiple assignment to the specific assignment
+   if not item.lhs or #item.lhs ~= 1 or not item.rhs or #item.rhs ~= 1 then
+      return false
+   end
+
+   -- Case t[t.function()] = t.func()
+   -- Functions can have side-effects, so this isn't purely circular
+   local right_assignment = item.rhs[1]
+   if contains_call(right_assignment) then
+      return false
+   end
+
+   local left_assignment = item.lhs[1]
+   if contains_call(left_assignment) then
+      return false
+   end
+   local node = left_assignment[1]
+   if node.var == var then
+      return true
+   end
+   return false
+end
+
 -- Called when main assignment propagation reaches a line item.
 local function main_assignment_propagation_callback(line, index, item, var, value)
    -- Check entrance condition.
@@ -91,7 +131,9 @@ local function main_assignment_propagation_callback(line, index, item, var, valu
 
    -- Accesses (and mutations) of the variable can resolve to reaching assignment.
    if item.accesses and item.accesses[var] then
-      add_resolution(line, item, var, value)
+      if not is_circular_reference(item, var) then
+         add_resolution(line, item, var, value)
+      end
    end
 
    if item.mutations and item.mutations[var] then
@@ -102,7 +144,9 @@ local function main_assignment_propagation_callback(line, index, item, var, valu
    -- can resolve to reaching assignment.
    if item.lines then
       for _, created_line in ipairs(item.lines) do
-         add_resolutions(created_line, created_line.accessed_upvalues[var], var, value)
+         if not is_circular_reference(item, var) then
+            add_resolutions(created_line, created_line.accessed_upvalues[var], var, value)
+         end
          add_resolutions(created_line, created_line.mutated_upvalues[var], var, value, true)
       end
    end
