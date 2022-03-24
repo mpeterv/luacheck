@@ -23,9 +23,9 @@ jobs:
     # 3. We are on the canonical repository (no uploads from forks)
     if: >-
       ${{
-        needs.affected.outputs.rockspecs &&
+        github.repository == 'lunarmodules/luacheck' &&
         ( github.ref_name == 'master' || startsWith(github.ref, 'refs/tags/') ) &&
-        github.repository == 'lunarmodules/luacheck'
+        needs.affected.outputs.rockspecs
       }}
     uses: lunarmodules/.github/.github/workflows/upload_to_luarocks.yml@main
     with:
@@ -36,8 +36,8 @@ jobs:
   docker:
     if: >-
       ${{
-        github.ref == 'refs/heads/master' &&
-        github.repository == 'lunarmodules/luacheck'
+        github.repository == 'lunarmodules/luacheck' &&
+        ( github.ref_name == 'master' || startsWith(github.ref, 'refs/tags/') )
       }}
     uses: ./.github/workflows/docker.yml
     with:
