@@ -193,6 +193,13 @@ local function make_absolute_dirs(dir_path)
 
    local make_ok, make_error = lfs.mkdir(dir_path)
 
+   -- Avoid race condition. Even if the mkdir returns an error it *may* be
+   -- because another thread created it in the mean time. If it exists now we
+   -- are good to move on and ignore the error.
+   if fs.is_dir(dir_path) then
+      return true
+   end
+
    if not make_ok then
       return nil, ("Couldn't make directory %s: %s"):format(dir_path, make_error)
    end
