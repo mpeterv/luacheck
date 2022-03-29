@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.url="https://github.com/lunarmodules/luacheck/pkgs/container/luacheck"
 LABEL org.opencontainers.image.source="https://github.com/lunarmodules/luacheck"
 
-RUN apk add --no-cache dumb-init lua lua-argparse lua-filesystem
+RUN apk add --no-cache dumb-init lua lua-argparse lua-filesystem lua-lanes
 
 COPY "src/luacheck/" "/usr/share/lua/5.1/luacheck/"
 COPY "bin/luacheck.lua" "/usr/bin/luacheck"
