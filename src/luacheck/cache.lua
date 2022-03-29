@@ -52,6 +52,7 @@ function cache.get_default_dir()
          end
       end
    end
+   return fs.join(fs.get_current_dir(), ".luacheck_cache")
 end
 
 local format_version = "1"
