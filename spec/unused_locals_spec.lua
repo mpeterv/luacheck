@@ -88,6 +88,10 @@ end
 ]])
    end)
 
+   it("exempt _ENV from warning on usage with underscore prefix", function()
+      assert_warnings({}, [[ return function(_ENV) return type(_ENV) end ]])
+   end)
+
    it("detects unused implicit self", function()
       assert_warnings({
          {code = "212", name = "self", self = true, line = 2, column = 11, end_column = 11}
