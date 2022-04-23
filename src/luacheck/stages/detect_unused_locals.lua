@@ -152,7 +152,7 @@ local function detect_unused_local(chstate, var)
    elseif #var.values == 1 then
       local value = var.values[1]
 
-      if var.hint_unused then
+      if var.hint_unused and var.name ~= "_ENV" then
          if value.used then
             chstate:warn_var("214", var)
          end
