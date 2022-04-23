@@ -1,5 +1,22 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+## v0.26.1 (2022-04-23)
+
+### Bug Fixes
+
+- Exempt special builtin \_ENV from 214 warning
+
+### Features
+
+- In case of no home environment, default to caching in CWD (#60)
+- Add multi-thread support to container (#59)
+
+### Miscellaneous Tasks
+
+- Tweak warning message for 214 to be more explicit
+
 ## v0.26.0 (2022-03-23)
 
 ### New Features
