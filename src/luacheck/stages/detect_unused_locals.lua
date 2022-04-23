@@ -42,7 +42,7 @@ stage.warnings = {
       fields = {"name", "func", "secondary", "useless", "recursive", "mutually_recursive"}},
    ["212"] = {message_format = unused_arg_message_format, fields = {"name", "self"}},
    ["213"] = {message_format = "unused loop variable {name!}", fields = {"name"}},
-   ["214"] = {message_format = "used variable {name!}", fields = {"name"}},
+   ["214"] = {message_format = "used variable {name!} with unused hint", fields = {"name"}},
    ["221"] = {message_format = "variable {name!} is never set", fields = {"name", "secondary"}},
    ["231"] = {message_format = "variable {name!} is never accessed", fields = {"name", "secondary"}},
    ["232"] = {message_format = "argument {name!} is never accessed", fields = {"name"}},
