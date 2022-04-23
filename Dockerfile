@@ -2,7 +2,7 @@
 
 FROM alpine:edge AS luacheck
 
-LABEL org.opencontainers.image.title="CaSILE"
+LABEL org.opencontainers.image.title="Luacheck"
 LABEL org.opencontainers.image.description="A containerized version of Luacheck, a tool for linting and static analysis of Lua code"
 LABEL org.opencontainers.image.authors="Caleb Maclennan <caleb@alerque.com>"
 LABEL org.opencontainers.image.licenses="MIT"
