@@ -199,6 +199,19 @@ local function new_set_item(node)
    }
 end
 
+local function new_opset_item(node)
+   return {
+      tag = "OpSet",
+      node = node,
+      lhs = node[2],
+      rhs = node[3],
+      accesses = {},
+      mutations = {},
+      used_values = {},
+      lines = {}
+   }
+end
+
 local function is_unpacking(node)
    return node.tag == "Dots" or node.tag == "Call" or node.tag == "Invoke"
 end
@@ -515,6 +528,24 @@ function LinState:emit_stmt_Set(node)
    self:emit(item)
 end
 
+function LinState:emit_stmt_OpSet(node)
+   local item = new_opset_item(node)
+   self:scan_expr(item, node[3])
+
+   local lhs = node[2]
+   if lhs.tag == "Id" then
+      local var = self:check_var(lhs)
+
+      if var then
+         self:register_upvalue_action(item, var, "set_upvalues")
+      end
+   else
+      assert(lhs.tag == "Index")
+      self:scan_lhs_index(item, lhs)
+   end
+
+   self:emit(item)
+end
 
 function LinState:scan_expr(item, node)
    local scanner = self["scan_expr_" .. node.tag]
@@ -610,6 +641,8 @@ function LinState:scan_expr_Op(item, node)
       self:scan_expr(item, node[3])
    end
 end
+
+LinState.scan_expr_OpSet = LinState.scan_expr_Op
 
 -- Puts tables {var = value} into field `set_variables` of items in line which set values.
 -- Registers set values in field `values` of variables.

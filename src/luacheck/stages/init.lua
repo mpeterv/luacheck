@@ -16,6 +16,7 @@ stages.names = {
    "name_functions",
    "resolve_locals",
    "detect_bad_whitespace",
+   "detect_compound_operators",
    "detect_cyclomatic_complexity",
    "detect_empty_blocks",
    "detect_empty_statements",

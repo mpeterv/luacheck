@@ -117,6 +117,7 @@ Option                                  Meaning
 ``--ignore | -i <patt> [<patt>] ...``   Filter out warnings matching patterns.
 ``--enable | -e <patt> [<patt>] ...``   Do not filter out warnings matching patterns.
 ``--only | -o <patt> [<patt>] ...``     Filter out warnings not matching patterns.
+``--operators <patt> [<patt>] ...``     Allow compound operators matching patterns.
 ``--config <config>``                   Path to custom configuration file (default: ``.luacheckrc``).
 ``--no-config``                         Do not look up custom configuration file.
 ``--default-config <config>``           Default path to custom configuration file, to be used if ``--[no-]config`` is not used and ``.luacheckrc`` is not found.
