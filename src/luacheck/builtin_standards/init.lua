@@ -1,4 +1,5 @@
 local love = require "luacheck.builtin_standards.love"
+local playdate = require "luacheck.builtin_standards.playdate"
 local ngx = require "luacheck.builtin_standards.ngx"
 local standards = require "luacheck.standards"
 
@@ -294,6 +295,8 @@ builtin_standards.busted = {
 }
 
 builtin_standards.love = love
+
+builtin_standards.playdate = playdate
 
 builtin_standards.rockspec = {
    globals = {
