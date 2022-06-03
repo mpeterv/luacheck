@@ -8,6 +8,13 @@ local import = {
    fields = {}
 }
 
+-- Object oriented programming support
+local class = standards.def_fields("extends")
+
+local Object = {
+   fields = {}
+}
+
 -- Table additions
 local table = standards.def_fields("indexOfElement", "getsize", "create", "shallowcopy", "deepcopy")
 
@@ -74,6 +81,12 @@ local playdate = {
 
       -- Buttons
       buttonIsPressed = empty,
+      kButtonA = empty,
+      kButtonB = empty,
+      kButtonUp = empty,
+      kButtonDown = empty,
+      kButtonLeft = empty,
+      kButtonRight = empty,
       buttonJustPressed = empty,
       buttonJustRelease = empty,
       getButtonState = empty,
@@ -172,23 +185,14 @@ local playdate = {
             pushContext = empty,
             popContext = empty,
             clear = empty,
-            image = standards.def_fields("new"),
+            image = standards.def_fields("new", "kDitherTypeNone", "kDitherTypeDiagonalLine", "kDitherTypeVerticalLine",
+            "kDitherTypeHorizontalLine", "kDitherTypeScreen", "kDitherTypeBayer2x2", "kDitherTypeBayer4x4",
+            "kDitherTypeBayer8x8", "kDitherTypeFloydSteinberg", "kDitherTypeBurkes", "kDitherTypeAtkinson"),
             imageSizeAtPath = empty,
             kImageUnflipped = empty,
             kImageFlippedX = empty,
             kImageFlippedY = empty,
             kImageFlippedXY = empty,
-            kDitherTypeNone = empty,
-            kDitherTypeDiagonalLine = empty,
-            kDitherTypeVerticalLine = empty,
-            kDitherTypeHorizontalLine = empty,
-            kDitherTypeScreen = empty,
-            kDitherTypeBayer2x2 = empty,
-            kDitherTypeBayer4x4 = empty,
-            kDitherTypeBayer8x8 = empty,
-            kDitherTypeFloydSteinberg = empty,
-            kDitherTypeBurkes = empty,
-            kDitherTypeAtkinson = empty,
             checkAlphaCollision = empty,
             setColor = empty,
             kColorBlack = empty,
@@ -196,6 +200,7 @@ local playdate = {
             kColorClear = empty,
             kColorXOR = empty,
             getColor = empty,
+            setBackgroundColor = empty,
             getBackgroundColor = empty,
             setPattern = empty,
             setDitherPattern = empty,
@@ -287,6 +292,7 @@ local playdate = {
             drawLocalizedText = empty,
             getLocalizedText = empty,
             getTextSize = empty,
+            drawTextAligned = empty,
             drawTextInRect = empty,
             drawLocalizedTextAligned = empty,
             drawLocalizedTextInRect = empty,
@@ -317,7 +323,11 @@ local playdate = {
       math = standards.def_fields("lerp"),
 
       -- Pathfinding
-      pathfinder = standards.def_fields("new", "new2DGrid"),
+      pathfinder = {
+         fields = {
+            graph = standards.def_fields("new", "new2DGrid")
+         }
+      },
 
       -- Power
       getPowerStatus = empty,
@@ -380,6 +390,7 @@ local playdate = {
             delayline = standards.def_fields("new"),
             sequence = standards.def_fields("new"),
             track = standards.def_fields("new"),
+            instrument = standards.def_fields("new"),
             controlsignal = standards.def_fields("new"),
             micinput = standards.def_fields("recordToSample", "stopRecording", "startListening", "stopListening",
                "getLevel", "getSource"),
@@ -415,7 +426,20 @@ local playdate = {
    }
 }
 
+-- vector3d (This isn't part of the playdate namespace so may be beta or unsupported)
+local vector3d = standards.def_fields("new")
+
+-- face3d (This isn't part of the playdate namespace so may be beta or unsupported)
+local face3d = standards.def_fields("new")
+
+-- shape3d (This isn't part of the playdate namespace so may be beta or unsupported)
+local shape3d = standards.def_fields("new")
+
+-- scene3d (This isn't part of the playdate namespace so may be beta or unsupported)
+local scene3d = standards.def_fields("new")
+
 return {
-   read_globals = {import = import, playdate = playdate, table = table, printTable = printTable,
-      where = where, sample = sample, json = json, kTextAlignment = kTextAlignment}
+   read_globals = {class = class, import = import, Object = Object, playdate = playdate, table = table,
+      printTable = printTable, where = where, sample = sample, json = json, kTextAlignment = kTextAlignment,
+      vector3d = vector3d, face3d = face3d, shape3d = shape3d, scene3d = scene3d}
 }
