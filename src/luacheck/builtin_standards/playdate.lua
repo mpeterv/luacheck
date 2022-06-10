@@ -43,10 +43,8 @@ local playdate = {
    fields = {
       -- System and Game Metadata
       apiVersion = empty,
-      metadata = standards.def_fields("bundleID", "version", "buildNumber", "imagePath", "card.png",
-         "card-highlighted", "animation.txt", "loopCount", "frames", "introFrames", "card-pressed.png",
-         "launchImage.png", "launchImages", "wrapping-pattern.png", "launchSoundPath", "contentWarning",
-         "contentWarning2"),
+      metadata = standards.def_fields("name", "description", "bundleID", "version", "buildNumber", "imagePath",
+         "launchSoundPath", "contentWarning", "contentWarning2"),
 
       -- Game flow
       update = read_write,
