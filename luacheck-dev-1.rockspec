@@ -24,6 +24,7 @@ build = {
       luacheck = "src/luacheck/init.lua",
       ["luacheck.builtin_standards"] = "src/luacheck/builtin_standards/init.lua",
       ["luacheck.builtin_standards.love"] = "src/luacheck/builtin_standards/love.lua",
+      ["luacheck.builtin_standards.playdate"] = "src/luacheck/builtin_standards/playdate.lua",
       ["luacheck.builtin_standards.ngx"] = "src/luacheck/builtin_standards/ngx.lua",
       ["luacheck.cache"] = "src/luacheck/cache.lua",
       ["luacheck.check"] = "src/luacheck/check.lua",
