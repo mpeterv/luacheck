@@ -228,6 +228,7 @@ local function add_default_path_options(opts)
    set_default_std(files, "**/tests/**/*_spec.lua", "+busted")
    set_default_std(files, "**/*.rockspec", "+rockspec")
    set_default_std(files, "**/*.luacheckrc", "+luacheckrc")
+   set_default_std(files, "**/config.ld", "+ldoc")
 end
 
 local fallback_config = {options = {}, anchor_dir = ""}

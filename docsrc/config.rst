@@ -191,5 +191,6 @@ Default per-path std overrides
    files["**/tests/**/*_spec.lua"].std = "+busted"
    files["**/*.rockspec"].std = "+rockspec"
    files["**/*.luacheckrc"].std = "+luacheckrc"
+   files["**/config.ld"].std = "+ldoc"
 
 Each of these can be overriden by setting a different ``std`` value for the corresponding key in ``files``.
