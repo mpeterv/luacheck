@@ -315,6 +315,25 @@ builtin_standards.luacheckrc = {
    }
 }
 
+builtin_standards.ldoc = {
+   globals = {
+      -- Fields from cli parameters
+      "file", "project", "title", "package", "all", "format", "output", "dir", "colon", "boilerplate", "ext", "one",
+      "style", "template", "merge", "icon",
+      -- `config.ld` additional fields
+      "description", "full_description", "examples", "readme", "topics", "pretty", "prettify_files", "charset", "sort",
+      "no_return_or_parms", "no_lua_ref", "backtick_references", "plain", "wrap", "manual_url", "no_summary",
+      "custom_tags", "custom_see_handler", "custom_display_name_handler", "not_luadoc", "no_space_before_args",
+      "template_escape", "user_keywords", "postprocess_html",
+      -- Available functions
+      "alias", "add_language_extension", "add_section", "new_type", "tparam_alias", "custom_see_handler",
+      -- "Undocumented" fields
+      "kind_names", "topics", "unqualified", "dont_escape_underscore", "custom_css", "version", "no_args_infer",
+      "parse_extra", "output", "dir", "charset", "ignore", "module_file", "vars", "wrap", "not_luadoc",
+      "merge_error_groups", "sort_modules", "use_markdown_titles", "custom_references", "global_lookup", "convert_opt"
+   }
+}
+
 builtin_standards.none = {}
 
 return builtin_standards
