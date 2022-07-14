@@ -86,7 +86,7 @@ local playdate = {
       kButtonLeft = empty,
       kButtonRight = empty,
       buttonJustPressed = empty,
-      buttonJustRelease = empty,
+      buttonJustReleased = empty,
       getButtonState = empty,
       AButtonDown = read_write,
       AButtonHeld = read_write,
@@ -107,6 +107,7 @@ local playdate = {
       isCrankDocked = empty,
       getCrankPosition = empty,
       getCrankChange = empty,
+      getCrankTicks = empty,
       cranked = read_write,
       crankDocked = read_write,
       crankUndocked = read_write,
@@ -134,6 +135,7 @@ local playdate = {
       argv = empty,
       setNewlinePrinted = empty,
       drawFPS = empty,
+      exit = empty,
 
       -- Profiling
       getStats = empty,
