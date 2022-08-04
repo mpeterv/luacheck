@@ -1,10 +1,12 @@
 local lfs = require "lfs"
 
+local luacheck = require "luacheck"
 local config = require "luacheck.config"
 local fs = require "luacheck.fs"
 local cur_dir = lfs.currentdir()
 local P = fs.normalize
 local function AP(p) return P(fs.join(cur_dir, p)) end
+local function cache_dir(p) return P(fs.join(cur_dir, p, luacheck._VERSION)) end
 
 local function nest(dir, func)
    local backed = false
@@ -172,7 +174,7 @@ describe("config", function()
             formatter = "helper.fmt",
             formatter_anchor_dir = P(cur_dir),
             jobs = false,
-            cache = AP("something.luacheckcache"),
+            cache = cache_dir("something.luacheckcache"),
             include_files = {
                AP("foo"),
                AP("bar")
@@ -197,7 +199,7 @@ describe("config", function()
             formatter = "helper.fmt2",
             formatter_anchor_dir = P(cur_dir),
             jobs = false,
-            cache = AP("something.luacheckcache"),
+            cache = cache_dir("something.luacheckcache"),
             include_files = {
                AP("foo"),
                AP("bar"),
