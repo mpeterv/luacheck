@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        luaVersion: [ "5.4", "5.3", "5.2", "5.1", "luajit", "luajit-openresty" ]
+        luaVersion: [ "5.4", "5.3", "5.2", "5.1", "luajit" ] # "luajit-openresty"
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
