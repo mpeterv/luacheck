@@ -39,7 +39,7 @@ jobs:
         github.repository == 'lunarmodules/luacheck' &&
         ( github.ref_name == 'master' || startsWith(github.ref, 'refs/tags/') )
       }}
-    uses: ./.github/workflows/docker.yml
+    uses: lunarmodules/.github/.github/workflows/docker_ghcr_deploy.yml@main
     with:
       username: ${{ github.actor }}
       tag: ${{ github.ref_name }}
