@@ -1,0 +1,19 @@
+[git]
+commit_parsers = [
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^doc.*!:", group = "Documentation", skip = false },
+    { message = "^doc", group = "Documentation", skip = true },
+    { message = "^perf", group = "Performance" },
+    { message = "^refactor.*!:", group = "Refactor", skip = false },
+    { message = "^refactor", group = "Refactor", skip = true },
+    { message = "^style", group = "Styling", skip = true },
+    { message = "^test", group = "Testing", skip = true },
+    { message = "^chore\\(release\\): prepare for", skip = true },
+    { message = "^chore.*!:", group = "Miscellaneous Tasks", skip = false },
+    { message = "^chore", group = "Miscellaneous Tasks", skip = true },
+    { body = ".*security", group = "Security"},
+]
+filter_commits = true
+tag_pattern = "v[0-9]*"
+sort_commits = "newest"
