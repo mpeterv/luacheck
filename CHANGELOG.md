@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.0 (2022-08-24)
+
+### Documentation
+
+- [**breaking**] Follow semver guidelines, next release will be v1.x.y
+
+### Features
+
+- Overhaul docker container to run on Lua 5.4
+- Store cached luacheck values per-version in case of changes
+- Set_default_std for ldoc
+- Add builtin std option for Ldoc globals
+- Add builtin std option for the Playdate SDK
+
 ## v0.26.1 (2022-04-23)
 
 ### Bug Fixes

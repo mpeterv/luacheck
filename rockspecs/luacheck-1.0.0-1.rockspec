@@ -1,10 +1,9 @@
 local package_name = "luacheck"
-local package_version = "dev"
+local package_version = "1.0.0"
 local rockspec_revision = "1"
 local github_account_name = "lunarmodules"
 local github_repo_name = package_name
 
-rockspec_format = "3.0"
 package = package_name
 version = package_version .. "-" .. rockspec_revision
 
@@ -30,15 +29,6 @@ dependencies = {
    "argparse >= 0.6.0",
    "luafilesystem >= 1.6.3"
 }
-
-test_dependencies = {
-   "busted",
-}
-
-test = {
-   type = "busted",
-}
-
 build = {
    type = "builtin",
    modules = {

@@ -7,7 +7,7 @@ inputs:
     default: "."
 runs:
   using: docker
-  image: docker://ghcr.io/lunarmodules/luacheck:v0.26.1
+  image: docker://ghcr.io/lunarmodules/luacheck:v1.0.0
   entrypoint: sh
   args:
     - -c
