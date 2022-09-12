@@ -334,6 +334,12 @@ builtin_standards.ldoc = {
    }
 }
 
+builtin_standards.sile = {
+   globals = {
+      "SILE", "SU", "luautf8", "pl", "fluent", "CASILE"
+   }
+}
+
 builtin_standards.none = {}
 
 return builtin_standards
