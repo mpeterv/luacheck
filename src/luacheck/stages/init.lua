@@ -31,7 +31,9 @@ stages.names = {
 stages.modules = {}
 
 for _, name in ipairs(stages.names) do
-   table.insert(stages.modules, require("luacheck.stages." .. name))
+   print("stages","requring",name,#stages.modules)
+   local stage = require("luacheck.stages." .. name)
+   table.insert(stages.modules, stage)
 end
 
 stages.warnings = {}
