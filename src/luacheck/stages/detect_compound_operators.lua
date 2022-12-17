@@ -3,7 +3,7 @@ local core_utils = require "luacheck.core_utils"
 local stage = {}
 
 stage.warnings = {
-    ["533"] = {message_format = "assignment uses compound operator {operator}", fields = {"operator"}},
+    ["033"] = {message_format = "assignment uses compound operator {operator}", fields = {"operator"}},
 }
 
 local reverse_compound_operators = {
@@ -24,7 +24,7 @@ local reverse_compound_operators = {
 
 local function check_node(chstate, node)
     local operator = reverse_compound_operators[node[1]]
-    chstate:warn_range("533", node, {operator = operator})
+    chstate:warn_range("033", node, {operator = operator})
 end
 
 function stage.run(chstate)

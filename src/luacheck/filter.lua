@@ -163,7 +163,7 @@ local function passes_filter(normalized_options, warning)
       end
 
       warning.max_complexity = max_complexity
-   elseif warning.code == "533" then
+   elseif warning.code == "033" then
       local operators = normalized_options.operators or {}
       for _, op in ipairs(operators) do
          if warning.operator == op then
