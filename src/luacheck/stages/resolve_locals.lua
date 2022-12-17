@@ -96,18 +96,18 @@ end
 
 local function is_circular_reference(item, var)
    -- No support for matching multiple assignment to the specific assignment
-   if not item.lhs or #item.lhs ~= 1 or not item.rhs or #item.rhs ~= 1 then
+   if not (item.tag == "Set" or item.tag == "Local" or item.tag == "OpSet") then
       return false
    end
 
    -- Case t[t.function()] = t.func()
    -- Functions can have side-effects, so this isn't purely circular
-   local right_assignment = item.rhs[1]
+   local right_assignment = item.tag == "OpSet" and item.rhs or item.rhs[1]
    if contains_call(right_assignment) then
       return false
    end
 
-   local left_assignment = item.lhs[1]
+   local left_assignment = item.tag == "OpSet" and item.lhs or item.lhs[1]
    if contains_call(left_assignment) then
       return false
    end
