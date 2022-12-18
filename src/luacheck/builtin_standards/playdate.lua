@@ -135,7 +135,6 @@ local playdate = {
       argv = empty,
       setNewlinePrinted = empty,
       drawFPS = empty,
-      exit = empty,
 
       -- Profiling
       getStats = empty,
