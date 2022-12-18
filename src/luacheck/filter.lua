@@ -163,6 +163,15 @@ local function passes_filter(normalized_options, warning)
       end
 
       warning.max_complexity = max_complexity
+   elseif warning.code == "033" then
+      local operators = normalized_options.operators or {}
+      for _, op in ipairs(operators) do
+         if warning.operator == op then
+            return false
+         end
+      end
+
+      return true
    elseif warning.code:find("^[234]") and warning.name == "_" and not warning.useless then
       return false
    elseif warning.code:find("^1[14]") then

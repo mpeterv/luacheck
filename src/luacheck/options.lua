@@ -70,7 +70,7 @@ options.variadic_inline_options = {
    not_globals = array_of_strings,
    ignore = array_of_strings,
    enable = array_of_strings,
-   only = array_of_strings
+   only = array_of_strings,
 }
 
 options.all_options = {
@@ -79,7 +79,8 @@ options.all_options = {
    max_code_line_length = number_or_false,
    max_string_line_length = number_or_false,
    max_comment_line_length = number_or_false,
-   max_cyclomatic_complexity = number_or_false
+   max_cyclomatic_complexity = number_or_false,
+   operators = array_of_strings
 }
 
 utils.update(options.all_options, options.nullary_inline_options)
@@ -385,6 +386,26 @@ local function normalize_patterns(rules)
    return res
 end
 
+local function get_operators(opts_stack)
+   local operators, operatorsMap = nil, nil
+
+   for _, opts in ipairs(opts_stack) do
+      if opts.operators then
+         operators = operators or {}
+         operatorsMap = operatorsMap or {}
+
+         for _, op in ipairs(opts.operators) do
+            if not operatorsMap[op] then
+               table.insert(operators, op)
+               operatorsMap[op] = true
+            end
+         end
+      end
+   end
+
+   return operators
+end
+
 local scalar_options = {
    unused_secondaries = true,
    self = true,
@@ -404,6 +425,7 @@ function options.normalize(opts_stack, stds)
    local res = {}
    stds = stds or builtin_standards
    res.std = get_final_std(opts_stack, stds)
+   res.operators = get_operators(opts_stack)
 
    for option, default in pairs(scalar_options) do
       res[option] = get_scalar_opt(opts_stack, option, default)

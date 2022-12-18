@@ -69,6 +69,12 @@ Links:
          :count "*"
          :argname "<patt>"
          :action "concat"
+         :init(nil),
+      parser:option("--operators", "Allow compound operators matching patterns")
+         :args "+"
+         :count "*"
+         :argname "<patt>"
+         :action "concat"
          :init(nil))
 
    parser:group("Options for configuring allowed globals",

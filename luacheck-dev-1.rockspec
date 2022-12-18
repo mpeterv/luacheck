@@ -68,6 +68,7 @@ build = {
       ["luacheck.serializer"] = "src/luacheck/serializer.lua",
       ["luacheck.stages"] = "src/luacheck/stages/init.lua",
       ["luacheck.stages.detect_bad_whitespace"] = "src/luacheck/stages/detect_bad_whitespace.lua",
+      ["luacheck.stages.detect_compound_operators"] = "src/luacheck/stages/detect_compound_operators.lua",
       ["luacheck.stages.detect_cyclomatic_complexity"] = "src/luacheck/stages/detect_cyclomatic_complexity.lua",
       ["luacheck.stages.detect_empty_blocks"] = "src/luacheck/stages/detect_empty_blocks.lua",
       ["luacheck.stages.detect_empty_statements"] = "src/luacheck/stages/detect_empty_statements.lua",

@@ -10,6 +10,7 @@ Code Description
 021  An invalid inline option.
 022  An unpaired inline push directive.
 023  An unpaired inline pop directive.
+033  Invalid use of a compound operator. (Lua doesn't support compound operator by default; if using an extension that does, please set the operators option.)
 111  Setting an undefined global variable.
 112  Mutating an undefined global variable.
 113  Accessing an undefined global variable.
