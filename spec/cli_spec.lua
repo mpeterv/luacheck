@@ -296,25 +296,25 @@ Total: 5 warnings / 0 errors in 1 file
    end)
 
    it("raises critical errors on config without additional operators", function()
-      assert.equal([[Checking spec/samples/compound_operators.lua      4 warnings
+      assert.equal([[Checking spec/samples/compound_operators.lua      4 errors
 
     spec/samples/compound_operators.lua:2:1: assignment uses compound operator +=
     spec/samples/compound_operators.lua:3:1: assignment uses compound operator -=
     spec/samples/compound_operators.lua:4:1: assignment uses compound operator *=
     spec/samples/compound_operators.lua:5:1: assignment uses compound operator /=
 
-Total: 4 warnings / 0 errors in 1 file
+Total: 0 warnings / 4 errors in 1 file
 ]], get_output "spec/samples/compound_operators.lua --no-config")
    end)
 
    it("raises critical errors for unfiltered additional operators", function()
-      assert.equal([[Checking spec/samples/compound_operators.lua      3 warnings
+      assert.equal([[Checking spec/samples/compound_operators.lua      3 errors
 
     spec/samples/compound_operators.lua:3:1: assignment uses compound operator -=
     spec/samples/compound_operators.lua:4:1: assignment uses compound operator *=
     spec/samples/compound_operators.lua:5:1: assignment uses compound operator /=
 
-Total: 3 warnings / 0 errors in 1 file
+Total: 0 warnings / 3 errors in 1 file
 ]], get_output "spec/samples/compound_operators.lua --no-config --operators +=")
    end)
 
@@ -1235,7 +1235,7 @@ Codes: true
             assert.equal(([[
 Checking spec/samples/argparse-0.2.0.lua          9 warnings
 Checking spec/samples/compat.lua                  4 warnings
-Checking spec/samples/compound_operators.lua      4 warnings
+Checking spec/samples/compound_operators.lua      4 errors
 Checking spec/samples/custom_std_inline_options.lua 3 warnings / 1 error
 Checking spec/samples/global_inline_options.lua   3 warnings
 Checking spec/samples/globals.lua                 2 warnings
@@ -1252,7 +1252,7 @@ Checking spec/samples/unused_secondaries.lua      4 warnings
 Checking spec/samples/utf8.lua                    4 warnings
 Checking spec/samples/utf8_error.lua              1 error
 
-Total: 77 warnings / 5 errors in 20 files
+Total: 73 warnings / 9 errors in 20 files
 ]]):gsub("(spec/samples)/", "%1"..package.config:sub(1, 1)),
             get_output "spec/samples --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files spec/samples/global_fields.lua")
          end)
@@ -1261,7 +1261,7 @@ Total: 77 warnings / 5 errors in 20 files
             assert.equal([[
 Checking argparse-0.2.0.lua                       9 warnings
 Checking compat.lua                               4 warnings
-Checking compound_operators.lua                   4 warnings
+Checking compound_operators.lua                   4 errors
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
@@ -1278,7 +1278,7 @@ Checking unused_secondaries.lua                   4 warnings
 Checking utf8.lua                                 4 warnings
 Checking utf8_error.lua                           1 error
 
-Total: 77 warnings / 5 errors in 20 files
+Total: 73 warnings / 9 errors in 20 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua", "spec/samples/"))
          end)
 
@@ -1286,7 +1286,7 @@ Total: 77 warnings / 5 errors in 20 files
             assert.equal([[
 Checking argparse-0.2.0.lua                       9 warnings
 Checking compat.lua                               4 warnings
-Checking compound_operators.lua                   4 warnings
+Checking compound_operators.lua                   4 errors
 Checking custom_std_inline_options.lua            3 warnings / 1 error
 Checking global_inline_options.lua                3 warnings
 Checking globals.lua                              2 warnings
@@ -1301,7 +1301,7 @@ Checking unused_secondaries.lua                   4 warnings
 Checking utf8.lua                                 4 warnings
 Checking utf8_error.lua                           1 error
 
-Total: 69 warnings / 5 errors in 18 files
+Total: 65 warnings / 9 errors in 18 files
 ]], get_output(". --config=spec/configs/exclude_files_config.luacheckrc -qq --exclude-files global_fields.lua --exclude-files " .. quote("./read*"), "spec/samples/"))
          end)
 
