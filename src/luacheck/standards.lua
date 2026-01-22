@@ -130,21 +130,25 @@ local function add_fields(def, fields, overwrite, ignore_array_part, default_rea
 
    for field_name, field_def in pairs(fields) do
       if type(field_name) == "string" or not ignore_array_part then
+
+         local actual_field_name = field_name
+         local actual_field_def = field_def
+
          if type(field_name) ~= "string" then
-            field_name = field_def
-            field_def = infinitely_indexable_def
+            actual_field_name = field_def
+            actual_field_def = infinitely_indexable_def
          end
 
          if not def.fields then
             def.fields = {}
          end
 
-         if not def.fields[field_name] then
-            def.fields[field_name] = {}
+         if not def.fields[actual_field_name] then
+            def.fields[actual_field_name] = {}
          end
 
-         local existing_field_def = def.fields[field_name]
-         local new_read_only = field_def.read_only
+         local existing_field_def = def.fields[actual_field_name]
+         local new_read_only = actual_field_def.read_only
 
          if new_read_only == nil then
             new_read_only = default_read_only
@@ -156,13 +160,13 @@ local function add_fields(def, fields, overwrite, ignore_array_part, default_rea
             end
          end
 
-         if field_def.other_fields ~= nil then
-            if overwrite or field_def.other_fields == true then
-               existing_field_def.other_fields = field_def.other_fields
+         if actual_field_def.other_fields ~= nil then
+            if overwrite or actual_field_def.other_fields == true then
+               existing_field_def.other_fields = actual_field_def.other_fields
             end
          end
 
-         add_fields(existing_field_def, field_def.fields, overwrite, false, nil)
+         add_fields(existing_field_def, actual_field_def.fields, overwrite, false, nil)
       end
    end
 end
